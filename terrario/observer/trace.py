@@ -364,6 +364,8 @@ class TransitionTrace:
     step: int
     observation_t_hash: str
     observation_t1_hash: str
+    observation_t: dict[str, Any]
+    observation_t1: dict[str, Any]
     action_t: int
     terminated: bool
     truncated: bool
@@ -377,7 +379,9 @@ class TransitionTrace:
     def to_dict(self) -> dict[str, Any]:
         return {
             "step": self.step, "observation_t_hash": self.observation_t_hash,
-            "observation_t1_hash": self.observation_t1_hash, "action_t": self.action_t,
+            "observation_t1_hash": self.observation_t1_hash,
+            "observation_t": _serialize_value(self.observation_t),
+            "observation_t1": _serialize_value(self.observation_t1), "action_t": self.action_t,
             "terminated": self.terminated, "truncated": self.truncated,
             "consequence": _serialize_value(self.consequence),
             "agent_identity": _serialize_value(self.agent_identity),

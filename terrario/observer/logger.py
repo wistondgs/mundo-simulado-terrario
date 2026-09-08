@@ -67,8 +67,10 @@ class ScientificObserver:
         self._episode = 0
         self._seed = 0
         self._config_hash = ""
+        self._config: dict[str, Any] = {}
 
         if config is not None:
+            self._config = dict(config)
             self._config_hash = hashlib.sha256(
                 json.dumps(config, sort_keys=True, default=str).encode()
             ).hexdigest()[:16]
@@ -215,7 +217,7 @@ class ScientificObserver:
 
     # ── Checkpoint ────────────────────────────────────────────────────
 
-    def checkpoint(self, agent: Any, step: int) -> None:
+    def checkpoint(self, agent: Any, step: int, metadata: dict[str, Any] | None = None) -> None:
         """Save a checkpoint of the agent's state.
 
         Extracts parameters from the agent without modifying it.
@@ -230,14 +232,16 @@ class ScientificObserver:
         if hasattr(agent, "get_optimizer_state"):
             optimizer_state = agent.get_optimizer_state()
 
-        metadata = {
+        checkpoint_metadata = {
             "step": step,
             "mode": self.mode,
             "run_id": self._run_id,
         }
+        if metadata:
+            checkpoint_metadata.update(metadata)
         self.storage.save_checkpoint(
             {k: self._to_numpy(v) for k, v in params.items()},
-            {k: self._to_numpy(v) for k, v in optimizer_state.items()}, step, metadata,
+            {k: self._to_numpy(v) for k, v in optimizer_state.items()}, step, checkpoint_metadata,
         )
 
     def log_transition(
@@ -254,6 +258,8 @@ class ScientificObserver:
             step=transition.step,
             observation_t_hash=transition.observation_t.obs_hash(),
             observation_t1_hash=transition.observation_t1.obs_hash(),
+            observation_t=self._observation_record(transition.observation_t),
+            observation_t1=self._observation_record(transition.observation_t1),
             action_t=transition.action_t.to_int(),
             terminated=transition.terminated, truncated=transition.truncated,
             consequence={
@@ -261,16 +267,44 @@ class ScientificObserver:
                 "agent_events": list(transition.events),
                 "observer_events": list(transition.consequence_t1.observer_events),
             },
-            agent_identity=dict(agent_identity), internal_state=dict(agent_internal_state),
+            agent_identity={**dict(agent_identity), "provenance": self._config}, internal_state=dict(agent_internal_state),
             observer_world=observer_snapshot.world, agent_trace_events=list(agent_trace_events),
             parameter_deltas=parameter_deltas,
         ))
+
+    def capture_forensic(self, agent: Any, step: int, parameter_deltas: dict[str, float]) -> None:
+        """Capture a small real forensic slice for selected agent modules."""
+        if self.mode != "forensic_full":
+            return
+        for name in ("_last_latent", "_hidden", "_last_state"):
+            value = getattr(agent, name, None)
+            if value is not None:
+                self.storage.save_tensor(f"activation_{name[1:]}", self._to_numpy(value), step)
+        gradients: dict[str, float] = {}
+        for module_name, value in vars(agent).items():
+            if not isinstance(value, __import__("torch").nn.Module):
+                continue
+            for parameter_name, parameter in value.named_parameters():
+                if parameter.grad is None:
+                    continue
+                name = f"gradient_{module_name}_{parameter_name.replace('.', '_')}"
+                self.storage.save_tensor(name, self._to_numpy(parameter.grad), step)
+                gradients[f"{module_name}.{parameter_name}"] = float(parameter.grad.norm().item())
+        self.storage.save_tensor("parameter_delta_norms", np.asarray(list(parameter_deltas.values()), dtype=np.float32), step)
+        self.storage.save_tensor("gradient_norms", np.asarray(list(gradients.values()), dtype=np.float32), step)
 
     @staticmethod
     def _to_numpy(value: Any) -> np.ndarray:
         if hasattr(value, "detach"):
             return value.detach().cpu().numpy()
         return np.asarray(value)
+
+    @staticmethod
+    def _observation_record(observation: Observation) -> dict[str, Any]:
+        return {
+            "channels": observation.channels.tolist(), "mask": observation.mask.tolist(),
+            "agent_energy": observation.agent_energy, "time_fraction": observation.time_fraction,
+        }
 
     # ── Metrics ───────────────────────────────────────────────────────
 

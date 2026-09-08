@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 from typing import Any
 
 import numpy as np
@@ -56,7 +57,7 @@ class ExperimentController:
         self.scenario = load_scenario(config.scenario_path)
         self.results: dict[str, Any] = {
             "experiment_id": config.experiment_id,
-            "config_hash": config.config_hash(), "episodes": [],
+            "config_hash": config.config_hash(), "code_hash": self._code_hash(), "episodes": [],
         }
 
     def run(self) -> dict:
@@ -85,7 +86,7 @@ class ExperimentController:
         observer = ScientificObserver(run_dir, self.config.observer_mode, {
             "experiment_id": self.config.experiment_id,
             "hypothesis_id": self.config.hypothesis.hypothesis_id if self.config.hypothesis else None,
-            "seed": seed, "config_hash": self.config.config_hash(),
+            "seed": seed, "config_hash": self.config.config_hash(), "code_hash": self._code_hash(),
             "device": self.config.device, "agent_identity": agent.agent_identity,
         })
         observer.set_episode(episode_idx)
@@ -136,7 +137,15 @@ class ExperimentController:
                 observation_t, str(agent.get_internal_state()), action_t, consequence,
                 observation_t1, terminated, truncated, step, seed,
             )
+            before_parameters = agent.get_parameters() if observer.mode == "forensic_full" else None
             agent.learn(transition)
+            parameter_deltas = None
+            if before_parameters is not None:
+                after_parameters = agent.get_parameters()
+                parameter_deltas = {
+                    name: float((after_parameters[name] - value).norm().item())
+                    for name, value in before_parameters.items() if name in after_parameters
+                }
 
             truth = world_state_mgr._mutable_state()
             energy_history.append(truth.agents[0].energy)
@@ -152,10 +161,12 @@ class ExperimentController:
             observer.log_step(step, truth.clone(), agent, observation_t, action_t, consequence, {})
             observer.log_transition(
                 transition, world_state_mgr.observer_snapshot(step), agent.agent_identity,
-                agent.get_internal_state(), agent.get_trace_events(),
+                agent.get_internal_state(), agent.get_trace_events(), parameter_deltas,
             )
+            if observer.mode == "forensic_full":
+                observer.capture_forensic(agent, step, parameter_deltas or {})
             if self.config.checkpoint_every > 0 and (step + 1) % self.config.checkpoint_every == 0:
-                observer.checkpoint(agent, step + 1)
+                observer.checkpoint(agent, step + 1, {"world_snapshot": world_state_mgr.serialize()})
             if terminated:
                 break
 
@@ -188,3 +199,10 @@ class ExperimentController:
         path = os.path.join(self.config.output_dir, f"{self.config.experiment_id}_results.json")
         with open(path, "w") as f:
             json.dump(self.results, f, indent=2, default=lambda x: float(x) if isinstance(x, (np.floating, np.integer)) else str(x))
+
+    @staticmethod
+    def _code_hash() -> str:
+        try:
+            return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+        except (OSError, subprocess.CalledProcessError):
+            return "unavailable"

@@ -7,11 +7,13 @@ Uses safetensors when available, falls back to numpy NPZ.
 from __future__ import annotations
 
 import json
+import random
 import time
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 
 try:
     import safetensors.numpy as st_np
@@ -83,6 +85,16 @@ class CheckpointManager:
         with open(ckpt_dir / "metadata.json", "w") as f:
             json.dump(meta, f, indent=2, default=str)
 
+        # Runtime state is local checkpoint material, separate from portable
+        # parameter tensors. It enables deterministic CPU replay.
+        runtime = {
+            "python": random.getstate(),
+            "numpy": np.random.get_state(),
+            "torch": torch.get_rng_state(),
+            "agent_generator": agent._generator.get_state() if hasattr(agent, "_generator") else None,
+        }
+        torch.save(runtime, ckpt_dir / "runtime_state.pt")
+
     def load(self, step: int) -> dict:
         """Load a checkpoint by step number.
 
@@ -121,11 +133,30 @@ class CheckpointManager:
             with open(meta_path) as f:
                 metadata = json.load(f)
 
+        runtime_path = ckpt_dir / "runtime_state.pt"
+        runtime_state = torch.load(runtime_path, weights_only=False) if runtime_path.exists() else None
         return {
             "params": params,
             "optimizer_state": optimizer_state,
             "metadata": metadata,
+            "runtime_state": runtime_state,
         }
+
+    def restore(self, agent: Any, step: int, world_manager: Any | None = None) -> dict:
+        """Restore parameters, RNG, and an optional serialized WorldTruth."""
+        checkpoint = self.load(step)
+        if hasattr(agent, "set_parameters"):
+            agent.set_parameters({k: torch.as_tensor(v) for k, v in checkpoint["params"].items()})
+        runtime = checkpoint["runtime_state"]
+        if runtime is not None:
+            random.setstate(runtime["python"])
+            np.random.set_state(runtime["numpy"])
+            torch.set_rng_state(runtime["torch"])
+            if runtime["agent_generator"] is not None and hasattr(agent, "_generator"):
+                agent._generator.set_state(runtime["agent_generator"])
+        if world_manager is not None and "world_snapshot" in checkpoint["metadata"]:
+            world_manager.restore(checkpoint["metadata"]["world_snapshot"])
+        return checkpoint
 
     def list_checkpoints(self) -> list[int]:
         """List all available checkpoint steps, sorted ascending."""
