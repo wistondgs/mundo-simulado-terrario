@@ -1,0 +1,520 @@
+"""A4_ADVANCED — the full cognitive architecture.
+
+Pipeline:
+    PerceptualEncoder → latent e_t
+    SSMCore (or GRUCore) → temporal state h_t
+    EpisodicMemory.read(e_t) → memory_context
+    LongTermMemory.read(h_t) → lt_context
+    Combined state s_t = concat(e_t, h_t, memory_context, lt_context)
+    WorldModel(s_t, a_t) → predictions
+    UncertaintyEstimator(s_t, a_t) → uncertainty
+    PolicyHead(s_t) → action logits
+    Planner (optional) → refined action
+    HomeostaticState → modulates exploration
+    OnlineLearner → updates all modules
+
+Fully ablatable via config dict. When a module is ablated, it is replaced
+by a no-op or zeros — NOT removed from the pipeline.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import torch
+import torch.nn.functional as F
+
+from terrario.agent.base import AgentInterface
+from terrario.agent.encoder import PerceptualEncoder
+from terrario.agent.homeostasis import HomeostaticState
+from terrario.agent.learner import OnlineLearner
+from terrario.agent.memory import EpisodicMemory, LongTermMemory
+from terrario.agent.policy import Planner, PolicyHead
+from terrario.agent.temporal import GRUCore, SSMCore, TemporalCore
+from terrario.agent.uncertainty import UncertaintyEstimator
+from terrario.agent.world_model import WorldModel
+from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+
+DEFAULT_CONFIG: dict[str, Any] = {
+    "use_temporal": True,
+    "use_episodic_memory": True,
+    "use_longterm_memory": True,
+    "use_world_model": True,
+    "use_uncertainty": True,
+    "use_planner": True,
+    "use_online_learning": True,
+    "temporal_core": "ssm",
+    "latent_dim": 128,
+    "hidden_dim": 256,
+    "memory_capacity": 1000,
+    "memory_slots": 64,
+    "memory_dim": 128,
+    "ensemble_size": 5,
+    "planner_horizon": 5,
+    "planner_candidates": 10,
+    "learning_rate": 3e-4,
+    "grad_clip": 1.0,
+    "update_frequency": 1,
+    "num_channels": 4,
+    "view_size": 5,
+}
+
+
+class A4Advanced(AgentInterface):
+    """Full cognitive architecture with all modules ablatable via config."""
+
+    def __init__(
+        self,
+        config: dict[str, Any] | None = None,
+        generator: torch.Generator | None = None,
+    ):
+        self.config = {**DEFAULT_CONFIG, **(config or {})}
+        self._generator = generator or torch.Generator()
+        self._trace: list[dict[str, Any]] = []
+        self._step: int = 0
+
+        latent_dim: int = self.config["latent_dim"]
+        hidden_dim: int = self.config["hidden_dim"]
+        memory_dim: int = self.config["memory_dim"]
+        memory_slots: int = self.config["memory_slots"]
+        memory_capacity: int = self.config["memory_capacity"]
+        ensemble_size: int = self.config["ensemble_size"]
+
+        # ── Core modules (always present) ────────────────────────────
+        self.encoder = PerceptualEncoder(
+            self.config["num_channels"],
+            self.config["view_size"],
+            latent_dim,
+        )
+
+        # ── Temporal core ────────────────────────────────────────────
+        self._use_temporal: bool = self.config["use_temporal"]
+        if self._use_temporal:
+            if self.config["temporal_core"] == "gru":
+                self.temporal_core: TemporalCore = GRUCore(latent_dim, hidden_dim)
+            else:
+                self.temporal_core = SSMCore(latent_dim, hidden_dim)
+        else:
+            # No-op temporal core: hidden is always zeros
+            self.temporal_core = SSMCore(latent_dim, hidden_dim)
+            # Freeze parameters so it doesn't learn
+            for p in self.temporal_core.parameters():
+                p.requires_grad_(False)
+
+        self._hidden: torch.Tensor = self.temporal_core.initial_state(1)
+
+        # ── Episodic memory ──────────────────────────────────────────
+        self._use_episodic: bool = self.config["use_episodic_memory"]
+        self.episodic_memory = EpisodicMemory(capacity=memory_capacity)
+
+        # ── Long-term memory ─────────────────────────────────────────
+        self._use_longterm: bool = self.config["use_longterm_memory"]
+        self.longterm_memory = LongTermMemory(memory_slots, memory_dim, input_dim=hidden_dim)
+        if not self._use_longterm:
+            for p in self.longterm_memory.parameters():
+                p.requires_grad_(False)
+
+        # ── Combined state dimension ─────────────────────────────────
+        # s_t = concat(e_t, h_t, memory_context, lt_context)
+        # memory_context is a weighted average of retrieved embeddings (latent_dim)
+        # lt_context is memory_dim
+        self._state_dim = latent_dim + hidden_dim + latent_dim + memory_dim
+
+        # ── World model ──────────────────────────────────────────────
+        self._use_world_model: bool = self.config["use_world_model"]
+        self.world_model = WorldModel(self._state_dim, TOTAL_ACTIONS)
+        if not self._use_world_model:
+            for p in self.world_model.parameters():
+                p.requires_grad_(False)
+
+        # ── Uncertainty estimator ────────────────────────────────────
+        self._use_uncertainty: bool = self.config["use_uncertainty"]
+        self.uncertainty_estimator = UncertaintyEstimator(
+            self._state_dim, TOTAL_ACTIONS, ensemble_size
+        )
+        if not self._use_uncertainty:
+            for p in self.uncertainty_estimator.parameters():
+                p.requires_grad_(False)
+
+        # ── Policy head ──────────────────────────────────────────────
+        self.policy_head = PolicyHead(self._state_dim)
+
+        # ── Planner ──────────────────────────────────────────────────
+        self._use_planner: bool = self.config["use_planner"]
+        self.planner = Planner(generator=self._generator)
+
+        # ── Homeostasis ──────────────────────────────────────────────
+        self.homeostasis = HomeostaticState()
+
+        # ── Online learner ───────────────────────────────────────────
+        self._use_online_learning: bool = self.config["use_online_learning"]
+        learnable_modules: dict[str, torch.nn.Module] = {
+            "encoder": self.encoder,
+            "policy_head": self.policy_head,
+        }
+        if self._use_temporal:
+            learnable_modules["temporal_core"] = self.temporal_core
+        if self._use_longterm:
+            learnable_modules["longterm_memory"] = self.longterm_memory
+        if self._use_world_model:
+            learnable_modules["world_model"] = self.world_model
+        if self._use_uncertainty:
+            learnable_modules["uncertainty_estimator"] = self.uncertainty_estimator
+
+        self.learner = OnlineLearner(
+            modules=learnable_modules,
+            lr=self.config["learning_rate"],
+            grad_clip=self.config["grad_clip"],
+            update_frequency=self.config["update_frequency"],
+        )
+
+        # ── Internal state for learning ──────────────────────────────
+        self._last_latent: torch.Tensor | None = None
+        self._last_hidden: torch.Tensor | None = None
+        self._last_state: torch.Tensor | None = None
+        self._last_action: int = 0
+        self._last_log_prob: torch.Tensor | None = None
+        self._energy_baseline: float = 0.0
+        self._baseline_count: int = 0
+
+    # ── Pipeline helpers ─────────────────────────────────────────────
+
+    def _build_state(
+        self,
+        latent: torch.Tensor,
+        hidden: torch.Tensor,
+    ) -> torch.Tensor:
+        """Build the combined state vector s_t.
+
+        s_t = concat(e_t, h_t, memory_context, lt_context)
+        Ablated modules contribute zeros.
+        """
+        latent_dim: int = self.config["latent_dim"]
+        hidden_dim: int = self.config["hidden_dim"]
+        memory_dim: int = self.config["memory_dim"]
+
+        # Episodic memory context
+        if self._use_episodic and self.episodic_memory.size > 0:
+            retrieved, weights, _ = self.episodic_memory.read(latent, k=5)
+            # Weighted average of retrieved embeddings
+            memory_context = (retrieved * weights.unsqueeze(-1)).sum(dim=0)  # (latent_dim,)
+        else:
+            memory_context = torch.zeros(latent_dim)
+
+        # Long-term memory context
+        if self._use_longterm:
+            lt_context, _ = self.longterm_memory.read(hidden)  # (memory_dim,)
+        else:
+            lt_context = torch.zeros(memory_dim)
+
+        state = torch.cat([latent, hidden, memory_context, lt_context])
+        return state
+
+    def _action_to_onehot(self, action_int: int) -> torch.Tensor:
+        onehot = torch.zeros(TOTAL_ACTIONS)
+        onehot[action_int] = 1.0
+        return onehot
+
+    # ── AgentInterface implementation ────────────────────────────────
+
+    def perceive(self, observation: Observation) -> None:
+        self._last_latent = self.encoder.encode_observation(observation.channels)
+
+        # Update homeostasis with observed energy
+        self.homeostasis._energy = observation.agent_energy
+
+        self._trace.append({
+            "op": "perceive",
+            "step": self._step,
+            "latent_norm": self._last_latent.norm().item(),
+            "agent_energy": observation.agent_energy,
+        })
+
+    def decide(self) -> Action:
+        if self._last_latent is None:
+            action_int = int(torch.randint(0, TOTAL_ACTIONS, (1,), generator=self._generator).item())
+            return Action.from_int(action_int)
+
+        latent = self._last_latent
+
+        # ── Temporal core ────────────────────────────────────────────
+        self._last_hidden = self._hidden.clone()
+        if self._use_temporal:
+            x = latent.unsqueeze(0)
+            output, self._hidden = self.temporal_core(x, self._hidden)
+            self._hidden = self._hidden.detach()
+            h = output.squeeze(0)
+        else:
+            h = torch.zeros(self.config["hidden_dim"])
+
+        # ── Build combined state ─────────────────────────────────────
+        state = self._build_state(latent, h)
+        self._last_state = state.detach()
+
+        # ── Policy ───────────────────────────────────────────────────
+        logits = self.policy_head(state)
+
+        # Modulate temperature by homeostatic exploration bias
+        temperature = 1.0 + self.homeostasis.exploration_bias
+
+        # ── Uncertainty bonus ────────────────────────────────────────
+        if self._use_uncertainty:
+            # Add exploration bonus for uncertain actions
+            with torch.no_grad():
+                uncertainties = torch.zeros(TOTAL_ACTIONS)
+                for a in range(TOTAL_ACTIONS):
+                    a_onehot = self._action_to_onehot(a)
+                    _, var, _ = self.uncertainty_estimator.predict(state, a_onehot)
+                    uncertainties[a] = var.mean().item()
+                # Boost logits for uncertain actions (curiosity)
+                logits = logits + 0.1 * uncertainties
+
+        # ── Planner refinement ───────────────────────────────────────
+        if self._use_planner and self._use_world_model:
+            planned_action, plan_trace = self.planner.plan(
+                state,
+                self.world_model,
+                horizon=self.config["planner_horizon"],
+                num_candidates=self.config["planner_candidates"],
+            )
+            # Blend planner and policy: use planner action with some probability
+            plan_prob = 0.5
+            if torch.rand(1, generator=self._generator).item() < plan_prob:
+                action_int = planned_action
+                log_prob = torch.log(F.softmax(logits, dim=-1)[action_int] + 1e-8)
+            else:
+                action_int, log_prob, _ = self.policy_head.sample(
+                    logits, temperature, generator=self._generator
+                )
+        else:
+            action_int, log_prob, _ = self.policy_head.sample(
+                logits, temperature, generator=self._generator
+            )
+
+        self._last_action = action_int
+        self._last_log_prob = log_prob
+
+        self._trace.append({
+            "op": "decide",
+            "step": self._step,
+            "action_int": action_int,
+            "log_prob": log_prob.item(),
+            "temperature": temperature,
+            "hidden_norm": self._hidden.norm().item(),
+            "state_norm": state.norm().item(),
+            "drive": self.homeostasis.drive,
+            "exploration_bias": self.homeostasis.exploration_bias,
+        })
+        return Action.from_int(action_int)
+
+    def learn(self, consequence: Consequence) -> None:
+        if self._last_state is None or self._last_latent is None:
+            self._step += 1
+            return
+
+        # ── Update homeostasis ───────────────────────────────────────
+        self.homeostasis.update(consequence.energy_delta)
+
+        # ── Write to episodic memory ─────────────────────────────────
+        if self._use_episodic:
+            prediction_error = 0.0
+            if self._use_world_model and self._last_state is not None:
+                with torch.no_grad():
+                    a_onehot = self._action_to_onehot(self._last_action)
+                    _, e_pred, _ = self.world_model(self._last_state, a_onehot)
+                    prediction_error = abs(e_pred.item() - consequence.energy_delta)
+
+            self.episodic_memory.write(
+                embedding=self._last_latent,
+                action=self._last_action,
+                energy_delta=consequence.energy_delta,
+                prediction_error=prediction_error,
+                timestamp=self._step,
+            )
+
+        # ── Write to long-term memory ────────────────────────────────
+        if self._use_longterm:
+            h = self._hidden.squeeze(0) if self._hidden.dim() > 1 else self._hidden
+            self.longterm_memory.write(h, h)
+
+        # ── Learning ─────────────────────────────────────────────────
+        if self._use_online_learning:
+            wm_loss = None
+            policy_loss = None
+
+            # World model loss
+            if self._use_world_model and consequence.new_observation is not None:
+                a_onehot = self._action_to_onehot(self._last_action)
+                energy_target = torch.tensor([consequence.energy_delta])
+                done_target = torch.tensor([1.0 if consequence.done else 0.0])
+
+                # Build the next combined state as target
+                with torch.no_grad():
+                    next_latent = self.encoder.encode_observation(
+                        consequence.new_observation.channels
+                    )
+                    # Run temporal core one step with next latent
+                    if self._use_temporal:
+                        next_x = next_latent.unsqueeze(0)
+                        _, next_h = self.temporal_core(next_x, self._hidden)
+                        next_h = next_h.squeeze(0)
+                    else:
+                        next_h = torch.zeros(self.config["hidden_dim"])
+                    next_state_target = self._build_state(next_latent, next_h)
+
+                wm_losses = self.world_model.loss(
+                    self._last_state.unsqueeze(0),
+                    a_onehot.unsqueeze(0),
+                    next_state_target.unsqueeze(0),
+                    energy_target,
+                    done_target,
+                )
+                wm_loss = wm_losses["loss_total"]
+
+            # Policy loss: REINFORCE with baseline
+            if self._last_log_prob is not None and self._last_state is not None:
+                # Update running baseline
+                self._baseline_count += 1
+                self._energy_baseline += (
+                    consequence.energy_delta - self._energy_baseline
+                ) / self._baseline_count
+
+                advantage = consequence.energy_delta - self._energy_baseline
+
+                # Re-compute log_prob with fresh graph to avoid double-backward
+                fresh_logits = self.policy_head(self._last_state.detach())
+                fresh_probs = F.softmax(fresh_logits, dim=-1)
+                fresh_log_prob = torch.log(fresh_probs[self._last_action] + 1e-8)
+                policy_loss = -fresh_log_prob * advantage
+
+            # Uncertainty estimator loss: train ensemble to predict energy_delta
+            if self._use_uncertainty and self._use_world_model:
+                a_onehot = self._action_to_onehot(self._last_action)
+                energy_target_t = torch.tensor([[consequence.energy_delta]])
+                state_batch = self._last_state.unsqueeze(0)
+                action_batch = a_onehot.unsqueeze(0)
+                x = torch.cat([state_batch, action_batch], dim=-1)
+                unc_loss = torch.tensor(0.0, requires_grad=True)
+                for head in self.uncertainty_estimator.heads:
+                    pred = head(x)
+                    unc_loss = unc_loss + F.mse_loss(pred, energy_target_t)
+                unc_loss = unc_loss / len(self.uncertainty_estimator.heads)
+                if wm_loss is not None:
+                    wm_loss = wm_loss + unc_loss
+                else:
+                    wm_loss = unc_loss
+
+            # Step the learner
+            event = self.learner.step(
+                world_model_loss=wm_loss,
+                policy_loss=policy_loss,
+            )
+
+            if event is not None:
+                self._trace.append({
+                    "op": "learn",
+                    "step": self._step,
+                    "loss_total": event.loss_total,
+                    "loss_components": event.loss_components,
+                    "grad_norms": event.grad_norms,
+                    "energy_delta": consequence.energy_delta,
+                    "advantage": advantage if self._last_log_prob is not None else 0.0,
+                    "done": consequence.done,
+                })
+        else:
+            self._trace.append({
+                "op": "learn",
+                "step": self._step,
+                "energy_delta": consequence.energy_delta,
+                "done": consequence.done,
+                "online_learning": False,
+            })
+
+        self._step += 1
+
+    def get_internal_state(self) -> dict[str, Any]:
+        return {
+            "step": self._step,
+            "agent_type": "A4_ADVANCED",
+            "latent_norm": self._last_latent.norm().item() if self._last_latent is not None else 0.0,
+            "hidden_norm": self._hidden.norm().item(),
+            "state_norm": self._last_state.norm().item() if self._last_state is not None else 0.0,
+            "episodic_memory_size": self.episodic_memory.size,
+            "homeostasis": self.homeostasis.get_state(),
+            "energy_baseline": self._energy_baseline,
+            "config": {k: v for k, v in self.config.items()},
+        }
+
+    def get_trace_events(self) -> list[dict[str, Any]]:
+        events = list(self._trace)
+        self._trace.clear()
+
+        # Collect sub-module traces
+        events.extend(self.episodic_memory.get_trace())
+        events.extend(self.longterm_memory.get_trace())
+        events.extend(self.planner.get_trace())
+        events.extend(self.homeostasis.get_trace())
+        events.extend(self.learner.get_trace())
+
+        return events
+
+    def reset(self) -> None:
+        self._step = 0
+        self._trace.clear()
+        self._hidden = self.temporal_core.initial_state(1)
+        self._last_latent = None
+        self._last_hidden = None
+        self._last_state = None
+        self._last_action = 0
+        self._last_log_prob = None
+        self._energy_baseline = 0.0
+        self._baseline_count = 0
+
+        self.episodic_memory.reset()
+        self.longterm_memory.reset_memory()
+        self.homeostasis.reset()
+        self.learner.reset()
+
+    def get_parameters(self) -> dict[str, torch.Tensor]:
+        params: dict[str, torch.Tensor] = {}
+        modules = [
+            ("encoder", self.encoder),
+            ("temporal_core", self.temporal_core),
+            ("longterm_memory", self.longterm_memory),
+            ("world_model", self.world_model),
+            ("uncertainty_estimator", self.uncertainty_estimator),
+            ("policy_head", self.policy_head),
+        ]
+        for prefix, module in modules:
+            for name, p in module.named_parameters():
+                params[f"{prefix}.{name}"] = p.detach().clone()
+        return params
+
+    def set_parameters(self, params: dict[str, torch.Tensor]) -> None:
+        with torch.no_grad():
+            modules = [
+                ("encoder", self.encoder),
+                ("temporal_core", self.temporal_core),
+                ("longterm_memory", self.longterm_memory),
+                ("world_model", self.world_model),
+                ("uncertainty_estimator", self.uncertainty_estimator),
+                ("policy_head", self.policy_head),
+            ]
+            for prefix, module in modules:
+                for name, p in module.named_parameters():
+                    key = f"{prefix}.{name}"
+                    if key in params:
+                        p.copy_(params[key])
+
+    def parameter_count(self) -> int:
+        total = 0
+        for module in [
+            self.encoder,
+            self.temporal_core,
+            self.longterm_memory,
+            self.world_model,
+            self.uncertainty_estimator,
+            self.policy_head,
+        ]:
+            total += sum(p.numel() for p in module.parameters() if p.requires_grad)
+        return total

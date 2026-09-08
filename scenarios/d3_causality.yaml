@@ -1,0 +1,64 @@
+scenario:
+  name: "d3_causality"
+  description: "ch0 is correlated with reward but only ch1 is causal. Tests causal vs correlational learning."
+  grid_size: [10, 10]
+  duration: 1000
+  seed: 42
+  view_radius: 2
+  num_channels: 4
+  objects:
+    # Correlated: high ch0 AND high ch1 (ch0 looks predictive but ch1 is causal)
+    - pos: [1, 2]
+      channels: [0.9, 0.85, 0.1, 0.0]
+      movable: true
+      energy_value: 8.0
+    - pos: [3, 6]
+      channels: [0.85, 0.9, 0.2, 0.1]
+      movable: true
+      energy_value: 8.0
+    - pos: [6, 1]
+      channels: [0.8, 0.8, 0.0, 0.2]
+      movable: true
+      energy_value: 8.0
+    - pos: [8, 5]
+      channels: [0.9, 0.9, 0.3, 0.0]
+      movable: true
+      energy_value: 8.0
+    # Confounded: high ch0 but LOW ch1 (ch0 without causal ch1 → penalty)
+    - pos: [2, 8]
+      channels: [0.85, 0.1, 0.2, 0.1]
+      movable: true
+      energy_value: -4.0
+    - pos: [4, 3]
+      channels: [0.9, 0.15, 0.1, 0.0]
+      movable: true
+      energy_value: -4.0
+    - pos: [7, 7]
+      channels: [0.8, 0.2, 0.3, 0.2]
+      movable: true
+      energy_value: -4.0
+    - pos: [5, 4]
+      channels: [0.9, 0.1, 0.0, 0.1]
+      movable: true
+      energy_value: -4.0
+  agent_start:
+    pos: [5, 5]
+    energy: 100.0
+  rules:
+    rules:
+      # Only ch1 matters — ch0 is a confound
+      - id: "rule_001"
+        condition:
+          object_channel: {index: 1, min: 0.7}
+          action: "CONSUME"
+        effect:
+          energy_delta: 8.0
+          destroy_object: true
+      - id: "rule_002"
+        condition:
+          object_channel: {index: 1, max: 0.3}
+          action: "CONSUME"
+        effect:
+          energy_delta: -4.0
+          destroy_object: true
+  changes: []

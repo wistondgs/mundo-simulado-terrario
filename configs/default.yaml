@@ -1,0 +1,11 @@
+experiment:
+  experiment_id: "default"
+  scenario_path: "scenarios/d0_differences.yaml"
+  agent_types: ["A0_RANDOM", "A1_REACTIVE", "A2_GRU", "A3_WORLD_MODEL", "A4_ADVANCED"]
+  agent_config: {}
+  seeds: [42, 123, 456]
+  num_episodes: 3
+  max_steps_per_episode: 500
+  observer_mode: "scientific_standard"
+  checkpoint_every: 100
+  output_dir: "runs"

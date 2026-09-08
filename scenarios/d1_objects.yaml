@@ -1,0 +1,40 @@
+scenario:
+  name: "d1_objects"
+  description: "Objects move randomly every 20 steps. Tests object persistence through movement."
+  grid_size: [10, 10]
+  duration: 800
+  seed: 42
+  view_radius: 2
+  num_channels: 4
+  objects:
+    - pos: [2, 2]
+      channels: [0.8, 0.3, 0.1, 0.0]
+      movable: true
+      energy_value: 3.0
+    - pos: [5, 7]
+      channels: [0.2, 0.9, 0.4, 0.1]
+      movable: true
+      energy_value: 3.0
+    - pos: [7, 3]
+      channels: [0.5, 0.5, 0.8, 0.2]
+      movable: true
+      energy_value: 3.0
+    - pos: [3, 8]
+      channels: [0.1, 0.2, 0.3, 0.9]
+      movable: true
+      energy_value: 3.0
+  agent_start:
+    pos: [5, 5]
+    energy: 100.0
+  rules:
+    rules:
+      - id: "rule_001"
+        condition:
+          action: "CONSUME"
+        effect:
+          energy_delta: 3.0
+          destroy_object: true
+  changes: []
+  object_movement:
+    every_n_steps: 20
+    random_walk: true

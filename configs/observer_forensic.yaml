@@ -1,0 +1,7 @@
+observer:
+  mode: "forensic_full"
+  checkpoint_every: 50
+  buffer_size: 100
+  store_tensors: true
+  store_gradients: true
+  store_activations: true
