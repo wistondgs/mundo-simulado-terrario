@@ -27,6 +27,7 @@ class ExperimentConfig:
     observer_mode: str  # "performance", "scientific_standard", "forensic_full"
     checkpoint_every: int
     output_dir: str
+    device: str = "cpu"
 
     @staticmethod
     def from_yaml(path: str) -> ExperimentConfig:
@@ -62,6 +63,7 @@ class ExperimentConfig:
             observer_mode=exp.get("observer_mode", "scientific_standard"),
             checkpoint_every=exp.get("checkpoint_every", 100),
             output_dir=exp.get("output_dir", "runs"),
+            device=exp.get("device", "cpu"),
         )
 
     def config_hash(self) -> str:
@@ -76,6 +78,7 @@ class ExperimentConfig:
             "max_steps_per_episode": self.max_steps_per_episode,
             "observer_mode": self.observer_mode,
             "checkpoint_every": self.checkpoint_every,
+            "device": self.device,
         }
         if self.hypothesis is not None:
             data["hypothesis"] = {

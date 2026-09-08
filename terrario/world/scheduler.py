@@ -46,7 +46,7 @@ class ChangeScheduler:
         """Number of changes that have not yet fired."""
         return sum(1 for c in self._changes if not c.fired)
 
-    def check(self, world: WorldStateManager) -> list[RuleChangeEvent]:
+    def check(self, world: WorldStateManager, step: int | None = None) -> list[RuleChangeEvent]:
         """Check whether any scheduled changes are due and apply them.
 
         Parameters
@@ -60,7 +60,7 @@ class ChangeScheduler:
         list[RuleChangeEvent]
             Events for each change that fired this step.
         """
-        current_step = world.state.time
+        current_step = world._mutable_state().time if step is None else step
         fired: list[RuleChangeEvent] = []
 
         for change in self._changes:

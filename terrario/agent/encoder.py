@@ -79,6 +79,7 @@ class PerceptualEncoder(nn.Module):
         Returns:
             (latent_dim,) tensor.
         """
-        x = torch.from_numpy(channels).float()
-        with torch.no_grad():
-            return self.forward(x)
+        # Copy protects the immutable AgentObservation backing array while
+        # preserving autograd through the encoder parameters.
+        x = torch.from_numpy(channels.copy()).float()
+        return self.forward(x)

@@ -48,7 +48,7 @@ class CheckpointManager:
     def save(self, agent: Any, step: int, metadata: dict | None = None) -> None:
         """Force save a checkpoint.
 
-        Extracts parameters from the agent via ``get_params()`` and
+        Extracts parameters from the agent via ``get_parameters()`` and
         optionally ``get_optimizer_state()``. Never modifies the agent.
         """
         ckpt_dir = self.checkpoint_dir / f"step_{step:08d}"
@@ -57,8 +57,8 @@ class CheckpointManager:
         params: dict[str, np.ndarray] = {}
         optimizer_state: dict[str, np.ndarray] = {}
 
-        if hasattr(agent, "get_params"):
-            params = agent.get_params()
+        if hasattr(agent, "get_parameters"):
+            params = agent.get_parameters()
         if hasattr(agent, "get_optimizer_state"):
             optimizer_state = agent.get_optimizer_state()
 

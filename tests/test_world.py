@@ -133,7 +133,8 @@ class TestPhysics:
         world_mgr.move_agent(0, Position(3, 3))
         action = Action(action_type=ActionType.PUSH, direction=Direction.RIGHT)
         consequences = physics.step(world_mgr, {0: action}, rng)
-        assert any("push_success" in e for e in consequences[0].events)
+        assert any("push_success" in e for e in consequences[0].observer_events)
+        assert all("obj_" not in e for e in consequences[0].events)
         assert world_mgr.state.objects[0].pos.y == 5
         assert world_mgr.state.agents[0].pos.y == 4
 
@@ -153,7 +154,8 @@ class TestPhysics:
         world_mgr.move_agent(0, Position(3, 3))
         action = Action(action_type=ActionType.CONSUME, direction=Direction.RIGHT)
         consequences = physics.step(world_mgr, {0: action}, rng)
-        assert any("consume_pending" in e for e in consequences[0].events)
+        assert any("consume_pending" in e for e in consequences[0].observer_events)
+        assert all("consume_pending" not in e for e in consequences[0].events)
 
     def test_consume_no_target(self, world_mgr):
         physics = Physics()

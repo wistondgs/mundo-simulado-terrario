@@ -17,6 +17,15 @@ class ActionType(enum.IntEnum):
     NOOP = 4
 
 
+class DataBoundary(enum.StrEnum):
+    """Where a datum is allowed to travel in the experiment."""
+
+    WORLD_PRIVATE = "WORLD_PRIVATE"
+    OBSERVER_ONLY = "OBSERVER_ONLY"
+    AGENT_PERCEPTIBLE = "AGENT_PERCEPTIBLE"
+    AGENT_ACTION = "AGENT_ACTION"
+
+
 NUM_ACTION_TYPES = len(ActionType)
 
 
@@ -160,6 +169,7 @@ class Observation:
 @dataclass
 class Consequence:
     energy_delta: float
-    events: list[str]  # world-level event descriptions (for observer, not agent)
+    events: list[str]  # agent-perceptible outcome signals only
+    observer_events: list[str] = field(default_factory=list)
     new_observation: Observation | None = None
     done: bool = False

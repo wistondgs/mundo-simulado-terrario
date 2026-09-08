@@ -52,11 +52,11 @@ class Physics:
         # Resolve in deterministic agent order
         for agent_id in sorted(actions.keys()):
             action = actions[agent_id]
-            agent = world.state.agents.get(agent_id)
+            agent = world._mutable_state().agents.get(agent_id)
             if agent is None or not agent.alive:
                 consequences[agent_id] = Consequence(
                     energy_delta=0.0,
-                    events=["agent_not_active"],
+                    events=["agent_not_active"], observer_events=["agent_not_active"],
                 )
                 continue
 
@@ -73,9 +73,11 @@ class Physics:
             elif action.action_type == ActionType.NOOP:
                 events.append("noop")
 
+            agent_events, observer_events = self._classify_events(events)
             consequences[agent_id] = Consequence(
                 energy_delta=0.0,  # RuleEngine fills this in
-                events=events,
+                events=agent_events,
+                observer_events=observer_events,
             )
 
         world.advance_time()
@@ -87,15 +89,15 @@ class Physics:
         self, world: WorldStateManager, agent_id: int, direction: Direction
     ) -> list[str]:
         """Handle MOVE: attempt to move agent in the given direction."""
-        agent = world.state.agents[agent_id]
+        agent = world._mutable_state().agents[agent_id]
         delta = DIRECTION_DELTA[direction]
         new_pos = agent.pos + delta
 
-        if not self._in_bounds(world.state, new_pos):
+        if not self._in_bounds(world._mutable_state(), new_pos):
             return ["move_blocked_wall"]
 
         # Check for collision with objects (any object blocks movement)
-        if world.state.occupancy[new_pos.x, new_pos.y] > 0:
+        if world._mutable_state().occupancy[new_pos.x, new_pos.y] > 0:
             return ["move_blocked_object"]
 
         world.move_agent(agent_id, new_pos)
@@ -105,15 +107,15 @@ class Physics:
         self, world: WorldStateManager, agent_id: int, direction: Direction
     ) -> list[str]:
         """Handle PUSH: push a movable object and follow it."""
-        agent = world.state.agents[agent_id]
+        agent = world._mutable_state().agents[agent_id]
         delta = DIRECTION_DELTA[direction]
         target_pos = agent.pos + delta
 
-        if not self._in_bounds(world.state, target_pos):
+        if not self._in_bounds(world._mutable_state(), target_pos):
             return ["push_blocked_wall"]
 
         # Find object at target cell
-        target_obj = self._object_at(world.state, target_pos)
+        target_obj = self._object_at(world._mutable_state(), target_pos)
         if target_obj is None:
             return ["push_no_target"]
 
@@ -122,10 +124,10 @@ class Physics:
 
         # Where the object would land
         obj_dest = target_pos + delta
-        if not self._in_bounds(world.state, obj_dest):
+        if not self._in_bounds(world._mutable_state(), obj_dest):
             return ["push_blocked_wall"]
 
-        if world.state.occupancy[obj_dest.x, obj_dest.y] > 0:
+        if world._mutable_state().occupancy[obj_dest.x, obj_dest.y] > 0:
             return ["push_blocked_object"]
 
         # Move object, then move agent into the vacated cell
@@ -141,18 +143,18 @@ class Physics:
         Physics does NOT apply energy changes — that is RuleEngine's job.
         This handler only validates the target exists and is adjacent.
         """
-        agent = world.state.agents[agent_id]
+        agent = world._mutable_state().agents[agent_id]
 
         # Determine target: explicit target_id or object in facing direction
         target_obj = None
         if action.target_id >= 0:
-            target_obj = world.state.objects.get(action.target_id)
+            target_obj = world._mutable_state().objects.get(action.target_id)
             if target_obj is not None and not self._is_adjacent(agent.pos, target_obj.pos):
                 return ["consume_target_not_adjacent"]
         else:
             delta = DIRECTION_DELTA[action.direction]
             target_pos = agent.pos + delta
-            target_obj = self._object_at(world.state, target_pos)
+            target_obj = self._object_at(world._mutable_state(), target_pos)
 
         if target_obj is None:
             return ["consume_no_target"]
@@ -186,3 +188,10 @@ class Physics:
     @staticmethod
     def _is_adjacent(a: Position, b: Position) -> bool:
         return abs(a.x - b.x) + abs(a.y - b.y) == 1
+
+    @staticmethod
+    def _classify_events(events: list[str]) -> tuple[list[str], list[str]]:
+        """Keep IDs and latent interaction semantics out of agent feedback."""
+        private_prefixes = ("consume_pending_obj_", "push_success_obj_")
+        agent_events = [event for event in events if not event.startswith(private_prefixes)]
+        return agent_events, list(events)

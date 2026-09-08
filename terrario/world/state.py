@@ -14,6 +14,7 @@ from terrario.core.types import (
     Position,
     WorldState,
 )
+from terrario.core.contracts import ImmutableObserverSnapshot
 
 
 class WorldStateManager:
@@ -32,8 +33,20 @@ class WorldStateManager:
 
     @property
     def state(self) -> WorldState:
-        """Read-only view of the current world state."""
+        """Detached compatibility view; mutating it cannot alter WorldTruth."""
+        return self._state.clone()
+
+    def _mutable_state(self) -> WorldState:
+        """Internal world-only access to canonical mutable truth."""
         return self._state
+
+    def observer_snapshot(self, step: int) -> ImmutableObserverSnapshot:
+        """Return a detached full-truth record for the scientific observer."""
+        return ImmutableObserverSnapshot(
+            step=step,
+            world_state_hash=self._state.state_hash(),
+            world=self.serialize(),
+        )
 
     @property
     def max_duration(self) -> int:
@@ -92,6 +105,8 @@ class WorldStateManager:
         energy_norm = min(agent.energy / self._max_energy, 1.0) if self._max_energy > 0 else 0.0
         time_frac = self._state.time / self._max_duration if self._max_duration > 0 else 0.0
 
+        channels.setflags(write=False)
+        mask.setflags(write=False)
         return Observation(
             channels=channels,
             mask=mask,

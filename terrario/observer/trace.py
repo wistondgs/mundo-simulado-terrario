@@ -357,6 +357,37 @@ class ProvenanceTrace:
         )
 
 
+@dataclass
+class TransitionTrace:
+    """One reconstructable agent/world transition and its provenance."""
+
+    step: int
+    observation_t_hash: str
+    observation_t1_hash: str
+    action_t: int
+    terminated: bool
+    truncated: bool
+    consequence: dict[str, Any]
+    agent_identity: dict[str, Any]
+    internal_state: dict[str, Any]
+    observer_world: dict[str, Any]
+    agent_trace_events: list[dict[str, Any]]
+    parameter_deltas: dict[str, float] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "step": self.step, "observation_t_hash": self.observation_t_hash,
+            "observation_t1_hash": self.observation_t1_hash, "action_t": self.action_t,
+            "terminated": self.terminated, "truncated": self.truncated,
+            "consequence": _serialize_value(self.consequence),
+            "agent_identity": _serialize_value(self.agent_identity),
+            "internal_state": _serialize_value(self.internal_state),
+            "observer_world": _serialize_value(self.observer_world),
+            "agent_trace_events": _serialize_value(self.agent_trace_events),
+            "parameter_deltas": _serialize_value(self.parameter_deltas),
+        }
+
+
 # Registry mapping trace type names to classes
 TRACE_REGISTRY: dict[str, type] = {
     "world": WorldTrace,
@@ -369,4 +400,5 @@ TRACE_REGISTRY: dict[str, type] = {
     "consequence": ConsequenceTrace,
     "learning": LearningTrace,
     "provenance": ProvenanceTrace,
+    "transition": TransitionTrace,
 }

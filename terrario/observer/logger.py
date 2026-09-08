@@ -15,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from terrario.core.contracts import ImmutableObserverSnapshot, Transition
 from terrario.core.types import Action, Consequence, Observation, WorldState
 from terrario.observer.storage import StorageManager
 from terrario.observer.trace import (
@@ -27,6 +28,7 @@ from terrario.observer.trace import (
     ProvenanceTrace,
     SensationTrace,
     TemporalTrace,
+    TransitionTrace,
     WorldTrace,
 )
 
@@ -217,14 +219,14 @@ class ScientificObserver:
         """Save a checkpoint of the agent's state.
 
         Extracts parameters from the agent without modifying it.
-        The agent must expose ``get_params()`` and optionally
+        The agent must expose ``get_parameters()`` and optionally
         ``get_optimizer_state()`` methods.
         """
         params = {}
         optimizer_state = {}
 
-        if hasattr(agent, "get_params"):
-            params = agent.get_params()
+        if hasattr(agent, "get_parameters"):
+            params = agent.get_parameters()
         if hasattr(agent, "get_optimizer_state"):
             optimizer_state = agent.get_optimizer_state()
 
@@ -233,7 +235,42 @@ class ScientificObserver:
             "mode": self.mode,
             "run_id": self._run_id,
         }
-        self.storage.save_checkpoint(params, optimizer_state, step, metadata)
+        self.storage.save_checkpoint(
+            {k: self._to_numpy(v) for k, v in params.items()},
+            {k: self._to_numpy(v) for k, v in optimizer_state.items()}, step, metadata,
+        )
+
+    def log_transition(
+        self,
+        transition: Transition,
+        observer_snapshot: ImmutableObserverSnapshot,
+        agent_identity: dict[str, Any],
+        agent_internal_state: dict[str, Any],
+        agent_trace_events: list[dict[str, Any]],
+        parameter_deltas: dict[str, float] | None = None,
+    ) -> None:
+        """Persist the complete contract without exposing truth to the agent."""
+        self._buffer_event("transition", TransitionTrace(
+            step=transition.step,
+            observation_t_hash=transition.observation_t.obs_hash(),
+            observation_t1_hash=transition.observation_t1.obs_hash(),
+            action_t=transition.action_t.to_int(),
+            terminated=transition.terminated, truncated=transition.truncated,
+            consequence={
+                "energy_delta": transition.energy_delta,
+                "agent_events": list(transition.events),
+                "observer_events": list(transition.consequence_t1.observer_events),
+            },
+            agent_identity=dict(agent_identity), internal_state=dict(agent_internal_state),
+            observer_world=observer_snapshot.world, agent_trace_events=list(agent_trace_events),
+            parameter_deltas=parameter_deltas,
+        ))
+
+    @staticmethod
+    def _to_numpy(value: Any) -> np.ndarray:
+        if hasattr(value, "detach"):
+            return value.detach().cpu().numpy()
+        return np.asarray(value)
 
     # ── Metrics ───────────────────────────────────────────────────────
 
@@ -323,5 +360,5 @@ class ScientificObserver:
             executed_action=action.to_int(),
             energy_delta=consequence.energy_delta,
             done=consequence.done,
-            events=list(consequence.events),
+            events=list(consequence.observer_events or consequence.events),
         )

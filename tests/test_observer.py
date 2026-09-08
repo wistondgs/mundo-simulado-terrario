@@ -145,9 +145,9 @@ class TestObserverDoesNotModifyAgent:
     """Verify that observer operations don't affect agent state."""
 
     def test_observer_is_passive(self):
-        from terrario.experiment.controller import _BuiltinAgent
+        from terrario.agent.agents import create_agent
 
-        agent = _BuiltinAgent("A0_RANDOM", seed=42)
+        agent = create_agent("A0_RANDOM", seed=42)
         obs = Observation(
             channels=np.zeros((4, 5, 5), dtype=np.float32),
             mask=np.ones((5, 5), dtype=np.float32),
@@ -170,7 +170,7 @@ class TestObserverDoesNotModifyAgent:
         serialized = json.dumps(trace)
 
         # Agent should produce the same action sequence after observer activity
-        agent2 = _BuiltinAgent("A0_RANDOM", seed=42)
+        agent2 = create_agent("A0_RANDOM", seed=42)
         agent2.perceive(obs)
         action_after = agent2.decide()
 

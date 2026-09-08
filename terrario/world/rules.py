@@ -178,15 +178,15 @@ class RuleEngine:
         for eff in effects:
             total_energy += eff.energy_delta
 
-            if eff.destroy_object and target_object_id in world.state.objects:
+            if eff.destroy_object and target_object_id in world._mutable_state().objects:
                 world.remove_object(target_object_id)
 
-            if eff.transform_channels is not None and target_object_id in world.state.objects:
+            if eff.transform_channels is not None and target_object_id in world._mutable_state().objects:
                 world.set_object_channels(target_object_id, eff.transform_channels)
 
         # Apply energy to agent
         if total_energy != 0.0:
-            agent = world.state.agents[agent_id]
+            agent = world._mutable_state().agents[agent_id]
             new_energy = agent.energy + total_energy
             world.set_agent_energy(agent_id, new_energy)
             if new_energy <= 0.0:
