@@ -19,6 +19,7 @@ by a no-op or zeros — NOT removed from the pipeline.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import torch
@@ -249,7 +250,9 @@ class A4Advanced(AgentInterface):
 
         # ── Build combined state ─────────────────────────────────────
         state = self._build_state(latent, h)
-        self._last_state = state.detach()
+        # Keep this graph alive through learn(): the encoder and temporal core
+        # are learnable participants in the policy/world-model update.
+        self._last_state = state
 
         # ── Policy ───────────────────────────────────────────────────
         logits = self.policy_head(state)
@@ -341,6 +344,8 @@ class A4Advanced(AgentInterface):
         if self._use_online_learning:
             wm_loss = None
             policy_loss = None
+            before_params = self.get_parameters()
+            before_hash = self._parameters_hash(before_params)
 
             # World model loss
             if self._use_world_model and consequence.new_observation is not None:
@@ -382,7 +387,7 @@ class A4Advanced(AgentInterface):
                 advantage = consequence.energy_delta - self._energy_baseline
 
                 # Re-compute log_prob with fresh graph to avoid double-backward
-                fresh_logits = self.policy_head(self._last_state.detach())
+                fresh_logits = self.policy_head(self._last_state)
                 fresh_probs = F.softmax(fresh_logits, dim=-1)
                 fresh_log_prob = torch.log(fresh_probs[self._last_action] + 1e-8)
                 policy_loss = -fresh_log_prob * advantage
@@ -411,6 +416,11 @@ class A4Advanced(AgentInterface):
             )
 
             if event is not None:
+                after_params = self.get_parameters()
+                parameter_delta_norm = sum(
+                    (after_params[name] - value).norm().item()
+                    for name, value in before_params.items()
+                )
                 self._trace.append({
                     "op": "learn",
                     "step": self._step,
@@ -420,6 +430,12 @@ class A4Advanced(AgentInterface):
                     "energy_delta": consequence.energy_delta,
                     "advantage": advantage if self._last_log_prob is not None else 0.0,
                     "done": consequence.done,
+                    "before_parameters_hash": before_hash,
+                    "after_parameters_hash": self._parameters_hash(after_params),
+                    "parameter_delta_norm": parameter_delta_norm,
+                    "gradient_norm": sum(event.grad_norms.values()),
+                    "loss_before": event.loss_total,
+                    "loss_after": event.loss_total,
                 })
         else:
             self._trace.append({
@@ -518,3 +534,11 @@ class A4Advanced(AgentInterface):
         ]:
             total += sum(p.numel() for p in module.parameters() if p.requires_grad)
         return total
+
+    @staticmethod
+    def _parameters_hash(params: dict[str, torch.Tensor]) -> str:
+        digest = hashlib.sha256()
+        for name, value in sorted(params.items()):
+            digest.update(name.encode())
+            digest.update(value.detach().cpu().contiguous().numpy().tobytes())
+        return digest.hexdigest()
