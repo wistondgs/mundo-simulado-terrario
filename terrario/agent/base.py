@@ -7,7 +7,8 @@ from typing import Any
 
 import torch
 
-from terrario.core.types import Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import Action, Observation
 
 
 class AgentInterface(ABC):
@@ -28,8 +29,8 @@ class AgentInterface(ABC):
         ...
 
     @abstractmethod
-    def learn(self, consequence: Consequence) -> None:
-        """Update internal parameters from the consequence of the last action."""
+    def learn(self, transition: Transition) -> None:
+        """Update internal parameters from one complete environment transition."""
         ...
 
     @abstractmethod

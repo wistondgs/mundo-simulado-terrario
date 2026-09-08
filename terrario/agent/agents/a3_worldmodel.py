@@ -16,7 +16,8 @@ from terrario.agent.encoder import PerceptualEncoder
 from terrario.agent.policy import PolicyHead
 from terrario.agent.temporal import GRUCore
 from terrario.agent.world_model import WorldModel
-from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import TOTAL_ACTIONS, Action, Observation
 
 
 class A3WorldModel(AgentInterface):
@@ -101,7 +102,7 @@ class A3WorldModel(AgentInterface):
         })
         return Action.from_int(action_int)
 
-    def learn(self, consequence: Consequence) -> None:
+    def learn(self, consequence: Transition) -> None:
         if self._last_hidden is None or self._last_latent is None:
             self._step += 1
             return

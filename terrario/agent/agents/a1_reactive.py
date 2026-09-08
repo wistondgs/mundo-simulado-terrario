@@ -13,7 +13,8 @@ import torch
 from terrario.agent.base import AgentInterface
 from terrario.agent.encoder import PerceptualEncoder
 from terrario.agent.policy import PolicyHead
-from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import TOTAL_ACTIONS, Action, Observation
 
 
 class A1Reactive(AgentInterface):
@@ -79,7 +80,7 @@ class A1Reactive(AgentInterface):
         })
         return Action.from_int(action_int)
 
-    def learn(self, consequence: Consequence) -> None:
+    def learn(self, consequence: Transition) -> None:
         if self._last_log_prob is not None:
             # REINFORCE: -log_prob * reward
             reward = consequence.energy_delta

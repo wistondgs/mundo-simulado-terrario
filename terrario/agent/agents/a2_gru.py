@@ -13,7 +13,8 @@ from terrario.agent.base import AgentInterface
 from terrario.agent.encoder import PerceptualEncoder
 from terrario.agent.policy import PolicyHead
 from terrario.agent.temporal import GRUCore
-from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import TOTAL_ACTIONS, Action, Observation
 
 
 class A2GRUBaseline(AgentInterface):
@@ -94,7 +95,7 @@ class A2GRUBaseline(AgentInterface):
         })
         return Action.from_int(action_int)
 
-    def learn(self, consequence: Consequence) -> None:
+    def learn(self, consequence: Transition) -> None:
         if self._last_log_prob is not None:
             reward = consequence.energy_delta
             loss = -self._last_log_prob * reward

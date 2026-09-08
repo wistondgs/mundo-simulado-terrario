@@ -34,7 +34,8 @@ from terrario.agent.policy import Planner, PolicyHead
 from terrario.agent.temporal import GRUCore, SSMCore, TemporalCore
 from terrario.agent.uncertainty import UncertaintyEstimator
 from terrario.agent.world_model import WorldModel
-from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import TOTAL_ACTIONS, Action, Observation
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "use_temporal": True,
@@ -310,7 +311,7 @@ class A4Advanced(AgentInterface):
         })
         return Action.from_int(action_int)
 
-    def learn(self, consequence: Consequence) -> None:
+    def learn(self, consequence: Transition) -> None:
         if self._last_state is None or self._last_latent is None:
             self._step += 1
             return

@@ -10,7 +10,8 @@ from typing import Any
 import torch
 
 from terrario.agent.base import AgentInterface
-from terrario.core.types import TOTAL_ACTIONS, Action, Consequence, Observation
+from terrario.core.contracts import Transition
+from terrario.core.types import TOTAL_ACTIONS, Action, Observation
 
 
 class A0Random(AgentInterface):
@@ -37,7 +38,7 @@ class A0Random(AgentInterface):
         })
         return Action.from_int(action_int)
 
-    def learn(self, consequence: Consequence) -> None:
+    def learn(self, consequence: Transition) -> None:
         self._trace.append({
             "op": "learn",
             "step": self._step,
