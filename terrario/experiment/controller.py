@@ -23,6 +23,7 @@ from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
 from terrario.world.opportunities import OpportunityLifecycle
+from terrario.agent.scientific import scientific_state as build_scientific_state
 
 
 def load_scenario(path: str) -> dict[str, Any]:
@@ -200,7 +201,7 @@ class ExperimentController:
             before_parameters = agent.get_parameters() if observer.mode == "forensic_full" else None
             if learning_enabled:
                 agent.learn(transition)
-            scientific_state = agent.get_scientific_state() if hasattr(agent, "get_scientific_state") else {}
+            scientific_snapshot = build_scientific_state(agent)
             parameter_deltas = None
             if before_parameters is not None:
                 after_parameters = agent.get_parameters()
@@ -231,8 +232,8 @@ class ExperimentController:
             if forensic_policy is not None:
                 observer_annotations["forensic_window"] = forensic_policy.label(step)
             trace["causal_interaction"] = observer_annotations
-            trace["prediction_error"] = scientific_state.get("prediction_error")
-            trace["predictor_available"] = bool(scientific_state)
+            trace["prediction_error"] = scientific_snapshot["prediction_error"]
+            trace["predictor_available"] = scientific_snapshot["prediction_error"] is not None
             step_traces.append(trace)
             observer.log_step(step, truth.clone(), agent, observation_t, action_t, consequence, {})
             agent_events = agent.get_trace_events()
@@ -241,7 +242,7 @@ class ExperimentController:
             ]
             observer.log_transition(
                 transition, world_state_mgr.observer_snapshot(step), agent.agent_identity,
-                agent.get_internal_state(), agent_events, parameter_deltas, observer_annotations, scientific_state,
+                agent.get_internal_state(), agent_events, parameter_deltas, observer_annotations, scientific_snapshot,
             )
             if observer.mode == "forensic_full" and (forensic_policy is None or forensic_policy.should_capture(step)):
                 observer.capture_forensic(agent, step, parameter_deltas or {})
