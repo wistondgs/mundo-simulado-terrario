@@ -12,7 +12,7 @@ def test_scientific_d4_is_paired_procedural_and_renewable():
     assert first["objects"] != different["objects"]
     assert len(first["objects"]) == 32
     assert all(obj["movable"] is False for obj in first["objects"])
-    assert all(rule["effect"]["destroy_object"] is False for rule in first["rules"]["rules"])
+    assert all(rule["effect"]["destroy_object"] is True for rule in first["rules"]["rules"])
     assert 425 <= first["changes"][0]["at_step"] <= 475
 
 

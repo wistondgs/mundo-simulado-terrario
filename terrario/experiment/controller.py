@@ -22,6 +22,7 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
+from terrario.world.opportunities import OpportunityLifecycle
 
 
 def load_scenario(path: str) -> dict[str, Any]:
@@ -164,6 +165,7 @@ class ExperimentController:
         step_traces: list[dict[str, Any]] = []
         change_step = next(iter(active_scenario.get("changes", [])), {}).get("at_step")
         forensic_policy = ForensicWindowPolicy(change_step) if change_step is not None else None
+        lifecycle = OpportunityLifecycle(active_scenario.get("opportunity_lifecycle", {}), active_scenario.get("world_seed", seed))
 
         for step in range(max_steps):
             agent_state = world_state_mgr._mutable_state().agents.get(0)
@@ -173,10 +175,15 @@ class ExperimentController:
             agent.perceive(observation_t)
             action_t = agent.decide()
             change_events = scheduler.check(world_state_mgr, step=step)  # PRE_STEP convention
+            respawn_events = lifecycle.advance(world_state_mgr, step)
             consequences = physics.step(world_state_mgr, {0: action_t}, RNGManager(seed + step))
             target = self._find_target(world_state_mgr, 0, action_t)
+            target_before = target.clone() if target is not None else None
             effects = rule_engine.evaluate(world_state_mgr, 0, action_t, target)
             energy_delta = rule_engine.apply_effects(world_state_mgr, 0, target.object_id, effects) if target else 0.0
+            lifecycle_event = None
+            if target_before is not None and target_before.object_id not in world_state_mgr._mutable_state().objects:
+                lifecycle_event = lifecycle.consume(world_state_mgr, target_before, step)
             energy_delta += world_state_mgr.apply_step_energy_cost(0)
             consequence = consequences.get(0, Consequence(energy_delta=energy_delta, events=[]))
             consequence.energy_delta = energy_delta
@@ -212,6 +219,13 @@ class ExperimentController:
                 "rule_changes": [{"step": e.step, "old_version": e.old_version, "new_version": e.new_version} for e in change_events],
             }
             observer_annotations = self._causal_annotations(target, action_t, energy_delta, truth.rules_version)
+            observer_annotations["geometry"] = lifecycle.geometry(world_state_mgr, view_radius=view_radius)
+            observer_annotations["interaction_target_distance"] = (
+                abs(target_before.pos.x - agent_state.pos.x) + abs(target_before.pos.y - agent_state.pos.y)
+                if target_before is not None else None
+            )
+            observer_annotations["opportunity_event"] = lifecycle_event.__dict__ if lifecycle_event else None
+            observer_annotations["respawn_events"] = [event.__dict__ for event in respawn_events]
             observer_annotations["phase"] = phase
             if forensic_policy is not None:
                 observer_annotations["forensic_window"] = forensic_policy.label(step)
@@ -239,6 +253,7 @@ class ExperimentController:
             "energy_history": energy_history, "actions": action_history, "traces": step_traces,
             "final_energy": world_state_mgr._mutable_state().agents[0].energy,
             "num_steps": len(energy_history), "compute_cost": getattr(agent, "compute_cost", 1.0),
+            "opportunity_events": [event.__dict__ for event in lifecycle.events],
         }
 
     def _find_target(self, world_mgr: WorldStateManager, agent_id: int, action: Action) -> ObjectSpec | None:
@@ -247,7 +262,10 @@ class ExperimentController:
         truth = world_mgr._mutable_state()
         agent = truth.agents[agent_id]
         if action.target_id >= 0:
-            return truth.objects.get(action.target_id)
+            target = truth.objects.get(action.target_id)
+            if target is None or abs(target.pos.x - agent.pos.x) + abs(target.pos.y - agent.pos.y) != 1:
+                return None
+            return target
         from terrario.core.types import DIRECTION_DELTA
         position = agent.pos + DIRECTION_DELTA[action.direction]
         return next((obj for obj in truth.objects.values() if obj.pos == position), None)

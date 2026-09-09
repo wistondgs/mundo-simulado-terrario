@@ -21,18 +21,23 @@ scenario:
       B:
         count: 16
         channels: [0.18, 0.82, 0.12, 0.35]
+  opportunity_lifecycle:
+    cooldown_steps: [3, 8]
+    minimum_agent_distance: 2
+    placement_margin: 1
+    recent_position_exclusion: 2
   rules:
     rules:
       - id: "causal_A_positive"
         condition:
           object_channel: {index: 0, min: 0.70}
           action: "CONSUME"
-        effect: {energy_delta: 1.0, destroy_object: false}
+        effect: {energy_delta: 1.0, destroy_object: true}
       - id: "causal_B_negative"
         condition:
           object_channel: {index: 0, max: 0.30}
           action: "CONSUME"
-        effect: {energy_delta: -1.0, destroy_object: false}
+        effect: {energy_delta: -1.0, destroy_object: true}
   change_jitter: 25
   changes:
     - at_step: 450
@@ -42,9 +47,9 @@ scenario:
             condition:
               object_channel: {index: 0, min: 0.70}
               action: "CONSUME"
-            effect: {energy_delta: -1.0, destroy_object: false}
+            effect: {energy_delta: -1.0, destroy_object: true}
           - id: "causal_B_positive"
             condition:
               object_channel: {index: 0, max: 0.30}
               action: "CONSUME"
-            effect: {energy_delta: 1.0, destroy_object: false}
+            effect: {energy_delta: 1.0, destroy_object: true}
