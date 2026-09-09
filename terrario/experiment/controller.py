@@ -232,8 +232,9 @@ class ExperimentController:
             if forensic_policy is not None:
                 observer_annotations["forensic_window"] = forensic_policy.label(step)
             trace["causal_interaction"] = observer_annotations
-            trace["prediction_error"] = scientific_snapshot["prediction_error"]
-            trace["predictor_available"] = scientific_snapshot["prediction_error"] is not None
+            prediction_error = scientific_snapshot["prediction_error"]
+            trace["prediction_error"] = prediction_error if isinstance(prediction_error, (int, float)) else None
+            trace["predictor_available"] = trace["prediction_error"] is not None
             step_traces.append(trace)
             observer.log_step(step, truth.clone(), agent, observation_t, action_t, consequence, {})
             agent_events = agent.get_trace_events()

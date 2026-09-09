@@ -306,8 +306,14 @@ class ScientificObserver:
                 name = f"gradient_{module_name}_{parameter_name.replace('.', '_')}"
                 self.storage.save_tensor(name, self._to_numpy(parameter.grad), step)
                 gradients[f"{module_name}.{parameter_name}"] = float(parameter.grad.norm().item())
-        self.storage.save_tensor("parameter_delta_norms", np.asarray(list(parameter_deltas.values()), dtype=np.float32), step)
-        self.storage.save_tensor("gradient_norms", np.asarray(list(gradients.values()), dtype=np.float32), step)
+        if parameter_deltas:
+            self.storage.save_tensor(
+                "parameter_delta_norms", np.asarray(list(parameter_deltas.values()), dtype=np.float32), step,
+            )
+        if gradients:
+            self.storage.save_tensor(
+                "gradient_norms", np.asarray(list(gradients.values()), dtype=np.float32), step,
+            )
 
     @staticmethod
     def _to_numpy(value: Any) -> np.ndarray:
