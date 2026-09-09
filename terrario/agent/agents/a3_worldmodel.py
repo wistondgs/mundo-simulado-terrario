@@ -111,7 +111,7 @@ class A3WorldModel(AgentInterface):
 
         # World model loss: predict next hidden state, energy, done
         h_prev = self._last_hidden.squeeze(0)  # (hidden_dim,)
-        action_onehot = torch.zeros(TOTAL_ACTIONS)
+        action_onehot = torch.zeros(TOTAL_ACTIONS, device=h_prev.device, dtype=h_prev.dtype)
         action_onehot[self._last_action] = 1.0
         with torch.no_grad():
             _, energy_prediction, done_prediction = self.world_model(h_prev, action_onehot)
@@ -124,8 +124,8 @@ class A3WorldModel(AgentInterface):
 
         # Target for next_state: the current hidden state (after transition)
         next_state_target = self._hidden.squeeze(0).detach()
-        energy_target = torch.tensor([consequence.energy_delta])
-        done_target = torch.tensor([1.0 if consequence.done else 0.0])
+        energy_target = torch.tensor([consequence.energy_delta], device=h_prev.device, dtype=h_prev.dtype)
+        done_target = torch.tensor([1.0 if consequence.done else 0.0], device=h_prev.device, dtype=h_prev.dtype)
 
         wm_losses = self.world_model.loss(
             h_prev.unsqueeze(0),
@@ -136,7 +136,7 @@ class A3WorldModel(AgentInterface):
         )
 
         # Policy loss: REINFORCE
-        policy_loss = torch.tensor(0.0)
+        policy_loss = torch.tensor(0.0, device=h_prev.device)
         if self._last_log_prob is not None:
             reward = consequence.energy_delta
             policy_loss = -self._last_log_prob * reward

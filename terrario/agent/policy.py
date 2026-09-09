@@ -62,13 +62,13 @@ class PolicyHead(nn.Module):
             temperature = 1e-8
         scaled = logits / temperature
         probs = F.softmax(scaled, dim=-1)
-        dist = torch.distributions.Categorical(probs)
         if generator is not None:
-            # Sample manually using generator for reproducibility
-            uniform = torch.rand(probs.shape, generator=generator)
-            action = torch.multinomial(probs, 1, generator=generator).item()
+            # Keep the campaign RNG on CPU so seeded action draws are portable
+            # across CPU and CUDA execution.
+            _ = torch.rand(probs.shape, generator=generator)
+            action = torch.multinomial(probs.detach().cpu(), 1, generator=generator).item()
         else:
-            action = dist.sample().item()
+            action = torch.distributions.Categorical(probs).sample().item()
         log_prob = torch.log(probs[action] + 1e-8)
         return action, log_prob, probs
 
@@ -130,7 +130,7 @@ class Planner:
                 done_prob_accum = 0.0
 
                 for step, action_int in enumerate(actions):
-                    action_onehot = torch.zeros(TOTAL_ACTIONS)
+                    action_onehot = torch.zeros(TOTAL_ACTIONS, device=state.device, dtype=state.dtype)
                     action_onehot[action_int] = 1.0
 
                     next_state, energy_pred, done_pred = world_model(sim_state, action_onehot)

@@ -57,7 +57,7 @@ class GRUCore(TemporalCore):
         return new_h, new_h
 
     def initial_state(self, batch_size: int) -> torch.Tensor:
-        return torch.zeros(batch_size, self._hidden_dim)
+        return torch.zeros(batch_size, self._hidden_dim, device=self.cell.weight_ih.device)
 
 
 class SSMCore(TemporalCore):
@@ -105,4 +105,4 @@ class SSMCore(TemporalCore):
         return output, new_h
 
     def initial_state(self, batch_size: int) -> torch.Tensor:
-        return torch.zeros(batch_size, self._hidden_dim)
+        return torch.zeros(batch_size, self._hidden_dim, device=self.a.device)

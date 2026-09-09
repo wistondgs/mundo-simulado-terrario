@@ -16,6 +16,7 @@ import numpy as np
 import torch
 
 from terrario.core.rng import RNGManager
+from terrario.agent.device import device_status
 from terrario.experiment.config import ExperimentConfig
 from terrario.experiment.campaign import (
     ExperimentalValidity,
@@ -283,6 +284,7 @@ class AdaptationProtocolRunner:
     def __init__(
         self, scientific_scenario_path: str, transfer_scenario_path: str,
         output_dir: str, observer_mode: str = "scientific_standard", agent_overrides: dict[str, Any] | None = None,
+        device: str = "cpu",
     ):
         self.scientific_scenario = load_scenario(scientific_scenario_path)
         self.transfer_scenario = load_scenario(transfer_scenario_path)
@@ -290,6 +292,7 @@ class AdaptationProtocolRunner:
         self.output_dir = output_dir
         self.observer_mode = observer_mode
         self.agent_overrides = agent_overrides or {}
+        self.device = device
 
     def run_variant(self, variant_id: str, seed: int) -> dict[str, Any]:
         if variant_id not in VARIANTS:
@@ -306,7 +309,7 @@ class AdaptationProtocolRunner:
             # The protocol saves its single exact pre-transfer checkpoint below.
             # Periodic optimizer snapshots multiply storage without adding a
             # preregistered comparison point.
-            observer_mode=self.observer_mode, checkpoint_every=0, output_dir=self.output_dir, device="cpu",
+            observer_mode=self.observer_mode, checkpoint_every=0, output_dir=self.output_dir, device=self.device,
         )
         controller = ExperimentController(config)
         controller.scenario = primary
@@ -471,6 +474,8 @@ class AdaptationProtocolRunner:
             "transfer_has_no_learning_change": not self.transfer_scenario.get("changes", []),
             "observer_mode_supported": self.observer_mode in ScientificObserver.VALID_MODES,
         }
+        execution_device = device_status(self.device)
+        checks["execution_device_available"] = bool(execution_device["available"])
         steps_per_run = int(self.scientific_scenario["duration"]) + int(self.transfer_scenario["duration"])
         projected = estimate_trace_storage(steps_per_run * len(seeds) * len(variants), 0)
         storage = storage_governance(self.output_dir, projected["total_bytes"])
@@ -481,6 +486,7 @@ class AdaptationProtocolRunner:
             "planned_runs": len(seeds) * len(variants),
             "estimated_storage": projected,
             "storage_governance": storage,
+            "execution_device": execution_device,
             "protocol_hash": self.protocol_hash(), "code_hash": self.code_hash(),
         }
 

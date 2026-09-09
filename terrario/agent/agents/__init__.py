@@ -7,6 +7,7 @@ from typing import Any
 
 import torch
 
+from terrario.agent.device import resolve_device
 from terrario.agent.agents.a0_random import A0Random
 from terrario.agent.agents.a1_reactive import A1Reactive
 from terrario.agent.agents.a2_gru import A2GRUBaseline
@@ -58,9 +59,10 @@ def create_agent(
     if architecture_id is None:
         raise AgentFactoryError(f"Unsupported agent '{requested_agent_id}'")
 
-    target_device = torch.device(device)
-    if target_device.type == "cuda" and not torch.cuda.is_available():
-        raise AgentFactoryError("CUDA was requested but is unavailable on this host")
+    try:
+        target_device = resolve_device(device)
+    except RuntimeError as exc:
+        raise AgentFactoryError(f"Requested device '{device}' is unavailable: {exc}") from exc
 
     agent_config = {**(config or {}), **spec.get("config", {})}
     generator = torch.Generator(device="cpu")
@@ -98,6 +100,10 @@ def create_agent(
     for value in vars(agent).values():
         if isinstance(value, torch.nn.Module):
             value.to(target_device)
+    for name in ("_hidden", "_last_hidden", "_last_latent", "_last_state", "_last_log_prob"):
+        value = getattr(agent, name, None)
+        if isinstance(value, torch.Tensor):
+            setattr(agent, name, value.to(target_device))
 
     agent.agent_identity = {
         "requested_agent_id": requested_agent_id,

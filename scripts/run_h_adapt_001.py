@@ -29,6 +29,7 @@ def main() -> None:
     parser.add_argument("--seeds", default=None, help="Comma-separated paired seeds")
     parser.add_argument("--variants", default=",".join(VARIANTS), help="Comma-separated variant IDs")
     parser.add_argument("--forensic", action="store_true", help="Capture bounded forensic windows")
+    parser.add_argument("--device", choices=("cuda", "cpu", "auto"), default="cuda", help="Torch execution device")
     parser.add_argument("--resume", action="store_true", help="Reuse only runs with a valid completion certificate")
     parser.add_argument("--retry-invalid", action="store_true", help="With --resume, re-run completed but experimentally invalid runs")
     args = parser.parse_args()
@@ -40,6 +41,7 @@ def main() -> None:
         "scenarios/d4_adaptation_transfer.yaml",
         str(output),
         observer_mode="forensic_full" if args.forensic else "scientific_standard",
+        device=args.device,
     )
 
     if args.retry_invalid and not args.resume:

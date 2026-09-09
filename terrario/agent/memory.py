@@ -81,8 +81,8 @@ class EpisodicMemory:
         dim = query_embedding.shape[-1]
 
         if self.size == 0:
-            empty = torch.zeros(k, dim)
-            weights = torch.zeros(k)
+            empty = torch.zeros(k, dim, device=query_embedding.device, dtype=query_embedding.dtype)
+            weights = torch.zeros(k, device=query_embedding.device, dtype=query_embedding.dtype)
             trace = {
                 "op": "episodic_read",
                 "memory_size": 0,
@@ -110,9 +110,9 @@ class EpisodicMemory:
 
         # Pad if needed
         if actual_k < k:
-            pad_emb = torch.zeros(k - actual_k, dim)
+            pad_emb = torch.zeros(k - actual_k, dim, device=query_embedding.device, dtype=query_embedding.dtype)
             retrieved = torch.cat([retrieved, pad_emb], dim=0)
-            pad_w = torch.zeros(k - actual_k)
+            pad_w = torch.zeros(k - actual_k, device=query_embedding.device, dtype=query_embedding.dtype)
             weights = torch.cat([weights, pad_w], dim=0)
 
         trace = {

@@ -9,3 +9,4 @@ experiment:
   observer_mode: "scientific_standard"
   checkpoint_every: 100
   output_dir: "runs"
+  device: "cuda"

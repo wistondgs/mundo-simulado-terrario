@@ -81,5 +81,6 @@ class PerceptualEncoder(nn.Module):
         """
         # Copy protects the immutable AgentObservation backing array while
         # preserving autograd through the encoder parameters.
-        x = torch.from_numpy(channels.copy()).float()
+        device = next(self.parameters()).device
+        x = torch.from_numpy(channels.copy()).to(device=device, dtype=torch.float32)
         return self.forward(x)

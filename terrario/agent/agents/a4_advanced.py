@@ -206,19 +206,20 @@ class A4Advanced(AgentInterface):
             # Weighted average of retrieved embeddings
             memory_context = (retrieved * weights.unsqueeze(-1)).sum(dim=0)  # (latent_dim,)
         else:
-            memory_context = torch.zeros(latent_dim)
+            memory_context = torch.zeros(latent_dim, device=latent.device, dtype=latent.dtype)
 
         # Long-term memory context
         if self._use_longterm:
             lt_context, _ = self.longterm_memory.read(hidden)  # (memory_dim,)
         else:
-            lt_context = torch.zeros(memory_dim)
+            lt_context = torch.zeros(memory_dim, device=latent.device, dtype=latent.dtype)
 
         state = torch.cat([latent, hidden, memory_context, lt_context])
         return state
 
     def _action_to_onehot(self, action_int: int) -> torch.Tensor:
-        onehot = torch.zeros(TOTAL_ACTIONS)
+        device = next(self.encoder.parameters()).device
+        onehot = torch.zeros(TOTAL_ACTIONS, device=device)
         onehot[action_int] = 1.0
         return onehot
 
@@ -252,7 +253,7 @@ class A4Advanced(AgentInterface):
             self._hidden = self._hidden.detach()
             h = output.squeeze(0)
         else:
-            h = torch.zeros(self.config["hidden_dim"])
+            h = torch.zeros(self.config["hidden_dim"], device=latent.device, dtype=latent.dtype)
 
         # ── Build combined state ─────────────────────────────────────
         state = self._build_state(latent, h)
@@ -270,7 +271,7 @@ class A4Advanced(AgentInterface):
         if self._use_uncertainty:
             # Add exploration bonus for uncertain actions
             with torch.no_grad():
-                uncertainties = torch.zeros(TOTAL_ACTIONS)
+                uncertainties = torch.zeros(TOTAL_ACTIONS, device=state.device, dtype=state.dtype)
                 for a in range(TOTAL_ACTIONS):
                     a_onehot = self._action_to_onehot(a)
                     _, var, _ = self.uncertainty_estimator.predict(state, a_onehot)
@@ -377,8 +378,8 @@ class A4Advanced(AgentInterface):
             # World model loss
             if self._use_world_model and consequence.new_observation is not None:
                 a_onehot = self._action_to_onehot(self._last_action)
-                energy_target = torch.tensor([consequence.energy_delta])
-                done_target = torch.tensor([1.0 if consequence.done else 0.0])
+                energy_target = torch.tensor([consequence.energy_delta], device=self._last_state.device)
+                done_target = torch.tensor([1.0 if consequence.done else 0.0], device=self._last_state.device)
 
                 # Build the next combined state as target
                 with torch.no_grad():
@@ -391,7 +392,9 @@ class A4Advanced(AgentInterface):
                         _, next_h = self.temporal_core(next_x, self._hidden)
                         next_h = next_h.squeeze(0)
                     else:
-                        next_h = torch.zeros(self.config["hidden_dim"])
+                        next_h = torch.zeros(
+                            self.config["hidden_dim"], device=next_latent.device, dtype=next_latent.dtype,
+                        )
                     next_state_target = self._build_state(next_latent, next_h)
 
                 wm_losses = self.world_model.loss(
@@ -422,11 +425,11 @@ class A4Advanced(AgentInterface):
             # Uncertainty estimator loss: train ensemble to predict energy_delta
             if self._use_uncertainty and self._use_world_model:
                 a_onehot = self._action_to_onehot(self._last_action)
-                energy_target_t = torch.tensor([[consequence.energy_delta]])
+                energy_target_t = torch.tensor([[consequence.energy_delta]], device=self._last_state.device)
                 state_batch = self._last_state.unsqueeze(0)
                 action_batch = a_onehot.unsqueeze(0)
                 x = torch.cat([state_batch, action_batch], dim=-1)
-                unc_loss = torch.tensor(0.0, requires_grad=True)
+                unc_loss = torch.tensor(0.0, device=self._last_state.device, requires_grad=True)
                 for head in self.uncertainty_estimator.heads:
                     pred = head(x)
                     unc_loss = unc_loss + F.mse_loss(pred, energy_target_t)
