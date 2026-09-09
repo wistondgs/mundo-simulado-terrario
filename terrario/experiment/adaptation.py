@@ -10,7 +10,7 @@ import time
 import tracemalloc
 from pathlib import Path
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import torch
@@ -27,6 +27,7 @@ from terrario.experiment.campaign import (
     build_trace_manifest,
     directory_hash,
     stable_hash,
+    verify_run_completion,
     write_manifest,
 )
 from terrario.experiment.controller import ExperimentController, build_world_state, load_scenario, materialize_scenario
@@ -408,9 +409,18 @@ class AdaptationProtocolRunner:
         })
         return record
 
-    def run(self, seeds: list[int], variants: list[str] | None = None) -> dict[str, Any]:
-        selected = variants or list(VARIANTS)
-        records = [self.run_variant(variant, seed) for seed in seeds for variant in selected]
+    @staticmethod
+    def _record_is_complete(record: dict[str, Any]) -> bool:
+        certificate = record.get("completion_certificate_path")
+        manifest = record.get("evidence_manifest_path")
+        return bool(certificate and manifest and Path(certificate).is_file() and Path(manifest).is_file() and verify_run_completion(certificate, manifest))
+
+    @staticmethod
+    def _is_experimentally_interpretable(record: dict[str, Any]) -> bool:
+        saved = record.get("validity", {}).get("experimentally_interpretable", {}).get("passed")
+        return bool(saved) if saved is not None else assess_run_validity(record).experimentally_interpretable.passed
+
+    def _result(self, records: list[dict[str, Any]], seeds: list[int], selected: list[str]) -> dict[str, Any]:
         evidence = [
             EvidenceRecord(
                 EvidenceSpec("adaptation", "H-ADAPT-001", f"{record['variant_id']}->recovery"),
@@ -422,6 +432,44 @@ class AdaptationProtocolRunner:
         return {
             "records": records, "evidence": evidence, "summary": summarize_records(records),
             "pilot_diagnostic": diagnose_pilot(records, seeds, selected),
+        }
+
+    def run(
+        self, seeds: list[int], variants: list[str] | None = None, existing_records: list[dict[str, Any]] | None = None,
+        resume: bool = False, retry_invalid: bool = False, progress_path: str | Path | None = None,
+    ) -> dict[str, Any]:
+        selected = variants or list(VARIANTS)
+        prior = {(record["variant_id"], record["seed"]): record for record in existing_records or []}
+        records: list[dict[str, Any]] = []
+        for seed in seeds:
+            for variant in selected:
+                previous = prior.get((variant, seed))
+                reuse = (
+                    resume and previous is not None and self._record_is_complete(previous)
+                    and (not retry_invalid or self._is_experimentally_interpretable(previous))
+                )
+                records.append(previous if reuse else self.run_variant(variant, seed))
+                if progress_path:
+                    Path(progress_path).write_text(json.dumps(self._result(records, seeds, selected), indent=2, default=str))
+        return self._result(records, seeds, selected)
+
+    def preflight(self, seeds: list[int], variants: list[str]) -> dict[str, Any]:
+        """Validate executable campaign prerequisites without running an agent."""
+        checks = {
+            "paired_seed_set": len(seeds) == len(set(seeds)) and bool(seeds),
+            "known_variants": bool(variants) and set(variants).issubset(VARIANTS),
+            "scientific_lifecycle_enabled": bool(self.scientific_scenario.get("opportunity_lifecycle")),
+            "scientific_change_defined": len(self.scientific_scenario.get("changes", [])) == 1,
+            "transfer_has_no_learning_change": not self.transfer_scenario.get("changes", []),
+            "observer_mode_supported": self.observer_mode in ScientificObserver.VALID_MODES,
+        }
+        steps_per_run = int(self.scientific_scenario["duration"]) + int(self.transfer_scenario["duration"])
+        return {
+            "status": "READY" if all(checks.values()) else "BLOCKED",
+            "checks": checks,
+            "planned_runs": len(seeds) * len(variants),
+            "estimated_storage": estimate_trace_storage(steps_per_run * len(seeds) * len(variants), 0),
+            "protocol_hash": self.protocol_hash(), "code_hash": self.code_hash(),
         }
 
     def protocol_hash(self) -> str:

@@ -131,6 +131,20 @@ def verify_evidence_manifest(path: str | Path, root: str | Path) -> bool:
     return EvidenceManifest(**{key: data[key] for key in ("schema_version", "run_id", "files", "metadata")}).verify(root)
 
 
+def verify_run_completion(certificate_path: str | Path, evidence_manifest_path: str | Path) -> bool:
+    """Verify the certificate and every evidence artifact it claims to seal."""
+    certificate_data = json.loads(Path(certificate_path).read_text())
+    certificate = RunCompletionCertificate(**certificate_data)
+    evidence_data = json.loads(Path(evidence_manifest_path).read_text())
+    manifest = EvidenceManifest(**{key: evidence_data[key] for key in ("schema_version", "run_id", "files", "metadata")})
+    return (
+        certificate.verify()
+        and certificate.run_id == manifest.run_id
+        and certificate.evidence_manifest_hash == manifest.digest()
+        and manifest.verify(Path(evidence_manifest_path).parent)
+    )
+
+
 def build_evidence_manifest(root: str | Path, run_id: str, metadata: dict[str, Any] | None = None) -> EvidenceManifest:
     """Index every completed artifact relative to the immutable run root."""
     root = Path(root)

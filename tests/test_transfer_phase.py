@@ -29,3 +29,10 @@ def test_transfer_uses_checkpointed_parameters_without_learning(tmp_path):
     assert Path(result["checkpoint_ref"]).is_dir()
     assert Path(result["completion_certificate_path"]).is_file()
     assert verify_evidence_manifest(result["evidence_manifest_path"], Path(result["evidence_manifest_path"]).parent)
+
+    def should_not_run(*args):
+        raise AssertionError("a completed evidence-verified run should be reused")
+
+    runner.run_variant = should_not_run
+    resumed = runner.run([7], variants=["A1_REACTIVE"], existing_records=[result], resume=True)
+    assert resumed["records"] == [result]

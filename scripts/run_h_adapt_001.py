@@ -24,11 +24,13 @@ def parse_seed_list(value: str) -> list[int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=("pilot", "lock", "confirmatory"), default="pilot")
+    parser.add_argument("--stage", choices=("preflight", "pilot", "lock", "confirmatory"), default="pilot")
     parser.add_argument("--output", default="runs/h_adapt_001")
     parser.add_argument("--seeds", default=None, help="Comma-separated paired seeds")
     parser.add_argument("--variants", default=",".join(VARIANTS), help="Comma-separated variant IDs")
     parser.add_argument("--forensic", action="store_true", help="Capture bounded forensic windows")
+    parser.add_argument("--resume", action="store_true", help="Reuse only runs with a valid completion certificate")
+    parser.add_argument("--retry-invalid", action="store_true", help="With --resume, re-run completed but experimentally invalid runs")
     args = parser.parse_args()
 
     output = Path(args.output)
@@ -39,6 +41,9 @@ def main() -> None:
         str(output),
         observer_mode="forensic_full" if args.forensic else "scientific_standard",
     )
+
+    if args.retry_invalid and not args.resume:
+        parser.error("--retry-invalid requires --resume")
 
     if args.stage == "lock":
         pilot_path = output / "h_adapt_001_pilot_results.json"
@@ -54,20 +59,38 @@ def main() -> None:
     if args.stage == "confirmatory" and not lock_path.exists():
         parser.error(f"confirmatory runs require the protocol lock at {lock_path}")
 
-    default_seeds = PILOT_SEEDS if args.stage == "pilot" else CONFIRMATORY_SEEDS
+    default_seeds = PILOT_SEEDS if args.stage in {"pilot", "preflight"} else CONFIRMATORY_SEEDS
     seeds = parse_seed_list(args.seeds) if args.seeds else default_seeds
     variants = [item.strip() for item in args.variants.split(",") if item.strip()]
     unknown = sorted(set(variants) - set(VARIANTS))
     if unknown:
         parser.error(f"unknown variants: {', '.join(unknown)}")
 
-    result = runner.run(seeds=seeds, variants=variants)
+    output.mkdir(parents=True, exist_ok=True)
+    result_path = output / f"h_adapt_001_{args.stage}_results.json"
+    if args.stage == "preflight":
+        result = runner.preflight(seeds, variants)
+        result.update({"stage": args.stage, "seeds": seeds, "variants": variants})
+        result_path.write_text(json.dumps(result, indent=2, default=str))
+        print(f"Preflight: {result_path}")
+        print(json.dumps(result, indent=2, default=str))
+        return
+
+    existing_records = []
+    if args.resume:
+        if not result_path.exists():
+            parser.error(f"--resume requires a prior result file at {result_path}")
+        previous = json.loads(result_path.read_text())
+        existing_records = previous.get("records", [])
+
+    result = runner.run(
+        seeds=seeds, variants=variants, existing_records=existing_records, resume=args.resume,
+        retry_invalid=args.retry_invalid, progress_path=result_path,
+    )
     result["stage"] = args.stage
     result["seeds"] = seeds
     result["protocol_hash"] = runner.protocol_hash()
     result["code_hash"] = runner.code_hash()
-    output.mkdir(parents=True, exist_ok=True)
-    result_path = output / f"h_adapt_001_{args.stage}_results.json"
     result_path.write_text(json.dumps(result, indent=2, default=str))
     print(f"Results: {result_path}")
     print(json.dumps(result["summary"], indent=2, default=str))
