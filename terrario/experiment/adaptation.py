@@ -32,6 +32,7 @@ from terrario.experiment.campaign import (
 )
 from terrario.experiment.controller import ExperimentController, build_world_state, load_scenario, materialize_scenario
 from terrario.experiment.specs import EvidenceRecord, EvidenceSpec
+from terrario.experiment.statistics import descriptive, paired_comparison, sensitivity_label
 from terrario.observer.logger import ScientificObserver
 from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
@@ -431,6 +432,7 @@ class AdaptationProtocolRunner:
         ]
         return {
             "records": records, "evidence": evidence, "summary": summarize_records(records),
+            "analysis": analyze_records(records),
             "pilot_diagnostic": diagnose_pilot(records, seeds, selected),
         }
 
@@ -505,6 +507,51 @@ def summarize_records(records: list[dict[str, Any]]) -> dict[str, Any]:
                 differences.append(left - right)
         summary["paired_ablations"][ablation] = {"n": len(differences), "mean_difference": float(np.mean(differences)) if differences else math.nan, "by_seed": differences}
     return summary
+
+
+def analyze_records(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Descriptive, paired analysis over runs that meet every validity gate."""
+    interpretable = [record for record in records if assess_run_validity(record).experimentally_interpretable.passed]
+    variants: dict[str, Any] = {}
+    for variant_id in sorted({record["variant_id"] for record in records}):
+        group = [record for record in interpretable if record["variant_id"] == variant_id]
+        metrics = {
+            name: [record["metrics"].get(name) for record in group]
+            for name in ("pre_change_competence", "post_change_drop", "recovered_competence", "recovery_latency", "transfer_score")
+        }
+        variants[variant_id] = {
+            "n_total": sum(record["variant_id"] == variant_id for record in records),
+            "n_experimentally_interpretable": len(group),
+            "metrics": {name: descriptive([value for value in values if isinstance(value, float)]) for name, values in metrics.items()},
+        }
+    paired: dict[str, Any] = {}
+    full = {
+        record["seed"]: record["metrics"].get("recovered_competence")
+        for record in interpretable if record["variant_id"] == "A4_ADVANCED"
+    }
+    for ablation in ("A4_NO_MEMORY", "A4_NO_PREDICTION", "A4_NO_ONLINE_LEARNING"):
+        ablated = {
+            record["seed"]: record["metrics"].get("recovered_competence")
+            for record in interpretable if record["variant_id"] == ablation
+        }
+        paired[ablation] = paired_comparison(full, ablated, seed=0)
+    sensitivity = []
+    for threshold in (0.65, 0.70, 0.75):
+        eligible = [
+            record for record in interpretable
+            if record["metrics"].get("pre_change_competence", math.nan) >= threshold
+        ]
+        sensitivity.append({"pre_change_competence_threshold": threshold, "n_eligible": len(eligible)})
+    reference = sensitivity[1]["n_eligible"] / len(interpretable) if interpretable else math.nan
+    alternatives = [item["n_eligible"] / len(interpretable) for item in sensitivity] if interpretable else []
+    return {
+        "analysis_population": {
+            "n_completed": len(records), "n_experimentally_interpretable": len(interpretable),
+            "excluded_run_ids": [record.get("run_id") for record in records if record not in interpretable],
+        },
+        "variants": variants, "paired_ablations": paired,
+        "sensitivity": {"grid": sensitivity, "stability": sensitivity_label(reference, alternatives)},
+    }
 
 
 def diagnose_pilot(records: list[dict[str, Any]], seeds: list[int], variants: list[str]) -> dict[str, Any]:

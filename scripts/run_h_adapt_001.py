@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from terrario.experiment.adaptation import AdaptationProtocolRunner, VARIANTS, lock_protocol
+from terrario.experiment.adaptation import AdaptationProtocolRunner, VARIANTS, analyze_records, lock_protocol
 
 
 PILOT_SEEDS = [11, 23, 37, 53]
@@ -24,7 +24,7 @@ def parse_seed_list(value: str) -> list[int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=("preflight", "pilot", "lock", "confirmatory"), default="pilot")
+    parser.add_argument("--stage", choices=("preflight", "pilot", "analysis", "lock", "confirmatory"), default="pilot")
     parser.add_argument("--output", default="runs/h_adapt_001")
     parser.add_argument("--seeds", default=None, help="Comma-separated paired seeds")
     parser.add_argument("--variants", default=",".join(VARIANTS), help="Comma-separated variant IDs")
@@ -58,6 +58,19 @@ def main() -> None:
 
     if args.stage == "confirmatory" and not lock_path.exists():
         parser.error(f"confirmatory runs require the protocol lock at {lock_path}")
+
+    if args.stage == "analysis":
+        pilot_path = output / "h_adapt_001_pilot_results.json"
+        if not pilot_path.exists():
+            parser.error(f"analysis requires pilot results at {pilot_path}")
+        pilot = json.loads(pilot_path.read_text())
+        analysis_path = output / "h_adapt_001_analysis_results.json"
+        analysis = analyze_records(pilot.get("records", []))
+        analysis.update({"stage": "analysis", "source": str(pilot_path), "pilot_diagnostic": pilot.get("pilot_diagnostic", {})})
+        analysis_path.write_text(json.dumps(analysis, indent=2, default=str))
+        print(f"Analysis: {analysis_path}")
+        print(json.dumps(analysis["analysis_population"], indent=2, default=str))
+        return
 
     default_seeds = PILOT_SEEDS if args.stage in {"pilot", "preflight"} else CONFIRMATORY_SEEDS
     seeds = parse_seed_list(args.seeds) if args.seeds else default_seeds
