@@ -1,4 +1,4 @@
-from terrario.experiment.specs import EvidenceRecord, EvidenceSpec, experiments_from_hypothesis, synthetic_h_adapt_001
+from terrario.experiment.specs import EvidenceRecord, EvidenceSpec, ExperimentSpec, experiments_from_hypothesis, run_experiment_specs, synthetic_h_adapt_001
 
 
 def test_hypothesis_generates_traceable_conditions_and_evidence():
@@ -9,3 +9,11 @@ def test_hypothesis_generates_traceable_conditions_and_evidence():
     record = evidence.to_dict()
     assert record["evidence_spec"]["hypothesis_id"] == "H-ADAPT-001"
     assert record["config_hash"] == experiments[0].config_hash()
+
+
+def test_experiment_spec_executes_into_evidence(tmp_path):
+    spec = ExperimentSpec("H-ADAPT-001:random", "H-ADAPT-001", "random", "A0_RANDOM", {}, "scenarios/d0_differences.yaml", [3])
+    runs, evidence = run_experiment_specs([spec], str(tmp_path), "test-code", max_steps=1, observer_mode="performance")
+    assert len(runs) == 1
+    assert evidence and all(record.config_hash == spec.config_hash() for record in evidence)
+    assert all(record.code_hash == "test-code" for record in evidence)

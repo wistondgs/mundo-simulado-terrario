@@ -26,6 +26,16 @@ class ExperimentSpec:
     def config_hash(self) -> str:
         return hashlib.sha256(json.dumps(self.to_dict(), sort_keys=True).encode()).hexdigest()
 
+    def to_config(self, output_dir: str, max_steps: int = 500, observer_mode: str = "scientific_standard"):
+        """Materialize this declarative condition as a runnable experiment."""
+        from terrario.experiment.config import ExperimentConfig
+        return ExperimentConfig(
+            experiment_id=self.experiment_id, hypothesis=None, scenario_path=self.scenario_path,
+            agent_types=[self.agent_id], agent_config=dict(self.agent_overrides), seeds=list(self.seeds),
+            num_episodes=1, max_steps_per_episode=max_steps, observer_mode=observer_mode,
+            checkpoint_every=max_steps, output_dir=output_dir, device="cpu",
+        )
+
 
 @dataclass(frozen=True)
 class EvidenceSpec:
@@ -81,3 +91,27 @@ def experiments_from_hypothesis(
         condition_id=condition, agent_id=requested_agent, agent_overrides=overrides,
         scenario_path=scenario_path, seeds=list(seeds),
     ) for condition, requested_agent, overrides in conditions]
+
+
+def run_experiment_specs(
+    specs: list[ExperimentSpec], output_dir: str, code_hash: str,
+    max_steps: int = 500, observer_mode: str = "scientific_standard",
+) -> tuple[list[dict[str, Any]], list[EvidenceRecord]]:
+    """Execute declarative conditions and return provenance-preserving evidence."""
+    from terrario.experiment.controller import ExperimentController
+
+    runs: list[dict[str, Any]] = []
+    evidence: list[EvidenceRecord] = []
+    for spec in specs:
+        result = ExperimentController(spec.to_config(output_dir, max_steps, observer_mode)).run()
+        runs.append(result)
+        for episode in result["episodes"]:
+            run_id = f"{spec.experiment_id}:seed-{episode['seed']}:episode-{episode['episode_idx']}"
+            for concept_id in ("memory", "prediction", "error_detection"):
+                evidence.append(EvidenceRecord(
+                    evidence_spec=EvidenceSpec(concept_id, spec.hypothesis_id, f"{concept_id}->adaptation"),
+                    experiment_id=spec.experiment_id, run_id=run_id,
+                    config_hash=spec.config_hash(), code_hash=code_hash,
+                    metrics={key: float(value) for key, value in episode["metrics"].items() if isinstance(value, (int, float))},
+                ))
+    return runs, evidence

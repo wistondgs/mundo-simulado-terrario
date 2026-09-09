@@ -11,6 +11,7 @@ def test_scientific_observer_persists_complete_transition(tmp_path):
     assert (run_dir / "manifest.yaml").exists()
     assert any(path.name.startswith("transition.") for path in (run_dir / "events").iterdir())
     assert any((run_dir / "checkpoints").iterdir())
+    assert any(path.name == "runtime_state.pt" for path in (run_dir / "checkpoints").rglob("runtime_state.pt"))
 
 
 def test_forensic_full_captures_real_activation_gradient_and_delta(tmp_path):

@@ -18,6 +18,7 @@ import numpy as np
 from terrario.core.contracts import ImmutableObserverSnapshot, Transition
 from terrario.core.types import Action, Consequence, Observation, WorldState
 from terrario.observer.storage import StorageManager
+from terrario.observer.checkpoints import CheckpointManager
 from terrario.observer.trace import (
     ConsequenceTrace,
     DecisionTrace,
@@ -56,6 +57,7 @@ class ScientificObserver:
 
         self.mode = mode
         self.storage = StorageManager(run_dir, mode)
+        self._checkpoint_manager = CheckpointManager(str(self.storage.run_dir / "checkpoints"))
         self._step_count = 0
         self._latencies: list[float] = []
         self._flush_interval = 100
@@ -239,10 +241,11 @@ class ScientificObserver:
         }
         if metadata:
             checkpoint_metadata.update(metadata)
-        self.storage.save_checkpoint(
-            {k: self._to_numpy(v) for k, v in params.items()},
-            {k: self._to_numpy(v) for k, v in optimizer_state.items()}, step, checkpoint_metadata,
-        )
+        self._checkpoint_manager.save(agent, step, checkpoint_metadata)
+
+    def load_checkpoint(self, agent: Any, step: int, world_manager: Any | None = None) -> dict:
+        """Restore a locally written observer checkpoint for deterministic replay."""
+        return self._checkpoint_manager.restore(agent, step, world_manager)
 
     def log_transition(
         self,
