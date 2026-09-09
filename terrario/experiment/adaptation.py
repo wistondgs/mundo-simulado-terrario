@@ -379,11 +379,15 @@ def diagnose_pilot(records: list[dict[str, Any]], seeds: list[int], variants: li
     random_calibrated = all(not isinstance(value, float) or math.isnan(value) or value < AdaptationThresholds().pre_change_competence for value in random_values)
     gates = {
         "P1_numerical_integrity": p1, "P2_paired_worlds": paired,
-        "P3_sufficient_signal": bool(sufficient), "P4_random_baseline_calibrated": random_calibrated,
+        "P3_sufficient_signal": len(sufficient) == expected, "P4_random_baseline_calibrated": random_calibrated,
         "P5_prechange_learning": prelearned, "P7_prediction_error_real": prediction_real,
         "P8_transfer_frozen": transfer_frozen,
     }
-    return {"status": "PASS" if all(gates.values()) else "FAIL", "expected_runs": expected, "completed_runs": len(records), "gates": gates}
+    return {
+        "status": "PASS" if all(gates.values()) else "FAIL", "expected_runs": expected,
+        "completed_runs": len(records), "technical_valid_runs": sum(item["finite_parameters"] and item["finite_memory"] and not item["nonfinite_learning_events"] and not item["aborted"] for item in health),
+        "experimental_valid_runs": len(sufficient), "gates": gates,
+    }
 
 
 def estimate_trace_storage(
