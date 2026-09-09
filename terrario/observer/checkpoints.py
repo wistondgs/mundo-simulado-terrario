@@ -87,11 +87,13 @@ class CheckpointManager:
 
         # Runtime state is local checkpoint material, separate from portable
         # parameter tensors. It enables deterministic CPU replay.
+        optimizer = self._optimizer_for(agent)
         runtime = {
             "python": random.getstate(),
             "numpy": np.random.get_state(),
             "torch": torch.get_rng_state(),
             "agent_generator": agent._generator.get_state() if hasattr(agent, "_generator") else None,
+            "optimizer": optimizer.state_dict() if optimizer is not None else None,
         }
         torch.save(runtime, ckpt_dir / "runtime_state.pt")
 
@@ -154,6 +156,9 @@ class CheckpointManager:
             torch.set_rng_state(runtime["torch"])
             if runtime["agent_generator"] is not None and hasattr(agent, "_generator"):
                 agent._generator.set_state(runtime["agent_generator"])
+            optimizer = self._optimizer_for(agent)
+            if optimizer is not None and runtime.get("optimizer") is not None:
+                optimizer.load_state_dict(runtime["optimizer"])
         if world_manager is not None and "world_snapshot" in checkpoint["metadata"]:
             world_manager.restore(checkpoint["metadata"]["world_snapshot"])
         return checkpoint
@@ -185,3 +190,11 @@ class CheckpointManager:
         if hasattr(value, "cpu") and hasattr(value, "numpy"):
             return value.cpu().numpy()
         return np.asarray(value)
+
+    @staticmethod
+    def _optimizer_for(agent: Any):
+        optimizer = getattr(agent, "_optimizer", None)
+        if optimizer is not None:
+            return optimizer
+        learner = getattr(agent, "learner", None)
+        return getattr(learner, "_optimizer", None)
