@@ -166,6 +166,7 @@ class ExperimentController:
         change_step = next(iter(active_scenario.get("changes", [])), {}).get("at_step")
         forensic_policy = ForensicWindowPolicy(change_step) if change_step is not None else None
         lifecycle = OpportunityLifecycle(active_scenario.get("opportunity_lifecycle", {}), active_scenario.get("world_seed", seed))
+        lifecycle.register_initial(world_state_mgr)
 
         for step in range(max_steps):
             agent_state = world_state_mgr._mutable_state().agents.get(0)
@@ -254,6 +255,7 @@ class ExperimentController:
             "final_energy": world_state_mgr._mutable_state().agents[0].energy,
             "num_steps": len(energy_history), "compute_cost": getattr(agent, "compute_cost", 1.0),
             "opportunity_events": [event.__dict__ for event in lifecycle.events],
+            "opportunity_records": [record.__dict__ for record in lifecycle.records.values()],
         }
 
     def _find_target(self, world_mgr: WorldStateManager, agent_id: int, action: Action) -> ObjectSpec | None:

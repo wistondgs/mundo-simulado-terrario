@@ -20,6 +20,22 @@ class OpportunityEvent:
     position: tuple[int, int]
 
 
+@dataclass
+class OpportunityRecord:
+    opportunity_id: int
+    causal_class: str
+    spawn_step: int
+    spawn_position: tuple[int, int]
+    despawn_step: int | None = None
+    interaction_step: int | None = None
+    interaction_agent_id: int | None = None
+    reachable_at_spawn: bool = True
+    visible_at_spawn: bool = False
+    min_distance_during_lifetime: int | None = None
+    interacted: bool = False
+    respawn_parent: int | None = None
+
+
 class OpportunityLifecycle:
     """Despawns a consumed instance and respawns its class after a fixed-delay draw."""
 
@@ -32,6 +48,21 @@ class OpportunityLifecycle:
         self._pending: list[dict[str, Any]] = []
         self._recent_positions: list[tuple[int, int]] = []
         self.events: list[OpportunityEvent] = []
+        self.records: dict[int, OpportunityRecord] = {}
+
+    def register_initial(self, world: WorldStateManager, step: int = 0) -> None:
+        if not self.enabled:
+            return
+        agent = world._mutable_state().agents[0]
+        for obj in world._mutable_state().objects.values():
+            causal_class = obj.properties.get("causal_class")
+            if causal_class not in {"A", "B"}:
+                continue
+            opportunity_id = self._next_opportunity_id
+            self._next_opportunity_id += 1
+            obj.properties["opportunity_id"] = opportunity_id
+            distance = abs(obj.pos.x - agent.pos.x) + abs(obj.pos.y - agent.pos.y)
+            self.records[opportunity_id] = OpportunityRecord(opportunity_id, causal_class, step, obj.pos.to_tuple(), reachable_at_spawn=True, visible_at_spawn=distance <= 2, min_distance_during_lifetime=distance)
 
     def consume(self, world: WorldStateManager, obj: ObjectSpec, step: int) -> OpportunityEvent | None:
         if not self.enabled or "causal_class" not in obj.properties:
@@ -49,6 +80,8 @@ class OpportunityLifecycle:
         })
         self._next_opportunity_id += 1
         event = OpportunityEvent("despawn", opportunity_id, causal_class, step, obj.pos.to_tuple())
+        record = self.records.setdefault(opportunity_id, OpportunityRecord(opportunity_id, causal_class, step, obj.pos.to_tuple()))
+        record.despawn_step = step; record.interaction_step = step; record.interaction_agent_id = 0; record.interacted = True
         self.events.append(event)
         self._recent_positions.append(obj.pos.to_tuple())
         self._recent_positions = self._recent_positions[-int(self._config.get("recent_position_exclusion", 2)):]
@@ -67,6 +100,11 @@ class OpportunityLifecycle:
                 properties={"causal_class": pending["causal_class"], "opportunity_id": pending["opportunity_id"]},
             )
             self._next_object_id += 1
+            distance = abs(position[0] - agent_pos.x) + abs(position[1] - agent_pos.y)
+            self.records[pending["opportunity_id"]] = OpportunityRecord(
+                pending["opportunity_id"], pending["causal_class"], step, position,
+                reachable_at_spawn=True, visible_at_spawn=distance <= 2, min_distance_during_lifetime=distance,
+            )
             world.add_object(obj)
             event = OpportunityEvent("respawn", pending["opportunity_id"], pending["causal_class"], step, position)
             self.events.append(event)
@@ -103,4 +141,5 @@ class OpportunityLifecycle:
             "nearest_visible_object_distance": min(visible, default=None),
             "opportunities_class_A": len(classes["A"]), "opportunities_class_B": len(classes["B"]),
             "pending_respawns": len(self._pending),
+            "concurrent_balance_ratio": len(classes["A"]) / len(classes["B"]) if classes["B"] else None,
         }
