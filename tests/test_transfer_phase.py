@@ -2,6 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from terrario.experiment.adaptation import AdaptationProtocolRunner
+from terrario.experiment.campaign import verify_evidence_manifest
 
 
 def test_transfer_uses_checkpointed_parameters_without_learning(tmp_path):
@@ -26,3 +27,5 @@ def test_transfer_uses_checkpointed_parameters_without_learning(tmp_path):
     assert result["primary"]["num_steps"] == 8
     assert result["transfer"]["num_steps"] == 5
     assert Path(result["checkpoint_ref"]).is_dir()
+    assert Path(result["completion_certificate_path"]).is_file()
+    assert verify_evidence_manifest(result["evidence_manifest_path"], Path(result["evidence_manifest_path"]).parent)

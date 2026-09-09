@@ -9,7 +9,7 @@ import os
 import time
 import tracemalloc
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any
 
 import numpy as np
@@ -17,6 +17,18 @@ import torch
 
 from terrario.core.rng import RNGManager
 from terrario.experiment.config import ExperimentConfig
+from terrario.experiment.campaign import (
+    ExperimentalValidity,
+    ReasonCode,
+    RunCompletionCertificate,
+    RunIdentity,
+    ValidityField,
+    build_evidence_manifest,
+    build_trace_manifest,
+    directory_hash,
+    stable_hash,
+    write_manifest,
+)
 from terrario.experiment.controller import ExperimentController, build_world_state, load_scenario, materialize_scenario
 from terrario.experiment.specs import EvidenceRecord, EvidenceSpec
 from terrario.observer.logger import ScientificObserver
@@ -24,10 +36,12 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
+from terrario.world.opportunities import summarize_opportunity_contract
 
 
 NOT_APPLICABLE = "NOT_APPLICABLE"
 INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+PROTOCOL_VERSION = "0.2"
 
 
 @dataclass(frozen=True)
@@ -209,6 +223,56 @@ def numerical_health(episode_data: dict[str, Any], agent: Any) -> dict[str, Any]
     }
 
 
+def assess_run_validity(record: dict[str, Any], thresholds: AdaptationThresholds = AdaptationThresholds()) -> ExperimentalValidity:
+    """Classify run validity before considering its adaptation outcome."""
+    health = record["numerical_health"]
+    technical = (
+        health["finite_parameters"] and health["finite_memory"]
+        and not health["nonfinite_learning_events"] and not health["aborted"]
+    )
+    technical_reason = ReasonCode.VALID_UNCLASSIFIED if technical else (
+        ReasonCode.NUMERICAL_FAILURE if health["nonfinite_learning_events"] or not health["finite_parameters"] or not health["finite_memory"]
+        else ReasonCode.TECHNICAL_FAILURE
+    )
+    opportunity = record.get("opportunity_contract")
+    world_signal = True if opportunity is None else (
+        opportunity["record_count"] > 0
+        and opportunity["all_spawn_positions_reachable"]
+        and opportunity["concurrent_balance_pass"]
+    )
+    metrics = record["metrics"]
+    interaction = metrics["pre_change_status"] == "VALID" and metrics["post_change_status"] == "VALID"
+    prelearned = interaction and metrics["pre_change_competence"] >= thresholds.pre_change_competence
+    primary_steps = record.get("primary", {}).get("num_steps")
+    change_exposure = (
+        interaction if primary_steps is None
+        else primary_steps >= record["change_step"] + 2 * thresholds.window_steps
+    )
+    transfer = record["transfer_parameters_unchanged"] and record["transfer_adaptive_state_unchanged"]
+    interpretable = technical and world_signal and interaction and prelearned and change_exposure and transfer
+    classification = ReasonCode(record.get("classification", ReasonCode.VALID_UNCLASSIFIED))
+    return ExperimentalValidity(
+        ValidityField(technical, technical_reason, health),
+        ValidityField(world_signal, ReasonCode.VALID_UNCLASSIFIED if world_signal else ReasonCode.WORLD_SIGNAL_FAILURE, opportunity or {}),
+        ValidityField(interaction, ReasonCode.VALID_UNCLASSIFIED if interaction else ReasonCode.INSUFFICIENT_AGENT_INTERACTION, {
+            "pre_change_status": metrics["pre_change_status"], "post_change_status": metrics["post_change_status"],
+        }),
+        ValidityField(prelearned, ReasonCode.VALID_UNCLASSIFIED if prelearned else ReasonCode.NOT_LEARNED_PRE_CHANGE, {
+            "competence": metrics["pre_change_competence"], "threshold": thresholds.pre_change_competence,
+        }),
+        ValidityField(change_exposure, ReasonCode.VALID_UNCLASSIFIED if change_exposure else ReasonCode.NO_DISRUPTION_OBSERVED, {
+            "change_step": record.get("change_step"), "primary_steps": primary_steps,
+        }),
+        ValidityField(transfer, ReasonCode.VALID_UNCLASSIFIED if transfer else ReasonCode.TRANSFER_CONTAMINATED, {}),
+        ValidityField(interpretable, ReasonCode.VALID_UNCLASSIFIED if interpretable else (
+            technical_reason if not technical else ReasonCode.WORLD_SIGNAL_FAILURE if not world_signal else
+            ReasonCode.INSUFFICIENT_AGENT_INTERACTION if not interaction else ReasonCode.NOT_LEARNED_PRE_CHANGE if not prelearned else
+            ReasonCode.NO_DISRUPTION_OBSERVED if not change_exposure else ReasonCode.TRANSFER_CONTAMINATED
+        ), {}),
+        classification,
+    )
+
+
 class AdaptationProtocolRunner:
     """Runs paired H-ADAPT-001 conditions and frozen transfer evaluations."""
 
@@ -229,7 +293,7 @@ class AdaptationProtocolRunner:
         variant = VARIANTS[variant_id]
         primary = materialize_scenario(self.scientific_scenario, seed)
         transfer = materialize_scenario(self.transfer_scenario, seed + 10_000_019)
-        world_spec_hash = _stable_hash({"objects": primary["objects"], "changes": primary.get("changes", []), "rules": primary["rules"]})
+        world_spec_hash = _stable_hash(primary)
         agent_seed = seed + 1_000_003
         config = ExperimentConfig(
             experiment_id="H-ADAPT-001", hypothesis=None, scenario_path=self.scientific_scenario_path,
@@ -248,8 +312,9 @@ class AdaptationProtocolRunner:
         tracemalloc.start()
         cpu_start, wall_start = time.process_time(), time.perf_counter()
         primary_world, primary_rules, primary_scheduler = _phase_components(primary)
+        primary_start_state_hash = primary_world._mutable_state().state_hash()
         with ScientificObserver(str(run_root / "primary"), self.observer_mode, {
-            "hypothesis_id": "H-ADAPT-001", "protocol_version": "0.1", "variant_id": variant_id,
+            "hypothesis_id": "H-ADAPT-001", "protocol_version": PROTOCOL_VERSION, "variant_id": variant_id,
             "seed": seed, "world_seed": seed, "agent_seed": agent_seed, "phase": "training",
         }) as primary_observer:
             primary_data = controller.run_episode(
@@ -264,7 +329,7 @@ class AdaptationProtocolRunner:
         adaptive_state_before_transfer = _adaptive_state_hash(agent)
         transfer_world, transfer_rules, transfer_scheduler = _phase_components(transfer)
         with ScientificObserver(str(run_root / "transfer"), self.observer_mode, {
-            "hypothesis_id": "H-ADAPT-001", "protocol_version": "0.1", "variant_id": variant_id,
+            "hypothesis_id": "H-ADAPT-001", "protocol_version": PROTOCOL_VERSION, "variant_id": variant_id,
             "seed": seed, "world_seed": seed + 10_000_019, "agent_seed": agent_seed, "phase": "transfer_no_learning",
         }) as transfer_observer:
             transfer_data = controller.run_episode(
@@ -294,8 +359,14 @@ class AdaptationProtocolRunner:
             forensic_steps = min(primary_data["num_steps"], 501) + transfer_data["num_steps"]
         parameter_count = agent.parameter_count()
         checkpoint_estimate = max(64 * 1024, parameter_count * 4 * 3)
-        return {
+        identity = RunIdentity(
+            "H-ADAPT-001", PROTOCOL_VERSION, variant_id, seed, agent_seed,
+            config.config_hash(), self.code_hash(),
+        )
+        opportunity_contract = summarize_opportunity_contract(primary_data)
+        record = {
             "variant_id": variant_id, "seed": seed, "world_seed": seed, "agent_seed": agent_seed,
+            "run_id": identity.run_id, "run_identity": asdict(identity),
             "world_spec_hash": world_spec_hash,
             "change_step": change_step, "primary": primary_data, "transfer": transfer_data,
             "metrics": metrics, "classification": classification, "invalid_reason": invalid_reason,
@@ -305,12 +376,37 @@ class AdaptationProtocolRunner:
             "peak_tracemalloc_bytes": peak_memory, "transfer_parameters_unchanged": transfer_parameters_unchanged,
             "transfer_adaptive_state_unchanged": adaptive_state_before_transfer == adaptive_state_after_transfer,
             "numerical_health": numerical_health(primary_data, agent),
+            "opportunity_contract": opportunity_contract,
             "checkpoint_ref": str(run_root / "primary" / "checkpoints" / f"step_{primary_data['num_steps']:08d}"),
             "observed_storage_bytes": observed_storage,
             "estimated_storage": estimate_trace_storage(
                 primary_data["num_steps"] + transfer_data["num_steps"], forensic_steps, checkpoint_bytes=checkpoint_estimate,
             ),
         }
+        validity = assess_run_validity(record)
+        record["validity"] = asdict(validity)
+        trace_manifest = build_trace_manifest(run_root, identity.run_id, self.observer_mode)
+        trace_path = run_root / "TRACE_MANIFEST.json"
+        write_manifest(trace_path, trace_manifest)
+        evidence_manifest = build_evidence_manifest(run_root, identity.run_id, {
+            "protocol_hash": self.protocol_hash(), "code_hash": self.code_hash(), "config_hash": config.config_hash(),
+        })
+        evidence_path = run_root / "EVIDENCE_MANIFEST.json"
+        write_manifest(evidence_path, evidence_manifest)
+        certificate = RunCompletionCertificate(
+            identity.run_id,
+            primary_start_state_hash,
+            primary_data["traces"][-1]["state_hash"] if primary_data["traces"] else "aborted",
+            evidence_manifest.digest(), stable_hash(metrics), directory_hash(record["checkpoint_ref"]),
+            validity.technical_valid.reason, self.code_hash(), config.config_hash(),
+        )
+        certificate_path = run_root / "RUN_COMPLETION_CERTIFICATE.json"
+        certificate_path.write_text(json.dumps(asdict(certificate), indent=2, sort_keys=True, default=str))
+        record.update({
+            "trace_manifest_path": str(trace_path), "evidence_manifest_path": str(evidence_path),
+            "completion_certificate_path": str(certificate_path), "completion_certificate": asdict(certificate),
+        })
+        return record
 
     def run(self, seeds: list[int], variants: list[str] | None = None) -> dict[str, Any]:
         selected = variants or list(VARIANTS)
@@ -368,9 +464,10 @@ def diagnose_pilot(records: list[dict[str, Any]], seeds: list[int], variants: li
     expected = len(seeds) * len(variants)
     by_seed = {seed: [record for record in records if record["seed"] == seed] for seed in seeds}
     paired = all(len(group) == len(variants) and len({record["world_spec_hash"] for record in group}) == 1 for group in by_seed.values())
-    health = [record["numerical_health"] for record in records]
-    p1 = len(records) == expected and all(item["finite_parameters"] and item["finite_memory"] and not item["nonfinite_learning_events"] and not item["aborted"] for item in health)
-    sufficient = [record for record in records if record["metrics"]["pre_change_status"] == "VALID" and record["metrics"]["post_change_status"] == "VALID"]
+    validities = [assess_run_validity(record) for record in records]
+    p1 = len(records) == expected and all(item.technical_valid.passed for item in validities)
+    world_signal = all(item.world_signal_sufficient.passed for item in validities)
+    interactions = all(item.agent_interaction_sufficient.passed for item in validities)
     predictors = [record for record in records if record["variant_id"] in {"A3_WORLD_MODEL", "A4_ADVANCED", "A4_NO_MEMORY", "A4_NO_ONLINE_LEARNING"}]
     prediction_real = all(isinstance(record["metrics"].get("prediction_error_spike"), float) and not math.isnan(record["metrics"]["prediction_error_spike"]) for record in predictors)
     transfer_frozen = all(record["transfer_parameters_unchanged"] and record["transfer_adaptive_state_unchanged"] for record in records)
@@ -379,14 +476,17 @@ def diagnose_pilot(records: list[dict[str, Any]], seeds: list[int], variants: li
     random_calibrated = all(not isinstance(value, float) or math.isnan(value) or value < AdaptationThresholds().pre_change_competence for value in random_values)
     gates = {
         "P1_numerical_integrity": p1, "P2_paired_worlds": paired,
-        "P3_sufficient_signal": len(sufficient) == expected, "P4_random_baseline_calibrated": random_calibrated,
+        "P3_sufficient_signal": world_signal and interactions,
+        "P3_world_opportunity_contract": world_signal,
+        "P3_agent_interaction_sufficient": interactions,
+        "P4_random_baseline_calibrated": random_calibrated,
         "P5_prechange_learning": prelearned, "P7_prediction_error_real": prediction_real,
         "P8_transfer_frozen": transfer_frozen,
     }
     return {
         "status": "PASS" if all(gates.values()) else "FAIL", "expected_runs": expected,
-        "completed_runs": len(records), "technical_valid_runs": sum(item["finite_parameters"] and item["finite_memory"] and not item["nonfinite_learning_events"] and not item["aborted"] for item in health),
-        "experimental_valid_runs": len(sufficient), "gates": gates,
+        "completed_runs": len(records), "technical_valid_runs": sum(item.technical_valid.passed for item in validities),
+        "experimental_valid_runs": sum(item.experimentally_interpretable.passed for item in validities), "gates": gates,
     }
 
 

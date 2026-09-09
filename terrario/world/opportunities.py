@@ -31,6 +31,7 @@ class OpportunityRecord:
     interaction_agent_id: int | None = None
     reachable_at_spawn: bool = True
     visible_at_spawn: bool = False
+    ever_visible: bool = False
     min_distance_during_lifetime: int | None = None
     interacted: bool = False
     respawn_parent: int | None = None
@@ -131,6 +132,14 @@ class OpportunityLifecycle:
         for obj in state.objects.values():
             distance = abs(obj.pos.x - agent.pos.x) + abs(obj.pos.y - agent.pos.y)
             causal_class = obj.properties.get("causal_class")
+            opportunity_id = obj.properties.get("opportunity_id")
+            if opportunity_id in self.records:
+                record = self.records[opportunity_id]
+                record.min_distance_during_lifetime = min(
+                    record.min_distance_during_lifetime if record.min_distance_during_lifetime is not None else distance,
+                    distance,
+                )
+                record.ever_visible = record.ever_visible or distance <= view_radius
             if causal_class in classes:
                 classes[causal_class].append(distance)
             if distance <= view_radius:
@@ -143,3 +152,38 @@ class OpportunityLifecycle:
             "pending_respawns": len(self._pending),
             "concurrent_balance_ratio": len(classes["A"]) / len(classes["B"]) if classes["B"] else None,
         }
+
+
+def summarize_opportunity_contract(episode_data: dict[str, Any], max_concurrent_imbalance: int = 4) -> dict[str, Any]:
+    """Summarize observer-only D4 opportunity availability for validity gates."""
+    geometries = [
+        trace.get("causal_interaction", {}).get("geometry", {})
+        for trace in episode_data.get("traces", [])
+    ]
+    samples = [
+        (int(geometry["opportunities_class_A"]), int(geometry["opportunities_class_B"]))
+        for geometry in geometries
+        if "opportunities_class_A" in geometry and "opportunities_class_B" in geometry
+    ]
+    records = list(episode_data.get("opportunity_records", []))
+    events = list(episode_data.get("opportunity_events", []))
+    imbalances = [abs(class_a - class_b) for class_a, class_b in samples]
+    class_counts = {"A": 0, "B": 0}
+    for record in records:
+        causal_class = record.get("causal_class")
+        if causal_class in class_counts:
+            class_counts[causal_class] += 1
+    return {
+        "record_count": len(records),
+        "records": records,
+        "despawns": sum(event.get("kind") == "despawn" for event in events),
+        "respawns": sum(event.get("kind") == "respawn" for event in events),
+        "interacted_records": sum(bool(record.get("interacted")) for record in records),
+        "class_record_counts": class_counts,
+        "all_spawn_positions_reachable": bool(records) and all(bool(record.get("reachable_at_spawn")) for record in records),
+        "visible_records": sum(bool(record.get("ever_visible") or record.get("visible_at_spawn")) for record in records),
+        "concurrent_samples": len(samples),
+        "max_concurrent_imbalance": max(imbalances, default=None),
+        "concurrent_balance_tolerance": max_concurrent_imbalance,
+        "concurrent_balance_pass": bool(samples) and all(value <= max_concurrent_imbalance for value in imbalances),
+    }

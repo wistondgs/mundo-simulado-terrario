@@ -70,6 +70,20 @@ def file_hash(path: str | Path) -> str:
     return digest.hexdigest()
 
 
+def stable_hash(value: Any) -> str:
+    """Hash structured campaign data with a stable, inspectable encoding."""
+    return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def directory_hash(root: str | Path) -> str:
+    root = Path(root)
+    entries = {
+        str(path.relative_to(root)): file_hash(path)
+        for path in sorted(root.rglob("*")) if path.is_file()
+    }
+    return stable_hash(entries)
+
+
 @dataclass(frozen=True)
 class RunCompletionCertificate:
     run_id: str
@@ -115,3 +129,26 @@ def write_manifest(path: str | Path, manifest: EvidenceManifest) -> None:
 def verify_evidence_manifest(path: str | Path, root: str | Path) -> bool:
     data = json.loads(Path(path).read_text())
     return EvidenceManifest(**{key: data[key] for key in ("schema_version", "run_id", "files", "metadata")}).verify(root)
+
+
+def build_evidence_manifest(root: str | Path, run_id: str, metadata: dict[str, Any] | None = None) -> EvidenceManifest:
+    """Index every completed artifact relative to the immutable run root."""
+    root = Path(root)
+    files = {
+        str(path.relative_to(root)): file_hash(path)
+        for path in sorted(root.rglob("*")) if path.is_file()
+    }
+    return EvidenceManifest("1", run_id, files, metadata or {})
+
+
+def build_trace_manifest(
+    root: str | Path, run_id: str, observer_mode: str, forensic_windows: list[dict[str, int]] | None = None,
+) -> TraceManifest:
+    """Index observer traces separately from checkpoints and derived evidence."""
+    root = Path(root)
+    files = {
+        str(path.relative_to(root)): file_hash(path)
+        for path in sorted(root.rglob("*"))
+        if path.is_file() and ("events" in path.parts or "tensors" in path.parts)
+    }
+    return TraceManifest("1", run_id, files, {}, observer_mode, forensic_windows or [])
