@@ -1,0 +1,20 @@
+hypothesis:
+  hypothesis_id: "H-ADAPT-001"
+  version: "0.1"
+  status: "UNTESTED"
+  claim: "memory, prediction, and online_learning jointly facilitate faster recovery after unexpected causal change"
+  participants: ["memory", "prediction", "online_learning"]
+  predicted_effect: "faster recovery under causal reversal"
+  world_pressure: "D4 scientific causal reversal"
+  controls: ["A0_RANDOM", "A1_REACTIVE", "A2_GRU", "A3_WORLD_MODEL"]
+  ablations: ["no_memory", "no_prediction", "no_online_learning"]
+  preregistered_thresholds:
+    pre_change_competence: 0.70
+    expected_disruption_absolute_drop: 0.20
+    recovery_fraction_of_pre: 0.90
+    consecutive_recovery_windows: 2
+    transfer_fraction_of_recovered: 0.80
+    minimum_informative_interactions: 12
+  notes:
+    - "Thresholds are H-ADAPT-001/v0.1 and are not universal adaptation definitions."
+    - "No disruption despite high competence is NO_DISRUPTION_OBSERVED, not automatic failure."

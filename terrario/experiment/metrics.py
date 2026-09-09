@@ -84,7 +84,8 @@ class MetricsCalculator:
         errors = []
         for trace in traces:
             pe = trace.get("prediction_error", 0.0)
-            errors.append(float(pe))
+            if pe is not None:
+                errors.append(float(pe))
         return errors
 
     @staticmethod

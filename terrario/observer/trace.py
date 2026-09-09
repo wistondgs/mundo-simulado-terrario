@@ -375,6 +375,8 @@ class TransitionTrace:
     observer_world: dict[str, Any]
     agent_trace_events: list[dict[str, Any]]
     parameter_deltas: dict[str, float] | None = None
+    observer_annotations: dict[str, Any] | None = None
+    scientific_state: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -389,6 +391,8 @@ class TransitionTrace:
             "observer_world": _serialize_value(self.observer_world),
             "agent_trace_events": _serialize_value(self.agent_trace_events),
             "parameter_deltas": _serialize_value(self.parameter_deltas),
+            "observer_annotations": _serialize_value(self.observer_annotations),
+            "scientific_state": _serialize_value(self.scientific_state),
         }
 
 

@@ -96,8 +96,11 @@ class SSMCore(TemporalCore):
         Returns:
             (output, new_h) — both (batch, hidden_dim).
         """
-        # h_t = diag(a) * h_{t-1} + B @ x_t
-        new_h = self.a * h + x @ self.B.T
+        # A linear recurrence is only stable while its diagonal transition is
+        # bounded. Keep the learned coefficient in the stable interval during
+        # execution without changing the stored parameter or architecture.
+        transition = self.a.clamp(-0.999, 0.999)
+        new_h = transition * h + x @ self.B.T
         output = new_h @ self.C.T
         return output, new_h
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
@@ -16,6 +17,7 @@ from terrario.core.types import Action, ActionType, AgentState, Consequence, Obj
 from terrario.experiment.config import ExperimentConfig
 from terrario.experiment.metrics import MetricsCalculator
 from terrario.observer.logger import ScientificObserver
+from terrario.observer.windows import ForensicWindowPolicy
 from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
@@ -28,6 +30,43 @@ def load_scenario(path: str) -> dict[str, Any]:
     return data.get("scenario", data)
 
 
+def materialize_scenario(scenario: dict[str, Any], world_seed: int) -> dict[str, Any]:
+    """Materialize procedural layout and hidden schedule deterministically."""
+    resolved = deepcopy(scenario)
+    layout = resolved.get("procedural_layout")
+    if not layout:
+        return resolved
+    rng = np.random.default_rng(world_seed)
+    grid_w, grid_h = resolved["grid_size"]
+    start = tuple(resolved.get("agent_start", {}).get("pos", [grid_h // 2, grid_w // 2]))
+    margin = int(layout.get("placement_margin", 1))
+    candidates = [
+        (x, y) for x in range(margin, grid_h - margin) for y in range(margin, grid_w - margin)
+        if (x, y) != start
+    ]
+    templates = layout["class_templates"]
+    class_names = [name for name, template in templates.items() for _ in range(template["count"])]
+    if len(class_names) > len(candidates):
+        raise ValueError("Procedural layout requests more objects than valid positions")
+    positions = rng.choice(len(candidates), size=len(class_names), replace=False)
+    rng.shuffle(class_names)
+    resolved["objects"] = [
+        {
+            "pos": list(candidates[position_index]),
+            "channels": templates[class_name]["channels"],
+            "movable": False,
+            "energy_value": 0.0,
+            "properties": {"causal_class": class_name},
+        }
+        for class_name, position_index in zip(class_names, positions)
+    ]
+    jitter = int(resolved.get("change_jitter", 0))
+    for change in resolved.get("changes", []):
+        change["at_step"] = int(change["at_step"]) + int(rng.integers(-jitter, jitter + 1))
+    resolved["world_seed"] = world_seed
+    return resolved
+
+
 def build_world_state(scenario: dict[str, Any]) -> WorldState:
     grid_w, grid_h = scenario["grid_size"]
     occupancy = np.zeros((grid_h, grid_w), dtype=np.int32)
@@ -37,6 +76,7 @@ def build_world_state(scenario: dict[str, Any]) -> WorldState:
         objects[i] = ObjectSpec(
             object_id=i, pos=pos, channels=np.array(obj_data["channels"], dtype=np.float32),
             movable=obj_data.get("movable", True), energy_value=obj_data.get("energy_value", 0.0),
+            properties=dict(obj_data.get("properties", {})),
         )
         occupancy[pos.x, pos.y] += 1
     start = scenario.get("agent_start", {"pos": [5, 5], "energy": 100.0})
@@ -69,16 +109,22 @@ class ExperimentController:
         return self.results
 
     def _run_single_episode(self, agent_type: str, seed: int, episode_idx: int) -> dict:
-        RNGManager.set_global_determinism(seed)
+        world_seed = seed
+        agent_seed = seed + 1_000_003
+        scenario = materialize_scenario(self.scenario, world_seed)
+        RNGManager.set_global_determinism(agent_seed)
         world_mgr = WorldStateManager(
-            build_world_state(self.scenario),
-            self.scenario.get("duration", self.config.max_steps_per_episode), 100.0,
+            build_world_state(scenario),
+            scenario.get("duration", self.config.max_steps_per_episode),
+            scenario.get("max_energy", 100.0),
+            scenario.get("step_energy_cost", 0.0),
+            scenario.get("expose_time_fraction", True),
         )
         rule_engine = RuleEngine()
-        rule_engine.load_rules(self.scenario.get("rules", {}))
+        rule_engine.load_rules(scenario.get("rules", {}))
         world_mgr.set_rules_version(rule_engine.version)
-        scheduler = ChangeScheduler(self.scenario.get("changes", []), rule_engine)
-        agent = self._create_agent(agent_type, seed)
+        scheduler = ChangeScheduler(scenario.get("changes", []), rule_engine)
+        agent = self._create_agent(agent_type, agent_seed, scenario)
         run_dir = os.path.join(
             self.config.output_dir, "observations", self.config.experiment_id,
             agent_type, f"seed_{seed:08d}", f"episode_{episode_idx:04d}",
@@ -86,17 +132,18 @@ class ExperimentController:
         observer = ScientificObserver(run_dir, self.config.observer_mode, {
             "experiment_id": self.config.experiment_id,
             "hypothesis_id": self.config.hypothesis.hypothesis_id if self.config.hypothesis else None,
-            "seed": seed, "config_hash": self.config.config_hash(), "code_hash": self._code_hash(),
+            "seed": seed, "world_seed": world_seed, "agent_seed": agent_seed,
+            "config_hash": self.config.config_hash(), "code_hash": self._code_hash(),
             "device": self.config.device, "agent_identity": agent.agent_identity,
         })
         observer.set_episode(episode_idx)
         try:
-            episode_data = self.run_episode(agent, world_mgr, Physics(), rule_engine, scheduler, observer, seed)
+            episode_data = self.run_episode(agent, world_mgr, Physics(), rule_engine, scheduler, observer, agent_seed, scenario=scenario)
         finally:
             observer.close()
-        change_step = next(iter(self.scenario.get("changes", [])), {}).get("at_step")
+        change_step = next(iter(scenario.get("changes", [])), {}).get("at_step")
         return {
-            "agent_type": agent_type, "seed": seed, "episode_idx": episode_idx,
+            "agent_type": agent_type, "seed": seed, "world_seed": world_seed, "agent_seed": agent_seed, "episode_idx": episode_idx,
             "metrics": MetricsCalculator.compute_all(episode_data, change_step=change_step),
             "num_steps": episode_data["num_steps"], "final_energy": episode_data["final_energy"],
             "agent_identity": agent.agent_identity, "observer_run_dir": run_dir,
@@ -105,14 +152,18 @@ class ExperimentController:
     def run_episode(
         self, agent: Any, world_state_mgr: WorldStateManager, physics: Physics,
         rule_engine: RuleEngine, scheduler: ChangeScheduler,
-        observer: ScientificObserver, seed: int,
+        observer: ScientificObserver, seed: int, scenario: dict[str, Any] | None = None,
+        learning_enabled: bool = True, phase: str = "training",
     ) -> dict[str, Any]:
-        max_steps = min(self.config.max_steps_per_episode, self.scenario.get("duration", 500))
-        view_radius = self.scenario.get("view_radius", 2)
-        num_channels = self.scenario.get("num_channels", 4)
+        active_scenario = scenario or self.scenario
+        max_steps = min(self.config.max_steps_per_episode, active_scenario.get("duration", 500))
+        view_radius = active_scenario.get("view_radius", 2)
+        num_channels = active_scenario.get("num_channels", 4)
         energy_history: list[float] = []
         action_history: list[int] = []
         step_traces: list[dict[str, Any]] = []
+        change_step = next(iter(active_scenario.get("changes", [])), {}).get("at_step")
+        forensic_policy = ForensicWindowPolicy(change_step) if change_step is not None else None
 
         for step in range(max_steps):
             agent_state = world_state_mgr._mutable_state().agents.get(0)
@@ -126,6 +177,7 @@ class ExperimentController:
             target = self._find_target(world_state_mgr, 0, action_t)
             effects = rule_engine.evaluate(world_state_mgr, 0, action_t, target)
             energy_delta = rule_engine.apply_effects(world_state_mgr, 0, target.object_id, effects) if target else 0.0
+            energy_delta += world_state_mgr.apply_step_energy_cost(0)
             consequence = consequences.get(0, Consequence(energy_delta=energy_delta, events=[]))
             consequence.energy_delta = energy_delta
             observation_t1 = world_state_mgr.get_observation(0, view_radius, num_channels)
@@ -138,7 +190,9 @@ class ExperimentController:
                 observation_t1, terminated, truncated, step, seed,
             )
             before_parameters = agent.get_parameters() if observer.mode == "forensic_full" else None
-            agent.learn(transition)
+            if learning_enabled:
+                agent.learn(transition)
+            scientific_state = agent.get_scientific_state() if hasattr(agent, "get_scientific_state") else {}
             parameter_deltas = None
             if before_parameters is not None:
                 after_parameters = agent.get_parameters()
@@ -157,13 +211,20 @@ class ExperimentController:
                 "state_hash": truth.state_hash(),
                 "rule_changes": [{"step": e.step, "old_version": e.old_version, "new_version": e.new_version} for e in change_events],
             }
+            observer_annotations = self._causal_annotations(target, action_t, energy_delta, truth.rules_version)
+            observer_annotations["phase"] = phase
+            if forensic_policy is not None:
+                observer_annotations["forensic_window"] = forensic_policy.label(step)
+            trace["causal_interaction"] = observer_annotations
+            trace["prediction_error"] = scientific_state.get("prediction_error")
+            trace["predictor_available"] = bool(scientific_state)
             step_traces.append(trace)
             observer.log_step(step, truth.clone(), agent, observation_t, action_t, consequence, {})
             observer.log_transition(
                 transition, world_state_mgr.observer_snapshot(step), agent.agent_identity,
-                agent.get_internal_state(), agent.get_trace_events(), parameter_deltas,
+                agent.get_internal_state(), agent.get_trace_events(), parameter_deltas, observer_annotations, scientific_state,
             )
-            if observer.mode == "forensic_full":
+            if observer.mode == "forensic_full" and (forensic_policy is None or forensic_policy.should_capture(step)):
                 observer.capture_forensic(agent, step, parameter_deltas or {})
             if self.config.checkpoint_every > 0 and (step + 1) % self.config.checkpoint_every == 0:
                 observer.checkpoint(agent, step + 1, {"world_snapshot": world_state_mgr.serialize()})
@@ -187,12 +248,27 @@ class ExperimentController:
         position = agent.pos + DIRECTION_DELTA[action.direction]
         return next((obj for obj in truth.objects.values() if obj.pos == position), None)
 
-    def _create_agent(self, agent_type: str, seed: int) -> Any:
+    def _create_agent(self, agent_type: str, seed: int, scenario: dict[str, Any] | None = None) -> Any:
         from terrario.agent.agents import create_agent
+        active_scenario = scenario or self.scenario
         return create_agent(agent_type, {
-            **self.config.agent_config, "num_channels": self.scenario.get("num_channels", 4),
-            "view_size": 2 * self.scenario.get("view_radius", 2) + 1,
+            **self.config.agent_config, "num_channels": active_scenario.get("num_channels", 4),
+            "view_size": 2 * active_scenario.get("view_radius", 2) + 1,
         }, seed=seed, device=self.config.device)
+
+    @staticmethod
+    def _causal_annotations(target: ObjectSpec | None, action: Action, energy_delta: float, rules_version: int) -> dict[str, Any]:
+        """Observer-only causal labels; this dict is never passed to the agent."""
+        informative = target is not None and action.action_type == ActionType.CONSUME
+        return {
+            "informative": informative,
+            "perceptual_class": target.properties.get("causal_class") if target else None,
+            "hidden_causal_class": target.properties.get("causal_class") if target else None,
+            "action": action.to_int(),
+            "actual_consequence": energy_delta,
+            "causally_appropriate": informative and energy_delta > 0.0,
+            "rule_version": rules_version,
+        }
 
     def _save_results(self) -> None:
         os.makedirs(self.config.output_dir, exist_ok=True)

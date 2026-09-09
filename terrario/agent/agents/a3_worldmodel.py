@@ -64,6 +64,8 @@ class A3WorldModel(AgentInterface):
         self._last_hidden: torch.Tensor | None = None
         self._last_action: int = 0
         self._last_log_prob: torch.Tensor | None = None
+        self.last_prediction_error: float | None = None
+        self._last_prediction: dict[str, float] = {}
 
     def perceive(self, observation: Observation) -> None:
         self._last_latent = self.encoder.encode_observation(observation.channels)
@@ -111,6 +113,14 @@ class A3WorldModel(AgentInterface):
         h_prev = self._last_hidden.squeeze(0)  # (hidden_dim,)
         action_onehot = torch.zeros(TOTAL_ACTIONS)
         action_onehot[self._last_action] = 1.0
+        with torch.no_grad():
+            _, energy_prediction, done_prediction = self.world_model(h_prev, action_onehot)
+            self.last_prediction_error = abs(float(energy_prediction.item()) - consequence.energy_delta)
+            self._last_prediction = {
+                "energy": float(energy_prediction.item()),
+                "done_probability": float(torch.sigmoid(done_prediction).item()),
+                "prediction_error": self.last_prediction_error,
+            }
 
         # Target for next_state: the current hidden state (after transition)
         next_state_target = self._hidden.squeeze(0).detach()
@@ -164,6 +174,15 @@ class A3WorldModel(AgentInterface):
             "latent_norm": self._last_latent.norm().item() if self._last_latent is not None else 0.0,
         }
 
+    def get_scientific_state(self) -> dict[str, Any]:
+        """Detached observer-only state; never used by action selection input."""
+        return {
+            "latent": self._last_latent.detach().clone() if self._last_latent is not None else None,
+            "temporal": self._hidden.detach().clone(),
+            "prediction": dict(self._last_prediction),
+            "prediction_error": self.last_prediction_error,
+        }
+
     def get_trace_events(self) -> list[dict[str, Any]]:
         events = list(self._trace)
         self._trace.clear()
@@ -177,6 +196,8 @@ class A3WorldModel(AgentInterface):
         self._last_hidden = None
         self._last_action = 0
         self._last_log_prob = None
+        self.last_prediction_error = None
+        self._last_prediction = {}
 
     def get_parameters(self) -> dict[str, torch.Tensor]:
         params: dict[str, torch.Tensor] = {}

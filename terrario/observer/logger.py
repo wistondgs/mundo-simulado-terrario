@@ -255,6 +255,8 @@ class ScientificObserver:
         agent_internal_state: dict[str, Any],
         agent_trace_events: list[dict[str, Any]],
         parameter_deltas: dict[str, float] | None = None,
+        observer_annotations: dict[str, Any] | None = None,
+        scientific_state: dict[str, Any] | None = None,
     ) -> None:
         """Persist the complete contract without exposing truth to the agent."""
         self._buffer_event("transition", TransitionTrace(
@@ -273,6 +275,8 @@ class ScientificObserver:
             agent_identity={**dict(agent_identity), "provenance": self._config}, internal_state=dict(agent_internal_state),
             observer_world=observer_snapshot.world, agent_trace_events=list(agent_trace_events),
             parameter_deltas=parameter_deltas,
+            observer_annotations=observer_annotations,
+            scientific_state=self._json_safe(scientific_state or {}),
         ))
 
     def capture_forensic(self, agent: Any, step: int, parameter_deltas: dict[str, float]) -> None:
@@ -283,11 +287,20 @@ class ScientificObserver:
             value = getattr(agent, name, None)
             if value is not None:
                 self.storage.save_tensor(f"activation_{name[1:]}", self._to_numpy(value), step)
+        if hasattr(agent, "get_scientific_state"):
+            scientific_state = agent.get_scientific_state()
+            for name in ("latent", "temporal", "state", "logits", "probabilities"):
+                value = scientific_state.get(name)
+                if value is not None:
+                    self.storage.save_tensor(f"scientific_{name}", self._to_numpy(value), step)
         gradients: dict[str, float] = {}
-        for module_name, value in vars(agent).items():
-            if not isinstance(value, __import__("torch").nn.Module):
+        # Keep forensic artifacts inspectable and bounded: policy and world model
+        # gradients are the causal learning surfaces for this protocol.
+        for module_name in ("policy_head", "world_model"):
+            module = getattr(agent, module_name, None)
+            if not isinstance(module, __import__("torch").nn.Module):
                 continue
-            for parameter_name, parameter in value.named_parameters():
+            for parameter_name, parameter in module.named_parameters():
                 if parameter.grad is None:
                     continue
                 name = f"gradient_{module_name}_{parameter_name.replace('.', '_')}"
@@ -308,6 +321,16 @@ class ScientificObserver:
             "channels": observation.channels.tolist(), "mask": observation.mask.tolist(),
             "agent_energy": observation.agent_energy, "time_fraction": observation.time_fraction,
         }
+
+    @staticmethod
+    def _json_safe(value: Any) -> Any:
+        if hasattr(value, "detach"):
+            return value.detach().cpu().tolist()
+        if isinstance(value, dict):
+            return {str(key): ScientificObserver._json_safe(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [ScientificObserver._json_safe(item) for item in value]
+        return value
 
     # ── Metrics ───────────────────────────────────────────────────────
 

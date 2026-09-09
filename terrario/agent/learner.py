@@ -82,9 +82,32 @@ class OnlineLearner:
         if self._step_count % self.update_frequency != 0:
             return None
 
+        if not torch.isfinite(total_loss).all():
+            self._trace.append({
+                "op": "learning_skipped_nonfinite",
+                "step": self._step_count,
+                "reason": "nonfinite_loss",
+            })
+            return None
+
         # Backward pass
         self._optimizer.zero_grad()
         total_loss.backward()
+
+        gradients = [
+            parameter.grad
+            for module in self._modules.values()
+            for parameter in module.parameters()
+            if parameter.grad is not None
+        ]
+        if any(not torch.isfinite(gradient).all() for gradient in gradients):
+            self._optimizer.zero_grad()
+            self._trace.append({
+                "op": "learning_skipped_nonfinite",
+                "step": self._step_count,
+                "reason": "nonfinite_gradient",
+            })
+            return None
 
         # Gradient clipping and norm collection
         grad_norms: dict[str, float] = {}

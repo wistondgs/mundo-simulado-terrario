@@ -24,10 +24,15 @@ class WorldStateManager:
     All other subsystems use read-only accessors.
     """
 
-    def __init__(self, state: WorldState, max_duration: int = 1000, max_energy: float = 100.0):
+    def __init__(
+        self, state: WorldState, max_duration: int = 1000, max_energy: float = 100.0,
+        step_energy_cost: float = 0.0, expose_time_fraction: bool = True,
+    ):
         self._state = state
         self._max_duration = max_duration
         self._max_energy = max_energy
+        self._step_energy_cost = max(0.0, step_energy_cost)
+        self._expose_time_fraction = expose_time_fraction
 
     # ── Read-only access ──────────────────────────────────────────────
 
@@ -103,7 +108,10 @@ class WorldStateManager:
                     channels[1 : 1 + n_obj_ch, ox, oy] = avg[:n_obj_ch]
 
         energy_norm = min(agent.energy / self._max_energy, 1.0) if self._max_energy > 0 else 0.0
-        time_frac = self._state.time / self._max_duration if self._max_duration > 0 else 0.0
+        time_frac = (
+            self._state.time / self._max_duration
+            if self._expose_time_fraction and self._max_duration > 0 else 0.0
+        )
 
         channels.setflags(write=False)
         mask.setflags(write=False)
@@ -153,6 +161,16 @@ class WorldStateManager:
     def set_agent_alive(self, agent_id: int, alive: bool) -> None:
         self._state.agents[agent_id].alive = alive
 
+    def apply_step_energy_cost(self, agent_id: int) -> float:
+        """Apply observer-configured environmental pressure after an action."""
+        if self._step_energy_cost == 0.0:
+            return 0.0
+        agent = self._state.agents[agent_id]
+        agent.energy -= self._step_energy_cost
+        if agent.energy <= 0.0:
+            agent.alive = False
+        return -self._step_energy_cost
+
     def set_object_channels(self, object_id: int, channels: np.ndarray) -> None:
         self._state.objects[object_id].channels = channels
 
@@ -167,6 +185,8 @@ class WorldStateManager:
             "rules_version": self._state.rules_version,
             "max_duration": self._max_duration,
             "max_energy": self._max_energy,
+            "step_energy_cost": self._step_energy_cost,
+            "expose_time_fraction": self._expose_time_fraction,
             "objects": {
                 str(oid): {
                     "object_id": obj.object_id,
@@ -219,6 +239,8 @@ class WorldStateManager:
 
         self._max_duration = data.get("max_duration", self._max_duration)
         self._max_energy = data.get("max_energy", self._max_energy)
+        self._step_energy_cost = data.get("step_energy_cost", self._step_energy_cost)
+        self._expose_time_fraction = data.get("expose_time_fraction", self._expose_time_fraction)
 
         self._state = WorldState(
             grid_width=grid_width,

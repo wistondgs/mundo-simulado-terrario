@@ -176,6 +176,11 @@ class A4Advanced(AgentInterface):
         self._last_state: torch.Tensor | None = None
         self._last_action: int = 0
         self._last_log_prob: torch.Tensor | None = None
+        self.last_prediction_error: float | None = None
+        self._last_prediction: dict[str, float] = {}
+        self._last_logits: torch.Tensor | None = None
+        self._last_probs: torch.Tensor | None = None
+        self._last_uncertainty: float | None = None
         self._energy_baseline: float = 0.0
         self._baseline_count: int = 0
 
@@ -272,6 +277,9 @@ class A4Advanced(AgentInterface):
                     uncertainties[a] = var.mean().item()
                 # Boost logits for uncertain actions (curiosity)
                 logits = logits + 0.1 * uncertainties
+                self._last_uncertainty = float(uncertainties.mean().item())
+        else:
+            self._last_uncertainty = None
 
         # ── Planner refinement ───────────────────────────────────────
         if self._use_planner and self._use_world_model:
@@ -297,6 +305,8 @@ class A4Advanced(AgentInterface):
 
         self._last_action = action_int
         self._last_log_prob = log_prob
+        self._last_logits = logits.detach().clone()
+        self._last_probs = F.softmax(logits, dim=-1).detach().clone()
 
         self._trace.append({
             "op": "decide",
@@ -340,6 +350,22 @@ class A4Advanced(AgentInterface):
         if self._use_longterm:
             h = self._hidden.squeeze(0) if self._hidden.dim() > 1 else self._hidden
             self.longterm_memory.write(h, h)
+
+        # Prediction remains an observer metric even for the no-online-learning
+        # ablation. It must not depend on whether parameters will be updated.
+        if self._use_world_model:
+            a_onehot = self._action_to_onehot(self._last_action)
+            with torch.no_grad():
+                _, energy_prediction, done_prediction = self.world_model(self._last_state, a_onehot)
+                self.last_prediction_error = abs(float(energy_prediction.item()) - consequence.energy_delta)
+                self._last_prediction = {
+                    "energy": float(energy_prediction.item()),
+                    "done_probability": float(torch.sigmoid(done_prediction).item()),
+                    "prediction_error": self.last_prediction_error,
+                }
+        else:
+            self.last_prediction_error = None
+            self._last_prediction = {}
 
         # ── Learning ─────────────────────────────────────────────────
         if self._use_online_learning:
@@ -462,6 +488,23 @@ class A4Advanced(AgentInterface):
             "config": {k: v for k, v in self.config.items()},
         }
 
+    def get_scientific_state(self) -> dict[str, Any]:
+        """Detached observer-only neural state for OBSERVE-02."""
+        return {
+            "latent": self._last_latent.detach().clone() if self._last_latent is not None else None,
+            "temporal": self._hidden.detach().clone(),
+            "state": self._last_state.detach().clone() if self._last_state is not None else None,
+            "episodic_memory_size": self.episodic_memory.size,
+            "longterm_memory_norm": float(self.longterm_memory.M.detach().norm().item()),
+            "prediction": dict(self._last_prediction),
+            "prediction_error": self.last_prediction_error,
+            "uncertainty": self._last_uncertainty,
+            "logits": self._last_logits.detach().clone() if self._last_logits is not None else None,
+            "probabilities": self._last_probs.detach().clone() if self._last_probs is not None else None,
+            "active_ablations": [key for key, value in self.config.items() if key.startswith("use_") and not value],
+            "learning": {"updates": self.learner.step_count, "online_learning": self._use_online_learning},
+        }
+
     def get_trace_events(self) -> list[dict[str, Any]]:
         events = list(self._trace)
         self._trace.clear()
@@ -484,6 +527,11 @@ class A4Advanced(AgentInterface):
         self._last_state = None
         self._last_action = 0
         self._last_log_prob = None
+        self.last_prediction_error = None
+        self._last_prediction = {}
+        self._last_logits = None
+        self._last_probs = None
+        self._last_uncertainty = None
         self._energy_baseline = 0.0
         self._baseline_count = 0
 

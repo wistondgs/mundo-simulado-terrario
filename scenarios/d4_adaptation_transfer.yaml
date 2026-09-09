@@ -1,0 +1,36 @@
+scenario:
+  name: "d4_adaptation_transfer"
+  observer_phases: ["TRANSFER"]
+  grid_size: [14, 14]
+  duration: 200
+  max_energy: 100.0
+  step_energy_cost: 0.06
+  expose_time_fraction: false
+  seed: 42
+  view_radius: 2
+  num_channels: 4
+  agent_start:
+    pos: [6, 6]
+    energy: 60.0
+  procedural_layout:
+    placement_margin: 1
+    class_templates:
+      A:
+        count: 16
+        channels: [0.78, 0.30, 0.10, 0.42]
+      B:
+        count: 16
+        channels: [0.22, 0.70, 0.42, 0.10]
+  rules:
+    rules:
+      - id: "transfer_A_negative"
+        condition:
+          object_channel: {index: 0, min: 0.70}
+          action: "CONSUME"
+        effect: {energy_delta: -1.0, destroy_object: false}
+      - id: "transfer_B_positive"
+        condition:
+          object_channel: {index: 0, max: 0.30}
+          action: "CONSUME"
+        effect: {energy_delta: 1.0, destroy_object: false}
+  changes: []

@@ -216,6 +216,11 @@ class LongTermMemory(nn.Module):
         if value.dim() > 1:
             value = value.squeeze(0)
 
+        # This state is updated outside the optimizer. Keep a corrupted or
+        # runaway write from poisoning every later read and policy decision.
+        with torch.no_grad():
+            self.M.data.nan_to_num_(nan=0.0, posinf=10.0, neginf=-10.0)
+
         k = self.write_key_proj(key)  # (dim,)
         v = self.value_proj(value)  # (dim,)
 
@@ -229,8 +234,12 @@ class LongTermMemory(nn.Module):
 
         # Update: M = M * (1 - w_gate) + outer(write_weights, value) * w_gate
         update = torch.outer(write_weights, v)  # (slots, dim)
+        write_accepted = False
         with torch.no_grad():
-            self.M.data = self.M.data * (1.0 - w_gate) + update * w_gate
+            proposed = self.M * (1.0 - w_gate) + update * w_gate
+            if torch.isfinite(proposed).all():
+                self.M.data.copy_(proposed.clamp(-10.0, 10.0))
+                write_accepted = True
 
         trace = {
             "op": "longterm_write",
@@ -238,6 +247,7 @@ class LongTermMemory(nn.Module):
             "value_norm": value.norm().item(),
             "gate_value": w_gate.item(),
             "max_write_weight": write_weights.max().item(),
+            "write_accepted": write_accepted,
         }
         self._trace.append(trace)
         return trace
