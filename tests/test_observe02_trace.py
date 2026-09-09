@@ -11,6 +11,18 @@ def test_forensic_windows_prioritize_change_interval_over_pre_change_overlap():
     assert policy.label(576) == "recovery"
 
 
+def test_forensic_window_manifest_is_disjoint_and_clipped_to_episode():
+    policy = ForensicWindowPolicy(change_step=20, pre_steps=100, change_before=5, change_after=10, recovery_after=30)
+
+    windows = policy.windows(total_steps=40)
+
+    assert windows == [
+        {"phase": "pre_change", "start_step": 0, "end_step": 19},
+        {"phase": "change", "start_step": 15, "end_step": 30},
+        {"phase": "recovery", "start_step": 31, "end_step": 39},
+    ]
+
+
 def test_observation_has_no_causal_labels_or_hidden_change_time():
     scenario = materialize_scenario(load_scenario("scenarios/d4_adaptation_scientific.yaml"), 3)
     manager = WorldStateManager(

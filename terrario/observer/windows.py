@@ -24,3 +24,17 @@ class ForensicWindowPolicy:
 
     def should_capture(self, step: int) -> bool:
         return self.label(step) is not None
+
+    def windows(self, total_steps: int) -> list[dict[str, int | str]]:
+        """Return non-overlapping declared capture windows clipped to an episode."""
+        candidates = [
+            ("pre_change", self.change_step - self.pre_steps, self.change_step - 1),
+            ("change", self.change_step - self.change_before, self.change_step + self.change_after),
+            ("recovery", self.change_step + self.change_after + 1, self.change_step + self.recovery_after),
+        ]
+        windows = []
+        for label, start, end in candidates:
+            start, end = max(0, start), min(total_steps - 1, end)
+            if start <= end:
+                windows.append({"phase": label, "start_step": start, "end_step": end})
+        return windows

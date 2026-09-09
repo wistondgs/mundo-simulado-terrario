@@ -27,6 +27,7 @@ from terrario.experiment.campaign import (
     build_trace_manifest,
     directory_hash,
     stable_hash,
+    storage_governance,
     verify_run_completion,
     write_manifest,
 )
@@ -34,6 +35,7 @@ from terrario.experiment.controller import ExperimentController, build_world_sta
 from terrario.experiment.specs import EvidenceRecord, EvidenceSpec
 from terrario.experiment.statistics import descriptive, paired_comparison, sensitivity_label
 from terrario.observer.logger import ScientificObserver
+from terrario.observer.windows import ForensicWindowPolicy
 from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
@@ -387,7 +389,11 @@ class AdaptationProtocolRunner:
         }
         validity = assess_run_validity(record)
         record["validity"] = asdict(validity)
-        trace_manifest = build_trace_manifest(run_root, identity.run_id, self.observer_mode)
+        forensic_windows = []
+        if self.observer_mode == "forensic_full":
+            forensic_windows = ForensicWindowPolicy(change_step).windows(primary_data["num_steps"])
+            forensic_windows.append({"phase": "transfer", "start_step": 0, "end_step": transfer_data["num_steps"] - 1})
+        trace_manifest = build_trace_manifest(run_root, identity.run_id, self.observer_mode, forensic_windows)
         trace_path = run_root / "TRACE_MANIFEST.json"
         write_manifest(trace_path, trace_manifest)
         evidence_manifest = build_evidence_manifest(run_root, identity.run_id, {
@@ -466,11 +472,15 @@ class AdaptationProtocolRunner:
             "observer_mode_supported": self.observer_mode in ScientificObserver.VALID_MODES,
         }
         steps_per_run = int(self.scientific_scenario["duration"]) + int(self.transfer_scenario["duration"])
+        projected = estimate_trace_storage(steps_per_run * len(seeds) * len(variants), 0)
+        storage = storage_governance(self.output_dir, projected["total_bytes"])
+        checks["storage_budget_available"] = bool(storage["within_budget"])
         return {
             "status": "READY" if all(checks.values()) else "BLOCKED",
             "checks": checks,
             "planned_runs": len(seeds) * len(variants),
-            "estimated_storage": estimate_trace_storage(steps_per_run * len(seeds) * len(variants), 0),
+            "estimated_storage": projected,
+            "storage_governance": storage,
             "protocol_hash": self.protocol_hash(), "code_hash": self.code_hash(),
         }
 

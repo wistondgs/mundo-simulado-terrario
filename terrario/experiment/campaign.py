@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -166,3 +167,15 @@ def build_trace_manifest(
         if path.is_file() and ("events" in path.parts or "tensors" in path.parts)
     }
     return TraceManifest("1", run_id, files, {}, observer_mode, forensic_windows or [])
+
+
+def storage_governance(root: str | Path, projected_bytes: int, reserve_bytes: int = 20 * (1 << 30)) -> dict[str, int | bool]:
+    """Require enough free space for the projected campaign plus an untouched reserve."""
+    usage = shutil.disk_usage(root)
+    return {
+        "projected_bytes": projected_bytes,
+        "free_bytes": usage.free,
+        "reserve_bytes": reserve_bytes,
+        "available_after_reserve": max(0, usage.free - reserve_bytes),
+        "within_budget": projected_bytes <= max(0, usage.free - reserve_bytes),
+    }
