@@ -41,6 +41,12 @@ def main() -> None:
     )
 
     if args.stage == "lock":
+        pilot_path = output / "h_adapt_001_pilot_results.json"
+        if not pilot_path.exists():
+            parser.error(f"protocol lock requires a completed clean pilot at {pilot_path}")
+        pilot = json.loads(pilot_path.read_text())
+        if pilot.get("pilot_diagnostic", {}).get("status") != "PASS":
+            parser.error("protocol lock prohibited: pilot diagnostic did not pass every validity gate")
         lock_protocol(str(lock_path), runner)
         print(f"Protocol locked: {lock_path}")
         return

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+import torch
 
 from terrario.core.rng import RNGManager
 from terrario.experiment.config import ExperimentConfig
@@ -176,6 +177,38 @@ def _phase_components(scenario: dict[str, Any]):
     return world, rules, ChangeScheduler(scenario.get("changes", []), rules)
 
 
+def _stable_hash(value: Any) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def _adaptive_state_hash(agent: Any) -> str:
+    """Hash parameters plus mutable memory, excluding ordinary recurrent state."""
+    digest = hashlib.sha256()
+    for name, value in sorted(agent.get_parameters().items()):
+        digest.update(name.encode())
+        digest.update(value.detach().cpu().contiguous().numpy().tobytes())
+    episodic = getattr(getattr(agent, "episodic_memory", None), "_buffer", [])
+    for item in episodic:
+        digest.update(item["embedding"].detach().cpu().contiguous().numpy().tobytes())
+        digest.update(str((item["action"], item["energy_delta"], item["timestamp"])).encode())
+    longterm = getattr(getattr(agent, "longterm_memory", None), "M", None)
+    if longterm is not None:
+        digest.update(longterm.detach().cpu().contiguous().numpy().tobytes())
+    return digest.hexdigest()
+
+
+def numerical_health(episode_data: dict[str, Any], agent: Any) -> dict[str, Any]:
+    parameters = list(agent.get_parameters().values())
+    nonfinite_events = sum(len(trace.get("numerical_events", [])) for trace in episode_data["traces"])
+    memory = getattr(getattr(agent, "longterm_memory", None), "M", None)
+    return {
+        "finite_parameters": all(bool(torch.isfinite(value).all()) for value in parameters),
+        "finite_memory": memory is None or bool(torch.isfinite(memory).all()),
+        "nonfinite_learning_events": nonfinite_events,
+        "aborted": episode_data["num_steps"] == 0,
+    }
+
+
 class AdaptationProtocolRunner:
     """Runs paired H-ADAPT-001 conditions and frozen transfer evaluations."""
 
@@ -196,6 +229,7 @@ class AdaptationProtocolRunner:
         variant = VARIANTS[variant_id]
         primary = materialize_scenario(self.scientific_scenario, seed)
         transfer = materialize_scenario(self.transfer_scenario, seed + 10_000_019)
+        world_spec_hash = _stable_hash({"objects": primary["objects"], "changes": primary.get("changes", []), "rules": primary["rules"]})
         agent_seed = seed + 1_000_003
         config = ExperimentConfig(
             experiment_id="H-ADAPT-001", hypothesis=None, scenario_path=self.scientific_scenario_path,
@@ -227,6 +261,7 @@ class AdaptationProtocolRunner:
                 "world_snapshot": primary_world.serialize(), "phase": "pre_transfer", "change_step": change_step,
             })
         before_transfer = {name: value.clone() for name, value in agent.get_parameters().items()}
+        adaptive_state_before_transfer = _adaptive_state_hash(agent)
         transfer_world, transfer_rules, transfer_scheduler = _phase_components(transfer)
         with ScientificObserver(str(run_root / "transfer"), self.observer_mode, {
             "hypothesis_id": "H-ADAPT-001", "protocol_version": "0.1", "variant_id": variant_id,
@@ -241,6 +276,7 @@ class AdaptationProtocolRunner:
             np.array_equal(value.detach().cpu().numpy(), after_transfer[name].detach().cpu().numpy())
             for name, value in before_transfer.items()
         )
+        adaptive_state_after_transfer = _adaptive_state_hash(agent)
         _, peak_memory = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         predictor = variant["agent_type"] in {"A3_WORLD_MODEL", "A4_ADVANCED"} and variant_id != "A4_NO_PREDICTION"
@@ -260,12 +296,15 @@ class AdaptationProtocolRunner:
         checkpoint_estimate = max(64 * 1024, parameter_count * 4 * 3)
         return {
             "variant_id": variant_id, "seed": seed, "world_seed": seed, "agent_seed": agent_seed,
+            "world_spec_hash": world_spec_hash,
             "change_step": change_step, "primary": primary_data, "transfer": transfer_data,
             "metrics": metrics, "classification": classification, "invalid_reason": invalid_reason,
             "agent_identity": agent.agent_identity, "trainable_parameter_count": parameter_count,
             "updates": updates, "gradient_steps": updates if variant_id != "A0_RANDOM" else 0,
             "wall_seconds": time.perf_counter() - wall_start, "cpu_seconds": time.process_time() - cpu_start,
             "peak_tracemalloc_bytes": peak_memory, "transfer_parameters_unchanged": transfer_parameters_unchanged,
+            "transfer_adaptive_state_unchanged": adaptive_state_before_transfer == adaptive_state_after_transfer,
+            "numerical_health": numerical_health(primary_data, agent),
             "checkpoint_ref": str(run_root / "primary" / "checkpoints" / f"step_{primary_data['num_steps']:08d}"),
             "observed_storage_bytes": observed_storage,
             "estimated_storage": estimate_trace_storage(
@@ -284,7 +323,10 @@ class AdaptationProtocolRunner:
             ).to_dict()
             for record in records
         ]
-        return {"records": records, "evidence": evidence, "summary": summarize_records(records)}
+        return {
+            "records": records, "evidence": evidence, "summary": summarize_records(records),
+            "pilot_diagnostic": diagnose_pilot(records, seeds, selected),
+        }
 
     def protocol_hash(self) -> str:
         payload = {"scientific": self.scientific_scenario, "transfer": self.transfer_scenario, "variants": VARIANTS}
@@ -319,6 +361,29 @@ def summarize_records(records: list[dict[str, Any]]) -> dict[str, Any]:
                 differences.append(left - right)
         summary["paired_ablations"][ablation] = {"n": len(differences), "mean_difference": float(np.mean(differences)) if differences else math.nan, "by_seed": differences}
     return summary
+
+
+def diagnose_pilot(records: list[dict[str, Any]], seeds: list[int], variants: list[str]) -> dict[str, Any]:
+    """Validity gates for H-ADAPT-001; never a performance ranking."""
+    expected = len(seeds) * len(variants)
+    by_seed = {seed: [record for record in records if record["seed"] == seed] for seed in seeds}
+    paired = all(len(group) == len(variants) and len({record["world_spec_hash"] for record in group}) == 1 for group in by_seed.values())
+    health = [record["numerical_health"] for record in records]
+    p1 = len(records) == expected and all(item["finite_parameters"] and item["finite_memory"] and not item["nonfinite_learning_events"] and not item["aborted"] for item in health)
+    sufficient = [record for record in records if record["metrics"]["pre_change_status"] == "VALID" and record["metrics"]["post_change_status"] == "VALID"]
+    predictors = [record for record in records if record["variant_id"] in {"A3_WORLD_MODEL", "A4_ADVANCED", "A4_NO_MEMORY", "A4_NO_ONLINE_LEARNING"}]
+    prediction_real = all(isinstance(record["metrics"].get("prediction_error_spike"), float) and not math.isnan(record["metrics"]["prediction_error_spike"]) for record in predictors)
+    transfer_frozen = all(record["transfer_parameters_unchanged"] and record["transfer_adaptive_state_unchanged"] for record in records)
+    prelearned = any(record["metrics"]["pre_change_status"] == "VALID" and record["metrics"]["pre_change_competence"] >= AdaptationThresholds().pre_change_competence for record in records)
+    random_values = [record["metrics"].get("pre_change_competence") for record in records if record["variant_id"] == "A0_RANDOM"]
+    random_calibrated = all(not isinstance(value, float) or math.isnan(value) or value < AdaptationThresholds().pre_change_competence for value in random_values)
+    gates = {
+        "P1_numerical_integrity": p1, "P2_paired_worlds": paired,
+        "P3_sufficient_signal": bool(sufficient), "P4_random_baseline_calibrated": random_calibrated,
+        "P5_prechange_learning": prelearned, "P7_prediction_error_real": prediction_real,
+        "P8_transfer_frozen": transfer_frozen,
+    }
+    return {"status": "PASS" if all(gates.values()) else "FAIL", "expected_runs": expected, "completed_runs": len(records), "gates": gates}
 
 
 def estimate_trace_storage(

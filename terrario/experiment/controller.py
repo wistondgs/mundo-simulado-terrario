@@ -220,9 +220,13 @@ class ExperimentController:
             trace["predictor_available"] = bool(scientific_state)
             step_traces.append(trace)
             observer.log_step(step, truth.clone(), agent, observation_t, action_t, consequence, {})
+            agent_events = agent.get_trace_events()
+            trace["numerical_events"] = [
+                event for event in agent_events if event.get("op") == "learning_skipped_nonfinite"
+            ]
             observer.log_transition(
                 transition, world_state_mgr.observer_snapshot(step), agent.agent_identity,
-                agent.get_internal_state(), agent.get_trace_events(), parameter_deltas, observer_annotations, scientific_state,
+                agent.get_internal_state(), agent_events, parameter_deltas, observer_annotations, scientific_state,
             )
             if observer.mode == "forensic_full" and (forensic_policy is None or forensic_policy.should_capture(step)):
                 observer.capture_forensic(agent, step, parameter_deltas or {})
