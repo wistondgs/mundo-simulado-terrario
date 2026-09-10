@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any
 import yaml
 from terrario.core.types import ActionType, Direction
-from terrario.lab.world_contracts import (SCHEMA_VERSION,ActionContract,ActionDefinition,ConfigurationState,DifficultyDimension,DifficultyProfile,DimensionState,InterventionPoint,LabConfiguration,MetricBinding,ObservationContract,ScenarioDefinition,WorldDefinition,WorldProvenance,WorldRuleDefinition)
+from terrario.lab.models import thaw
+from terrario.lab.world_contracts import (SCHEMA_VERSION,ActionContract,ActionDefinition,ConfigurationState,DifficultyDimension,DifficultyProfile,DimensionState,InterventionPoint,LabConfiguration,MetricBinding,ObservationContract,ScenarioDefinition,WorldDefinition,WorldProvenance,WorldRuleDefinition,canonical_json)
 
 @dataclass(frozen=True)
 class RegistryEntry:
@@ -74,3 +75,16 @@ def patched_configuration(config: LabConfiguration,patch: dict[str,Any]) -> LabC
     if "observer_configuration" in patch: changes["observer_configuration"]=dict(patch["observer_configuration"])
     if "ui_preferences" in patch: changes["ui_preferences"]=dict(patch["ui_preferences"])
     return config.edit("Config Studio validated patch",**changes)
+
+def configuration_from_payload(payload: dict[str,Any],base: LabConfiguration) -> LabConfiguration:
+    """Decode a serialized API configuration without reinterpreting nested scenario semantics."""
+    if payload.get("schema_version")!=SCHEMA_VERSION: raise ValueError(f"unsupported schema {payload.get('schema_version')}")
+    scenario=payload.get("scenario",{})
+    if canonical_json(scenario)!=canonical_json(thaw(base.scenario)):
+        raise ValueError("scenario payload does not match registered immutable definition")
+    if canonical_json(payload.get("metric_bindings"))!=canonical_json(thaw(base.metric_bindings)) or payload.get("variant") is not None:
+        raise ValueError("metric/variant payload does not match registered immutable bindings")
+    raw_dims=payload.get("difficulty",{}).get("dimensions",{})
+    if set(raw_dims)!=set(base.difficulty.dimensions): raise ValueError("difficulty dimensions are incomplete")
+    dims={name:DifficultyDimension(DimensionState(row["state"]),row.get("value"),row["unit"],row["interpretation"]) for name,row in raw_dims.items()}
+    return LabConfiguration(str(payload["config_id"]),SCHEMA_VERSION,ConfigurationState(payload["state"]),base.scenario,base.variant,DifficultyProfile(dims),tuple(payload["seeds"]),dict(payload["observer_configuration"]),str(payload["agent_reference"]),base.metric_bindings,base.provenance,dict(payload.get("ui_preferences",{})))

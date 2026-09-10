@@ -13,5 +13,6 @@ Current endpoints:
 - `GET /api/studio/d2`
 - `POST /api/config/validate`
 - `POST /api/config/diff`
+- `POST /api/config/roundtrip`
 
 POST validation/diff operates on a copy of the D2 draft and does not persist or execute it. Sandbox Runner and Experiment Composer remain outside this phase.

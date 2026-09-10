@@ -22,3 +22,9 @@ def test_lab_api_without_scenarios_keeps_base_api_available(tmp_path):
     api=LabAPI(tmp_path)
     assert api.dispatch("GET","/api/status")[0]==200
     assert api.dispatch("GET","/api/studio/d2")[0]==404
+
+def test_api_configuration_roundtrip_preserves_semantic_identity():
+    api=LabAPI("."); payload=api.dispatch("GET","/api/studio/d2")[1]["configuration"]
+    status,result=api.dispatch("POST","/api/config/roundtrip",payload)
+    assert status==200 and result["scientific_hash"]==api.d2_configuration.content_hash
+    assert result["configuration"]["difficulty"]==payload["difficulty"]

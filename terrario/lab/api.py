@@ -18,7 +18,7 @@ from terrario.lab.theory.ingestion import TheoryIngestor
 from terrario.lab.theory.factory import build_portfolio
 from terrario.lab.theory.scientific_review import review_portfolio
 from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnalyzerInput
-from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, d2_views, generalization_check, patched_configuration
+from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, configuration_from_payload, d2_views, generalization_check, patched_configuration
 from terrario.lab.world_contracts import config_diff, validate_configuration
 
 
@@ -56,6 +56,10 @@ class LabAPI:
                 if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
                 candidate=patched_configuration(self.d2_configuration,payload or {})
                 return 200,thaw(config_diff(self.d2_configuration,candidate))
+            if method == "POST" and parts == ["api","config","roundtrip"]:
+                if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
+                decoded=configuration_from_payload(payload or {},self.d2_configuration)
+                return 200,{"configuration":thaw(decoded),"scientific_hash":decoded.content_hash}
             if method != "GET": return 405, {"error":"mutation endpoint not available; configuration validation creates no persisted state"}
             if parts == ["api", "status"]:
                 return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA"}
