@@ -28,7 +28,7 @@ Then verify page content, navigation, browser console, capability cell inspectio
 
 ## Executed verification
 
-- Full suite: `316 passed, 1 skipped`.
+- Full suite: `317 passed, 1 skipped`.
 - Protected-path diff against `e34bf99b9a2f0a18ec8dc34101876cc73eda0e39`: clean.
 - Python compile check for Lab and 02C tests: pass.
 - Server smoke test at `127.0.0.1:8765`: HTML and JavaScript returned 200 with all three views.

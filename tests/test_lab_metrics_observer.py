@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 from terrario.lab.metrics_observer import (
@@ -5,6 +6,9 @@ from terrario.lab.metrics_observer import (
     MetricRegistry, ObserverRegistry, SeparationClass,
 )
 from terrario.lab.world_registry import WorldScenarioRegistry
+from terrario.lab.world_registry import configuration_for
+from terrario.lab.world_authoring import compile_registry_world
+from terrario.lab.sandbox_runtime import SandboxService, derive_sandbox, make_spec
 
 
 def scenario(identifier="D2"):
@@ -57,6 +61,22 @@ def test_observer_verbosity_never_changes_agent_observation_or_leaks_truth():
     debug = registry.agent_projection(observation, "FULL_DEBUG")
     assert summary == debug
     assert "world_truth" not in summary and "objects" not in summary
+
+
+def test_same_execution_inputs_have_identical_agent_observation_across_observer_profiles(tmp_path):
+    entry = WorldScenarioRegistry(Path(".")).get("D2")
+    base = derive_sandbox(configuration_for(entry))
+    summary_config = replace(base, config_id="summary", observer_configuration={"mode":"performance", "profile":"SUMMARY"})
+    debug_config = replace(base, config_id="debug", observer_configuration={"mode":"forensic_full", "profile":"FULL_DEBUG"})
+    compiled = compile_registry_world("D2", entry.source)
+    service = SandboxService(tmp_path)
+    summary_run = service.create(make_spec(summary_config, compiled, 77, 88, 2), summary_config, compiled)
+    debug_run = service.create(make_spec(debug_config, compiled, 77, 88, 2), debug_config, compiled)
+    service.step(summary_run.run_id); service.step(debug_run.run_id)
+    left = summary_run.timeline[0].agent_observation
+    right = debug_run.timeline[0].agent_observation
+    assert left == right
+    assert set(left) == {"channels", "mask", "agent_energy", "time_fraction"}
 
 
 def test_storage_estimate_changes_with_channels_and_frequency():
