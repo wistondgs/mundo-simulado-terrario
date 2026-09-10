@@ -23,6 +23,10 @@ from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for
 from terrario.lab.world_contracts import config_diff, validate_configuration
 from terrario.lab.world_authoring import SeedBrowser,compile_draft,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
 from terrario.lab.sandbox_runtime import ExecutionClassification,SandboxService,derive_sandbox,make_spec,serialize_run
+from terrario.lab.capabilities import CapabilityRegistry,assess_compatibility,audited_agent_assessments,scenario_requirements
+from terrario.lab.agent_inspector import AgentInspector
+from terrario.lab.metrics_observer import MetricRegistry,ObserverRegistry
+from terrario.lab.experiment_composer import (SCHEMA_VERSION as EXPERIMENT_DRAFT_SCHEMA,ControlCondition,DraftProvenance,DraftState,ExperimentDraft,build_trial_matrix,draft_diff,state_for,validate_draft as validate_experiment_draft)
 
 
 class LabAPI:
@@ -43,11 +47,50 @@ class LabAPI:
         self.compiled_worlds = {e.world_id:compile_registry_world(e.world_id,e.source) for e in self.world_registry.entries() if e.scenario}
         self.sandbox = SandboxService(self.root/".sandbox")
         self.world_drafts = {}
+        self.capabilities = CapabilityRegistry()
+        self.agent_inspector = AgentInspector()
+        self.metrics = MetricRegistry()
+        self.observers = ObserverRegistry()
+        self.experiment_drafts = {}
 
     def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
         try:
+            if method == "GET" and parts == ["api","capabilities"]:
+                return 200,{"schema_version":"terrario.lab.capability/v1","definitions":thaw(self.capabilities.definitions()),"matrix":{x:thaw(audited_agent_assessments(x)) for x in self.agent_inspector.IDS}}
+            if method == "GET" and parts == ["api","agents"]: return 200,thaw(self.agent_inspector.all())
+            if method == "GET" and len(parts)==3 and parts[:2]==["api","agents"]: return 200,thaw(self.agent_inspector.describe(parts[2]))
+            if method == "GET" and len(parts)==4 and parts[:2]==["api","agents"] and parts[3]=="runtime":
+                return 200,thaw(self.agent_inspector.runtime(self.sandbox,query.get("run_id",[None])[0]))
+            if method == "GET" and parts == ["api","metrics"]: return 200,thaw(self.metrics.definitions())
+            if method == "GET" and parts == ["api","observer","profiles"]: return 200,{"profiles":thaw(self.observers.profiles()),"channels":thaw(self.observers.channels())}
+            if method == "GET" and len(parts)==3 and parts[:2]==["api","experiment-drafts"]: return 200,thaw(self.experiment_drafts[parts[2]])
+            if method == "POST" and parts == ["api","compatibility"]:
+                p=payload or {}; scenario=self.world_registry.get(str(p.get("scenario_id","D2")).upper()).scenario
+                report=assess_compatibility(scenario,str(p.get("agent_id","A0")),bool(p.get("observation_interface",True)),bool(p.get("action_interface",True)),str(p.get("device","cpu"))=="cpu",bool(p.get("reset_interface",True)))
+                return 200,{"requirements":thaw(scenario_requirements(scenario)),"report":thaw(report)}
+            if method == "POST" and parts == ["api","metrics","applicability"]:
+                p=payload or {}; scenario=self.world_registry.get(str(p.get("scenario_id","D2")).upper()).scenario
+                return 200,thaw(self.metrics.applicability(str(p["metric_id"]),scenario,tuple(p.get("observer_signals",()))))
+            if method == "POST" and parts == ["api","observer","estimate"]:
+                p=payload or {}; return 200,thaw(self.observers.estimate(str(p.get("profile_id","STANDARD")),p.get("steps"),p.get("trials"),int(p.get("checkpoints",0)),int(p.get("forensic_window_steps",0))))
+            if method == "POST" and parts == ["api","experiment-drafts","validate"]:
+                draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers)
+                return 200,{"artifact_type":"ExperimentDraft","scientific_execution":False,"draft":thaw(replace(draft,state=state_for(findings))),"scientific_hash":draft.content_hash,"findings":thaw(findings)}
+            if method == "POST" and parts == ["api","experiment-drafts"]:
+                draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers); draft=replace(draft,state=state_for(findings))
+                if draft.draft_id in self.experiment_drafts: return 409,{"error":"silent experiment draft overwrite prohibited","category":"PROVENANCE_ERROR"}
+                self.experiment_drafts[draft.draft_id]=draft
+                return 201,{"artifact_type":"ExperimentDraft","scientific_execution":False,"draft":thaw(draft),"scientific_hash":draft.content_hash,"findings":thaw(findings)}
+            if method == "POST" and parts == ["api","experiment-drafts","diff"]:
+                p=payload or {}; parent=self.experiment_drafts[str(p["parent_id"])]; child=parent.derive(str(p.get("reason","derived draft")),**self._experiment_changes(p.get("changes",{})))
+                return 200,{"parent":parent.draft_id,"child":thaw(child),"diff":thaw(draft_diff(parent,child)),"persisted":False}
+            if method == "POST" and parts == ["api","trial-matrices","build"]:
+                draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers)
+                blockers=tuple(sorted({x.code for x in findings if x.blocking})); by_condition={key:blockers for key in (*draft.agent_ids,*(c.control_id for c in draft.controls))} if blockers else {}
+                matrix=build_trial_matrix(draft,by_condition,int((payload or {}).get("warning_threshold",500)))
+                return 200,{"artifact_type":"TrialMatrix","execution_performed":False,"matrix":thaw(matrix),"findings":thaw(findings)}
             if method == "GET" and parts == ["api","worlds"]: return 200, thaw(self.world_registry.entries())
             if method == "GET" and len(parts)==3 and parts[:2]==["api","worlds"]:
                 entry=self.world_registry.get(parts[2].upper()); return 200, thaw(entry)
@@ -162,6 +205,35 @@ class LabAPI:
             if name in payload: changes[name]=tuple(payload[name]) if name in {"dimensions","action_availability"} else str(payload[name])
         if "draft_id" in payload: changes["draft_id"]=str(payload["draft_id"])
         return replace(draft,**changes)
+
+    def _experiment_draft_input(self,payload):
+        allowed={"draft_id","scenario_id","variant_ids","agent_ids","controls","metric_ids","observer_profile","world_seeds","agent_seeds","repetitions","step_limit","device_requirement","available_ground_truth","available_signals","manipulation_check","transfer_phase","source_artifact","ui_preferences","warning_threshold"}
+        unknown=set(payload)-allowed
+        if unknown: raise ValueError(f"unknown experiment draft fields: {sorted(unknown)}")
+        scenario_id=str(payload.get("scenario_id","D2")).upper(); entry=self.world_registry.get(scenario_id); scenario=entry.scenario
+        if scenario is None: raise ValueError("scenario is not implemented")
+        config=configuration_for(entry); profile_id=str(payload.get("observer_profile","STANDARD")).upper(); profile=self.observers.profile(profile_id)
+        controls=tuple(ControlCondition(str(x["control_id"]),str(x.get("control_type","BASELINE_AGENT")),str(x["agent_id"]),str(x.get("contrast","")),str(x.get("availability","AVAILABLE"))) for x in payload.get("controls",({"control_id":"A0-baseline","control_type":"BASELINE_AGENT","agent_id":"A0","contrast":"target agent versus random baseline"},)))
+        source=str(payload.get("source_artifact","UNSELECTED_DESIGN"))
+        provenance=DraftProvenance("lab-user","experiment composition",source,"READY_FOR_HUMAN_REVIEW")
+        draft=ExperimentDraft(str(payload.get("draft_id","experiment-draft-1")),EXPERIMENT_DRAFT_SCHEMA,DraftState.DRAFT,
+            scenario.scenario_id,scenario.content_hash,tuple(str(x) for x in payload.get("variant_ids",(f"{scenario_id}-base",))),config.difficulty.fingerprint,
+            tuple(str(x) for x in payload.get("agent_ids",("A4",))),controls,
+            tuple(str(x) for x in payload.get("metric_ids",(f"{scenario_id}-energy-trajectory",))),profile_id,profile.channels,
+            tuple(int(x) for x in payload.get("world_seeds",(11,12))),tuple(int(x) for x in payload.get("agent_seeds",(21,22))),
+            int(payload.get("repetitions",1)),int(payload.get("step_limit",100)),str(payload.get("device_requirement","cpu")),
+            scenario.required_ground_truth,tuple(str(x) for x in payload.get("available_ground_truth",scenario.required_ground_truth)),
+            tuple(str(x) for x in payload.get("available_signals",("agent_energy",))),payload.get("manipulation_check","observer verifies structured rules_version event" if scenario.interventions else None),
+            payload.get("transfer_phase"),provenance,dict(payload.get("ui_preferences",{})))
+        return draft,scenario
+
+    @staticmethod
+    def _experiment_changes(changes):
+        allowed={"variant_ids","agent_ids","metric_ids","observer_profile","observer_channels","world_seeds","agent_seeds","repetitions","step_limit","device_requirement","available_ground_truth","available_signals","manipulation_check","transfer_phase","ui_preferences"}
+        unknown=set(changes)-allowed
+        if unknown: raise ValueError(f"unsupported derived fields: {sorted(unknown)}")
+        tuple_fields={"variant_ids","agent_ids","metric_ids","observer_channels","world_seeds","agent_seeds","available_ground_truth","available_signals"}
+        return {k:(tuple(v) if k in tuple_fields else v) for k,v in changes.items()}
 
     def _hypergraph(self):
         if self.theory_graph:
