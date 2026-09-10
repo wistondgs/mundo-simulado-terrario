@@ -1,0 +1,2518 @@
+{
+  "packages": [
+    {
+      "confounders": [
+        "choice of environment distribution"
+      ],
+      "controls": [
+        "baseline",
+        "placebo/sham",
+        "equal-compute",
+        "equal-parameter",
+        "frozen-learning",
+        "architecture-matched",
+        "random",
+        "temporal",
+        "transfer-only"
+      ],
+      "expected_cost": "60 assumption-based runs; 18000.0s estimated",
+      "expected_information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "falsifiers": [
+        "the predicted direction reverses in the declared regime for agent",
+        "the predicted direction reverses in the declared regime for environment",
+        "the predicted direction reverses in the declared regime for goal",
+        "the predicted direction reverses in the declared regime for percept",
+        "the predicted direction reverses in the declared regime for action",
+        "the predicted direction reverses in the declared regime for value",
+        "the predicted direction reverses in the declared regime for agent, environment",
+        "the predicted direction reverses in the declared regime for agent, goal",
+        "the predicted direction reverses in the declared regime for agent, percept",
+        "the predicted direction reverses in the declared regime for agent, action",
+        "the predicted direction reverses in the declared regime for agent, value",
+        "the predicted direction reverses in the declared regime for environment, goal",
+        "the predicted direction reverses in the declared regime for environment, percept",
+        "the predicted direction reverses in the declared regime for environment, action",
+        "the predicted direction reverses in the declared regime for environment, value",
+        "the predicted direction reverses in the declared regime for goal, percept",
+        "the predicted direction reverses in the declared regime for goal, action",
+        "the predicted direction reverses in the declared regime for goal, value",
+        "the predicted direction reverses in the declared regime for percept, action",
+        "the predicted direction reverses in the declared regime for percept, value",
+        "the predicted direction reverses in the declared regime for action, value",
+        "the predicted direction reverses in the declared regime for agent, environment, goal",
+        "the predicted direction reverses in the declared regime for agent, environment, percept",
+        "the predicted direction reverses in the declared regime for agent, environment, action",
+        "the predicted direction reverses in the declared regime for agent, environment, value",
+        "the predicted direction reverses in the declared regime for agent, goal, percept",
+        "the predicted direction reverses in the declared regime for agent, goal, action",
+        "the predicted direction reverses in the declared regime for agent, goal, value",
+        "the predicted direction reverses in the declared regime for agent, percept, action",
+        "the predicted direction reverses in the declared regime for agent, percept, value",
+        "the predicted direction reverses in the declared regime for agent, action, value",
+        "the predicted direction reverses in the declared regime for environment, goal, percept",
+        "the predicted direction reverses in the declared regime for environment, goal, action",
+        "the predicted direction reverses in the declared regime for environment, goal, value",
+        "the predicted direction reverses in the declared regime for environment, percept, action",
+        "the predicted direction reverses in the declared regime for environment, percept, value",
+        "the predicted direction reverses in the declared regime for environment, action, value",
+        "the predicted direction reverses in the declared regime for goal, percept, action",
+        "the predicted direction reverses in the declared regime for goal, percept, value",
+        "the predicted direction reverses in the declared regime for goal, action, value",
+        "the predicted direction reverses in the declared regime for percept, action, value",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, percept",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, action",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, value",
+        "the predicted direction reverses in the declared regime for agent, environment, percept, action",
+        "the predicted direction reverses in the declared regime for agent, environment, percept, value",
+        "the predicted direction reverses in the declared regime for agent, environment, action, value",
+        "the predicted direction reverses in the declared regime for agent, goal, percept, action",
+        "the predicted direction reverses in the declared regime for agent, goal, percept, value",
+        "the predicted direction reverses in the declared regime for agent, goal, action, value",
+        "the predicted direction reverses in the declared regime for agent, percept, action, value",
+        "the predicted direction reverses in the declared regime for environment, goal, percept, action",
+        "the predicted direction reverses in the declared regime for environment, goal, percept, value",
+        "the predicted direction reverses in the declared regime for environment, goal, action, value",
+        "the predicted direction reverses in the declared regime for environment, percept, action, value",
+        "the predicted direction reverses in the declared regime for goal, percept, action, value",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, percept, action",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, percept, value",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, action, value",
+        "the predicted direction reverses in the declared regime for agent, environment, percept, action, value",
+        "the predicted direction reverses in the declared regime for agent, goal, percept, action, value",
+        "the predicted direction reverses in the declared regime for environment, goal, percept, action, value",
+        "the predicted direction reverses in the declared regime for agent, environment, goal, percept, action, value",
+        "a preregistered component effect is observed"
+      ],
+      "human_decision": {
+        "decision": null,
+        "options": [
+          "APPROVE_FOR_IMPLEMENTATION",
+          "REVISE",
+          "REJECT",
+          "DEFER"
+        ],
+        "rationale": null
+      },
+      "identifiability_rating": "DESCRIPTIVE_COMPARISON",
+      "implementation_needs": [
+        "implement metric",
+        "implement matched controls",
+        "instrument manipulation checks"
+      ],
+      "intervention": "matched component intervention with manipulation check",
+      "major_interpretation_risks": [
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ],
+      "manipulation_checks": [
+        {
+          "check": "instrument action access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "action",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument agent access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "agent",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument environment access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "environment",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument goal access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "goal",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument percept access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "percept",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument value access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "value",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metrics": [
+        "weighted expected reward over a finite environment suite"
+      ],
+      "negative_results_policy": {
+        "failed_manipulation_check": "invalid treatment attribution",
+        "failure_to_interact": "opportunity or interface failure until checked",
+        "failure_to_learn": "validity/feasibility failure, not automatic refutation",
+        "no_behavioral_disruption": "weakens only after a successful manipulation check",
+        "null_result": "inconclusive unless manipulation and sensitivity checks pass",
+        "unstable_agent": "invalid run under preregistered stability gate"
+      },
+      "null_model": "NULL-c14eeeb6bda86549",
+      "operationalization_gaps": [],
+      "portfolio_id": "HYPERCAND-02",
+      "predictions": [
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change"
+      ],
+      "question": "Which declared components contribute to universal-intelligence performance in a bounded Terrario regime?",
+      "red_team_objections": [
+        "construct-to-proxy mapping may be circular or incomplete",
+        "metric may reward benchmark-specific behavior",
+        "generated ablation changes capacity/compute/distribution",
+        "controls are specifications rather than implemented matched controls",
+        "environmental or alternative mechanisms can explain the same outcome",
+        "current predictions distinguish mainly each rival from the null, not every rival pair"
+      ],
+      "replication_requirements": {
+        "confirmatory_seeds": "independent set, count fixed by prospective power/sensitivity analysis",
+        "determinism": "config/code/snapshot hashes and deterministic replay required",
+        "evidence_retention": "retain raw events, manifests, exclusions, and forensic windows",
+        "invalid_run_policy": "exclude only by blinded validity gates",
+        "minimum_paired_seeds": "4 exploratory",
+        "randomization": "preregister condition order and seed allocation",
+        "restart_policy": "restart only for preregistered infrastructure failure"
+      },
+      "rivals": [
+        "RIVAL-79eb5ce9a8ff54a6",
+        "RIVAL-45f14dbe36928526",
+        "RIVAL-b44c6a29ea1cb2d9",
+        "RIVAL-cb936168a2191afe",
+        "RIVAL-5d6fd563fce1d260",
+        "RIVAL-35968c4d781e342f",
+        "RIVAL-13a26fcd3ab48cd2",
+        "RIVAL-b58b5b0241f23f81",
+        "RIVAL-b8badcac9faf4352",
+        "RIVAL-01de43271ec492ba",
+        "RIVAL-a6d8ce1e0b14e051",
+        "RIVAL-fcb8e591ec26fd50",
+        "RIVAL-2a933c761688d17e",
+        "RIVAL-ec12bdb9c4ea20d2",
+        "RIVAL-a2925bd43b862a27",
+        "RIVAL-b8d89d0930cd65f1",
+        "RIVAL-5b2d56f3cb1ebf27",
+        "RIVAL-40cb580d300d17ce",
+        "RIVAL-ae99cbc5cfc18104",
+        "RIVAL-32d970dd08da090a",
+        "RIVAL-a4fd23c7ee44d47a",
+        "RIVAL-68d97e55f4fe96e3",
+        "RIVAL-d4f03d4628dda987",
+        "RIVAL-a86884920c847a9b",
+        "RIVAL-5ee23283706debbb",
+        "RIVAL-1307a51458f96426",
+        "RIVAL-54587a455b4e246a",
+        "RIVAL-c0c687afcfd943bf",
+        "RIVAL-05d08a1c64a85905",
+        "RIVAL-9c8e11eb9d5e6d8d",
+        "RIVAL-4b0c29e3153f7561",
+        "RIVAL-822f0eda020a31b5",
+        "RIVAL-facc70341854da5a",
+        "RIVAL-ee369d1619b3a929",
+        "RIVAL-3768b4c424148c3e",
+        "RIVAL-c6b770f4f961dcfa",
+        "RIVAL-fff6fa5aecb5bf22",
+        "RIVAL-23a74fa233698600",
+        "RIVAL-93a75ae90fbe0dc3",
+        "RIVAL-4633132971e6a5f3",
+        "RIVAL-f0a2116956283205",
+        "RIVAL-85656f46a40c22cb",
+        "RIVAL-e2cd6aec060b3248",
+        "RIVAL-cdbb3ca7340452ae",
+        "RIVAL-9f7324133caf0e35",
+        "RIVAL-00b1e6c621983e26",
+        "RIVAL-165b72f5dc44c97f",
+        "RIVAL-1de970788b7e475e",
+        "RIVAL-4a580f38ec8574d0",
+        "RIVAL-95eee8b89df115d0",
+        "RIVAL-7caf91c6bd3b1e26",
+        "RIVAL-8eeea92866a02624",
+        "RIVAL-87c819c2cb826856",
+        "RIVAL-d195d1fed930c2db",
+        "RIVAL-7adf069980d7d376",
+        "RIVAL-3befc66aae5e8f0b",
+        "RIVAL-ce03fb4bfd0bb29d",
+        "RIVAL-f1d81f5a6fa02aef",
+        "RIVAL-6f1542bdedf2ca61",
+        "RIVAL-81e9d94b217d8bb8",
+        "RIVAL-3bad36a73ef86888",
+        "RIVAL-47e590eb7b4f16ce",
+        "RIVAL-da126a8f5b894c7a"
+      ],
+      "status": "READY_FOR_HUMAN_REVIEW",
+      "target_construct": "universal-intelligence performance",
+      "theory_basis": "HYPEREDGE_CANDIDATES_v0.2.md"
+    },
+    {
+      "confounders": [
+        "construct leakage",
+        "task-family overlap"
+      ],
+      "controls": [
+        "baseline",
+        "placebo/sham",
+        "equal-compute",
+        "equal-parameter",
+        "frozen-learning",
+        "architecture-matched",
+        "random",
+        "temporal",
+        "transfer-only"
+      ],
+      "expected_cost": "52 assumption-based runs; 15600.0s estimated",
+      "expected_information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "falsifiers": [
+        "the predicted direction reverses in the declared regime for prior knowledge",
+        "the predicted direction reverses in the declared regime for compositionality",
+        "the predicted direction reverses in the declared regime for learning-to-learn",
+        "the predicted direction reverses in the declared regime for causal world model",
+        "the predicted direction reverses in the declared regime for prior knowledge, compositionality",
+        "the predicted direction reverses in the declared regime for prior knowledge, learning-to-learn",
+        "the predicted direction reverses in the declared regime for prior knowledge, causal world model",
+        "the predicted direction reverses in the declared regime for compositionality, learning-to-learn",
+        "the predicted direction reverses in the declared regime for compositionality, causal world model",
+        "the predicted direction reverses in the declared regime for learning-to-learn, causal world model",
+        "the predicted direction reverses in the declared regime for prior knowledge, compositionality, learning-to-learn",
+        "the predicted direction reverses in the declared regime for prior knowledge, compositionality, causal world model",
+        "the predicted direction reverses in the declared regime for prior knowledge, learning-to-learn, causal world model",
+        "the predicted direction reverses in the declared regime for compositionality, learning-to-learn, causal world model",
+        "the predicted direction reverses in the declared regime for prior knowledge, compositionality, learning-to-learn, causal world model",
+        "a preregistered component effect is observed"
+      ],
+      "human_decision": {
+        "decision": null,
+        "options": [
+          "APPROVE_FOR_IMPLEMENTATION",
+          "REVISE",
+          "REJECT",
+          "DEFER"
+        ],
+        "rationale": null
+      },
+      "identifiability_rating": "DESCRIPTIVE_COMPARISON",
+      "implementation_needs": [
+        "implement metric",
+        "implement matched controls",
+        "instrument manipulation checks"
+      ],
+      "intervention": "matched component intervention with manipulation check",
+      "major_interpretation_risks": [
+        "FACTORIAL_COST_EXPLOSION",
+        "COMPARE_SCREENING_FRACTIONAL_SEQUENTIAL_AND_ADAPTIVE_DESIGNS_BEFORE_FULL_FACTORIAL",
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ],
+      "manipulation_checks": [
+        {
+          "check": "instrument causal world model access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "causal world model",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument compositionality access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "compositionality",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument learning-to-learn access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "learning-to-learn",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument prior knowledge access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "prior knowledge",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metrics": [
+        "sample efficiency on preregistered held-out task families"
+      ],
+      "negative_results_policy": {
+        "failed_manipulation_check": "invalid treatment attribution",
+        "failure_to_interact": "opportunity or interface failure until checked",
+        "failure_to_learn": "validity/feasibility failure, not automatic refutation",
+        "no_behavioral_disruption": "weakens only after a successful manipulation check",
+        "null_result": "inconclusive unless manipulation and sensitivity checks pass",
+        "unstable_agent": "invalid run under preregistered stability gate"
+      },
+      "null_model": "NULL-11a5a9430ccfe973",
+      "operationalization_gaps": [],
+      "portfolio_id": "HYPERCAND-01",
+      "predictions": [
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change",
+        "component-sensitive change vs no component-sensitive change"
+      ],
+      "question": "Which declared components contribute to rapid generalization in a bounded Terrario regime?",
+      "red_team_objections": [
+        "construct-to-proxy mapping may be circular or incomplete",
+        "metric may reward benchmark-specific behavior",
+        "generated ablation changes capacity/compute/distribution",
+        "controls are specifications rather than implemented matched controls",
+        "environmental or alternative mechanisms can explain the same outcome",
+        "current predictions distinguish mainly each rival from the null, not every rival pair"
+      ],
+      "replication_requirements": {
+        "confirmatory_seeds": "independent set, count fixed by prospective power/sensitivity analysis",
+        "determinism": "config/code/snapshot hashes and deterministic replay required",
+        "evidence_retention": "retain raw events, manifests, exclusions, and forensic windows",
+        "invalid_run_policy": "exclude only by blinded validity gates",
+        "minimum_paired_seeds": "4 exploratory",
+        "randomization": "preregister condition order and seed allocation",
+        "restart_policy": "restart only for preregistered infrastructure failure"
+      },
+      "rivals": [
+        "RIVAL-20e932410440384c",
+        "RIVAL-1d94511d25df5377",
+        "RIVAL-c248c0ca6dd17a30",
+        "RIVAL-3d94df95d9db6f55",
+        "RIVAL-91f7cc4f06ea0447",
+        "RIVAL-9f57449923c87e5b",
+        "RIVAL-b6183c96c34d2a10",
+        "RIVAL-110da4aaa7582d48",
+        "RIVAL-6a324facde0680c8",
+        "RIVAL-df0f31ac49a11218",
+        "RIVAL-d10c8a093e9def2f",
+        "RIVAL-8f13d3dd2b27a4b0",
+        "RIVAL-bd4320bb8dd02b4c",
+        "RIVAL-cc8dd86b948568ee",
+        "RIVAL-bc9126c31b4d1aa7"
+      ],
+      "status": "READY_FOR_HUMAN_REVIEW",
+      "target_construct": "rapid generalization",
+      "theory_basis": "HYPEREDGE_CANDIDATES_v0.2.md"
+    }
+  ],
+  "pareto_front": [
+    "HYPERCAND-01",
+    "HYPERCAND-02"
+  ],
+  "portfolio_input_hash": "fee74e994bc654cac467f403059e2abada2cf5c2cd76a0ff0b44bad984315289",
+  "reviewer_version": "scientific-review-0.1",
+  "reviews": [
+    {
+      "construct_status": "PARTIAL_AMBIGUITY",
+      "constructs": {
+        "behaviors": [],
+        "constructs": [],
+        "mechanisms": [
+          "prior knowledge",
+          "compositionality",
+          "learning-to-learn",
+          "causal world model"
+        ],
+        "outcomes": [
+          "rapid generalization"
+        ],
+        "resources": [],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "compositionality": "requires an explicit held-out recombination protocol",
+        "designs": [
+          "screening: main-effect matched ablations",
+          "fractional factorial: resolution-IV subset after interaction assumptions",
+          "sequential: screen, validate interactions, confirm"
+        ],
+        "full_factorial": "16 cells before seeds; not recommended first",
+        "independence": "not established",
+        "prior_vs_exposure": "must match training exposure",
+        "rapid_generalization": "must be a learning curve, not endpoint accuracy"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument causal world model access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "causal world model",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument compositionality access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "compositionality",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument learning-to-learn access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "learning-to-learn",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument prior knowledge access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "prior knowledge",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "rapid generalization",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "sample efficiency on preregistered held-out task families",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "causal world model",
+          "intervention": "matched manipulation of causal world model",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument counterfactual prediction accuracy",
+          "operational_proxy": "counterfactual prediction accuracy",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "compositionality",
+          "intervention": "matched manipulation of compositionality",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument held-out recombination success",
+          "operational_proxy": "held-out recombination success",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "learning-to-learn",
+          "intervention": "matched manipulation of learning-to-learn",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument adaptation curve across tasks",
+          "operational_proxy": "adaptation curve across tasks",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "prior knowledge",
+          "intervention": "matched manipulation of prior knowledge",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument declared priors/training initialization",
+          "operational_proxy": "declared priors/training initialization",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 2,
+        "cost_efficiency": 3,
+        "discriminating_power": 3,
+        "falsifiability": 2,
+        "identifiability": 1,
+        "implementation_ease": 1,
+        "information_value": 3,
+        "interpretation_safety": 1,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": true,
+      "portfolio_id": "HYPERCAND-01",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 15,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "sample efficiency on preregistered held-out task families",
+        "pair_count": 120,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_OPERATIONALIZATION",
+      "technical_readiness": "GPU_REQUIRED",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "FACTORIAL_COST_EXPLOSION",
+        "COMPARE_SCREENING_FRACTIONAL_SEQUENTIAL_AND_ADAPTIVE_DESIGNS_BEFORE_FULL_FACTORIAL",
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "PARTIAL_AMBIGUITY",
+      "constructs": {
+        "behaviors": [
+          "percept",
+          "action"
+        ],
+        "constructs": [],
+        "mechanisms": [
+          "policy",
+          "environment weighting"
+        ],
+        "outcomes": [
+          "finite expected reward"
+        ],
+        "resources": [
+          "agent",
+          "environment"
+        ],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "complexity_proxy": "description-length proxy only",
+        "empirical_scope": "FINITE_PROXY_ONLY",
+        "environment_family": "finite and preregistered",
+        "environment_weighting": "must be declared",
+        "expected_reward": "estimable with paired seeds",
+        "forbidden_label": "universal intelligence",
+        "mathematical_target": "Legg-Hutter universal intelligence",
+        "policy": "representable"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument action access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "action",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument agent access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "agent",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument environment access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "environment",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument goal access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "goal",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument percept access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "percept",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument value access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "value",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "universal-intelligence performance",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "weighted expected reward over a finite environment suite",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "action",
+          "intervention": "matched manipulation of action",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument recorded action",
+          "operational_proxy": "recorded action",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "agent",
+          "intervention": "matched manipulation of agent",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument Terrario policy agent",
+          "operational_proxy": "Terrario policy agent",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "environment",
+          "intervention": "matched manipulation of environment",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument finite preregistered environment suite",
+          "operational_proxy": "finite preregistered environment suite",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "goal",
+          "intervention": "matched manipulation of goal",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument reward specification",
+          "operational_proxy": "reward specification",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "percept",
+          "intervention": "matched manipulation of percept",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument recorded observation",
+          "operational_proxy": "recorded observation",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "value",
+          "intervention": "matched manipulation of value",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument finite expected discounted reward",
+          "operational_proxy": "finite expected discounted reward",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 2,
+        "cost_efficiency": 2,
+        "discriminating_power": 3,
+        "falsifiability": 3,
+        "identifiability": 2,
+        "implementation_ease": 3,
+        "information_value": 3,
+        "interpretation_safety": 2,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": true,
+      "portfolio_id": "HYPERCAND-02",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 63,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "weighted expected reward over a finite environment suite",
+        "pair_count": 2016,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_OPERATIONALIZATION",
+      "technical_readiness": "CPU_READY",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "CONSTRUCT_CIRCULARITY",
+      "constructs": {
+        "behaviors": [],
+        "constructs": [],
+        "mechanisms": [
+          "plasticity"
+        ],
+        "outcomes": [
+          "retention",
+          "transfer",
+          "continual learning"
+        ],
+        "resources": [
+          "stability"
+        ],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "plasticity": "mechanism/capacity",
+        "retention": "outcome",
+        "risk": "CONSTRUCT_CIRCULARITY_RISK",
+        "stability": "constraint",
+        "transfer": "outcome/capacity"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument plasticity access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "plasticity",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument retention access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "retention",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument stability access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "stability",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument transfer access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "transfer",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "continual learning",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "separate retention and transfer curves",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "plasticity",
+          "intervention": "matched manipulation of plasticity",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument change on new-task performance",
+          "operational_proxy": "change on new-task performance",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "retention",
+          "intervention": "matched manipulation of retention",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument old-task performance after learning",
+          "operational_proxy": "old-task performance after learning",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "stability",
+          "intervention": "matched manipulation of stability",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument bounded old-task degradation",
+          "operational_proxy": "bounded old-task degradation",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "transfer",
+          "intervention": "matched manipulation of transfer",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument held-out task performance",
+          "operational_proxy": "held-out task performance",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 1,
+        "cost_efficiency": 2,
+        "discriminating_power": 2,
+        "falsifiability": 2,
+        "identifiability": 1,
+        "implementation_ease": 2,
+        "information_value": 2,
+        "interpretation_safety": 1,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-03",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 15,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "separate retention and transfer curves",
+        "pair_count": 120,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "THEORY_GAP",
+      "technical_readiness": "GPU_REQUIRED",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": true,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "CONSTRUCT_CIRCULARITY_RISK",
+        "SEPARATE_RETENTION_AND_TRANSFER_AS_MECHANISM_VS_OUTCOME",
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "NOT_OPERATIONALIZED",
+      "constructs": {
+        "behaviors": [],
+        "constructs": [],
+        "mechanisms": [
+          "preparation",
+          "incubation",
+          "illumination",
+          "verification"
+        ],
+        "outcomes": [
+          "creative achievement"
+        ],
+        "resources": [],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "candidate_designs": [
+          "stage omission",
+          "stage reorder",
+          "temporal interruption",
+          "alternative sequence",
+          "no-stage baseline"
+        ],
+        "causal_status": "historically descriptive only",
+        "new_environment": "generative task with blinded novelty/utility evaluation and temporal process instrumentation"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument illumination access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "illumination",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument incubation access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "incubation",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument preparation access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "preparation",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument verification access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "verification",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "creative achievement",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "blinded novelty and utility score",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [],
+          "construct": "illumination",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "incubation",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "preparation",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "verification",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 1,
+        "cost_efficiency": 1,
+        "discriminating_power": 2,
+        "falsifiability": 2,
+        "identifiability": 1,
+        "implementation_ease": 1,
+        "information_value": 2,
+        "interpretation_safety": 1,
+        "theoretical_relevance": 2
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-04",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 15,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "blinded novelty and utility score",
+        "pair_count": 120,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_NEW_CAPABILITY",
+      "technical_readiness": "NEW_ENVIRONMENT_REQUIRED",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": true,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "HISTORICAL_DESCRIPTIVE_STRUCTURE",
+        "DO_NOT_ASSUME_STAGE_ORDER_IS_CAUSAL_OR_NECESSARY",
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "PARTIAL_AMBIGUITY",
+      "constructs": {
+        "behaviors": [
+          "collective behavior"
+        ],
+        "constructs": [],
+        "mechanisms": [
+          "communication",
+          "coordination",
+          "division of labor"
+        ],
+        "outcomes": [
+          "collective performance",
+          "cumulative culture"
+        ],
+        "resources": [
+          "individual competence",
+          "shared memory",
+          "diversity"
+        ],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "minimum_architecture": "multiple independently instrumented agents, constrained communication graph, private and shared memory, individual/group rewards, matched solo baseline",
+        "warning": "aggregate performance is not collective intelligence"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument actions access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "actions",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument coordination access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "coordination",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument preferences access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "preferences",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument problem states access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "problem states",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument shared memory access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "shared memory",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "collective intelligence",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "group transfer gain over matched independent agents",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "actions",
+          "intervention": "matched manipulation of actions",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument per-agent action logs",
+          "operational_proxy": "per-agent action logs",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "coordination",
+          "intervention": "matched manipulation of coordination",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument time-resolved dependency between agents",
+          "operational_proxy": "time-resolved dependency between agents",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "preferences",
+          "intervention": "matched manipulation of preferences",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument declared individual reward terms",
+          "operational_proxy": "declared individual reward terms",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "problem states",
+          "intervention": "matched manipulation of problem states",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument shared multi-agent task state",
+          "operational_proxy": "shared multi-agent task state",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "shared memory",
+          "intervention": "matched manipulation of shared memory",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument common writable store",
+          "operational_proxy": "common writable store",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 2,
+        "cost_efficiency": 1,
+        "discriminating_power": 3,
+        "falsifiability": 2,
+        "identifiability": 1,
+        "implementation_ease": 1,
+        "information_value": 3,
+        "interpretation_safety": 1,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-05",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 31,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "group transfer gain over matched independent agents",
+        "pair_count": 496,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_NEW_CAPABILITY",
+      "technical_readiness": "NEW_ENVIRONMENT_REQUIRED",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "AGGREGATE_PERFORMANCE_IS_NOT_COLLECTIVE_INTELLIGENCE",
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "NOT_OPERATIONALIZED",
+      "constructs": {
+        "behaviors": [
+          "referential/compositional symbol use"
+        ],
+        "constructs": [],
+        "mechanisms": [
+          "iconic representation",
+          "categorical representation",
+          "sensory grounding"
+        ],
+        "outcomes": [
+          "meaningful symbols"
+        ],
+        "resources": [],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "compositional_use": "not established",
+        "finding": "SEMANTIC_GROUNDING_NOT_ESTABLISHED",
+        "learned_categories": "not demonstrated",
+        "meaning_transfer": "not established",
+        "perceptual_grounding": "partial grid observations exist",
+        "referential_mapping": "not established",
+        "symbol_tokens": "internal labels do not suffice"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument categorical representation access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "categorical representation",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument iconic representation access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "iconic representation",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument sensory grounding access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "sensory grounding",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "meaningful symbols",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "referential transfer to novel grounded contexts",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [],
+          "construct": "categorical representation",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "iconic representation",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "sensory grounding",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 1,
+        "cost_efficiency": 2,
+        "discriminating_power": 2,
+        "falsifiability": 2,
+        "identifiability": 1,
+        "implementation_ease": 1,
+        "information_value": 2,
+        "interpretation_safety": 1,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-06",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 7,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "referential transfer to novel grounded contexts",
+        "pair_count": 28,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_NEW_CAPABILITY",
+      "technical_readiness": "CPU_READY",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "NOT_OPERATIONALIZED",
+      "constructs": {
+        "behaviors": [],
+        "constructs": [],
+        "mechanisms": [
+          "proof search",
+          "self-generated rewrite"
+        ],
+        "outcomes": [
+          "certified self-rewrite"
+        ],
+        "resources": [
+          "axioms",
+          "utility",
+          "computational resources"
+        ],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "evaluate": "partial external evaluation",
+        "execute": "missing",
+        "finding": "SELF_REWRITE_ENVIRONMENT_MISSING",
+        "inspect": "missing",
+        "meta_parameter_change": "not demonstrated",
+        "ordinary_learning": "available only as ordinary updates",
+        "parameter_update": "not self-rewrite",
+        "propose": "missing",
+        "rollback": "missing",
+        "structural_self_modification": "missing"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument axioms access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "axioms",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument computational resources access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "computational resources",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument proof search access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "proof search",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument utility access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "utility",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "certified self-rewrite",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "verified utility improvement after reversible self-generated structural rewrite",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [],
+          "construct": "axioms",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "computational resources",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "proof search",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "utility",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 1,
+        "cost_efficiency": 1,
+        "discriminating_power": 2,
+        "falsifiability": 3,
+        "identifiability": 1,
+        "implementation_ease": 1,
+        "information_value": 3,
+        "interpretation_safety": 2,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-07",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 15,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "verified utility improvement after reversible self-generated structural rewrite",
+        "pair_count": 120,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_NEW_CAPABILITY",
+      "technical_readiness": "CPU_READY",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    },
+    {
+      "construct_status": "PARTIAL_AMBIGUITY",
+      "constructs": {
+        "behaviors": [
+          "actor",
+          "planning/action"
+        ],
+        "constructs": [],
+        "mechanisms": [
+          "world model",
+          "configurator"
+        ],
+        "outcomes": [
+          "autonomous planning/action"
+        ],
+        "resources": [
+          "perception",
+          "memory",
+          "cost"
+        ],
+        "states": []
+      },
+      "control_adequacy": {
+        "adequate": false,
+        "classification": "DESCRIPTIVE_ONLY",
+        "matching_required": [
+          "compute",
+          "parameters",
+          "experience",
+          "information access",
+          "seed",
+          "world"
+        ],
+        "warning": "A4 vs A0 remains DESCRIPTIVE_ONLY without real matching"
+      },
+      "deep_review": {
+        "component_mapping": {
+          "actor": "PARTIAL",
+          "configurator": "MISSING",
+          "cost": "EXACT",
+          "memory": "PARTIAL",
+          "perception": "EXACT",
+          "world model": "PARTIAL"
+        },
+        "warning": "no existing component is renamed configurator by analogy"
+      },
+      "falsifiability_audit": {
+        "complete_fields": true,
+        "pseudo_falsifiable": true,
+        "reason": "thresholds and operational metrics remain undeclared, allowing post-hoc reinterpretation"
+      },
+      "identifiability_audit": {
+        "causal_claim_allowed": false,
+        "classification": "DESCRIPTIVE_COMPARISON",
+        "unmatched": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "variables_checked": [
+          "architecture",
+          "trainable parameters",
+          "total parameters",
+          "compute",
+          "observations",
+          "memory",
+          "optimization",
+          "training exposure",
+          "action space",
+          "environment",
+          "seed",
+          "opportunity distribution"
+        ]
+      },
+      "information_value": {
+        "ambiguity_resolved": "whether a declared component contributes in the tested regime",
+        "hypotheses_eliminable": "null or component-containing rivals after a valid component-sensitive result",
+        "hypotheses_separated": "subset rival versus null for manipulated components",
+        "uncertainty_remaining": "necessity, sufficiency, external validity, and alternative mechanisms remain unresolved"
+      },
+      "intervention_purity": {
+        "classification": "LOW_INTERVENTION_PURITY",
+        "reason": "generated ablations do not yet specify matched substitution or sham implementation",
+        "side_effects": [
+          "capacity",
+          "compute",
+          "representation distribution",
+          "temporal dynamics"
+        ],
+        "target_effect": "component availability"
+      },
+      "manipulation_checks": [
+        {
+          "check": "instrument actor access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "actor",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument configurator access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "configurator",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument cost access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "cost",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument memory access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "memory",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument perception access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "perception",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        },
+        {
+          "check": "instrument world model access/state before and after intervention",
+          "failure_consequence": "INVALID_TREATMENT_ATTRIBUTION",
+          "intervention_target": "world model",
+          "pass_condition": "target-specific signal changes while matched non-target signals remain within preregistered tolerance"
+        }
+      ],
+      "metric_audit": [
+        {
+          "confounds": [
+            "task family",
+            "threshold selection"
+          ],
+          "construct_targeted": "autonomous planning/action",
+          "currently_implemented": false,
+          "definition": null,
+          "direction": null,
+          "failure_modes": [
+            "construct underrepresentation",
+            "endpoint-only inference"
+          ],
+          "name": "preregistered goal completion under OOD causal changes",
+          "potential_gaming": [
+            "reward/benchmark overfitting"
+          ],
+          "sensitivity": "UNKNOWN_UNTIL_PILOT",
+          "value_range": null
+        }
+      ],
+      "null_model_audit": {
+        "limitation": "environmental and unmodeled alternative mechanisms remain compatible",
+        "quality": "PARTIAL",
+        "type": "absence of causal contribution / no difference under matched intervention"
+      },
+      "operationalizations": [
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "actor",
+          "intervention": "matched manipulation of actor",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument policy action selection",
+          "operational_proxy": "policy action selection",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [],
+          "construct": "configurator",
+          "intervention": null,
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "NONE",
+          "measurement": null,
+          "operational_proxy": null,
+          "proxy_validity": "NO_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "cost",
+          "intervention": "matched manipulation of cost",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument energy/action costs",
+          "operational_proxy": "energy/action costs",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "memory",
+          "intervention": "matched manipulation of memory",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument recorded agent memory state",
+          "operational_proxy": "recorded agent memory state",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "perception",
+          "intervention": "matched manipulation of perception",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument AgentView observation channels",
+          "operational_proxy": "AgentView observation channels",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        },
+        {
+          "assumptions": [
+            "proxy isolates the named construct"
+          ],
+          "construct": "world model",
+          "intervention": "matched manipulation of world model",
+          "limitations": [
+            "construct-to-proxy mapping requires human validation"
+          ],
+          "mapping_confidence": "PARTIAL",
+          "measurement": "instrument prediction state/model",
+          "operational_proxy": "prediction state/model",
+          "proxy_validity": "REASONABLE_PROXY",
+          "role": "component"
+        }
+      ],
+      "pareto_dimensions": {
+        "construct_clarity": 2,
+        "cost_efficiency": 2,
+        "discriminating_power": 3,
+        "falsifiability": 3,
+        "identifiability": 2,
+        "implementation_ease": 2,
+        "information_value": 3,
+        "interpretation_safety": 2,
+        "theoretical_relevance": 3
+      },
+      "pareto_front": false,
+      "portfolio_id": "HYPERCAND-08",
+      "rival_diagnosticity": {
+        "diagnostic_pairs": 63,
+        "divergent_predictions": "component sensitivity under matched intervention",
+        "observable": "preregistered goal completion under OOD causal changes",
+        "pair_count": 2016,
+        "required_intervention": "independent component manipulation",
+        "shared_predictions": "many subset rivals share direction",
+        "status": "PARTIAL_RIVAL_DIAGNOSTICITY"
+      },
+      "scientific_readiness": "NEEDS_CONTROL",
+      "technical_readiness": "CPU_READY",
+      "temporal_causality": {
+        "cause_before_effect": "NOT_YET_SPECIFIED",
+        "checks": [
+          "intervention timing",
+          "latency",
+          "persistence",
+          "delayed effects",
+          "carryover"
+        ],
+        "required": false,
+        "windows": "PREREGISTRATION_REQUIRED"
+      },
+      "warnings": [
+        "NO_AUTOMATIC_APPROVAL",
+        "METRIC_NOT_IMPLEMENTED",
+        "UNMITIGATED_INTERVENTION_SIDE_EFFECTS"
+      ]
+    }
+  ],
+  "theory_snapshot": "theory-f59dbb6d6ee3850c",
+  "top_candidates": [
+    "HYPERCAND-02",
+    "HYPERCAND-01"
+  ]
+}

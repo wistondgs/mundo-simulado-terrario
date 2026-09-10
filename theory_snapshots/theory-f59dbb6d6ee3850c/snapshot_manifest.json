@@ -1,0 +1,198 @@
+{
+  "snapshot_id": "theory-f59dbb6d6ee3850c",
+  "snapshot_hash": "f59dbb6d6ee3850c7fa366f087f51f0a0dc69d8ef2ea973e33ad8681eb692b68",
+  "parser_version": "theory-ingestion/1",
+  "artifacts": [
+    {
+      "filename": "AMBIGUITIES_v0.2.md",
+      "sha256": "72a8191b2133eeda2cc0b2d5b07a674d6556de2a1f4f7c03288eef5a5cd01e82",
+      "artifact_version": "v0.2",
+      "artifact_type": "AMBIGUIT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/AMBIGUITIES_v0.2.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CLAIMS_RELATIONS_PATCH_v0.3.csv",
+      "sha256": "d6af1101e822b8ec07fa0bcedc11768c3e224749e35480f417509779710fbc54",
+      "artifact_version": "v0.3",
+      "artifact_type": "CLAIM",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CLAIMS_RELATIONS_PATCH_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CLAIMS_RELATIONS_v0.1.csv",
+      "sha256": "4bc6a81191e128e0c7e9926d5fdf9a659211799f303b8c961d4b6773ee375340",
+      "artifact_version": "v0.1",
+      "artifact_type": "CLAIM",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CLAIMS_RELATIONS_v0.1.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CONCEPTS_RAW_PATCH_v0.3.csv",
+      "sha256": "4c46487500e3dbb7329fe6a62a215be6ddc41073c994bd9d5d0e821f4d34c02a",
+      "artifact_version": "v0.3",
+      "artifact_type": "CONCEPT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CONCEPTS_RAW_PATCH_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CONCEPTS_RAW_v0.1.csv",
+      "sha256": "6a6fdf36524fa8d9a8b857a70e18c35f5666195cffedd24b664115522542db11",
+      "artifact_version": "v0.1",
+      "artifact_type": "CONCEPT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CONCEPTS_RAW_v0.1.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CONCEPT_CANONICAL_MAP_v0.2.csv",
+      "sha256": "79fa797e68947e837dd8df8f1ef33c5a33310d9c4bc8ea1372851564b0e54fcc",
+      "artifact_version": "v0.2",
+      "artifact_type": "CONCEPT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CONCEPT_CANONICAL_MAP_v0.2.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CONCEPT_CONFLICTS_v0.1.md",
+      "sha256": "4da5a5ef7b918a697facce48732ade29bc7566dcbb732edb411717fa543c3d69",
+      "artifact_version": "v0.1",
+      "artifact_type": "CONCEPT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CONCEPT_CONFLICTS_v0.1.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CONCEPT_COVERAGE_AUDIT_v0.3.csv",
+      "sha256": "cfbfac380ea5664440a6df232b717edbae2e198d81ea1fc74f3f4e8e0f11fe52",
+      "artifact_version": "v0.3",
+      "artifact_type": "CONCEPT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CONCEPT_COVERAGE_AUDIT_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CORPUS_EXPANSION_INVENTORY_v0.3.csv",
+      "sha256": "b9ce67132417d37945dc855c3b46ceb86f4c93752a37119e7991513de82164c6",
+      "artifact_version": "v0.3",
+      "artifact_type": "CORPUS",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CORPUS_EXPANSION_INVENTORY_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CORPUS_EXPANSION_REPORT_v0.3.md",
+      "sha256": "98400e11f7ae8f185a9f9563eb1cabae13bbbde886fc9fbd5a650b008667c3e1",
+      "artifact_version": "v0.3",
+      "artifact_type": "CORPUS",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CORPUS_EXPANSION_REPORT_v0.3.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CORPUS_GAPS_v0.3.md",
+      "sha256": "37857109a0d4a4da1de988dc84639dcc265acbfd37cfa2ea444d46398bf5f674",
+      "artifact_version": "v0.3",
+      "artifact_type": "CORPUS",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CORPUS_GAPS_v0.3.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "CORPUS_INTEGRITY_PATCH_v0.1.md",
+      "sha256": "74d96c3367ca510c0a4ae4afe644fcc5cd787e1d01b528ffbd583597dfd9f9ee",
+      "artifact_version": "v0.1",
+      "artifact_type": "INTEGRITY",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/CORPUS_INTEGRITY_PATCH_v0.1.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "COVERAGE_MATRIX_v0.2.csv",
+      "sha256": "aa8a485c7a357629cc4f303a0a68563799a63eddbef0fe4e889415c9b24af19c",
+      "artifact_version": "v0.2",
+      "artifact_type": "COVERAGE",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/COVERAGE_MATRIX_v0.2.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "COVERAGE_MATRIX_v0.3.csv",
+      "sha256": "127b6db6b2efe4d9ee0af75cc3b48af0f1902d55fecb29eddcf23d71b0dd0fbb",
+      "artifact_version": "v0.3",
+      "artifact_type": "COVERAGE",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/COVERAGE_MATRIX_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "DEVELOPMENTAL_COGNITION_PATCH_v0.1.md",
+      "sha256": "6b9a8922e794e9ff7ea2b969c2c6da0c58c4c0a3832c618be1d4b1e0eb28b658",
+      "artifact_version": "v0.1",
+      "artifact_type": "STRUCTURED_DERIVED_ARTIFACT",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/DEVELOPMENTAL_COGNITION_PATCH_v0.1.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "HYPEREDGE_CANDIDATES_v0.2.md",
+      "sha256": "e2af50801d616c06faa00841cd628863f465ab9e967968dab4ae15344838f023",
+      "artifact_version": "v0.2",
+      "artifact_type": "HYPEREDGE",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/HYPEREDGE_CANDIDATES_v0.2.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "ONTOLOGY_v0.1.md",
+      "sha256": "0cf1ade81d6aba74147487fd7758d9091d9cd8047559d7264ea5b9d9e047fc63",
+      "artifact_version": "v0.1",
+      "artifact_type": "ONTOLOGY",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/ONTOLOGY_v0.1.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "ONTOLOGY_v0.2.md",
+      "sha256": "068e47489c47ca7f8fa5f920b0157773df2d05ecc75fa10de364e4ce62a3a7e0",
+      "artifact_version": "v0.2",
+      "artifact_type": "ONTOLOGY",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/ONTOLOGY_v0.2.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "RELATIONS_AUDIT_v0.2.csv",
+      "sha256": "2a944fdb99fe00de017a1a0f0731bd221b6dd47d9db7cdfc9d6f6567746403af",
+      "artifact_version": "v0.2",
+      "artifact_type": "RELATION",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/RELATIONS_AUDIT_v0.2.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "SOURCE_PROVENANCE_v0.3.csv",
+      "sha256": "f67efa05504975a8fbb792686b98076208a5abd733d5f51a76e57a518add7309",
+      "artifact_version": "v0.3",
+      "artifact_type": "SOURCE",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/SOURCE_PROVENANCE_v0.3.csv",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    },
+    {
+      "filename": "SOURCE_SAMPLE_v0.1.md",
+      "sha256": "efaa7cea49bdce7545215723eeecfab22118252e458b05125c6211b1ecc75c17",
+      "artifact_version": "v0.1",
+      "artifact_type": "SOURCE",
+      "source_path": "/home/wis/Documentos/teoria de la inteligencia/SOURCE_SAMPLE_v0.1.md",
+      "ingestion_status": "READY",
+      "parser_version": "theory-ingestion/1"
+    }
+  ],
+  "missing_artifacts": [],
+  "immutable": true
+}

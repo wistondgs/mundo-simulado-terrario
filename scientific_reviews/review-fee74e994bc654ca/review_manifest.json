@@ -1,0 +1,12 @@
+{
+  "experiments_executed": false,
+  "portfolio_input_sha256": "fee74e994bc654cac467f403059e2abada2cf5c2cd76a0ff0b44bad984315289",
+  "portfolios": 8,
+  "reviewer_version": "scientific-review-0.1",
+  "scientific_evidence": false,
+  "theory_snapshot": "theory-f59dbb6d6ee3850c",
+  "top_candidates": [
+    "HYPERCAND-02",
+    "HYPERCAND-01"
+  ]
+}

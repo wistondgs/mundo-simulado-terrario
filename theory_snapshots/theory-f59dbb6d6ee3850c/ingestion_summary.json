@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "theory-f59dbb6d6ee3850c",
+  "snapshot_hash": "f59dbb6d6ee3850c7fa366f087f51f0a0dc69d8ef2ea973e33ad8681eb692b68",
+  "missing": [],
+  "sources": 44,
+  "claims": 189,
+  "raw_concepts": 283,
+  "canonical_candidates": 224,
+  "relations": 206,
+  "ambiguities": 12,
+  "conflicts": 12,
+  "hyperedges": 8,
+  "coverage": 42,
+  "integrity": 7,
+  "theory_nodes": 1035,
+  "theory_edges": 956,
+  "evidence_nodes": 141,
+  "evidence_edges": 136
+}

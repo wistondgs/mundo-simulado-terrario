@@ -12,11 +12,26 @@ from urllib.parse import parse_qs, unquote, urlparse
 from terrario.lab.hypergraph.adapter import HypergraphAdapter
 from terrario.lab.models import thaw
 from terrario.lab.read_model import LabReadModel
+from terrario.lab.theory.store import TheoryGraphStore
+from terrario.lab.theory.compiler import HypothesisCompiler
+from terrario.lab.theory.ingestion import TheoryIngestor
+from terrario.lab.theory.factory import build_portfolio
+from terrario.lab.theory.scientific_review import review_portfolio
+from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnalyzerInput
 
 
 class LabAPI:
     def __init__(self, root: str | Path):
         self.model = LabReadModel(root)
+        self.root = Path(root).resolve()
+        graphs = sorted((self.root / "theory_snapshots").glob("*/theory_graph.json"))
+        self.theory_graph = TheoryGraphStore.load(graphs[-1]) if graphs else None
+        summary = graphs[-1].parent / "ingestion_summary.json" if graphs else None
+        self.theory_summary = json.loads(summary.read_text()) if summary and summary.exists() else {}
+        self.theory_import = TheoryIngestor(graphs[-1].parent).ingest() if graphs else None
+        snapshot_id = self.theory_summary.get("snapshot_id", graphs[-1].parent.name if graphs else "NOT_AVAILABLE")
+        self.experiment_portfolio = build_portfolio(self.theory_import.hyperedges, snapshot_id) if self.theory_import else None
+        self.scientific_review = review_portfolio(self.experiment_portfolio) if self.experiment_portfolio else None
 
     def dispatch(self, method: str, url: str):
         if method != "GET": return 405, {"error": "read-only API"}
@@ -24,7 +39,7 @@ class LabAPI:
         query = parse_qs(parsed.query)
         try:
             if parts == ["api", "status"]:
-                return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs())}
+                return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA"}
             if parts == ["api", "experiments"]: return 200, thaw(self.model.experiments())
             if len(parts) == 3 and parts[:2] == ["api", "experiments"]: return self._one(self.model.experiment(parts[2]))
             if parts == ["api", "runs"]: return 200, thaw(self.model.runs(query.get("experiment", [None])[0]))
@@ -38,10 +53,28 @@ class LabAPI:
                 if action == "agent-view": return 200, thaw(self.model.agent_view(rid, step))
             if parts == ["api", "hypotheses"]: return 200, thaw(self.model.hypotheses())
             if parts == ["api", "hypergraph"]: return 200, self._hypergraph()
+            if parts == ["api", "theory", "summary"]: return 200, self.theory_summary
+            if parts == ["api", "theory", "graph"]: return (200, self.theory_graph.export()) if self.theory_graph else (404, {"error": "no theory snapshot"})
+            if parts == ["api", "theory", "drafts"]:
+                drafts = tuple(HypothesisCompiler().compile(edge) for edge in (self.theory_import.hyperedges if self.theory_import else ()))
+                return 200, thaw(drafts)
+            if parts == ["api", "theory", "portfolio"]:
+                return (200, thaw(self.experiment_portfolio)) if self.experiment_portfolio else (404, {"error": "no theory portfolio"})
+            if parts == ["api", "theory", "scientific-review"]:
+                return (200, thaw(self.scientific_review)) if self.scientific_review else (404, {"error": "no scientific review"})
+            if parts == ["api", "theory", "rival-groups"]: return 200, []
+            if parts == ["api", "theory", "paths"]:
+                if not self.theory_graph: return 404, {"error": "no theory snapshot"}
+                paths = self.theory_graph.paths(query.get("from", [""])[0], query.get("to", [""])[0])
+                return 200, thaw(paths)
             if parts == ["api", "evidence"]: return 200, thaw(self.model.evidence_manifests())
             if len(parts) == 3 and parts[:2] == ["api", "evidence"]: return self._one(self.model.evidence(parts[2]))
             if len(parts) == 3 and parts[:2] == ["api", "forensic"]: return self._one(self.model.forensic_case(parts[2]))
             if parts == ["api", "checkpoints"]: return 200, thaw(self.model.checkpoints())
+            if parts == ["api", "analyzer", "deterministic"]:
+                invalid = tuple(run.id for run in self.model.runs() if run.experimental_valid is False)
+                request = ExternalAnalyzerInput({}, "catalog-audit", "1", {"code_hash": "catalog", "config_hash": "catalog", "protocol": "catalog-audit"}, {"invalid_runs": invalid}, (), (), {"source": "LabReadModel"})
+                return 200, thaw(DeterministicScientificAnalyzer().analyze(request))
             return 404, {"error": "not found"}
         except (KeyError, IndexError, ValueError) as exc:
             return 404, {"error": str(exc)}
@@ -50,6 +83,9 @@ class LabAPI:
     def _one(value): return (200, thaw(value)) if value is not None else (404, {"error": "not found"})
 
     def _hypergraph(self):
+        if self.theory_graph:
+            graph = self.theory_graph.export(); theory = graph["theory_graph"]; evidence = graph["evidence_graph"]
+            return {"snapshot_id": graph["snapshot_id"], "nodes": [*theory["nodes"], *evidence["nodes"]], "edges": [*theory["edges"], *evidence["edges"]]}
         nodes, edges = [], []
         for h in self.model.hypotheses():
             nodes.append({"id": h.id, "label": h.id, "type": "Hypothesis", "status": "UNTESTED_HYPOTHESIS", "provenance": h.source})
