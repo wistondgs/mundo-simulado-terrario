@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import json
 import mimetypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,6 +21,8 @@ from terrario.lab.theory.scientific_review import review_portfolio
 from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnalyzerInput
 from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, configuration_from_payload, d2_views, generalization_check, patched_configuration
 from terrario.lab.world_contracts import config_diff, validate_configuration
+from terrario.lab.world_authoring import SeedBrowser,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
+from terrario.lab.sandbox_runtime import ExecutionClassification,SandboxService,derive_sandbox,make_spec,serialize_run
 
 
 class LabAPI:
@@ -37,6 +40,8 @@ class LabAPI:
         self.world_registry = WorldScenarioRegistry(self.root)
         d2_entry = self.world_registry.get("D2")
         self.d2_configuration = configuration_for(d2_entry) if d2_entry.scenario else None
+        self.compiled_worlds = {e.world_id:compile_registry_world(e.world_id,e.source) for e in self.world_registry.entries() if e.scenario}
+        self.sandbox = SandboxService(self.root/".sandbox")
 
     def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
@@ -48,6 +53,33 @@ class LabAPI:
             if method == "GET" and parts == ["api","studio","d2"]:
                 if self.d2_configuration is None: return 404,{"error":"D2 is not implemented in this project root"}
                 return 200, {"configuration":thaw(self.d2_configuration),"views":thaw(d2_views(self.world_registry.get("D2"))),"generalization":generalization_check(self.world_registry)}
+            if method == "GET" and len(parts)==4 and parts[:2]==["api","worlds"] and parts[3]=="preview":
+                wid=parts[2].upper(); seed=int(query.get("seed",[42])[0]); return 200,thaw(preview(self.compiled_worlds[wid],seed))
+            if method == "GET" and len(parts)==4 and parts[:2]==["api","worlds"] and parts[3]=="seeds":
+                wid=parts[2].upper(); values=query.get("values",["42"])[0]; seeds=[int(x) for x in values.split(",") if x]; return 200,thaw(SeedBrowser(self.compiled_worlds[wid]).analyze(seeds))
+            if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
+                run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
+            if method == "POST" and parts == ["api","worlds","validate"]:
+                wid=str((payload or {}).get("world_id","D2")).upper(); draft=draft_from_legacy(wid,self.world_registry.get(wid).source)
+                if "dimensions" in (payload or {}): draft=replace(draft,dimensions=tuple(payload["dimensions"]))
+                if "action_availability" in (payload or {}): draft=replace(draft,action_availability=tuple(payload["action_availability"]))
+                findings=validate_draft(draft); return 200,{"valid":not any(x.blocking for x in findings),"findings":thaw(findings),"draft":thaw(draft)}
+            if method == "POST" and parts == ["api","worlds","compile"]:
+                wid=str((payload or {}).get("world_id","D2")).upper(); compiled=self.compiled_worlds[wid]; return 200,{"definition":thaw(compiled.definition),"definition_hash":compiled.definition.content_hash,"warnings":thaw(compiled.warnings)}
+            if method == "POST" and parts == ["api","sandbox","validate"]:
+                spec,config,compiled=self._sandbox_inputs(payload or {}); instance=generate_instance(compiled,spec.world_seed); return 200,self.sandbox.validate_spec(spec,config,compiled,instance)
+            if method == "POST" and parts == ["api","sandbox"]:
+                spec,config,compiled=self._sandbox_inputs(payload or {}); return 201,serialize_run(self.sandbox.create(spec,config,compiled))
+            if method == "POST" and len(parts)==4 and parts[:2]==["api","sandbox"]:
+                rid,action=parts[2],parts[3]
+                if action=="step": self.sandbox.step(rid)
+                elif action=="run": self.sandbox.run_bounded(rid,int((payload or {}).get("steps",1)))
+                elif action=="pause": self.sandbox.pause(rid)
+                elif action=="resume": self.sandbox.resume(rid)
+                elif action=="stop": self.sandbox.stop(rid)
+                elif action=="restart": return 201,serialize_run(self.sandbox.restart(rid))
+                else: return 404,{"error":"unknown sandbox action"}
+                return 200,serialize_run(self.sandbox.get(rid))
             if method == "POST" and parts == ["api","config","validate"]:
                 if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
                 candidate=patched_configuration(self.d2_configuration,payload or {})
@@ -104,6 +136,14 @@ class LabAPI:
 
     @staticmethod
     def _one(value): return (200, thaw(value)) if value is not None else (404, {"error": "not found"})
+
+    def _sandbox_inputs(self,payload):
+        wid=str(payload.get("world_id","D2")).upper(); entry=self.world_registry.get(wid); compiled=self.compiled_worlds[wid]
+        base=configuration_for(entry); config=derive_sandbox(base)
+        if payload.get("agent_reference"): config=replace(config,agent_reference=str(payload["agent_reference"]))
+        classification=ExecutionClassification(payload.get("classification","ENGINEERING_SANDBOX"))
+        spec=make_spec(config,compiled,int(payload.get("world_seed",42)),int(payload.get("agent_seed",1000045)),int(payload.get("step_limit",100)),classification)
+        return spec,config,compiled
 
     def _hypergraph(self):
         if self.theory_graph:
