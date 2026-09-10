@@ -149,13 +149,13 @@ def audited_agent_assessments(agent_id: str) -> tuple[CapabilityAssessment, ...]
         supported |= {"online_learning", "credit_assignment"}
         missing |= {"temporal_state", "working_memory", "episodic_memory", "world_model", "prediction", "uncertainty_estimation", "planning"}
     elif aid == "A2":
-        supported |= {"temporal_state", "working_memory", "online_learning", "credit_assignment"}
-        missing |= {"episodic_memory", "world_model", "prediction", "uncertainty_estimation", "planning"}
+        supported |= {"temporal_state", "online_learning", "credit_assignment"}
+        missing |= {"working_memory", "episodic_memory", "world_model", "prediction", "uncertainty_estimation", "planning"}
     elif aid == "A3":
-        supported |= {"temporal_state", "working_memory", "world_model", "prediction", "online_learning", "credit_assignment"}
+        supported |= {"temporal_state", "world_model", "prediction", "online_learning", "credit_assignment"}
         missing |= {"episodic_memory", "uncertainty_estimation", "planning"}
     elif aid == "A4":
-        supported |= {"temporal_state", "working_memory", "episodic_memory", "world_model", "prediction", "uncertainty_estimation", "online_learning", "planning", "credit_assignment"}
+        supported |= {"temporal_state", "episodic_memory", "world_model", "prediction", "uncertainty_estimation", "online_learning", "planning", "credit_assignment"}
         partial |= {"adaptation"}
     rows = []
     for capability in _TAXONOMY:

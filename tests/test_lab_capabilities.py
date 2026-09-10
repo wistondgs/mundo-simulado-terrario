@@ -29,6 +29,12 @@ def test_unknown_is_distinct_from_missing():
     assert next(x for x in rows if x.capability == "communication").status == CapabilityStatus.UNKNOWN
 
 
+def test_temporal_state_is_not_automatically_laundered_into_working_memory():
+    a3 = audited_agent_assessments("A3")
+    assert next(x for x in a3 if x.capability == "temporal_state").status == CapabilityStatus.SUPPORTED
+    assert next(x for x in a3 if x.capability == "working_memory").status == CapabilityStatus.UNKNOWN
+
+
 def test_supported_retains_evidence_reference():
     row = next(x for x in audited_agent_assessments("A4") if x.capability == "world_model")
     assert row.status == CapabilityStatus.SUPPORTED
