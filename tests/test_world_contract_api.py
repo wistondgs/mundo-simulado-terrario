@@ -17,3 +17,8 @@ def test_config_diff_api_separates_ui_from_science():
 def test_invalid_api_patch_is_classified():
     status,result=LabAPI(".").dispatch("POST","/api/config/validate",{"world_truth":True})
     assert status==400 and result["category"]=="CONFIG_ERROR"
+
+def test_lab_api_without_scenarios_keeps_base_api_available(tmp_path):
+    api=LabAPI(tmp_path)
+    assert api.dispatch("GET","/api/status")[0]==200
+    assert api.dispatch("GET","/api/studio/d2")[0]==404

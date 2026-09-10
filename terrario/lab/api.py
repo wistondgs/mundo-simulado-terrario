@@ -35,7 +35,8 @@ class LabAPI:
         self.experiment_portfolio = build_portfolio(self.theory_import.hyperedges, snapshot_id) if self.theory_import else None
         self.scientific_review = review_portfolio(self.experiment_portfolio) if self.experiment_portfolio else None
         self.world_registry = WorldScenarioRegistry(self.root)
-        self.d2_configuration = configuration_for(self.world_registry.get("D2"))
+        d2_entry = self.world_registry.get("D2")
+        self.d2_configuration = configuration_for(d2_entry) if d2_entry.scenario else None
 
     def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
@@ -45,11 +46,14 @@ class LabAPI:
             if method == "GET" and len(parts)==3 and parts[:2]==["api","worlds"]:
                 entry=self.world_registry.get(parts[2].upper()); return 200, thaw(entry)
             if method == "GET" and parts == ["api","studio","d2"]:
+                if self.d2_configuration is None: return 404,{"error":"D2 is not implemented in this project root"}
                 return 200, {"configuration":thaw(self.d2_configuration),"views":thaw(d2_views(self.world_registry.get("D2"))),"generalization":generalization_check(self.world_registry)}
             if method == "POST" and parts == ["api","config","validate"]:
+                if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
                 candidate=patched_configuration(self.d2_configuration,payload or {})
                 return 200,{"configuration":thaw(candidate),"findings":thaw(validate_configuration(candidate)),"scientific_hash":candidate.content_hash}
             if method == "POST" and parts == ["api","config","diff"]:
+                if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
                 candidate=patched_configuration(self.d2_configuration,payload or {})
                 return 200,thaw(config_diff(self.d2_configuration,candidate))
             if method != "GET": return 405, {"error":"mutation endpoint not available; configuration validation creates no persisted state"}
