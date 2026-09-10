@@ -18,6 +18,8 @@ from terrario.lab.theory.ingestion import TheoryIngestor
 from terrario.lab.theory.factory import build_portfolio
 from terrario.lab.theory.scientific_review import review_portfolio
 from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnalyzerInput
+from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, d2_views, generalization_check, patched_configuration
+from terrario.lab.world_contracts import config_diff, validate_configuration
 
 
 class LabAPI:
@@ -32,12 +34,25 @@ class LabAPI:
         snapshot_id = self.theory_summary.get("snapshot_id", graphs[-1].parent.name if graphs else "NOT_AVAILABLE")
         self.experiment_portfolio = build_portfolio(self.theory_import.hyperedges, snapshot_id) if self.theory_import else None
         self.scientific_review = review_portfolio(self.experiment_portfolio) if self.experiment_portfolio else None
+        self.world_registry = WorldScenarioRegistry(self.root)
+        self.d2_configuration = configuration_for(self.world_registry.get("D2"))
 
-    def dispatch(self, method: str, url: str):
-        if method != "GET": return 405, {"error": "read-only API"}
+    def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
         try:
+            if method == "GET" and parts == ["api","worlds"]: return 200, thaw(self.world_registry.entries())
+            if method == "GET" and len(parts)==3 and parts[:2]==["api","worlds"]:
+                entry=self.world_registry.get(parts[2].upper()); return 200, thaw(entry)
+            if method == "GET" and parts == ["api","studio","d2"]:
+                return 200, {"configuration":thaw(self.d2_configuration),"views":thaw(d2_views(self.world_registry.get("D2"))),"generalization":generalization_check(self.world_registry)}
+            if method == "POST" and parts == ["api","config","validate"]:
+                candidate=patched_configuration(self.d2_configuration,payload or {})
+                return 200,{"configuration":thaw(candidate),"findings":thaw(validate_configuration(candidate)),"scientific_hash":candidate.content_hash}
+            if method == "POST" and parts == ["api","config","diff"]:
+                candidate=patched_configuration(self.d2_configuration,payload or {})
+                return 200,thaw(config_diff(self.d2_configuration,candidate))
+            if method != "GET": return 405, {"error":"mutation endpoint not available; configuration validation creates no persisted state"}
             if parts == ["api", "status"]:
                 return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA"}
             if parts == ["api", "experiments"]: return 200, thaw(self.model.experiments())
@@ -77,7 +92,7 @@ class LabAPI:
                 return 200, thaw(DeterministicScientificAnalyzer().analyze(request))
             return 404, {"error": "not found"}
         except (KeyError, IndexError, ValueError) as exc:
-            return 404, {"error": str(exc)}
+            return (404 if method=="GET" else 400), {"error": str(exc),"category":getattr(exc,"code","CONFIG_ERROR")}
 
     @staticmethod
     def _one(value): return (200, thaw(value)) if value is not None else (404, {"error": "not found"})
@@ -115,6 +130,12 @@ def handler_factory(api: LabAPI, static_dir: Path):
                 body = target.read_bytes(); self.send_response(200)
                 self.send_header("Content-Type", mimetypes.guess_type(target.name)[0] or "application/octet-stream")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+        def do_POST(self):
+            length=int(self.headers.get("Content-Length","0")); raw=self.rfile.read(length)
+            try: payload=json.loads(raw or b"{}")
+            except json.JSONDecodeError as exc: self.send_error(400,str(exc)); return
+            status,result=api.dispatch("POST",self.path,payload); body=json.dumps(result).encode()
+            self.send_response(status); self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(body))); self.end_headers(); self.wfile.write(body)
         def log_message(self, fmt, *args): pass
     return Handler
 
