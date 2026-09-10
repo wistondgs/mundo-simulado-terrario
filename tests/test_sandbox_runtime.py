@@ -42,3 +42,13 @@ def test_d2_end_to_end_and_d3_d4_spec_compatibility(tmp_path):
     s,run,_,_=setup(tmp_path,"D2",2);s.run_bounded(run.run_id);assert s.storage.read(run.run_id)["state"]=="COMPLETED"
     for wid in ("D3","D4"):
         service,r,_,_=setup(tmp_path/wid,wid,1);assert r.spec.classification==ExecutionClassification.ENGINEERING_SANDBOX
+
+def test_sandbox_failure_stays_classified_and_cannot_touch_evidence(tmp_path,monkeypatch):
+    review=Path("scientific_reviews/review-fee74e994bc654ca/scientific_review.json");before=digest(review);s,run,_,_=setup(tmp_path)
+    monkeypatch.setattr(s._runtime[run.run_id]["physics"],"step",lambda *_a,**_k:(_ for _ in ()).throw(RuntimeError("synthetic crash")))
+    with pytest.raises(RuntimeError):s.step(run.run_id)
+    payload=s.storage.read(run.run_id);assert payload["state"]=="FAILED" and payload["classification"]=="ENGINEERING_SANDBOX" and digest(review)==before
+
+def test_sandbox_module_has_no_evidence_graph_writer_dependency():
+    source=Path("terrario/lab/sandbox_runtime.py").read_text()
+    assert "terrario.lab.theory.store" not in source and "terrario.lab.theory.factory" not in source and "terrario.experiment.specs" not in source

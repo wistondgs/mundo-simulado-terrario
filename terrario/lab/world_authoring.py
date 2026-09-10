@@ -27,7 +27,7 @@ class WorldDraft:
     initial_conditions:Mapping[str,Any]; deterministic_rules:tuple[Mapping[str,Any],...]
     stochastic_rules:tuple[Mapping[str,Any],...]; observation_sources:tuple[str,...]
     action_availability:tuple[str,...]; termination_conditions:tuple[str,...]
-    intervention_targets:tuple[str,...]; resource_structure:Mapping[str,Any]; seed_semantics:str
+    intervention_targets:tuple[str,...]; scheduled_events:tuple[Mapping[str,Any],...]; resource_structure:Mapping[str,Any]; seed_semantics:str
     provenance:WorldProvenance
     def __post_init__(self):
         for name in ("initial_conditions","resource_structure"): object.__setattr__(self,name,MappingProxyType(dict(getattr(self,name))))
@@ -54,7 +54,7 @@ class WorldPreview:
 
 def draft_from_legacy(identifier:str,path:str|Path)->WorldDraft:
     raw=yaml.safe_load(Path(path).read_text()).get("scenario",{}); prov=WorldProvenance("LEGACY_ADAPTER","editable draft projection","RUNTIME",str(path))
-    return WorldDraft(f"draft-{identifier.lower()}",SCHEMA_VERSION,raw.get("description",""),"bounded rectangular grid",tuple(raw["grid_size"]),tuple(raw.get("objects",[])),tuple([raw["procedural_layout"]] if raw.get("procedural_layout") else []),raw.get("agent_start",{}),tuple(raw.get("rules",{}).get("rules",[])),tuple(),("channels","mask","agent_energy","time_fraction"),("MOVE","PUSH","CONSUME","INSPECT","NOOP"),(f"duration:{raw.get('duration',500)}","agent death"),("world rules",),{"max_energy":raw.get("max_energy",100),"step_energy_cost":raw.get("step_energy_cost",0)},"world_seed controls layout/schedule only",prov)
+    return WorldDraft(f"draft-{identifier.lower()}",SCHEMA_VERSION,raw.get("description",""),"bounded rectangular grid",tuple(raw["grid_size"]),tuple(raw.get("objects",[])),tuple([raw["procedural_layout"]] if raw.get("procedural_layout") else []),raw.get("agent_start",{}),tuple(raw.get("rules",{}).get("rules",[])),tuple(),("channels","mask","agent_energy","time_fraction"),("MOVE","PUSH","CONSUME","INSPECT","NOOP"),(f"duration:{raw.get('duration',500)}","agent death"),("world rules",),tuple(raw.get("changes",[])),{"max_energy":raw.get("max_energy",100),"step_energy_cost":raw.get("step_energy_cost",0)},"world_seed controls layout/schedule only",prov)
 
 def validate_draft(d:WorldDraft)->tuple[DraftFinding,...]:
     out=[]
@@ -75,8 +75,10 @@ def validate_draft(d:WorldDraft)->tuple[DraftFinding,...]:
 def compile_draft(d:WorldDraft)->CompiledWorld:
     findings=validate_draft(d); blocking=[x for x in findings if x.blocking]
     if blocking: raise ValueError("; ".join(f"{x.code}:{x.path}" for x in blocking))
-    runtime={"name":d.draft_id,"description":d.purpose,"grid_size":list(d.dimensions),"duration":_duration(d),"seed":0,"view_radius":2,"num_channels":max([len(x.get("channels",[])) for x in d.entities] or [4]),"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[]}
-    definition,_=adapt_legacy_scenario(d.draft_id,runtime,d.provenance.source or d.draft_id)
+    operational={"grid_size":list(d.dimensions),"duration":_duration(d),"view_radius":2,"num_channels":max([len(x.get("channels",[])) for x in d.entities] or [4]),"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[dict(x) for x in d.scheduled_events]}
+    stable_id="world-"+scientific_hash(operational)[:16]
+    runtime={"name":stable_id,"description":"compiled explicit world","seed":0,**operational}
+    definition,_=adapt_legacy_scenario(stable_id,runtime,d.provenance.source or d.draft_id)
     return CompiledWorld(definition,runtime,tuple(x for x in findings if not x.blocking))
 
 def compile_registry_world(identifier:str,path:str|Path)->CompiledWorld: return compile_draft(draft_from_legacy(identifier,path))

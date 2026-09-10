@@ -10,6 +10,12 @@ def test_world_preview_seed_and_validation_api(lab_api):
     status,seeds=lab_api.dispatch("GET","/api/worlds/D2/seeds?values=1,2");assert status==200 and seeds["agent_executed"] is False
     status,validation=lab_api.dispatch("POST","/api/worlds/validate",{"world_id":"D2","dimensions":[0,10]});assert status==200 and not validation["valid"]
 
+def test_world_draft_save_has_no_overwrite_and_import_rejects_unknown_fields(lab_api):
+    payload={"world_id":"D2","draft_id":"draft-test","purpose":"explicit test","dimensions":[10,10],"action_availability":["MOVE","NOOP"]}
+    status,saved=lab_api.dispatch("POST","/api/worlds/drafts",payload);assert status==201 and saved["draft"]["draft_id"]=="draft-test"
+    assert lab_api.dispatch("POST","/api/worlds/drafts",payload)[0]==409
+    status,error=lab_api.dispatch("POST","/api/worlds/validate",{"world_id":"D2","callable":"os.system"});assert status==400 and "import-unsafe" in error["error"]
+
 def test_sandbox_api_lifecycle_and_trace(lab_api):
     payload={"world_id":"D2","world_seed":42,"agent_seed":1000045,"step_limit":2}
     assert lab_api.dispatch("POST","/api/sandbox/validate",payload)[1]["valid"]

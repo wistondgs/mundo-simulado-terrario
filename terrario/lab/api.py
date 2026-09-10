@@ -21,7 +21,7 @@ from terrario.lab.theory.scientific_review import review_portfolio
 from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnalyzerInput
 from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, configuration_from_payload, d2_views, generalization_check, patched_configuration
 from terrario.lab.world_contracts import config_diff, validate_configuration
-from terrario.lab.world_authoring import SeedBrowser,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
+from terrario.lab.world_authoring import SeedBrowser,compile_draft,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
 from terrario.lab.sandbox_runtime import ExecutionClassification,SandboxService,derive_sandbox,make_spec,serialize_run
 
 
@@ -42,6 +42,7 @@ class LabAPI:
         self.d2_configuration = configuration_for(d2_entry) if d2_entry.scenario else None
         self.compiled_worlds = {e.world_id:compile_registry_world(e.world_id,e.source) for e in self.world_registry.entries() if e.scenario}
         self.sandbox = SandboxService(self.root/".sandbox")
+        self.world_drafts = {}
 
     def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
@@ -59,11 +60,18 @@ class LabAPI:
                 wid=parts[2].upper(); values=query.get("values",["42"])[0]; seeds=[int(x) for x in values.split(",") if x]; return 200,thaw(SeedBrowser(self.compiled_worlds[wid]).analyze(seeds))
             if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
                 run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
+            if method == "GET" and len(parts)==4 and parts[:3]==["api","worlds","drafts"]:
+                return 200,thaw(self.world_drafts[parts[3]])
             if method == "POST" and parts == ["api","worlds","validate"]:
-                wid=str((payload or {}).get("world_id","D2")).upper(); draft=draft_from_legacy(wid,self.world_registry.get(wid).source)
-                if "dimensions" in (payload or {}): draft=replace(draft,dimensions=tuple(payload["dimensions"]))
-                if "action_availability" in (payload or {}): draft=replace(draft,action_availability=tuple(payload["action_availability"]))
+                draft=self._draft_input(payload or {})
                 findings=validate_draft(draft); return 200,{"valid":not any(x.blocking for x in findings),"findings":thaw(findings),"draft":thaw(draft)}
+            if method == "POST" and parts == ["api","worlds","drafts"]:
+                draft=self._draft_input(payload or {}); findings=validate_draft(draft)
+                if any(x.blocking for x in findings): return 400,{"error":"invalid world draft","findings":thaw(findings),"category":"WORLD_ERROR"}
+                if draft.draft_id in self.world_drafts: return 409,{"error":"silent draft overwrite prohibited","category":"PROVENANCE_ERROR"}
+                self.world_drafts[draft.draft_id]=draft; return 201,{"draft":thaw(draft),"findings":thaw(findings)}
+            if method == "POST" and parts == ["api","worlds","preview"]:
+                draft=self._draft_input(payload or {}); compiled=compile_draft(draft); return 200,thaw(preview(compiled,int((payload or {}).get("seed",42))))
             if method == "POST" and parts == ["api","worlds","compile"]:
                 wid=str((payload or {}).get("world_id","D2")).upper(); compiled=self.compiled_worlds[wid]; return 200,{"definition":thaw(compiled.definition),"definition_hash":compiled.definition.content_hash,"warnings":thaw(compiled.warnings)}
             if method == "POST" and parts == ["api","sandbox","validate"]:
@@ -144,6 +152,16 @@ class LabAPI:
         classification=ExecutionClassification(payload.get("classification","ENGINEERING_SANDBOX"))
         spec=make_spec(config,compiled,int(payload.get("world_seed",42)),int(payload.get("agent_seed",1000045)),int(payload.get("step_limit",100)),classification)
         return spec,config,compiled
+
+    def _draft_input(self,payload):
+        allowed={"world_id","draft_id","purpose","dimensions","action_availability","seed"}; unknown=set(payload)-allowed
+        if unknown: raise ValueError(f"unknown/import-unsafe world fields: {sorted(unknown)}")
+        wid=str(payload.get("world_id","D2")).upper(); draft=draft_from_legacy(wid,self.world_registry.get(wid).source)
+        changes={}
+        for name in ("purpose","dimensions","action_availability"):
+            if name in payload: changes[name]=tuple(payload[name]) if name in {"dimensions","action_availability"} else str(payload[name])
+        if "draft_id" in payload: changes["draft_id"]=str(payload["draft_id"])
+        return replace(draft,**changes)
 
     def _hypergraph(self):
         if self.theory_graph:

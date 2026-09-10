@@ -42,3 +42,7 @@ def test_seed_population_is_bounded():
 def test_d2_d3_d4_use_same_generation_preview_seed_path():
     for wid in ("D2","D3","D4"):
         c=compiled(wid); assert preview(c,7).classification=="PREVIEW_ONLY" and SeedBrowser(c).inspect(7)["instance_hash"]
+
+def test_d4_projection_preserves_scheduled_causal_change():
+    c=compiled("D4");p=preview(c,42)
+    assert len(p.rule_schedule)==1 and p.rule_schedule[0]["at_step"]==750
