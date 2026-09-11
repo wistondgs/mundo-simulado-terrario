@@ -3,7 +3,7 @@ from terrario.lab.api import LabAPI
 
 @pytest.fixture
 def lab_api(tmp_path):
-    api=LabAPI(".");api.sandbox.storage.root=tmp_path;return api
+    api=LabAPI(".",data_root=tmp_path/".terrario");api.sandbox.storage.root=tmp_path;return api
 
 def test_world_preview_seed_and_validation_api(lab_api):
     status,result=lab_api.dispatch("GET","/api/worlds/D2/preview?seed=42");assert status==200 and result["classification"]=="PREVIEW_ONLY"

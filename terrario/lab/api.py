@@ -27,10 +27,13 @@ from terrario.lab.capabilities import CapabilityRegistry,assess_compatibility,au
 from terrario.lab.agent_inspector import AgentInspector
 from terrario.lab.metrics_observer import MetricRegistry,ObserverRegistry
 from terrario.lab.experiment_composer import (SCHEMA_VERSION as EXPERIMENT_DRAFT_SCHEMA,ControlCondition,DraftProvenance,DraftState,ExperimentDraft,build_trial_matrix,draft_diff,state_for,validate_draft as validate_experiment_draft)
+from terrario.lab.persistence import ArtifactNotFound,ArtifactRepository,DuplicateArtifact,ProvenanceConflict
+from terrario.lab.persistence.codecs import experiment_draft_from_payload
+from terrario.lab.persistence.canonical import content_hash as durable_content_hash
 
 
 class LabAPI:
-    def __init__(self, root: str | Path):
+    def __init__(self, root: str | Path, data_root: str | Path | None = None):
         self.model = LabReadModel(root)
         self.root = Path(root).resolve()
         graphs = sorted((self.root / "theory_snapshots").glob("*/theory_graph.json"))
@@ -46,12 +49,11 @@ class LabAPI:
         self.d2_configuration = configuration_for(d2_entry) if d2_entry.scenario else None
         self.compiled_worlds = {e.world_id:compile_registry_world(e.world_id,e.source) for e in self.world_registry.entries() if e.scenario}
         self.sandbox = SandboxService(self.root/".sandbox")
-        self.world_drafts = {}
+        self.artifacts = ArtifactRepository(data_root or self.root/".terrario")
         self.capabilities = CapabilityRegistry()
         self.agent_inspector = AgentInspector()
         self.metrics = MetricRegistry()
         self.observers = ObserverRegistry()
-        self.experiment_drafts = {}
 
     def dispatch(self, method: str, url: str, payload: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
@@ -65,7 +67,8 @@ class LabAPI:
                 return 200,thaw(self.agent_inspector.runtime(self.sandbox,query.get("run_id",[None])[0]))
             if method == "GET" and parts == ["api","metrics"]: return 200,thaw(self.metrics.definitions())
             if method == "GET" and parts == ["api","observer","profiles"]: return 200,{"profiles":thaw(self.observers.profiles()),"channels":thaw(self.observers.channels())}
-            if method == "GET" and len(parts)==3 and parts[:2]==["api","experiment-drafts"]: return 200,thaw(self.experiment_drafts[parts[2]])
+            if method == "GET" and len(parts)==3 and parts[:2]==["api","experiment-drafts"]:
+                return 200,self.artifacts.current(parts[2],"ExperimentDraft").payload
             if method == "POST" and parts == ["api","compatibility"]:
                 p=payload or {}; scenario=self.world_registry.get(str(p.get("scenario_id","D2")).upper()).scenario
                 report=assess_compatibility(scenario,str(p.get("agent_id","A0")),bool(p.get("observation_interface",True)),bool(p.get("action_interface",True)),str(p.get("device","cpu"))=="cpu",bool(p.get("reset_interface",True)))
@@ -80,17 +83,26 @@ class LabAPI:
                 return 200,{"artifact_type":"ExperimentDraft","scientific_execution":False,"draft":thaw(replace(draft,state=state_for(findings))),"scientific_hash":draft.content_hash,"findings":thaw(findings)}
             if method == "POST" and parts == ["api","experiment-drafts"]:
                 draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers); draft=replace(draft,state=state_for(findings))
-                if draft.draft_id in self.experiment_drafts: return 409,{"error":"silent experiment draft overwrite prohibited","category":"PROVENANCE_ERROR"}
-                self.experiment_drafts[draft.draft_id]=draft
-                return 201,{"artifact_type":"ExperimentDraft","scientific_execution":False,"draft":thaw(draft),"scientific_hash":draft.content_hash,"findings":thaw(findings)}
+                try:
+                    stored=self.artifacts.create_artifact("ExperimentDraft",thaw(draft),draft.schema_version,
+                        scientific_payload=draft.scientific_payload(),artifact_id=draft.draft_id,
+                        classification="SCIENTIFIC_DESIGN_DRAFT",reason="experiment draft creation",initial_state=draft.state.value)
+                except (DuplicateArtifact,ProvenanceConflict):
+                    return 409,{"error":"silent experiment draft overwrite prohibited","category":"PROVENANCE_ERROR"}
+                return 201,{"artifact_type":"ExperimentDraft","scientific_execution":False,"draft":stored.payload,"scientific_hash":stored.scientific_hash,"version_id":stored.version_id,"durable":True,"findings":thaw(findings)}
             if method == "POST" and parts == ["api","experiment-drafts","diff"]:
-                p=payload or {}; parent=self.experiment_drafts[str(p["parent_id"])]; child=parent.derive(str(p.get("reason","derived draft")),**self._experiment_changes(p.get("changes",{})))
+                p=payload or {}; parent=experiment_draft_from_payload(self.artifacts.current(str(p["parent_id"]),"ExperimentDraft").payload); child=parent.derive(str(p.get("reason","derived draft")),**self._experiment_changes(p.get("changes",{})))
                 return 200,{"parent":parent.draft_id,"child":thaw(child),"diff":thaw(draft_diff(parent,child)),"persisted":False}
             if method == "POST" and parts == ["api","trial-matrices","build"]:
                 draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers)
                 blockers=tuple(sorted({x.code for x in findings if x.blocking})); by_condition={key:blockers for key in (*draft.agent_ids,*(c.control_id for c in draft.controls))} if blockers else {}
                 matrix=build_trial_matrix(draft,by_condition,int((payload or {}).get("warning_threshold",500)))
-                return 200,{"artifact_type":"TrialMatrix","execution_performed":False,"matrix":thaw(matrix),"findings":thaw(findings)}
+                matrix_payload=thaw(matrix); matrix_scientific={key:value for key,value in matrix_payload.items() if key not in {"warnings","execution_performed"}}
+                matrix_id=f"TM-{durable_content_hash(matrix_scientific)[:20]}"
+                stored=self.artifacts.create_artifact("TrialMatrix",matrix_payload,"terrario.lab.trial-matrix/v1",
+                    scientific_payload=matrix_scientific,artifact_id=matrix_id,classification="NON_EXECUTING_TRIAL_MATRIX",
+                    reason="trial matrix materialization",initial_state="MATERIALIZED",deduplicate=True)
+                return 200,{"artifact_type":"TrialMatrix","execution_performed":False,"matrix":stored.payload,"matrix_id":stored.artifact_id,"version_id":stored.version_id,"durable":True,"deduplicated":stored.deduplicated,"findings":thaw(findings)}
             if method == "GET" and parts == ["api","worlds"]: return 200, thaw(self.world_registry.entries())
             if method == "GET" and len(parts)==3 and parts[:2]==["api","worlds"]:
                 entry=self.world_registry.get(parts[2].upper()); return 200, thaw(entry)
@@ -104,15 +116,23 @@ class LabAPI:
             if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
                 run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
             if method == "GET" and len(parts)==4 and parts[:3]==["api","worlds","drafts"]:
-                return 200,thaw(self.world_drafts[parts[3]])
+                return 200,self.artifacts.current(parts[3],"WorldDraft").payload
+            if method == "GET" and len(parts)==3 and parts[:2]==["api","trial-matrices"]:
+                return 200,self.artifacts.current(parts[2],"TrialMatrix").payload
             if method == "POST" and parts == ["api","worlds","validate"]:
                 draft=self._draft_input(payload or {})
                 findings=validate_draft(draft); return 200,{"valid":not any(x.blocking for x in findings),"findings":thaw(findings),"draft":thaw(draft)}
             if method == "POST" and parts == ["api","worlds","drafts"]:
                 draft=self._draft_input(payload or {}); findings=validate_draft(draft)
                 if any(x.blocking for x in findings): return 400,{"error":"invalid world draft","findings":thaw(findings),"category":"WORLD_ERROR"}
-                if draft.draft_id in self.world_drafts: return 409,{"error":"silent draft overwrite prohibited","category":"PROVENANCE_ERROR"}
-                self.world_drafts[draft.draft_id]=draft; return 201,{"draft":thaw(draft),"findings":thaw(findings)}
+                draft_payload=thaw(draft); scientific={key:value for key,value in draft_payload.items() if key not in {"draft_id","provenance"}}
+                try:
+                    stored=self.artifacts.create_artifact("WorldDraft",draft_payload,draft.schema_version,
+                        scientific_payload=scientific,artifact_id=draft.draft_id,classification="WORLD_DESIGN_DRAFT",
+                        reason="world draft creation",initial_state="DRAFT")
+                except (DuplicateArtifact,ProvenanceConflict):
+                    return 409,{"error":"silent draft overwrite prohibited","category":"PROVENANCE_ERROR"}
+                return 201,{"draft":stored.payload,"version_id":stored.version_id,"scientific_hash":stored.scientific_hash,"durable":True,"findings":thaw(findings)}
             if method == "POST" and parts == ["api","worlds","preview"]:
                 draft=self._draft_input(payload or {}); compiled=compile_draft(draft); return 200,thaw(preview(compiled,int((payload or {}).get("seed",42))))
             if method == "POST" and parts == ["api","worlds","compile"]:
@@ -145,7 +165,7 @@ class LabAPI:
                 return 200,{"configuration":thaw(decoded),"scientific_hash":decoded.content_hash}
             if method != "GET": return 405, {"error":"mutation endpoint not available; configuration validation creates no persisted state"}
             if parts == ["api", "status"]:
-                return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA"}
+                return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA", "durable_artifacts": self.artifacts.count(), "database_integrity": self.artifacts.integrity_check()}
             if parts == ["api", "experiments"]: return 200, thaw(self.model.experiments())
             if len(parts) == 3 and parts[:2] == ["api", "experiments"]: return self._one(self.model.experiment(parts[2]))
             if parts == ["api", "runs"]: return 200, thaw(self.model.runs(query.get("experiment", [None])[0]))
@@ -182,7 +202,7 @@ class LabAPI:
                 request = ExternalAnalyzerInput({}, "catalog-audit", "1", {"code_hash": "catalog", "config_hash": "catalog", "protocol": "catalog-audit"}, {"invalid_runs": invalid}, (), (), {"source": "LabReadModel"})
                 return 200, thaw(DeterministicScientificAnalyzer().analyze(request))
             return 404, {"error": "not found"}
-        except (KeyError, IndexError, ValueError) as exc:
+        except (KeyError, IndexError, ValueError, ArtifactNotFound) as exc:
             return (404 if method=="GET" else 400), {"error": str(exc),"category":getattr(exc,"code","CONFIG_ERROR")}
 
     @staticmethod
