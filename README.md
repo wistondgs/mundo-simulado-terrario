@@ -23,3 +23,15 @@ is unavailable:
 
 Use `--device cpu` only for an explicitly CPU-scoped run. `--device auto`
 allows a documented CPU fallback.
+
+## Durable Lab artifacts
+
+Terrario Lab stores world drafts, experiment drafts, and non-executing trial
+matrices in a local SQLite/CAS data root at `.terrario/`. Scientific artifact
+versions are append-only; the directory is runtime state and is not committed.
+Historical artifacts can be indexed as immutable references without copying or
+publishing them as evidence:
+
+```bash
+.venv/bin/python scripts/index_lab_history.py --root .
+```

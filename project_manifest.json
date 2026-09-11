@@ -1,0 +1,100 @@
+{
+  "schema_version": "terrario.project-manifest/v1",
+  "project_id": "theory-of-intelligence-terrario",
+  "classification": "SCIENTIFIC_RESEARCH_INFRASTRUCTURE",
+  "three_store_model": {
+    "library_corpus": "What external sources state",
+    "scientific_model": "How claims, concepts, relations and hypotheses are structured",
+    "experimental_model": "What Terrario experiments and evidence record"
+  },
+  "active_theory_snapshot": {
+    "snapshot_id": "theory-f59dbb6d6ee3850c",
+    "snapshot_hash": "f59dbb6d6ee3850c7fa366f087f51f0a0dc69d8ef2ea973e33ad8681eb692b68",
+    "source": "theory_snapshots/theory-f59dbb6d6ee3850c/ingestion_summary.json",
+    "counts": {
+      "sources": 44,
+      "claims": 189,
+      "raw_concepts": 283,
+      "canonical_candidates": 224,
+      "relations": 206,
+      "hyperedges": 8,
+      "theory_nodes": 1035,
+      "theory_edges": 956,
+      "evidence_nodes": 141,
+      "evidence_edges": 136
+    }
+  },
+  "components": [
+    {"id": "CORPUS", "status": "ADVANCED", "depends_on": []},
+    {"id": "ONTOLOGY", "status": "IMPLEMENTED", "depends_on": ["CORPUS"]},
+    {"id": "THEORY_GRAPH", "status": "IMPLEMENTED", "depends_on": ["CORPUS", "ONTOLOGY"]},
+    {"id": "HYPERGRAPH", "status": "CANDIDATES_ONLY", "depends_on": ["THEORY_GRAPH"]},
+    {"id": "HYPOTHESIS_FACTORY", "status": "IMPLEMENTED", "depends_on": ["HYPERGRAPH"]},
+    {"id": "SCIENTIFIC_REVIEW", "status": "READY_FOR_HUMAN_REVIEW", "depends_on": ["HYPOTHESIS_FACTORY"]},
+    {"id": "TERRARIO_CORE", "status": "IMPLEMENTED", "depends_on": []},
+    {"id": "WORLD_STUDIO", "status": "PARTIAL_D2_D4", "depends_on": ["TERRARIO_CORE"]},
+    {"id": "EXPERIMENT_COMPOSER", "status": "PREREGISTRATION_READY_BOUNDARY", "depends_on": ["SCIENTIFIC_REVIEW", "WORLD_STUDIO"]},
+    {"id": "DURABLE_STORAGE", "status": "IMPLEMENTED_V1", "depends_on": ["EXPERIMENT_COMPOSER"]},
+    {"id": "PREREGISTRATION", "status": "PLANNED", "depends_on": ["DURABLE_STORAGE"]},
+    {"id": "EXECUTION_ORCHESTRATOR", "status": "PLANNED", "depends_on": ["PREREGISTRATION"]},
+    {"id": "EVIDENCE_FIREWALL", "status": "PARTIAL", "depends_on": ["EXECUTION_ORCHESTRATOR"]},
+    {"id": "EVIDENCE_GRAPH", "status": "HISTORICAL_READ_MODEL", "depends_on": ["EVIDENCE_FIREWALL"]},
+    {"id": "TERRARIO_LAB", "status": "FOUNDATION", "depends_on": ["THEORY_GRAPH", "EXPERIMENT_COMPOSER", "EVIDENCE_GRAPH"]}
+  ],
+  "world_levels": [
+    {"id": "D0", "name": "differences", "status": "IMPLEMENTED_LEGACY"},
+    {"id": "D1", "name": "objects_and_persistence", "status": "IMPLEMENTED_LEGACY"},
+    {"id": "D2", "name": "properties_and_binding", "status": "IMPLEMENTED_STUDIO"},
+    {"id": "D3", "name": "causality", "status": "IMPLEMENTED"},
+    {"id": "D4", "name": "adaptation", "status": "IMPLEMENTED_PROTOCOL_NOT_CONFIRMED"},
+    {"id": "D5", "name": "tools_and_composition", "status": "FUTURE_DESIGN"},
+    {"id": "D6", "name": "planning", "status": "FUTURE_DESIGN"},
+    {"id": "D7", "name": "uncertainty_and_exploration", "status": "FUTURE_DESIGN"},
+    {"id": "D8", "name": "signs_and_semantics", "status": "FUTURE_DESIGN"},
+    {"id": "D9", "name": "social_world", "status": "FUTURE_DESIGN"},
+    {"id": "D10", "name": "inheritance_and_lineage", "status": "FUTURE_DESIGN"},
+    {"id": "D11", "name": "cumulative_culture", "status": "FUTURE_DESIGN"}
+  ],
+  "phases": [
+    {"id": "SYSTEM-BASELINE-01", "status": "COMPLETE", "depends_on": []},
+    {"id": "LAB-PERSISTENCE-01", "status": "COMPLETE", "depends_on": ["SYSTEM-BASELINE-01"]},
+    {"id": "PREREGISTRATION-CORE-01", "status": "NEXT", "depends_on": ["LAB-PERSISTENCE-01"]},
+    {"id": "REGISTRY-HARDENING-01", "status": "PLANNED", "depends_on": ["PREREGISTRATION-CORE-01"]},
+    {"id": "INTERACTION-KERNEL-01", "status": "PLANNED", "depends_on": ["REGISTRY-HARDENING-01"]},
+    {"id": "DEVICE-RUNTIME-01", "status": "PLANNED", "depends_on": ["INTERACTION-KERNEL-01"]},
+    {"id": "GPU-RECOVERY-01", "status": "BLOCKED_OS", "depends_on": []},
+    {"id": "EXECUTION-ORCHESTRATOR-01", "status": "PLANNED", "depends_on": ["PREREGISTRATION-CORE-01", "DEVICE-RUNTIME-01"]},
+    {"id": "EVIDENCE-PIPELINE-02", "status": "PLANNED", "depends_on": ["EXECUTION-ORCHESTRATOR-01"]},
+    {"id": "API-V1-UX-CONTRACT-01", "status": "PLANNED", "depends_on": ["EVIDENCE-PIPELINE-02"]},
+    {"id": "D2-D4-QUALIFICATION-01", "status": "PLANNED", "depends_on": ["API-V1-UX-CONTRACT-01"]},
+    {"id": "LAB-UX-03", "status": "DEFERRED", "depends_on": ["D2-D4-QUALIFICATION-01"]},
+    {"id": "SCIENTIFIC-PILOT-01", "status": "HUMAN_AUTHORIZATION_REQUIRED", "depends_on": ["D2-D4-QUALIFICATION-01"]}
+  ],
+  "gates": [
+    "ENGINEERING_READY",
+    "SCIENTIFICALLY_DESIGNED",
+    "REVIEW_REQUIRED",
+    "APPROVED_FOR_IMPLEMENTATION",
+    "PREREGISTERED",
+    "PROTOCOL_LOCKED",
+    "READY_FOR_EXECUTION",
+    "TECHNICALLY_VALID_RUN",
+    "EXPERIMENTALLY_INTERPRETABLE",
+    "CONFIRMATORY_EVIDENCE_AVAILABLE"
+  ],
+  "active_blockers": [
+    "CUDA_OS_BLOCKED",
+    "PREREGISTRATION_NOT_IMPLEMENTED",
+    "EXECUTION_ORCHESTRATOR_NOT_IMPLEMENTED",
+    "H_ADAPT_HUMAN_REVIEW_NOT_APPROVED"
+  ],
+  "scientific_invariants": [
+    "source claim != our claim",
+    "raw concept != canonical concept",
+    "association != causation",
+    "hyperedge candidate != demonstrated mechanism",
+    "hypothesis != evidence",
+    "sandbox run != scientific evidence",
+    "experimental support != universal truth"
+  ]
+}

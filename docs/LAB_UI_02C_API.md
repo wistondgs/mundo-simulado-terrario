@@ -9,7 +9,7 @@ All endpoints are local Lab design/read endpoints. None is a scientific executio
 - `GET /api/agents/{id}/runtime?run_id=...` — snapshot only for an existing sandbox trace; otherwise `NOT_EXPOSED`.
 - `GET /api/metrics` — metric registry with construct/proxy/status/limitations.
 - `GET /api/observer/profiles` — explicit profiles and channel registry.
-- `GET /api/experiment-drafts/{id}` — an in-memory draft without mutation.
+- `GET /api/experiment-drafts/{id}` — the latest durable immutable version of a draft.
 
 ## Design operations
 
@@ -17,9 +17,10 @@ All endpoints are local Lab design/read endpoints. None is a scientific executio
 - `POST /api/metrics/applicability` — required-signal check.
 - `POST /api/observer/estimate` — labeled storage estimate or `UNKNOWN`.
 - `POST /api/experiment-drafts/validate` — returns `ExperimentDraft`, hash, and findings; does not persist or execute.
-- `POST /api/experiment-drafts` — stores a new in-memory draft; duplicate IDs return provenance conflict.
+- `POST /api/experiment-drafts` — stores a durable versioned draft; duplicate IDs/hashes return provenance conflict.
 - `POST /api/experiment-drafts/diff` — derives an unpersisted child and reports scientific/UI differences.
-- `POST /api/trial-matrices/build` — materializes `TrialIntent` records and always returns `execution_performed: false`.
+- `POST /api/trial-matrices/build` — materializes and durably stores deterministic `TrialIntent` records while always returning `execution_performed: false`.
+
+Durability is provided by `LAB-PERSISTENCE-01`. It changes storage, not scientific authority: these routes still cannot approve, preregister, execute, analyze, or publish evidence.
 
 The server resolves upstream review status. Client payloads cannot submit an approval state. Unknown fields are rejected. There is no `/execute` route.
-
