@@ -231,4 +231,183 @@ BEFORE DELETE ON audit_events BEGIN
 END;
 """,
     ),
+    Migration(
+        2,
+        "scientific_preregistration_core",
+        r"""
+CREATE TABLE IF NOT EXISTS preregistration_components (
+    component_id TEXT PRIMARY KEY,
+    bundle_version_id TEXT NOT NULL REFERENCES artifact_versions(version_id),
+    role TEXT NOT NULL,
+    ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+    schema_version TEXT NOT NULL,
+    content_hash TEXT NOT NULL CHECK (length(content_hash) = 64),
+    cas_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    source_artifact_version_id TEXT REFERENCES artifact_versions(version_id),
+    source_scientific_hash TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE(bundle_version_id, role, ordinal)
+);
+
+CREATE TABLE IF NOT EXISTS preregistration_review_packages (
+    review_package_id TEXT PRIMARY KEY,
+    bundle_version_id TEXT NOT NULL UNIQUE REFERENCES artifact_versions(version_id),
+    package_hash TEXT NOT NULL UNIQUE CHECK (length(package_hash) = 64),
+    blob_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    policy_snapshot_hash TEXT NOT NULL CHECK (length(policy_snapshot_hash) = 64),
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS review_warning_acceptances (
+    acceptance_id TEXT PRIMARY KEY,
+    decision_id TEXT NOT NULL REFERENCES review_decisions(decision_id),
+    finding_hash TEXT NOT NULL CHECK (length(finding_hash) = 64),
+    rule_id TEXT NOT NULL,
+    rule_version TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(decision_id, finding_hash)
+);
+
+CREATE TABLE IF NOT EXISTS preregistration_attestations (
+    attestation_id TEXT PRIMARY KEY,
+    preregistration_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
+    bundle_version_id TEXT NOT NULL UNIQUE REFERENCES artifact_versions(version_id),
+    bundle_root_hash TEXT NOT NULL UNIQUE CHECK (length(bundle_root_hash) = 64),
+    review_decision_id TEXT NOT NULL REFERENCES review_decisions(decision_id),
+    review_package_hash TEXT NOT NULL CHECK (length(review_package_hash) = 64),
+    actor_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    accepted_warning_hashes_json TEXT NOT NULL,
+    audit_event_hash TEXT NOT NULL CHECK (length(audit_event_hash) = 64),
+    signature_status TEXT NOT NULL,
+    attestation_hash TEXT NOT NULL UNIQUE CHECK (length(attestation_hash) = 64),
+    payload_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS preregistration_locks (
+    preregistration_id TEXT PRIMARY KEY REFERENCES artifacts(artifact_id),
+    bundle_version_id TEXT NOT NULL UNIQUE REFERENCES artifact_versions(version_id),
+    bundle_root_hash TEXT NOT NULL UNIQUE CHECK (length(bundle_root_hash) = 64),
+    review_decision_id TEXT NOT NULL REFERENCES review_decisions(decision_id),
+    attestation_id TEXT NOT NULL UNIQUE REFERENCES preregistration_attestations(attestation_id),
+    actor_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    idempotency_key TEXT UNIQUE,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS exposure_records (
+    exposure_id TEXT PRIMARY KEY,
+    scenario_id TEXT NOT NULL,
+    scenario_hash TEXT NOT NULL,
+    world_seed INTEGER NOT NULL,
+    exposure_kind TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    context_type TEXT NOT NULL,
+    context_id TEXT NOT NULL,
+    preregistration_root_hash TEXT,
+    previous_event_hash TEXT,
+    event_hash TEXT NOT NULL UNIQUE CHECK (length(event_hash) = 64),
+    occurred_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS exposure_subject_idx
+    ON exposure_records(scenario_id, scenario_hash, world_seed, occurred_at);
+
+CREATE TABLE IF NOT EXISTS preregistration_audit_chain (
+    chain_event_id TEXT PRIMARY KEY,
+    preregistration_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
+    sequence INTEGER NOT NULL CHECK (sequence > 0),
+    event_type TEXT NOT NULL,
+    event_payload_json TEXT NOT NULL,
+    previous_event_hash TEXT,
+    event_hash TEXT NOT NULL UNIQUE CHECK (length(event_hash) = 64),
+    actor_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(preregistration_id, sequence)
+);
+
+CREATE TABLE IF NOT EXISTS preregistration_command_keys (
+    idempotency_key TEXT PRIMARY KEY,
+    command_type TEXT NOT NULL,
+    request_hash TEXT NOT NULL CHECK (length(request_hash) = 64),
+    response_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS preregistration_components_no_update
+BEFORE UPDATE ON preregistration_components BEGIN
+    SELECT RAISE(ABORT, 'preregistration components are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_components_no_delete
+BEFORE DELETE ON preregistration_components BEGIN
+    SELECT RAISE(ABORT, 'preregistration components are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_review_packages_no_update
+BEFORE UPDATE ON preregistration_review_packages BEGIN
+    SELECT RAISE(ABORT, 'review packages are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_review_packages_no_delete
+BEFORE DELETE ON preregistration_review_packages BEGIN
+    SELECT RAISE(ABORT, 'review packages are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS review_warning_acceptances_no_update
+BEFORE UPDATE ON review_warning_acceptances BEGIN
+    SELECT RAISE(ABORT, 'warning acceptances are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS review_warning_acceptances_no_delete
+BEFORE DELETE ON review_warning_acceptances BEGIN
+    SELECT RAISE(ABORT, 'warning acceptances are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_attestations_no_update
+BEFORE UPDATE ON preregistration_attestations BEGIN
+    SELECT RAISE(ABORT, 'preregistration attestations are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_attestations_no_delete
+BEFORE DELETE ON preregistration_attestations BEGIN
+    SELECT RAISE(ABORT, 'preregistration attestations are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_locks_no_update
+BEFORE UPDATE ON preregistration_locks BEGIN
+    SELECT RAISE(ABORT, 'preregistration locks are immutable');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_locks_no_delete
+BEFORE DELETE ON preregistration_locks BEGIN
+    SELECT RAISE(ABORT, 'preregistration locks are immutable');
+END;
+CREATE TRIGGER IF NOT EXISTS exposure_records_no_update
+BEFORE UPDATE ON exposure_records BEGIN
+    SELECT RAISE(ABORT, 'exposure records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS exposure_records_no_delete
+BEFORE DELETE ON exposure_records BEGIN
+    SELECT RAISE(ABORT, 'exposure records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_audit_chain_no_update
+BEFORE UPDATE ON preregistration_audit_chain BEGIN
+    SELECT RAISE(ABORT, 'preregistration audit chain is append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_audit_chain_no_delete
+BEFORE DELETE ON preregistration_audit_chain BEGIN
+    SELECT RAISE(ABORT, 'preregistration audit chain is append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_command_keys_no_update
+BEFORE UPDATE ON preregistration_command_keys BEGIN
+    SELECT RAISE(ABORT, 'idempotency records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_command_keys_no_delete
+BEFORE DELETE ON preregistration_command_keys BEGIN
+    SELECT RAISE(ABORT, 'idempotency records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS preregistration_no_version_after_lock
+BEFORE INSERT ON artifact_versions
+WHEN EXISTS (
+    SELECT 1 FROM preregistration_locks locks
+    WHERE locks.preregistration_id = NEW.artifact_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'locked preregistration cannot acquire new versions');
+END;
+""",
+    ),
 )

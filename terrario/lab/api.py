@@ -30,6 +30,8 @@ from terrario.lab.experiment_composer import (SCHEMA_VERSION as EXPERIMENT_DRAFT
 from terrario.lab.persistence import ArtifactNotFound,ArtifactRepository,DuplicateArtifact,ProvenanceConflict
 from terrario.lab.persistence.codecs import experiment_draft_from_payload
 from terrario.lab.persistence.canonical import content_hash as durable_content_hash
+from terrario.lab.preregistration.service import PreregistrationService
+from terrario.lab.preregistration.api import PreregistrationAPI
 
 
 class LabAPI:
@@ -54,10 +56,14 @@ class LabAPI:
         self.agent_inspector = AgentInspector()
         self.metrics = MetricRegistry()
         self.observers = ObserverRegistry()
+        self.preregistrations = PreregistrationService(self.root, self.artifacts, self.metrics, self.observers)
+        self.api_v1 = PreregistrationAPI(self.preregistrations)
 
-    def dispatch(self, method: str, url: str, payload: dict | None = None):
+    def dispatch(self, method: str, url: str, payload: dict | None = None, headers: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
+        if parts[:2] == ["api", "v1"]:
+            return self.api_v1.dispatch(method, parts[2:], query, payload, headers)
         try:
             if method == "GET" and parts == ["api","capabilities"]:
                 return 200,{"schema_version":"terrario.lab.capability/v1","definitions":thaw(self.capabilities.definitions()),"matrix":{x:thaw(audited_agent_assessments(x)) for x in self.agent_inspector.IDS}}
@@ -110,9 +116,13 @@ class LabAPI:
                 if self.d2_configuration is None: return 404,{"error":"D2 is not implemented in this project root"}
                 return 200, {"configuration":thaw(self.d2_configuration),"views":thaw(d2_views(self.world_registry.get("D2"))),"generalization":generalization_check(self.world_registry)}
             if method == "GET" and len(parts)==4 and parts[:2]==["api","worlds"] and parts[3]=="preview":
-                wid=parts[2].upper(); seed=int(query.get("seed",[42])[0]); return 200,thaw(preview(self.compiled_worlds[wid],seed))
+                wid=parts[2].upper(); seed=int(query.get("seed",[42])[0]); compiled=self.compiled_worlds[wid]
+                self.preregistrations.record_exposure(wid,compiled.definition.content_hash,seed,"PREVIEWED","local-user","LEGACY_WORLD_PREVIEW",f"{wid}:{seed}")
+                return 200,thaw(preview(compiled,seed))
             if method == "GET" and len(parts)==4 and parts[:2]==["api","worlds"] and parts[3]=="seeds":
-                wid=parts[2].upper(); values=query.get("values",["42"])[0]; seeds=[int(x) for x in values.split(",") if x]; return 200,thaw(SeedBrowser(self.compiled_worlds[wid]).analyze(seeds))
+                wid=parts[2].upper(); values=query.get("values",["42"])[0]; seeds=[int(x) for x in values.split(",") if x]; compiled=self.compiled_worlds[wid]
+                for seed in seeds: self.preregistrations.record_exposure(wid,compiled.definition.content_hash,seed,"INSPECTED","local-user","LEGACY_SEED_BROWSER",f"{wid}:{seed}")
+                return 200,thaw(SeedBrowser(compiled).analyze(seeds))
             if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
                 run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
             if method == "GET" and len(parts)==4 and parts[:3]==["api","worlds","drafts"]:
@@ -134,13 +144,17 @@ class LabAPI:
                     return 409,{"error":"silent draft overwrite prohibited","category":"PROVENANCE_ERROR"}
                 return 201,{"draft":stored.payload,"version_id":stored.version_id,"scientific_hash":stored.scientific_hash,"durable":True,"findings":thaw(findings)}
             if method == "POST" and parts == ["api","worlds","preview"]:
-                draft=self._draft_input(payload or {}); compiled=compile_draft(draft); return 200,thaw(preview(compiled,int((payload or {}).get("seed",42))))
+                draft=self._draft_input(payload or {}); compiled=compile_draft(draft); seed=int((payload or {}).get("seed",42))
+                self.preregistrations.record_exposure(compiled.definition.world_id,compiled.definition.content_hash,seed,"PREVIEWED","local-user","WORLD_DRAFT_PREVIEW",draft.draft_id)
+                return 200,thaw(preview(compiled,seed))
             if method == "POST" and parts == ["api","worlds","compile"]:
                 wid=str((payload or {}).get("world_id","D2")).upper(); compiled=self.compiled_worlds[wid]; return 200,{"definition":thaw(compiled.definition),"definition_hash":compiled.definition.content_hash,"warnings":thaw(compiled.warnings)}
             if method == "POST" and parts == ["api","sandbox","validate"]:
                 spec,config,compiled=self._sandbox_inputs(payload or {}); instance=generate_instance(compiled,spec.world_seed); return 200,self.sandbox.validate_spec(spec,config,compiled,instance)
             if method == "POST" and parts == ["api","sandbox"]:
-                spec,config,compiled=self._sandbox_inputs(payload or {}); return 201,serialize_run(self.sandbox.create(spec,config,compiled))
+                spec,config,compiled=self._sandbox_inputs(payload or {})
+                self.preregistrations.record_exposure(compiled.definition.world_id,compiled.definition.content_hash,spec.world_seed,"SANDBOXED","local-user","ENGINEERING_SANDBOX",durable_content_hash(thaw(spec))[:24])
+                return 201,serialize_run(self.sandbox.create(spec,config,compiled))
             if method == "POST" and len(parts)==4 and parts[:2]==["api","sandbox"]:
                 rid,action=parts[2],parts[3]
                 if action=="step": self.sandbox.step(rid)
@@ -277,7 +291,7 @@ def handler_factory(api: LabAPI, static_dir: Path):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             if self.path.startswith("/api/"):
-                status, payload = api.dispatch("GET", self.path)
+                status, payload = api.dispatch("GET", self.path, headers=dict(self.headers))
                 body = json.dumps(payload).encode()
                 self.send_response(status); self.send_header("Content-Type", "application/json")
             else:
@@ -290,9 +304,10 @@ def handler_factory(api: LabAPI, static_dir: Path):
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
         def do_POST(self):
             length=int(self.headers.get("Content-Length","0")); raw=self.rfile.read(length)
+            if length > 1_048_576: self.send_error(413,"JSON payload exceeds 1 MiB"); return
             try: payload=json.loads(raw or b"{}")
             except json.JSONDecodeError as exc: self.send_error(400,str(exc)); return
-            status,result=api.dispatch("POST",self.path,payload); body=json.dumps(result).encode()
+            status,result=api.dispatch("POST",self.path,payload,dict(self.headers)); body=json.dumps(result).encode()
             self.send_response(status); self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(body))); self.end_headers(); self.wfile.write(body)
         def log_message(self, fmt, *args): pass
     return Handler

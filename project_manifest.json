@@ -35,7 +35,7 @@
     {"id": "WORLD_STUDIO", "status": "PARTIAL_D2_D4", "depends_on": ["TERRARIO_CORE"]},
     {"id": "EXPERIMENT_COMPOSER", "status": "PREREGISTRATION_READY_BOUNDARY", "depends_on": ["SCIENTIFIC_REVIEW", "WORLD_STUDIO"]},
     {"id": "DURABLE_STORAGE", "status": "IMPLEMENTED_V1", "depends_on": ["EXPERIMENT_COMPOSER"]},
-    {"id": "PREREGISTRATION", "status": "PLANNED", "depends_on": ["DURABLE_STORAGE"]},
+    {"id": "PREREGISTRATION", "status": "IMPLEMENTED_AWAITING_BROWSER_QA", "depends_on": ["DURABLE_STORAGE"]},
     {"id": "EXECUTION_ORCHESTRATOR", "status": "PLANNED", "depends_on": ["PREREGISTRATION"]},
     {"id": "EVIDENCE_FIREWALL", "status": "PARTIAL", "depends_on": ["EXECUTION_ORCHESTRATOR"]},
     {"id": "EVIDENCE_GRAPH", "status": "HISTORICAL_READ_MODEL", "depends_on": ["EVIDENCE_FIREWALL"]},
@@ -58,7 +58,7 @@
   "phases": [
     {"id": "SYSTEM-BASELINE-01", "status": "COMPLETE", "depends_on": []},
     {"id": "LAB-PERSISTENCE-01", "status": "COMPLETE", "depends_on": ["SYSTEM-BASELINE-01"]},
-    {"id": "PREREGISTRATION-CORE-01", "status": "NEXT", "depends_on": ["LAB-PERSISTENCE-01"]},
+    {"id": "PREREGISTRATION-CORE-01", "status": "ACTIVE_BROWSER_QA_BLOCKED", "depends_on": ["LAB-PERSISTENCE-01"]},
     {"id": "REGISTRY-HARDENING-01", "status": "PLANNED", "depends_on": ["PREREGISTRATION-CORE-01"]},
     {"id": "INTERACTION-KERNEL-01", "status": "PLANNED", "depends_on": ["REGISTRY-HARDENING-01"]},
     {"id": "DEVICE-RUNTIME-01", "status": "PLANNED", "depends_on": ["INTERACTION-KERNEL-01"]},
@@ -84,7 +84,8 @@
   ],
   "active_blockers": [
     "CUDA_OS_BLOCKED",
-    "PREREGISTRATION_NOT_IMPLEMENTED",
+    "PREREGISTRATION_BROWSER_QA_RUNNER_UNAVAILABLE",
+    "PREREGISTRATION_REQUIRES_HUMAN_DECISIONS_PER_BUNDLE",
     "EXECUTION_ORCHESTRATOR_NOT_IMPLEMENTED",
     "H_ADAPT_HUMAN_REVIEW_NOT_APPROVED"
   ],
