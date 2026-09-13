@@ -123,4 +123,22 @@ export class ApiClient {
   runObserverView(runId, step) {
     return this.get(`/api/runs/${encodeURIComponent(runId)}/observer-view?step=${step}`);
   }
+
+  // ---- scientific execution (raw artifacts only; never EvidenceGraph) ----
+  scientificExecutions() { return this.get("/api/v1/scientific-executions"); }
+  scientificExecution(id) { return this.get(`/api/v1/scientific-executions/${encodeURIComponent(id)}`); }
+  requestScientificExecution(preregistration_root_hash) {
+    return this.post("/api/v1/scientific-executions", { preregistration_root_hash }, { mutation: true });
+  }
+  authorizeScientificExecution(payload) { return this.post("/api/v1/execution-authorizations", payload, { mutation: true }); }
+  bindScientificAuthorization(id, authorization_id, expected_revision) {
+    return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/bind-authorization`, { authorization_id, expected_revision }, { mutation: true });
+  }
+  sealScientificPlan(id, expected_revision) {
+    return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/plan`, { expected_revision }, { mutation: true });
+  }
+  scientificCommand(id, command, command_id, expected_revision) {
+    return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/commands`, { command, command_id, expected_revision }, { mutation: true });
+  }
+  verifyScientificExecution(id) { return this.get(`/api/v1/scientific-executions/${encodeURIComponent(id)}/verify`); }
 }

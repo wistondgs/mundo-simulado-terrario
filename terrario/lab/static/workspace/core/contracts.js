@@ -163,3 +163,6 @@ export const OPERATING_MODE = Object.freeze({
   EXPLORATORY_LATEST: "EXPLORATORY_LATEST",
   PINNED_REPRODUCIBLE: "PINNED_REPRODUCIBLE",
 });
+
+/** Scientific execution is a raw-artifact domain, never an evidence producer. */
+export const SCIENTIFIC_EXECUTION_CLASSIFICATION = "SCIENTIFIC_EXECUTION_RAW_ARTIFACTS";

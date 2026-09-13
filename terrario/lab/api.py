@@ -34,6 +34,8 @@ from terrario.lab.persistence.codecs import experiment_draft_from_payload
 from terrario.lab.persistence.canonical import content_hash as durable_content_hash
 from terrario.lab.preregistration.service import PreregistrationService
 from terrario.lab.preregistration.api import PreregistrationAPI
+from terrario.lab.execution.service import ScientificExecutionService
+from terrario.lab.execution.api import ScientificExecutionAPI
 from terrario.lab.referencegraph.service import ReferenceGraphService
 from terrario.lab.referencegraph.api import ReferenceGraphAPI
 from terrario.lab.crossgraph.service import CrossGraphService
@@ -64,6 +66,8 @@ class LabAPI:
         self.observers = ObserverRegistry()
         self.preregistrations = PreregistrationService(self.root, self.artifacts, self.metrics, self.observers)
         self.api_v1 = PreregistrationAPI(self.preregistrations)
+        self.scientific_executions = ScientificExecutionService(self.root, self.artifacts, self.preregistrations)
+        self.scientific_execution_api = ScientificExecutionAPI(self.scientific_executions, self.api_v1)
         self.world_stream_api = WorldStreamAPI(self.sandbox, self._sandbox_inputs)
         self.reference_graph = ReferenceGraphService(self.artifacts)
         self.reference_graph_api = ReferenceGraphAPI(self.reference_graph)
@@ -74,6 +78,8 @@ class LabAPI:
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
         if parts[:2] == ["api", "v1"]:
+            if len(parts) >= 3 and parts[2] in {"scientific-executions", "execution-authorizations"}:
+                return self.scientific_execution_api.dispatch(method, parts[2:], query, payload, headers)
             if len(parts) >= 3 and parts[2] == "world-stream":
                 if method != "GET" and headers:
                     self.api_v1._authorize(headers)

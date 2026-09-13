@@ -871,4 +871,156 @@ CREATE TABLE IF NOT EXISTS cross_adjacency_meta (
 );
 """,
     ),
+    Migration(
+        7,
+        "scientific_execution_gate_01",
+        r"""
+-- Scientific execution is deliberately separate from preregistration, sandbox,
+-- evidence, and theory tables.  These rows are the authoritative execution
+-- ledger; derived status can always be rebuilt from execution_events.
+CREATE TABLE IF NOT EXISTS scientific_execution_authorizations (
+    authorization_id TEXT PRIMARY KEY,
+    preregistration_root_hash TEXT NOT NULL CHECK(length(preregistration_root_hash)=64),
+    authorization_hash TEXT NOT NULL UNIQUE CHECK(length(authorization_hash)=64),
+    actor_id TEXT NOT NULL,
+    scope_type TEXT NOT NULL CHECK(scope_type IN ('ONE_EXECUTION','N_EXECUTIONS','REPLICATION_SERIES','UNTIL_EXPIRY')),
+    max_execution_count INTEGER NOT NULL CHECK(max_execution_count > 0),
+    consumed_execution_count INTEGER NOT NULL DEFAULT 0 CHECK(consumed_execution_count >= 0),
+    replication_group_id TEXT,
+    expires_at TEXT,
+    resource_ceiling_json TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(consumed_execution_count <= max_execution_count),
+    CHECK((scope_type != 'REPLICATION_SERIES') OR replication_group_id IS NOT NULL),
+    CHECK((scope_type != 'UNTIL_EXPIRY') OR expires_at IS NOT NULL)
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_authorization_events (
+    event_id TEXT PRIMARY KEY,
+    authorization_id TEXT NOT NULL REFERENCES scientific_execution_authorizations(authorization_id),
+    event_type TEXT NOT NULL CHECK(event_type IN ('CREATED','CONSUMED','REVOKED')),
+    payload_json TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scientific_executions (
+    execution_id TEXT PRIMARY KEY,
+    preregistration_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
+    preregistration_root_hash TEXT NOT NULL CHECK(length(preregistration_root_hash)=64),
+    authorization_id TEXT REFERENCES scientific_execution_authorizations(authorization_id),
+    plan_hash TEXT UNIQUE CHECK(plan_hash IS NULL OR length(plan_hash)=64),
+    execution_root_hash TEXT UNIQUE CHECK(execution_root_hash IS NULL OR length(execution_root_hash)=64),
+    artifact_root_hash TEXT CHECK(artifact_root_hash IS NULL OR length(artifact_root_hash)=64),
+    state TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 0 CHECK(revision >= 0),
+    environment_snapshot_json TEXT,
+    software_snapshot_json TEXT,
+    readiness_json TEXT,
+    plan_json TEXT,
+    authorization_consumed INTEGER NOT NULL DEFAULT 0 CHECK(authorization_consumed IN (0,1)),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    completed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS scientific_executions_root_idx ON scientific_executions(preregistration_root_hash, created_at);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_events (
+    event_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    sequence INTEGER NOT NULL CHECK(sequence > 0),
+    event_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    previous_event_hash TEXT,
+    event_hash TEXT NOT NULL UNIQUE CHECK(length(event_hash)=64),
+    actor_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(execution_id, sequence)
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_commands (
+    command_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    command_type TEXT NOT NULL,
+    expected_revision INTEGER NOT NULL,
+    response_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_deviations (
+    deviation_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    deviation_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    trial_intent_id TEXT REFERENCES trial_intents(trial_intent_id),
+    attempt_id TEXT REFERENCES run_attempts(attempt_id),
+    artifact_type TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    blob_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+    descriptor_hash TEXT NOT NULL UNIQUE CHECK(length(descriptor_hash)=64),
+    created_at TEXT NOT NULL,
+    UNIQUE(execution_id, attempt_id, artifact_type, blob_hash)
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    attempt_id TEXT REFERENCES run_attempts(attempt_id),
+    checkpoint_class TEXT NOT NULL CHECK(checkpoint_class IN ('RESTORABLE_EXACT','OBSERVABILITY_ONLY','TRIAL_BOUNDARY')),
+    blob_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    manifest_hash TEXT NOT NULL CHECK(length(manifest_hash)=64),
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scientific_execution_verifications (
+    verification_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    report_hash TEXT NOT NULL UNIQUE CHECK(length(report_hash)=64),
+    report_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS scientific_execution_authorizations_no_delete
+BEFORE DELETE ON scientific_execution_authorizations BEGIN SELECT RAISE(ABORT, 'execution authorization is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_authorization_events_no_update
+BEFORE UPDATE ON scientific_execution_authorization_events BEGIN SELECT RAISE(ABORT, 'authorization event is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_authorization_events_no_delete
+BEFORE DELETE ON scientific_execution_authorization_events BEGIN SELECT RAISE(ABORT, 'authorization event is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_events_no_update
+BEFORE UPDATE ON scientific_execution_events BEGIN SELECT RAISE(ABORT, 'execution event is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_events_no_delete
+BEFORE DELETE ON scientific_execution_events BEGIN SELECT RAISE(ABORT, 'execution event is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_commands_no_update
+BEFORE UPDATE ON scientific_execution_commands BEGIN SELECT RAISE(ABORT, 'execution command is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_commands_no_delete
+BEFORE DELETE ON scientific_execution_commands BEGIN SELECT RAISE(ABORT, 'execution command is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_deviations_no_update
+BEFORE UPDATE ON scientific_execution_deviations BEGIN SELECT RAISE(ABORT, 'execution deviation is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_deviations_no_delete
+BEFORE DELETE ON scientific_execution_deviations BEGIN SELECT RAISE(ABORT, 'execution deviation is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_artifacts_no_update
+BEFORE UPDATE ON scientific_execution_artifacts BEGIN SELECT RAISE(ABORT, 'execution artifact is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_artifacts_no_delete
+BEFORE DELETE ON scientific_execution_artifacts BEGIN SELECT RAISE(ABORT, 'execution artifact is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_checkpoints_no_update
+BEFORE UPDATE ON scientific_execution_checkpoints BEGIN SELECT RAISE(ABORT, 'execution checkpoint is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_checkpoints_no_delete
+BEFORE DELETE ON scientific_execution_checkpoints BEGIN SELECT RAISE(ABORT, 'execution checkpoint is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_verifications_no_update
+BEFORE UPDATE ON scientific_execution_verifications BEGIN SELECT RAISE(ABORT, 'execution verification is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_execution_verifications_no_delete
+BEFORE DELETE ON scientific_execution_verifications BEGIN SELECT RAISE(ABORT, 'execution verification is immutable'); END;
+""",
+    ),
 )
