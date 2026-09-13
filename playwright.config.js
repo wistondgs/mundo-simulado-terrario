@@ -29,6 +29,11 @@ export default defineConfig({
         },
       },
     },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+      testIgnore: /visual-qa\.spec\.js/,
+    },
   ],
   webServer: {
     command: ".venv/bin/python -m terrario.lab.api --root . --host 127.0.0.1 --port 8877",
