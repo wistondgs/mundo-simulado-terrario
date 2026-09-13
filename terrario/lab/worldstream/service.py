@@ -280,7 +280,10 @@ class LiveSandboxService(SandboxService):
         run = super().stop(run_id)
         if ctx:
             self._emit(run_id, "STATUS", self._status_payload(run_id)); self._emit(run_id, "SESSION_END", self._status_payload(run_id))
-            if ctx.latest_frame: ctx.archive.checkpoint(ctx.tick, ctx.sequence, ctx.latest_frame, "TERMINAL")
+            if ctx.latest_frame and ctx.last_frame_sequence >= 0:
+                # A checkpoint names the authoritative frame it contains, not
+                # the later STATUS/SESSION_END transport envelope.
+                ctx.archive.checkpoint(ctx.tick, ctx.last_frame_sequence, ctx.latest_frame, "TERMINAL")
         return run
 
     def envelopes_after(self, run_id: str, after_sequence: int) -> list[dict[str, Any]]:

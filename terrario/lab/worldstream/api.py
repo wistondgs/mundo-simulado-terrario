@@ -7,7 +7,7 @@ from terrario.lab.models import thaw
 
 from .contracts import ResyncRequest, SessionCommand
 from .service import LiveSandboxService, SessionConflict
-from .trace import TraceIntegrityError
+from .trace import TraceIntegrityError, TraceQueryLimitError
 
 
 class WorldStreamAPI:
@@ -48,15 +48,17 @@ class WorldStreamAPI:
                         limit=int(query.get("limit", ["10000"])[0]), event_type=query.get("event_type", [None])[0],
                         entity_id=query.get("entity_id", [None])[0])
                 if method == "GET" and len(parts) == 3 and parts[2] == "seek":
-                    return 200, {"cursor": archive.seek(int(query.get("tick", ["0"])[0]))}
+                    tick = int(query.get("tick", ["0"])[0])
+                    return 200, {"cursor": archive.seek(tick), "frame": archive.frame_at(tick)}
                 if method == "GET" and len(parts) == 3 and parts[2] == "compare":
                     left, right = int(query.get("left", ["0"])[0]), int(query.get("right", ["0"])[0])
-                    return 200, {"left": archive.seek(left), "right": archive.seek(right),
-                        "explanation": "DERIVED STATE DIFF · NOT CAUSAL"}
+                    return 200, archive.compare_frames(left, right)
             return 404, {"error": "world-stream endpoint not found", "category": "NOT_FOUND"}
         except SessionConflict as exc:
             return 409, {"error": str(exc), "category": exc.code}
         except TraceIntegrityError as exc:
             return 409, {"error": str(exc), "category": exc.code}
+        except TraceQueryLimitError as exc:
+            return 400, {"error": str(exc), "category": exc.code}
         except (KeyError, ValueError) as exc:
             return 400, {"error": str(exc), "category": getattr(exc, "code", "CONFIG_ERROR")}

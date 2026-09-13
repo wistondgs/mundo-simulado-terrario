@@ -8,7 +8,7 @@ from terrario.lab.world_authoring import compile_registry_world
 from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for
 from terrario.lab.worldstream.contracts import SessionCommand
 from terrario.lab.worldstream.service import LiveSandboxService, SessionConflict
-from terrario.lab.worldstream.trace import TraceArchive, TraceIntegrityError
+from terrario.lab.worldstream.trace import TraceArchive, TraceIntegrityError, TraceQueryLimitError
 from terrario.lab.api import LabAPI
 
 
@@ -74,6 +74,30 @@ def test_trace_hash_chain_index_seek_and_rebuild(tmp_path):
     assert archive.read(after_sequence=0)[0]["sequence"] == 1
 
 
+def test_frame_seek_ignores_later_status_at_the_same_tick_and_reports_checkpoint(tmp_path):
+    archive = TraceArchive(tmp_path, "trace-test")
+    frame0 = {"tick": 0, "views": []}
+    frame1 = {"tick": 1, "views": []}
+    archive.append(sequence=0, tick=0, record_type="SNAPSHOT", payload={"payload": {"frame": frame0}})
+    archive.append(sequence=1, tick=1, record_type="DELTA", payload={"payload": {"frame": frame1}})
+    archive.append(sequence=2, tick=1, record_type="STATUS", payload={"payload": {"state": "PAUSED"}})
+    archive.checkpoint(1, 1, frame1, "TEST")
+
+    resolved = archive.frame_at(1)
+    assert resolved["frame"] == frame1
+    assert resolved["record_sequence"] == 1
+    assert resolved["checkpoint_tick"] == 1
+    assert archive.compare_frames(0, 1)["right"]["frame"] == frame1
+    archive.index_path.unlink(); archive.rebuild_index()
+    assert archive.frame_at(1)["checkpoint_sequence"] == 1
+
+
+def test_trace_query_limit_is_explicit_not_silently_truncated(tmp_path):
+    archive = TraceArchive(tmp_path, "trace-test", max_query_rows=2)
+    with pytest.raises(TraceQueryLimitError, match="1..2"):
+        archive.read(limit=3)
+
+
 def test_hash_chain_corruption_is_terminal_integrity_failure(tmp_path):
     archive = TraceArchive(tmp_path, "trace-test")
     archive.append(sequence=0, tick=0, record_type="SNAPSHOT", payload={"n": 0})
@@ -103,6 +127,12 @@ def test_versioned_api_create_command_seek_and_legacy_adapter(tmp_path):
     assert status == 200 and ack["revision"] == 1
     status, stream = api.dispatch("GET", f"/api/v1/world-stream/sessions/{sid}/stream?after_sequence=-1")
     assert status == 200 and any(x["message_type"] == "DELTA" for x in stream["stream"])
+    status, seek = api.dispatch("GET", f"/api/v1/world-stream/traces/{session['trace_id']}/seek?tick=1")
+    assert status == 200 and seek["frame"]["frame"]["tick"] == 1
+    status, compare = api.dispatch("GET", f"/api/v1/world-stream/traces/{session['trace_id']}/compare?left=0&right=1")
+    assert status == 200 and compare["right"]["frame"]["tick"] == 1
+    status, limited = api.dispatch("GET", f"/api/v1/world-stream/traces/{session['trace_id']}/events?limit=10001")
+    assert status == 400 and limited["category"] == "TRACE_QUERY_LIMIT"
     assert api.dispatch("GET", f"/api/sandbox/{sid}/trace")[0] == 200
 
 
@@ -114,6 +144,16 @@ def test_restart_marks_non_restorable_session_lost_and_keeps_trace(tmp_path):
     description = restarted.describe(run.run_id)
     assert description.status.state.value == "SESSION_LOST"
     assert restarted.archive(trace_id).verify()["valid"]
+
+
+def test_terminal_checkpoint_references_the_last_frame_not_session_end(tmp_path):
+    service, run = live(tmp_path)
+    service.step(run.run_id)
+    ctx = service._live[run.run_id]
+    service.stop(run.run_id)
+    checkpoint = json.loads(next(ctx.archive.checkpoint_dir.glob("tick-*.json")).read_text())
+    assert checkpoint["sequence"] == ctx.last_frame_sequence
+    assert checkpoint["sequence"] < ctx.sequence
 
 
 def test_subscriber_limit_is_enforced_and_released(tmp_path):

@@ -16,12 +16,12 @@ from .contracts import (
     ViewKind,
     WorldFrame,
 )
-from .trace import TraceArchive, TraceIntegrityError
+from .trace import TraceArchive, TraceIntegrityError, TraceQueryLimitError
 
 __all__ = [
     "FrameDelta", "FrameOrigin", "LiveSandboxSession", "PlaybackCursor",
     "ResyncRequest", "SessionCommand", "SessionState", "SessionStatus",
     "StreamEnvelope", "TimelineEvent", "TraceArchive",
-    "TraceCheckpoint", "TraceIntegrityError", "ViewFrame", "ViewKind",
+    "TraceCheckpoint", "TraceIntegrityError", "TraceQueryLimitError", "ViewFrame", "ViewKind",
     "WorldFrame",
 ]

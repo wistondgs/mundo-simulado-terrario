@@ -16,6 +16,12 @@ class TraceIntegrityError(RuntimeError):
     code = "TRACE_INTEGRITY_FAILURE"
 
 
+class TraceQueryLimitError(ValueError):
+    """A caller requested more derived trace data than this archive permits."""
+
+    code = "TRACE_QUERY_LIMIT"
+
+
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
@@ -23,7 +29,9 @@ def _canonical(value: Any) -> bytes:
 class TraceArchive:
     """The JSONL is authoritative; every other artifact is disposable."""
 
-    def __init__(self, root: str | Path, trace_id: str, checkpoint_interval: int = 256):
+    FRAME_RECORD_TYPES = ("SNAPSHOT", "DELTA", "RESYNC")
+
+    def __init__(self, root: str | Path, trace_id: str, checkpoint_interval: int = 256, max_query_rows: int = 10_000):
         self.root = Path(root) / trace_id
         self.root.mkdir(parents=True, exist_ok=True)
         self.trace_id = trace_id
@@ -32,6 +40,7 @@ class TraceArchive:
         self.checkpoint_dir = self.root / "checkpoints"
         self.checkpoint_dir.mkdir(exist_ok=True)
         self.checkpoint_interval = checkpoint_interval
+        self.max_query_rows = max_query_rows
         self._lock = threading.RLock()
         self._previous_hash, self._last_sequence = self._tail()
         self._ensure_index()
@@ -56,11 +65,26 @@ class TraceArchive:
         db.execute("CREATE INDEX IF NOT EXISTS records_entity ON records(entity_id,sequence)")
         return db
 
+    def _checkpoint_sequences(self) -> set[int]:
+        """Return checkpoint source sequences; invalid derived files are ignored."""
+        sequences: set[int] = set()
+        for path in self.checkpoint_dir.glob("tick-*.json"):
+            try:
+                payload = json.loads(path.read_bytes())
+                if payload.get("trace_id") == self.trace_id:
+                    sequences.add(int(payload["sequence"]))
+            except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                # Checkpoints are accelerators. A damaged one never changes the
+                # authority or validity of the JSONL trace.
+                continue
+        return sequences
+
     def _ensure_index(self):
         try:
             with self._connect() as db:
                 indexed = db.execute("SELECT COALESCE(MAX(sequence),-1) FROM records").fetchone()[0]
-            if indexed != self._last_sequence:
+                indexed_checkpoints = {row[0] for row in db.execute("SELECT sequence FROM records WHERE checkpoint=1")}
+            if indexed != self._last_sequence or indexed_checkpoints != self._checkpoint_sequences():
                 self.rebuild_index()
         except sqlite3.DatabaseError:
             if self.index_path.exists():
@@ -87,10 +111,17 @@ class TraceArchive:
         payload = {"trace_schema_version": TRACE_SCHEMA, "trace_id": self.trace_id, "tick": tick, "sequence": sequence, "reason": reason, "frame": frame}
         temp = target.with_suffix(".tmp")
         temp.write_bytes(_canonical(payload)); os.replace(temp, target)
+        # The checkpoint file is derived, but recording its source sequence in
+        # the rebuildable index lets temporal tooling find it without scanning
+        # the directory or replaying the JSONL file.
+        with self._connect() as db:
+            db.execute("UPDATE records SET checkpoint=1 WHERE sequence=?", (sequence,))
         return target
 
     def read(self, *, after_sequence: int = -1, limit: int = 10_000, tick: int | None = None, event_type: str | None = None, entity_id: str | None = None) -> list[dict[str, Any]]:
-        limit = max(1, min(int(limit), 10_000))
+        limit = int(limit)
+        if not 1 <= limit <= self.max_query_rows:
+            raise TraceQueryLimitError(f"trace query limit is 1..{self.max_query_rows} rows")
         clauses, args = ["sequence>?"], [after_sequence]
         if tick is not None: clauses.append("tick=?"); args.append(tick)
         if event_type is not None: clauses.append("event_type=?"); args.append(event_type)
@@ -104,6 +135,55 @@ class TraceArchive:
             for offset, length in spans:
                 handle.seek(offset); rows.append(json.loads(handle.read(length)))
         return rows
+
+    def _row_for_frame_at(self, tick: int) -> dict[str, Any] | None:
+        """Return the last authoritative frame record at or before ``tick``.
+
+        A generic sequence seek is insufficient: a STATUS or EVENT emitted
+        after a DELTA shares its tick but contains no world frame.  Playback
+        must therefore query frame-bearing records explicitly.
+        """
+        placeholders = ",".join("?" for _ in self.FRAME_RECORD_TYPES)
+        sql = (
+            f"SELECT offset,length FROM records WHERE tick<=? AND event_type IN ({placeholders}) "
+            "ORDER BY tick DESC,sequence DESC LIMIT 1"
+        )
+        with self._connect() as db:
+            span = db.execute(sql, (tick, *self.FRAME_RECORD_TYPES)).fetchone()
+        if not span:
+            return None
+        with self.trace_path.open("rb") as handle:
+            handle.seek(span[0]); return json.loads(handle.read(span[1]))
+
+    def frame_at(self, tick: int) -> dict[str, Any] | None:
+        """Resolve a complete logical frame for arbitrary indexed playback."""
+        row = self._row_for_frame_at(tick)
+        if row is None:
+            return None
+        envelope = row["payload"]
+        frame = envelope.get("payload", {}).get("frame")
+        if not isinstance(frame, dict):
+            raise TraceIntegrityError(f"frame record at sequence {row['sequence']} has no frame payload")
+        with self._connect() as db:
+            checkpoint = db.execute(
+                "SELECT tick,sequence FROM records WHERE checkpoint=1 AND tick<=? ORDER BY tick DESC,sequence DESC LIMIT 1",
+                (tick,),
+            ).fetchone()
+        return {
+            "frame": frame,
+            "record_sequence": int(row["sequence"]),
+            "record_tick": int(row["tick"]),
+            "checkpoint_tick": checkpoint[0] if checkpoint else None,
+            "checkpoint_sequence": checkpoint[1] if checkpoint else None,
+        }
+
+    def compare_frames(self, left_tick: int, right_tick: int) -> dict[str, Any]:
+        """Return two recorded frames; interpretation remains a client-derived diff."""
+        return {
+            "left": self.frame_at(left_tick),
+            "right": self.frame_at(right_tick),
+            "explanation": "DERIVED STATE DIFF · NOT CAUSAL",
+        }
 
     def seek(self, tick: int) -> dict[str, Any] | None:
         with self._connect() as db:
@@ -129,6 +209,7 @@ class TraceArchive:
     def rebuild_index(self):
         self.verify()
         if self.index_path.exists(): self.index_path.unlink()
+        checkpoint_sequences = self._checkpoint_sequences()
         with self._connect() as db:
             if not self.trace_path.exists(): return
             with self.trace_path.open("rb") as handle:
@@ -136,4 +217,4 @@ class TraceArchive:
                     offset = handle.tell(); raw = handle.readline()
                     if not raw: break
                     row = json.loads(raw)
-                    db.execute("INSERT INTO records VALUES(?,?,?,?,?,?,?,?)", (row["sequence"], row["tick"], row["record_type"], row.get("entity_id"), int(row["record_type"] == "CHECKPOINT"), offset, len(raw), row["hash"]))
+                    db.execute("INSERT INTO records VALUES(?,?,?,?,?,?,?,?)", (row["sequence"], row["tick"], row["record_type"], row.get("entity_id"), int(row["sequence"] in checkpoint_sequences), offset, len(raw), row["hash"]))
