@@ -1,168 +1,65 @@
-/**
- * World2D panel: synchronized World Truth / Agent View / Observer View, a
- * timeline with scrub/step, and engineering-sandbox control. Uses the real
- * backend (WorldDefinition, WorldInstance, seed, Preview); it never implements
- * a second simulator in the frontend. World Truth is never shown as if it were
- * the agent's observation; the sandbox is always labelled ENGINEERING_SANDBOX /
- * NOT EVIDENCE, and there is no scientific-execution button.
- */
-import { transientState } from "../core/state.js";
+/** Deep World2D: live sandbox, trace playback, and preview are hard-separated. */
+import { BoundedFrameRing, WorldStreamClient, initialTemporalState, reduceEnvelope } from "../world2d/protocol.js";
+import { ResilientRenderer } from "../world2d/renderers.js";
+import { VirtualTimeline, diffFrames } from "../world2d/timeline.js";
+import { TracePlayback } from "../world2d/playback.js";
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
+const VIEW_IDS = { WORLD_TRUTH_PRIVILEGED: "w2dTruth", AGENT_OBSERVATION: "w2dAgent", OBSERVER_VIEW: "w2dObserver" };
 
 export class World2DPanel {
   constructor(api, { onError } = {}) {
-    this.api = api;
-    this.onError = onError || (() => {});
-    this.container = null;
-    this.worldId = "D2";
-    this.seed = 42;
-    this.step = 0;
-    this.maxSteps = 100;
-    this.playing = false;
-    this._timer = null;
-    this.preview = null;
+    this.api = api; this.onError = onError || (() => {}); this.container = null; this.worldId = "D2"; this.seed = 42;
+    this.mode = "PREVIEW"; this.session = null; this.temporal = initialTemporalState(); this.queue = new BoundedFrameRing();
+    this.frames = new Map(); this.presentedTick = 0; this.renderers = new Map(); this.pendingPaint = false; this.playing = false;
+    this.stream = new WorldStreamClient(api, { onEnvelope: (value) => this._enqueue(value), onStatus: (value) => this._connection(value), onError: (error) => this._localError(error) });
+    this.playback = new TracePlayback(api);
   }
-
   render(container) {
     this.container = container;
-    container.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-        <label>World <select id="w2dWorld"><option>D2</option><option>D3</option><option>D4</option></select></label>
-        <label>Seed <input id="w2dSeed" type="number" value="42" style="width:70px"></label>
-        <button id="w2dLoad">Load preview</button>
-        <span class="ws-sandbox-badge">ENGINEERING_SANDBOX · NOT EVIDENCE</span>
-        <span style="flex:1"></span>
-        <div class="ws-sandbox-controls">
-          <button id="w2dPrev" title="Step back">‹</button>
-          <button id="w2dPlay" title="Play/Pause">▶</button>
-          <button id="w2dNext" title="Step forward">›</button>
-          <input id="w2dScrub" type="range" min="0" max="100" value="0" style="width:160px" aria-label="Timeline scrub">
-          <span id="w2dStepLabel">step 0</span>
-        </div>
-      </div>
-      <div class="ws-world-views">
-        <div class="ws-world-view truth"><header>World Truth · privileged</header><canvas id="w2dTruth"></canvas></div>
-        <div class="ws-world-view agent"><header>Agent View</header><canvas id="w2dAgent"></canvas></div>
-        <div class="ws-world-view observer"><header>Observer View · private truth</header><canvas id="w2dObserver"></canvas></div>
-      </div>
-      <div id="w2dMeta" style="font-size:11px;color:var(--ws-muted);margin-top:4px"></div>`;
-    container.querySelector("#w2dLoad").onclick = () => this.openWorld(
-      container.querySelector("#w2dWorld").value, Number(container.querySelector("#w2dSeed").value));
-    container.querySelector("#w2dPrev").onclick = () => this.stepTo(this.step - 1);
-    container.querySelector("#w2dNext").onclick = () => this.stepTo(this.step + 1);
-    container.querySelector("#w2dPlay").onclick = () => this.togglePlay();
-    container.querySelector("#w2dScrub").oninput = (e) => this.stepTo(Number(e.target.value));
+    container.innerHTML = `<div class="w2d-toolbar"><label>World <select id="w2dWorld"><option>D2</option><option>D3</option><option>D4</option></select></label><label>Seed <input id="w2dSeed" type="number" value="42"></label><button id="w2dLoad">Load preview</button><button id="w2dLive">New live sandbox</button><button id="w2dTrace">Open trace playback</button><span class="ws-sandbox-badge">ENGINEERING_SANDBOX · NOT EVIDENCE</span><span id="w2dMode" class="w2d-mode">PREVIEW</span><span class="w2d-spacer"></span><span id="w2dConnection" aria-live="polite">STALE</span></div>
+      <div class="ws-sandbox-controls" role="toolbar" aria-label="World2D session controls"><button id="w2dStart">Start</button><button id="w2dPause">Pause</button><button id="w2dResume">Resume</button><button id="w2dStop">Stop</button><button id="w2dPrev" title="Step back">‹</button><button id="w2dPlay" title="Playback only">▶</button><button id="w2dNext" title="Step or seek forward">›</button><input id="w2dScrub" type="range" min="0" max="0" value="0" aria-label="Timeline scrub"><span id="w2dStepLabel">tick 0</span><button id="w2dFit">Fit</button><button id="w2dReset">Reset cameras</button><button id="w2dExport">Export diagnostic PNG</button></div>
+      <div class="ws-world-views"><div class="ws-world-view truth"><header>World Truth · privileged <span data-status="WORLD_TRUTH_PRIVILEGED">STALE</span></header><canvas id="w2dTruth" tabindex="0" aria-label="Privileged World Truth canvas"></canvas></div><div class="ws-world-view agent"><header>Agent View · exact observation <span data-status="AGENT_OBSERVATION">STALE</span></header><canvas id="w2dAgent" tabindex="0" aria-label="Agent observation canvas"></canvas><small>NO DIRECT IDENTITY MAPPING</small></div><div class="ws-world-view observer"><header>Observer View · configured channels <span data-status="OBSERVER_VIEW">STALE</span></header><canvas id="w2dObserver" tabindex="0" aria-label="Observer view canvas"></canvas></div></div>
+      <section class="w2d-forensics" aria-label="World2D temporal forensics"><div id="w2dTimeline"></div><pre id="w2dDiff">No comparison selected.</pre></section><div id="w2dMeta" aria-live="polite"></div>`;
+    for (const canvas of container.querySelectorAll("canvas")) { const renderer = new ResilientRenderer(); renderer.initialize(canvas, { preferWebGL: false, onFallback: (error) => this._meta(`Renderer fallback: ${error.message}`) }); this.renderers.set(canvas.id, renderer); canvas.onclick = (event) => this._select(renderer.pick(event.offsetX, event.offsetY)); }
+    this.timeline = new VirtualTimeline(container.querySelector("#w2dTimeline"), { onSeek: (value) => this.seekRelative(value) });
+    const value = (id) => container.querySelector(id);
+    value("#w2dLoad").onclick = () => this.openWorld(value("#w2dWorld").value, Number(value("#w2dSeed").value)); value("#w2dLive").onclick = () => this.openLive(value("#w2dWorld").value, Number(value("#w2dSeed").value));
+    value("#w2dTrace").onclick = () => this.openTrace();
+    value("#w2dStart").onclick = () => this.command("START"); value("#w2dPause").onclick = () => this.command("PAUSE"); value("#w2dResume").onclick = () => this.command("RESUME"); value("#w2dStop").onclick = () => this.command("STOP");
+    value("#w2dPrev").onclick = () => this.seek(this.presentedTick - 1); value("#w2dNext").onclick = () => this.mode === "LIVE SANDBOX" ? this.command("STEP") : this.seek(this.presentedTick + 1); value("#w2dPlay").onclick = () => this.togglePlayback(); value("#w2dScrub").oninput = (event) => this.seek(Number(event.target.value));
+    value("#w2dReset").onclick = () => { for (const renderer of this.renderers.values()) renderer.setCamera({ x: 0, y: 0, zoom: 1, followId: null }); this._schedulePaint(); }; value("#w2dFit").onclick = () => { for (const renderer of this.renderers.values()) renderer.setCamera({ x: 0, y: 0, zoom: 1 }); this._schedulePaint(); }; value("#w2dExport").onclick = () => this.exportDiagnostic(); window.addEventListener("resize", () => this._schedulePaint());
   }
-
   async openWorld(worldId, seed = 42) {
-    this.worldId = worldId;
-    this.seed = seed;
-    try {
-      const preview = await this.api.worldPreview(worldId, seed);
-      this.preview = preview;
-      this.maxSteps = Math.max(1, (preview.steps || 1) - 1);
-      this.container.querySelector("#w2dScrub").max = this.maxSteps;
-      this.step = 0;
-      this._renderAll();
-      this._meta(`Loaded ${worldId} · seed ${seed} · preview (RECORDED)`);
-    } catch (error) {
-      this.onError("DOMAIN_UNAVAILABLE", error.message, `world ${worldId}`);
-    }
+    this.stream.close(); this.mode = "PREVIEW"; this.worldId = worldId; this.seed = seed; this.session = null; this.frames.clear();
+    try { const preview = await this.api.worldPreview(worldId, seed); if (!preview.world_truth) throw new Error("PREVIEW_WORLD_TRUTH_MISSING"); const frame = this._previewFrame(preview); this.frames.set(0, frame); this.presentedTick = 0; this._setMode(); this._schedulePaint(); this._meta(`Loaded ${worldId} · seed ${seed} · PREVIEW`); } catch (error) { this.onError("DOMAIN_UNAVAILABLE", error.message, `world ${worldId}`); }
   }
-
-  stepTo(step) {
-    this.step = Math.max(0, Math.min(this.maxSteps, step));
-    this.container.querySelector("#w2dScrub").value = this.step;
-    this.container.querySelector("#w2dStepLabel").textContent = `step ${this.step}`;
-    this._renderAll();
+  async openLive(worldId, seed = 42) {
+    try { if (!this.api.csrfToken) await this.api.initSession(); this.stream.close(); this.mode = "LIVE SANDBOX"; this.frames.clear(); this.temporal = initialTemporalState(); this.queue.clear(); this.session = await this.stream.create({ world_id: worldId, world_seed: seed, agent_seed: seed + 1000003, step_limit: 100 }); this.temporal = initialTemporalState(this.session.session_id); this._setMode(); this.stream.after = -1; void this.stream.connect(this.session.session_id); } catch (error) { this._localError(error); }
   }
-
-  togglePlay() {
-    this.playing = !this.playing;
-    this.container.querySelector("#w2dPlay").textContent = this.playing ? "Ⅱ" : "▶";
-    if (this.playing) {
-      this._timer = setInterval(() => {
-        if (this.step >= this.maxSteps) { this.togglePlay(); return; }
-        this.stepTo(this.step + 1);
-      }, 200);
-    } else {
-      clearInterval(this._timer);
-    }
+  async command(name) {
+    if (this.mode !== "LIVE SANDBOX" || !this.session) { this._meta(`${name} unavailable outside LIVE SANDBOX`); return; }
+    try { const ack = await this.stream.command(this.session.session_id, name, this.session.status.revision); this.session.status = ack.status; } catch (error) { this._localError(error); }
   }
-
-  _renderAll() {
-    // The three views are always distinctly labelled; World Truth is privileged
-    // ground truth, never the agent's observation.
-    this._renderView("w2dTruth", this._truthState(), "truth");
-    this._renderView("w2dAgent", this._agentState(), "agent");
-    this._renderView("w2dObserver", this._observerState(), "observer");
+  async openTrace() {
+    if (!this.session?.trace_id) { this._meta("No session trace is available."); return; }
+    try { this.stream.close(); const result = await this.playback.open(this.session.trace_id); this.mode = "TRACE PLAYBACK"; this.frames = result.frames; this.temporal.events = result.events; this.timeline.setEvents(result.events); this.presentedTick = Math.max(0, ...this.frames.keys()); this._setMode(); this._connection("RECORDED"); this._schedulePaint(); this._meta(`${result.traceId} · read-only playback${result.truncated ? " · query truncated" : ""}`); } catch (error) { this._localError(error); }
   }
-
-  _truthState() {
-    return this.preview && this.preview.truth ? this.preview.truth : this.preview;
+  _enqueue(envelope) { if (!this.queue.push(envelope)) { this._connection("RESYNCING"); this.queue.clear(); void this.stream.resync(this.session.session_id, this.temporal.frameSequence, "CLIENT_BACKPRESSURE").catch((error) => this._localError(error)); return; } queueMicrotask(() => this._applyQueue()); }
+  _applyQueue() {
+    let envelope; while ((envelope = this.queue.shift())) { const before = this.temporal; this.temporal = reduceEnvelope(this.temporal, envelope); if (this.temporal.status === "RESYNCING" && before.status !== "RESYNCING") void this.stream.resync(this.session.session_id, before.frameSequence, "SEQUENCE_GAP").catch((error) => this._localError(error)); if (this.temporal.frame) { this.frames.set(this.temporal.frame.tick, this.temporal.frame); this.presentedTick = this.temporal.frame.tick; } if (envelope.message_type === "STATUS" || envelope.message_type === "COMMAND_ACK") this._mergeStatus(envelope.payload.status || envelope.payload); }
+    this.timeline.setEvents(this.temporal.events); this._schedulePaint();
   }
-
-  _agentState() {
-    return this.preview && this.preview.agent_view ? this.preview.agent_view : this.preview;
+  _schedulePaint() { if (this.pendingPaint) return; this.pendingPaint = true; requestAnimationFrame(() => { this.pendingPaint = false; this._paint(); }); }
+  _paint() {
+    const frame = this.frames.get(this.presentedTick) || this.temporal.frame; if (!frame) return;
+    for (const view of frame.views) { const renderer = this.renderers.get(VIEW_IDS[view.kind]); if (!renderer) continue; const rect = renderer.canvas.getBoundingClientRect(); renderer.resize(rect.width, Math.max(120, rect.height)); renderer.renderFrame(view); const status = this.container.querySelector(`[data-status="${view.kind}"]`); status.textContent = view.tick === frame.tick ? (view.status || "SYNCHRONIZED") : "STALE"; }
+    this.presentedTick = frame.tick; const scrub = this.container.querySelector("#w2dScrub"); scrub.max = Math.max(...this.frames.keys(), frame.tick); scrub.value = frame.tick; this.container.querySelector("#w2dStepLabel").textContent = `tick ${frame.tick} · sim ${frame.simulation_time}`; const prior = this.frames.get(frame.tick - 1); this.container.querySelector("#w2dDiff").textContent = prior ? JSON.stringify(diffFrames(prior, frame), null, 2) : "Tick 0 · initial snapshot";
   }
-
-  _observerState() {
-    return this.preview && this.preview.observer_view ? this.preview.observer_view : this.preview;
-  }
-
-  _renderView(canvasId, view, kind) {
-    const canvas = this.container.querySelector(`#${canvasId}`);
-    if (!canvas) return;
-    const scale = devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * scale;
-    canvas.height = Math.max(120, rect.height) * scale;
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.fillStyle = kind === "truth" ? "#0f1a14" : "#101714";
-    ctx.fillRect(0, 0, rect.width, rect.height);
-    if (!view) {
-      ctx.fillStyle = "#5a5f6a";
-      ctx.font = "11px sans-serif";
-      ctx.fillText("No data", 8, 16);
-      return;
-    }
-    const gw = view.grid_width || view.width || 10;
-    const gh = view.grid_height || view.height || 10;
-    const cell = Math.min(rect.width / gw, rect.height / gh);
-    // grid
-    ctx.strokeStyle = "rgba(60,70,64,0.6)";
-    for (let i = 0; i <= gw; i++) { ctx.beginPath(); ctx.moveTo(i * cell, 0); ctx.lineTo(i * cell, gh * cell); ctx.stroke(); }
-    for (let i = 0; i <= gh; i++) { ctx.beginPath(); ctx.moveTo(0, i * cell); ctx.lineTo(gw * cell, i * cell); ctx.stroke(); }
-    // objects
-    for (const obj of Object.values(view.objects || {})) {
-      const [r, c] = obj.pos || [0, 0];
-      ctx.fillStyle = obj.properties && obj.properties.causal_class === "A" ? "#d9a441" : "#3f91a1";
-      ctx.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
-    }
-    // agents
-    for (const agent of Object.values(view.agents || {})) {
-      const [r, c] = agent.pos || [0, 0];
-      ctx.fillStyle = "#55b993";
-      ctx.beginPath();
-      ctx.arc(c * cell + cell / 2, r * cell + cell / 2, cell * 0.35, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // agent observation mask (agent view only)
-    if (kind === "agent" && view.mask) {
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
-      view.mask.forEach((row, r) => row.forEach((visible, c) => {
-        if (!visible) ctx.fillRect(c * cell, r * cell, cell, cell);
-      }));
-    }
-  }
-
-  _meta(message) {
-    const el = this.container.querySelector("#w2dMeta");
-    if (el) el.textContent = message;
-  }
+  seek(tick) { if (!this.frames.has(tick)) return; this.presentedTick = tick; this._schedulePaint(); } seekRelative(value) { this.seek(Number.isInteger(value) && this.frames.has(value) ? value : this.presentedTick + Number(value)); }
+  togglePlayback() { if (this.mode === "LIVE SANDBOX") { this._meta("Playback controls never issue live commands; pause live first and open trace playback."); return; } this.playing = !this.playing; this.container.querySelector("#w2dPlay").textContent = this.playing ? "Ⅱ" : "▶"; if (this.playing) this._playFrame(); }
+  _playFrame() { if (!this.playing) return; const next = this.presentedTick + 1; if (!this.frames.has(next)) { this.togglePlayback(); return; } this.seek(next); setTimeout(() => this._playFrame(), 100); }
+  _previewFrame(preview) { return { schema_version: "terrario.worldstream/v1", session_id: "preview", world_instance_id: preview.instance_manifest.instance_hash, scenario_id: this.worldId, world_seed: this.seed, agent_identity: {}, tick: 0, sequence: 0, simulation_time: preview.world_truth.time || 0, frame_origin: "INITIAL_SNAPSHOT", trace_id: "NOT_AVAILABLE_PREVIEW", views: [{ kind: "WORLD_TRUTH_PRIVILEGED", tick: 0, simulation_time: 0, status: "SYNCHRONIZED", payload: preview.world_truth, provenance: { privileged: true } }, { kind: "AGENT_OBSERVATION", tick: 0, simulation_time: 0, status: "SYNCHRONIZED", payload: preview.agent_view, provenance: { identity_mapping: "NO DIRECT IDENTITY MAPPING" } }, { kind: "OBSERVER_VIEW", tick: 0, simulation_time: 0, status: "SYNCHRONIZED", payload: { world: preview.observer_view }, provenance: { profile: "PREVIEW" } }] }; }
+  _mergeStatus(status) { if (this.session && status) this.session.status = { ...this.session.status, ...status }; } _setMode() { this.container.querySelector("#w2dMode").textContent = this.mode; } _connection(value) { if (this.container) this.container.querySelector("#w2dConnection").textContent = value; } _localError(error) { this._connection("LOCAL_ERROR"); this.onError("WORLDSTREAM_ERROR", error.message, this.mode); }
+  _select(object) { this._meta(object ? `object_id ${object.object_id} · stable World Truth identity` : "No object selected · Agent View has NO DIRECT IDENTITY MAPPING"); } _meta(message) { const el = this.container?.querySelector("#w2dMeta"); if (el) el.textContent = message; }
+  exportDiagnostic() { const source = this.container.querySelector("#w2dTruth"), out = document.createElement("canvas"); out.width = source.width; out.height = source.height + 36; const ctx = out.getContext("2d"); ctx.drawImage(source, 0, 36); ctx.fillStyle = "#111"; ctx.fillRect(0, 0, out.width, 36); ctx.fillStyle = "white"; ctx.font = "14px sans-serif"; ctx.fillText("DIAGNOSTIC VIEW · NOT SCIENTIFIC EVIDENCE", 10, 23); const link = document.createElement("a"); link.download = `world2d-${this.presentedTick}.png`; link.href = out.toDataURL("image/png"); link.click(); }
 }
