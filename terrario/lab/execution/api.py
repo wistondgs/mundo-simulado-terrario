@@ -9,8 +9,8 @@ from terrario.lab.persistence import ArtifactNotFound, ProvenanceConflict
 
 
 class ScientificExecutionAPI:
-    def __init__(self, service, governance_api):
-        self.service, self.governance_api = service, governance_api
+    def __init__(self, service, governance_api, dispatcher=None):
+        self.service, self.governance_api, self.dispatcher = service, governance_api, dispatcher
 
     def dispatch(self, method: str, parts: list[str], query: Mapping[str, list[str]], payload: Mapping[str, Any] | None, headers: Mapping[str, str] | None = None):
         request_id, p, headers = f"req-{secrets.token_hex(8)}", dict(payload or {}), dict(headers or {})
@@ -48,6 +48,9 @@ class ScientificExecutionAPI:
                 return 200, self.service._readiness(self.service.get(execution_id)["preregistration_root_hash"])
             if method == "POST" and parts[2:] == ["commands"]:
                 return 200, self.service.command(execution_id, str(p["command_id"]), int(p["expected_revision"]), str(p["command"]), "local-user")
+            if method == "POST" and parts[2:] == ["dispatch"]:
+                if not self.dispatcher: raise ValueError("scientific dispatcher unavailable")
+                return 200, self.dispatcher.run(execution_id, str(p.get("worker_id", "scientific-dispatcher")))
             if method == "POST" and parts[2:] == ["safe-boundary"]:
                 return 200, self.service.certify_safe_boundary(execution_id, "local-worker")
             if method == "POST" and parts[2:] == ["complete"]:
@@ -58,6 +61,8 @@ class ScientificExecutionAPI:
                 return 200, self.service.verify(execution_id)
             if method == "GET" and parts[2:] == ["artifacts"]:
                 return 200, {"items": self.service.get(execution_id)["artifacts"], "next_cursor": None}
+            if method == "GET" and len(parts) == 5 and parts[2] == "trials" and parts[4] == "frames":
+                return 200, {"items": self.dispatcher.frames_after(execution_id, parts[3], int(p.get("after_sequence", -1))) if self.dispatcher else (), "next_cursor": None}
             if method == "GET" and parts[2:] == ["export"]:
                 return 200, self.service.export_bundle(execution_id)
             if method == "POST" and parts[2:] == ["recover"]:

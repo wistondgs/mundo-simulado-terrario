@@ -63,6 +63,21 @@ def test_execution_rejects_nonexact_root_and_illegal_transition(api):
         assert_transition(ExecutionState.REQUESTED.value, ExecutionState.RUNNING)
 
 
+def test_dispatcher_materializes_one_real_trial_and_seals_its_trace(api):
+    execution, _ = _execution(api)
+    status, started = api.dispatch("POST", f"/api/v1/scientific-executions/{execution['execution_id']}/commands", {
+        "command": "START", "command_id": "dispatch-start", "expected_revision": execution["revision"]})
+    assert status == 200 and started["data"]["state"] == "RUNNING"
+    api.scientific_execution_dispatcher.run(execution["execution_id"], max_trials=1)
+    with api.artifacts._connect() as con:
+        trial = con.execute("SELECT trial_intent_id FROM run_attempts WHERE projected_state='COMPLETED' LIMIT 1").fetchone()[0]
+    frames = api.scientific_execution_dispatcher.frames_after(execution["execution_id"], trial)
+    assert len(frames) > 1 and frames[0]["tick"] == 0
+    assert all(frame["identity"].execution_id == execution["execution_id"] for frame in frames)
+    artifacts = api.scientific_executions.get(execution["execution_id"])["artifacts"]
+    assert {item["artifact_type"] for item in artifacts} >= {"SCIENTIFIC_TRACE", "TRIAL_RESULT"}
+
+
 def test_execution_package_has_no_evidence_or_sandbox_imports():
     root = Path("terrario/lab/execution")
     source = "\n".join(path.read_text() for path in root.glob("*.py"))
