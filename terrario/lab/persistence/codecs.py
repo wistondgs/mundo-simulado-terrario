@@ -115,6 +115,7 @@ def preregistration_draft_from_payload(payload: Mapping[str, Any]) -> Preregistr
         protocol=ProtocolSnapshot(
             **{**protocol, "variant_ids": tuple(protocol["variant_ids"]),
                "agent_ids": tuple(protocol["agent_ids"]),
+               "agent_identity_hashes": dict(protocol["agent_identity_hashes"]),
                "controls": tuple(ControlCommitment(**x) for x in protocol["controls"])},
         ),
         metrics=tuple(MetricCommitment(
@@ -145,6 +146,8 @@ def preregistration_draft_from_payload(payload: Mapping[str, Any]) -> Preregistr
             "conditions": tuple(payload["replication"]["conditions"]),
             "expected_invariances": tuple(payload["replication"]["expected_invariances"])}),
         analysis=AnalysisPlan(**{**payload["analysis"], "comparisons": tuple(payload["analysis"]["comparisons"]),
+            "transformations": tuple(payload["analysis"]["transformations"]),
+            "grouping_variables": tuple(payload["analysis"]["grouping_variables"]),
             "sensitivity_analyses": tuple(payload["analysis"]["sensitivity_analyses"])}),
         stopping=StoppingRule(**payload["stopping"]),
         exclusions=ExclusionPolicy(tuple(ExclusionRule(**x) for x in payload["exclusions"]["rules"]), payload["exclusions"]["post_hoc_disposition"]),

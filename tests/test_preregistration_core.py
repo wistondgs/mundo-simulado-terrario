@@ -119,7 +119,9 @@ def test_postlock_deviation_is_separate_and_root_stays_fixed(api):
     _, _, candidate, _, _, _ = locked_flow(api)
     status, record = api.dispatch("POST", "/api/v1/preregistrations/PR-CORE-1/deviations", {
         "reason": "observed environment differs", "deviation_type": "ENVIRONMENT_DEVIATION",
-        "planned": "CPU", "actual": "CPU constrained", "impact": "review required"})
+        "affected_component": "environment_requirement", "planned_behavior": "CPU",
+        "actual_behavior": "CPU constrained", "scientific_impact_assessment": "review required",
+        "disposition": "QUARANTINE_PENDING_REVIEW"})
     assert status == 201 and record["data"]["classification"] == "POST_LOCK_GOVERNANCE_RECORD"
     assert api.dispatch("GET", "/api/v1/preregistrations/PR-CORE-1")[1]["data"]["scientific_hash"] == candidate["bundle_root_hash"]
 

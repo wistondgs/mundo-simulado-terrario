@@ -88,6 +88,8 @@ class PreregistrationAPI:
                 return 200, self.service.export(pid), None
             if method == "POST" and parts[2:] == ["withdraw"]:
                 return 200, self.service.withdraw(pid, str(p["reason"]), "local-user"), None
+            if method == "POST" and parts[2:] == ["supersede"]:
+                return 200, self.service.supersede(pid, str(p["child_preregistration_id"]), str(p["reason"]), "local-user"), None
             if len(parts) == 3 and parts[2] in {"amendments", "deviations"}:
                 if method == "POST":
                     kind = "PreregistrationAmendment" if parts[2] == "amendments" else "ProtocolDeviation"

@@ -278,6 +278,9 @@ class ReplicationPlan:
 class AnalysisPlan:
     mode: str
     comparisons: tuple[Mapping[str, Any], ...]
+    transformations: tuple[Mapping[str, Any], ...]
+    grouping_variables: tuple[str, ...]
+    aggregation: str
     effect_measure: str
     uncertainty_reporting: str
     statistical_method: str | None
@@ -288,6 +291,7 @@ class AnalysisPlan:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "comparisons", tuple(frozen_mapping(x) for x in self.comparisons))
+        object.__setattr__(self, "transformations", tuple(frozen_mapping(x) for x in self.transformations))
 
 
 @dataclass(frozen=True)
@@ -387,14 +391,22 @@ class ProtocolSnapshot:
     trial_matrix_hash: str
     scenario_id: str
     scenario_hash: str
+    world_definition_hash: str
+    observation_contract_hash: str
+    action_contract_hash: str
+    interventions_hash: str
     variant_ids: tuple[str, ...]
     difficulty_fingerprint: str
     agent_ids: tuple[str, ...]
+    agent_identity_hashes: Mapping[str, str]
     controls: tuple[ControlCommitment, ...]
     step_limit: int
     repetitions: int
     termination_semantics: str
     device_requirement: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "agent_identity_hashes", frozen_mapping(self.agent_identity_hashes))
 
 
 @dataclass(frozen=True)
@@ -529,6 +541,19 @@ class PreregistrationAttestation:
     @property
     def attestation_hash(self) -> str:
         return content_hash(plain(self))
+
+
+@dataclass(frozen=True)
+class ReviewDecision:
+    decision_id: str
+    review_id: str
+    artifact_version_id: str
+    artifact_hash: str
+    decision: ReviewDecisionValue
+    actor_id: str
+    reason: str
+    accepted_warning_hashes: tuple[str, ...]
+    created_at: str
 
 
 @dataclass(frozen=True)

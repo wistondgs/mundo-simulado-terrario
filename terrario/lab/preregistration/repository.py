@@ -502,8 +502,12 @@ class PreregistrationRepository:
         return tuple({**dict(row), "event_payload": json.loads(row["event_payload_json"])} for row in rows)
 
     def verify_audit_chain(self, preregistration_id: str) -> bool:
+        return self.verify_audit_rows(preregistration_id, self.audit_chain(preregistration_id))
+
+    @staticmethod
+    def verify_audit_rows(preregistration_id: str, rows) -> bool:
         previous_hash = None
-        for row in self.audit_chain(preregistration_id):
+        for row in rows:
             content = {
                 "preregistration_id": preregistration_id, "sequence": row["sequence"],
                 "event_type": row["event_type"], "payload": row["event_payload"],
