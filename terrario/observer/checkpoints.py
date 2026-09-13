@@ -7,6 +7,7 @@ Uses safetensors when available, falls back to numpy NPZ.
 from __future__ import annotations
 
 import json
+import os
 import random
 import time
 from pathlib import Path
@@ -46,6 +47,14 @@ class CheckpointManager:
             self.save(agent, step, metadata)
             return True
         return False
+
+    def save_world_frame(self, frame: dict[str, Any], step: int, reason: str) -> Path:
+        """Save a full, rebuildable WorldFrame checkpoint without agent mutation."""
+        target = self.checkpoint_dir / f"frame_{step:08d}.json"
+        temp = target.with_suffix(".tmp")
+        temp.write_text(json.dumps({"step": step, "reason": reason, "frame": frame}, sort_keys=True, separators=(",", ":"), default=str))
+        os.replace(temp, target)
+        return target
 
     def save(self, agent: Any, step: int, metadata: dict | None = None) -> None:
         """Force save a checkpoint.

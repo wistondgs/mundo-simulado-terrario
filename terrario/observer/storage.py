@@ -116,6 +116,19 @@ class StorageManager:
             if len(buf) >= self._flush_threshold:
                 self._flush_buffer(trace_name)
 
+    def append_authoritative_jsonl(self, name: str, record: dict[str, Any]) -> tuple[int, int]:
+        """Durably append one Observer record and return its byte span.
+
+        Live sandbox traces use this primitive instead of buffered Parquet so
+        publication can never precede persistence. Derived indexes may safely
+        be rebuilt from the resulting JSONL.
+        """
+        path = self.run_dir / "events" / f"{name}.jsonl"
+        encoded = json.dumps(record, sort_keys=True, separators=(",", ":"), default=str).encode() + b"\n"
+        with path.open("ab") as handle:
+            offset = handle.tell(); handle.write(encoded); handle.flush(); os.fsync(handle.fileno())
+        return offset, len(encoded)
+
     def flush_all(self) -> None:
         """Flush all buffered events to disk."""
         for trace_name in list(self._buffers.keys()):
