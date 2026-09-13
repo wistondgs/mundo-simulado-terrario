@@ -1,0 +1,14 @@
+{
+  "name": "terrario-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Terrario Scientific Visual Workspace (frontend E2E/unit tests)",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:unit": "node --test tests_frontend/unit/*.test.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}
