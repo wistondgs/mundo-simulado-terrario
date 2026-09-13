@@ -22,7 +22,9 @@ from terrario.lab.analyzer import DeterministicScientificAnalyzer, ExternalAnaly
 from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for, configuration_from_payload, d2_views, generalization_check, patched_configuration
 from terrario.lab.world_contracts import config_diff, validate_configuration
 from terrario.lab.world_authoring import SeedBrowser,compile_draft,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
-from terrario.lab.sandbox_runtime import ExecutionClassification,SandboxService,derive_sandbox,make_spec,serialize_run
+from terrario.lab.sandbox_runtime import ExecutionClassification,derive_sandbox,make_spec,serialize_run
+from terrario.lab.worldstream.service import LiveSandboxService
+from terrario.lab.worldstream.api import WorldStreamAPI
 from terrario.lab.capabilities import CapabilityRegistry,assess_compatibility,audited_agent_assessments,scenario_requirements
 from terrario.lab.agent_inspector import AgentInspector
 from terrario.lab.metrics_observer import MetricRegistry,ObserverRegistry
@@ -54,7 +56,7 @@ class LabAPI:
         d2_entry = self.world_registry.get("D2")
         self.d2_configuration = configuration_for(d2_entry) if d2_entry.scenario else None
         self.compiled_worlds = {e.world_id:compile_registry_world(e.world_id,e.source) for e in self.world_registry.entries() if e.scenario}
-        self.sandbox = SandboxService(self.root/".sandbox")
+        self.sandbox = LiveSandboxService(self.root/".sandbox")
         self.artifacts = ArtifactRepository(data_root or self.root/".terrario")
         self.capabilities = CapabilityRegistry()
         self.agent_inspector = AgentInspector()
@@ -62,6 +64,7 @@ class LabAPI:
         self.observers = ObserverRegistry()
         self.preregistrations = PreregistrationService(self.root, self.artifacts, self.metrics, self.observers)
         self.api_v1 = PreregistrationAPI(self.preregistrations)
+        self.world_stream_api = WorldStreamAPI(self.sandbox, self._sandbox_inputs)
         self.reference_graph = ReferenceGraphService(self.artifacts)
         self.reference_graph_api = ReferenceGraphAPI(self.reference_graph)
         self.cross_graph = CrossGraphService(self.root, self.artifacts)
@@ -71,6 +74,10 @@ class LabAPI:
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
         if parts[:2] == ["api", "v1"]:
+            if len(parts) >= 3 and parts[2] == "world-stream":
+                if method != "GET" and headers:
+                    self.api_v1._authorize(headers)
+                return self.world_stream_api.dispatch(method, parts[3:], query, payload)
             if len(parts) >= 3 and parts[2] == "reference-graph":
                 return self.reference_graph_api.dispatch(method, parts[3:], query, payload, headers)
             if len(parts) >= 3 and parts[2] == "cross-graph":
@@ -302,6 +309,42 @@ class LabAPI:
 def handler_factory(api: LabAPI, static_dir: Path):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            parsed = urlparse(self.path)
+            stream_parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
+            if len(stream_parts) == 6 and stream_parts[:3] == ["api", "v1", "world-stream"] and stream_parts[3] == "sessions" and stream_parts[5] == "stream":
+                acquired = False
+                try:
+                    api.api_v1._authorize(dict(self.headers))
+                    session_id = stream_parts[4]
+                    api.sandbox.acquire_subscriber(session_id)
+                    acquired = True
+                    after = int(parse_qs(parsed.query).get("after_sequence", ["-1"])[0])
+                    self.send_response(200); self.send_header("Content-Type", "text/event-stream")
+                    self.send_header("Cache-Control", "no-cache, no-transform"); self.send_header("Connection", "keep-alive")
+                    self.send_header("X-Accel-Buffering", "no"); self.end_headers()
+                    last_heartbeat = 0.0
+                    while True:
+                        rows = api.sandbox.envelopes_after(session_id, after)
+                        if rows:
+                            for envelope in rows:
+                                self.wfile.write(f"id: {envelope['sequence']}\nevent: {envelope['message_type']}\ndata: {json.dumps(envelope, separators=(',', ':'))}\n\n".encode())
+                                after = max(after, int(envelope["sequence"]))
+                            self.wfile.flush()
+                        now = __import__("time").monotonic()
+                        if now - last_heartbeat >= 5:
+                            heartbeat = api.sandbox.heartbeat(session_id)
+                            self.wfile.write(f"id: {heartbeat['sequence']}\nevent: HEARTBEAT\ndata: {json.dumps(heartbeat, separators=(',', ':'))}\n\n".encode()); self.wfile.flush()
+                            after, last_heartbeat = heartbeat["sequence"], now
+                        ctx = api.sandbox._live[session_id]
+                        with ctx.changed: ctx.changed.wait(timeout=1.0)
+                except (BrokenPipeError, ConnectionResetError):
+                    return
+                except PermissionError as exc:
+                    self.send_error(403, str(exc)); return
+                except ValueError as exc:
+                    self.send_error(429, str(exc)); return
+                finally:
+                    if acquired: api.sandbox.release_subscriber(session_id)
             if self.path.startswith("/api/"):
                 status, payload = api.dispatch("GET", self.path, headers=dict(self.headers))
                 body = json.dumps(payload).encode()
@@ -320,7 +363,10 @@ def handler_factory(api: LabAPI, static_dir: Path):
             try: payload=json.loads(raw or b"{}")
             except json.JSONDecodeError as exc: self.send_error(400,str(exc)); return
             status,result=api.dispatch("POST",self.path,payload,dict(self.headers)); body=json.dumps(result).encode()
-            self.send_response(status); self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(body))); self.end_headers(); self.wfile.write(body)
+            try:
+                self.send_response(status); self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(body))); self.end_headers(); self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                return
         def log_message(self, fmt, *args): pass
     return Handler
 
