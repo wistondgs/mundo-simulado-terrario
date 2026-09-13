@@ -126,8 +126,11 @@ The static Lab gains a separate ES module with overview, builder, seeds, matrix,
 ## Verification
 
 - Baseline before this phase: `336 passed, 1 skipped`.
-- Focused preregistration tests: 13 passed.
-- Full suite: `349 passed, 1 skipped`.
+- Baseline before the closing corrections: `349 passed, 1 skipped`.
+- Focused preregistration tests: 13 core + 18 advanced passed (31 total).
+- Full suite at close: `367 passed, 1 skipped`, 0 unexplained failures/regressions.
+- Historical regression (theory snapshot, scientific review, evidence graph, A0–A4, H-ADAPT integrity, persistence, sandbox, World Lab, Experiment Composer): verified by hash/diff/tests; H-ADAPT not executed, integrity only.
+- Acceptance-gate invariant audit: hash model, structured verifier, four-layer SQL immutability, six-process concurrency, evidence firewall, amendment cycle, import/export, backup/restore — all PASS with concrete evidence.
 - Static Python compilation: passed.
 - `git diff --check`: passed.
 - Live HTTP HTML/module/health/OpenAPI checks: passed.
@@ -138,4 +141,4 @@ The static Lab gains a separate ES module with overview, builder, seeds, matrix,
 
 ## Next gate
 
-`REGISTRY-HARDENING-01`. Before it begins, the browser E2E/accessibility gate for this UX remains an explicit known limitation unless a browser runner is made available.
+`SCIENTIFIC-REFERENCE-GRAPH-01` followed by `CROSS-GRAPH-CORE-01`. The browser E2E/accessibility gate for this UX remains an explicit known limitation unless a browser runner is made available. The gate connecting a locked preregistration to a real scientific execution is intentionally deferred until scientific traceability (Reference Graph + Cross-Graph) is structured.
