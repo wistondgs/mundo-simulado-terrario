@@ -21,8 +21,8 @@ from terrario.world.state import WorldStateManager
 
 TRACE_SCHEMA="terrario.sandbox.trace/v1"; MAX_STEPS=2000
 class ExecutionClassification(StrEnum): PREVIEW_ONLY="PREVIEW_ONLY"; ENGINEERING_SANDBOX="ENGINEERING_SANDBOX"; SCIENTIFIC="SCIENTIFIC"
-class RunState(StrEnum): CREATED="CREATED"; VALIDATED="VALIDATED"; READY="READY"; RUNNING="RUNNING"; PAUSED="PAUSED"; COMPLETED="COMPLETED"; TERMINATED="TERMINATED"; FAILED="FAILED"; INVALIDATED="INVALIDATED"
-_TRANS={RunState.CREATED:{RunState.VALIDATED,RunState.INVALIDATED},RunState.VALIDATED:{RunState.READY,RunState.INVALIDATED},RunState.READY:{RunState.RUNNING,RunState.TERMINATED},RunState.RUNNING:{RunState.PAUSED,RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED},RunState.PAUSED:{RunState.RUNNING,RunState.TERMINATED},RunState.COMPLETED:set(),RunState.TERMINATED:set(),RunState.FAILED:set(),RunState.INVALIDATED:set()}
+class RunState(StrEnum): CREATED="CREATED"; VALIDATED="VALIDATED"; READY="READY"; RUNNING="RUNNING"; PAUSED="PAUSED"; STOPPING="STOPPING"; COMPLETED="COMPLETED"; TERMINATED="TERMINATED"; FAILED="FAILED"; INVALIDATED="INVALIDATED"
+_TRANS={RunState.CREATED:{RunState.VALIDATED,RunState.INVALIDATED},RunState.VALIDATED:{RunState.READY,RunState.INVALIDATED},RunState.READY:{RunState.RUNNING,RunState.STOPPING},RunState.RUNNING:{RunState.PAUSED,RunState.COMPLETED,RunState.STOPPING,RunState.FAILED},RunState.PAUSED:{RunState.RUNNING,RunState.STOPPING},RunState.STOPPING:{RunState.TERMINATED,RunState.FAILED},RunState.COMPLETED:set(),RunState.TERMINATED:set(),RunState.FAILED:set(),RunState.INVALIDATED:set()}
 
 class SandboxBoundaryError(ValueError): code="PROTOCOL_BOUNDARY_ERROR"
 class SandboxValidationError(ValueError): code="CONFIG_ERROR"
@@ -61,6 +61,7 @@ class EvidenceFirewall:
 class SandboxStorage:
     def __init__(self,root:str|Path): self.root=Path(root); self.root.mkdir(parents=True,exist_ok=True)
     def write(self,run:SandboxRun):
+        self.root.mkdir(parents=True,exist_ok=True)
         target=self.root/f"{run.run_id}.json"; payload=serialize_run(run); fd,temp=tempfile.mkstemp(prefix=run.run_id,suffix=".tmp",dir=self.root)
         try:
             with os.fdopen(fd,"w") as f: json.dump(payload,f,sort_keys=True); f.flush(); os.fsync(f.fileno())
@@ -127,7 +128,7 @@ class SandboxService:
     def stop(self,run_id):
         run=self.get(run_id)
         if run.state in {RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED}: raise SandboxValidationError(f"cannot stop {run.state}")
-        run.transition(RunState.TERMINATED);run.termination_reason="USER_STOP";self.storage.write(run);return run
+        run.transition(RunState.STOPPING);run.termination_reason="USER_STOP";run.transition(RunState.TERMINATED);self.storage.write(run);return run
     def restart(self,run_id):
         old=self.get(run_id); compiled=self._runtime[run_id]["compiled"] if "compiled" in self._runtime[run_id] else None
         if compiled is None: raise SandboxValidationError("compiled provenance unavailable")

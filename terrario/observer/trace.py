@@ -377,6 +377,10 @@ class TransitionTrace:
     parameter_deltas: dict[str, float] | None = None
     observer_annotations: dict[str, Any] | None = None
     scientific_state: dict[str, Any] | None = None
+    sequence: int | None = None
+    simulation_time: float | None = None
+    frame_origin: str | None = None
+    schema_version: str = "terrario.observer.transition/v2"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -393,6 +397,8 @@ class TransitionTrace:
             "parameter_deltas": _serialize_value(self.parameter_deltas),
             "observer_annotations": _serialize_value(self.observer_annotations),
             "scientific_state": _serialize_value(self.scientific_state),
+            "sequence": self.sequence, "simulation_time": self.simulation_time,
+            "frame_origin": self.frame_origin, "schema_version": self.schema_version,
         }
 
 

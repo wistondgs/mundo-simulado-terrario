@@ -50,7 +50,7 @@ class GeneratedWorldInstance:
 
 @dataclass(frozen=True)
 class WorldPreview:
-    classification:str; instance_manifest:Mapping[str,Any]; topology:Mapping[str,Any]; observer_view:Mapping[str,Any]; agent_view:Mapping[str,Any]; rule_schedule:tuple[Mapping[str,Any],...]; intervention_points:tuple[Mapping[str,Any],...]; statistics:Mapping[str,Any]
+    classification:str; instance_manifest:Mapping[str,Any]; topology:Mapping[str,Any]; world_truth:Mapping[str,Any]; observer_view:Mapping[str,Any]; agent_view:Mapping[str,Any]; rule_schedule:tuple[Mapping[str,Any],...]; intervention_points:tuple[Mapping[str,Any],...]; statistics:Mapping[str,Any]
 
 def draft_from_legacy(identifier:str,path:str|Path)->WorldDraft:
     raw=yaml.safe_load(Path(path).read_text()).get("scenario",{}); prov=WorldProvenance("LEGACY_ADAPTER","editable draft projection","RUNTIME",str(path))
@@ -109,7 +109,7 @@ def preview(c:CompiledWorld,seed:int)->WorldPreview:
     instance=generate_instance(c,seed); s=deepcopy(dict(instance.structure)); manager=WorldStateManager(build_world_state(s),s.get("duration",500),s.get("max_energy",100),s.get("step_energy_cost",0),s.get("expose_time_fraction",True)); obs=manager.get_observation(0,s.get("view_radius",2),s.get("num_channels",4))
     agent={"channels":obs.channels.tolist(),"mask":obs.mask.tolist(),"agent_energy":obs.agent_energy,"time_fraction":obs.time_fraction}
     observer=manager.serialize()
-    return WorldPreview("PREVIEW_ONLY",instance.manifest(),{"type":c.definition.topology,"dimensions":c.definition.dimensions},observer,agent,tuple(s.get("changes",[])),tuple({"id":x.intervention_id,"target":x.target} for x in ()),instance.statistics)
+    return WorldPreview("PREVIEW_ONLY",instance.manifest(),{"type":c.definition.topology,"dimensions":c.definition.dimensions},observer,observer,agent,tuple(s.get("changes",[])),tuple({"id":x.intervention_id,"target":x.target} for x in ()),instance.statistics)
 
 class SeedBrowser:
     def __init__(self,c:CompiledWorld): self.compiled=c
