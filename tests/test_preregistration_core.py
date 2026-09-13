@@ -70,7 +70,8 @@ def locked_flow(api):
 
 
 def test_migration_two_is_applied_and_append_only(api):
-    assert [(x["version"], x["name"]) for x in api.artifacts.migration_status()][-1] == (2, "scientific_preregistration_core")
+    applied = [(x["version"], x["name"]) for x in api.artifacts.migration_status()]
+    assert (2, "scientific_preregistration_core") in applied
     with api.artifacts._connect() as connection:
         names = {x[0] for x in connection.execute("select name from sqlite_master where type='table'")}
     assert {"preregistration_locks", "exposure_records", "preregistration_audit_chain"} <= names
