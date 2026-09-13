@@ -162,3 +162,48 @@ def test_subscriber_limit_is_enforced_and_released(tmp_path):
     with pytest.raises(ValueError): service.acquire_subscriber(run.run_id)
     for _ in range(6): service.release_subscriber(run.run_id)
     assert service._live[run.run_id].subscribers == 0
+
+
+def test_resync_preserves_session_identity_and_emits_a_new_snapshot(tmp_path):
+    service, run = live(tmp_path)
+    service.step(run.run_id)
+    envelope = service.resync(run.run_id, "TEST_FAULT")
+    assert envelope["message_type"] == "RESYNC"
+    assert envelope["session_id"] == run.run_id
+    assert envelope["payload"]["frame"]["frame_origin"] == "RESYNC_SNAPSHOT"
+
+
+def test_concurrent_commands_apply_at_most_one_transition(tmp_path):
+    service, run = live(tmp_path)
+    def command(command_id):
+        return service.command(SessionCommand(run.run_id, command_id, "STEP", 0))
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(command, f"race-{index}") for index in range(2)]
+    outcomes = []
+    for future in futures:
+        try: outcomes.append(future.result())
+        except SessionConflict: outcomes.append("CONFLICT")
+    assert len([x for x in outcomes if x != "CONFLICT"]) == 1
+    assert service._live[run.run_id].tick == 1
+
+
+def test_worker_failure_is_explicit_and_does_not_leave_a_running_session(tmp_path, monkeypatch):
+    service, run = live(tmp_path)
+    monkeypatch.setattr(service, "_advance", lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("worker fault")))
+    service.command(SessionCommand(run.run_id, "start", "START", 0))
+    worker = service._live[run.run_id].worker
+    assert worker is not None
+    worker.join(timeout=1)
+    assert service.get(run.run_id).state.value == "FAILED"
+    assert service.get(run.run_id).error["category"] == "WORLDSTREAM_WORKER_FAILURE"
+
+
+def test_active_session_limit_recovers_after_stop(tmp_path):
+    service, first = live(tmp_path)
+    runtime = service._runtime[first.run_id]
+    created = [first]
+    for _ in range(3): created.append(service.create(first.spec, runtime["config"], runtime["compiled"]))
+    with pytest.raises(ValueError, match="active session limit"):
+        service.create(first.spec, runtime["config"], runtime["compiled"])
+    service.stop(first.run_id)
+    assert service.create(first.spec, runtime["config"], runtime["compiled"]).run_id not in {run.run_id for run in created}

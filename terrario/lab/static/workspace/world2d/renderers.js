@@ -59,13 +59,26 @@ export class WebGL2Renderer {
 }
 
 export class ResilientRenderer {
-  initialize(canvas, { preferWebGL = false, onFallback } = {}) {
-    this.canvas = canvas; this.onFallback = onFallback || (() => {}); this.preferWebGL = preferWebGL;
+  initialize(canvas, { preferWebGL = false, onFallback, onCanvasReplaced } = {}) {
+    this.canvas = canvas; this.onFallback = onFallback || (() => {}); this.onCanvasReplaced = onCanvasReplaced || (() => {}); this.preferWebGL = preferWebGL;
     try { this.impl = preferWebGL ? new WebGL2Renderer() : new Canvas2DRenderer(); this.impl.initialize(canvas); }
     catch (error) { this.impl = new Canvas2DRenderer(); this.impl.initialize(canvas); this.onFallback(error); }
     canvas.addEventListener("webglcontextlost", (event) => { event.preventDefault(); this.fallback("WEBGL_CONTEXT_LOST"); });
   }
-  fallback(reason) { this.impl?.dispose(); this.impl = new Canvas2DRenderer(); this.impl.initialize(this.canvas); this.onFallback(new Error(reason)); }
+  fallback(reason) {
+    const size = { width: this.impl?.width, height: this.impl?.height, ratio: this.impl?.ratio };
+    this.impl?.dispose();
+    // A canvas that has owned a WebGL context cannot reliably acquire a 2D
+    // context after context loss. Replace that presentation node only; the
+    // renderer object, session, trace and sibling views remain untouched.
+    if (!this.canvas.getContext("2d")) {
+      const previous = this.canvas, replacement = previous.cloneNode(false);
+      previous.replaceWith(replacement); this.canvas = replacement; this.onCanvasReplaced(replacement, previous);
+    }
+    this.impl = new Canvas2DRenderer(); this.impl.initialize(this.canvas);
+    if (Number.isFinite(size.width) && Number.isFinite(size.height)) this.impl.resize(size.width, size.height, size.ratio);
+    this.onFallback(new Error(reason));
+  }
   resize(...args) { this.impl.resize(...args); } setCamera(value) { this.impl.setCamera(value); }
   renderFrame(value) { try { this.impl.renderFrame(value); } catch (error) { this.fallback(error.message); this.impl.renderFrame(value); } }
   pick(...args) { return this.impl.pick(...args); } metrics() { return this.impl.metrics(); } dispose() { this.impl.dispose(); }

@@ -64,4 +64,23 @@ test.describe("accessibility", () => {
     });
     expect(hasRule).toBe(true);
   });
+
+  test("World2D live and playback controls work keyboard-only with announced state", async ({ page }) => {
+    await page.goto("/workspace/index.html"); await page.waitForTimeout(1200);
+    const panel = page.locator('[data-panel="world"]');
+    await expect(panel.locator("#w2dStepLabel")).toHaveAttribute("role", "status");
+    await expect(panel.locator("#w2dTimeline")).toHaveAttribute("aria-label", "Observer event timeline");
+    await expect(panel.locator("#w2dDiff")).toHaveAttribute("aria-label", "Derived frame comparison");
+    await expect(panel.locator("#w2dHistory")).toHaveAttribute("aria-label", "Selected World Truth object history");
+    for (const control of ["#w2dLive", "#w2dNext", "#w2dStart", "#w2dPause", "#w2dResume", "#w2dStop", "#w2dTrace"]) {
+      await panel.locator(control).focus(); await page.keyboard.press("Enter");
+      if (control === "#w2dLive") await expect(panel.locator("#w2dConnection")).toHaveText("CONNECTED", { timeout: 10_000 });
+      if (control === "#w2dNext") await expect(panel.locator("#w2dStepLabel")).toContainText("tick 1", { timeout: 10_000 });
+      if (control === "#w2dStart") await page.waitForTimeout(80);
+      if (control === "#w2dResume") await page.waitForTimeout(80);
+      if (control === "#w2dTrace") await expect(panel.locator("#w2dMode")).toHaveText("TRACE PLAYBACK");
+    }
+    await panel.locator("#w2dScrub").focus(); await page.keyboard.press("ArrowLeft");
+    await panel.locator("#w2dNext").focus(); await page.keyboard.press("Enter");
+  });
 });

@@ -49,12 +49,14 @@ export class BoundedFrameHistory {
   get size() { return this.frames.size; }
 }
 
-export function initialTemporalState(sessionId = null) {
-  return { sessionId, sequence: -1, frameSequence: -1, frame: null, status: "STALE", events: [], gap: null, error: null };
+export function initialTemporalState(sessionId = null, worldInstanceId = null) {
+  return { sessionId, worldInstanceId, sequence: -1, frameSequence: -1, frame: null, status: "STALE", events: [], gap: null, error: null };
 }
 
 export function reduceEnvelope(state, raw) {
-  const envelope = validateEnvelope(raw);
+  let envelope;
+  try { envelope = validateEnvelope(raw); }
+  catch (error) { return { ...state, status: "LOCAL_ERROR", error: error.message }; }
   if (state.sessionId && envelope.session_id !== state.sessionId) return { ...state, error: "WRONG_SESSION" };
   if (envelope.sequence <= state.sequence) return state; // duplicate/out-of-order is inert
   if (state.sequence >= 0 && envelope.sequence !== state.sequence + 1) {
@@ -64,11 +66,19 @@ export function reduceEnvelope(state, raw) {
   if (envelope.message_type === "GAP") return { ...next, status: "RESYNCING", gap: envelope.payload };
   if (envelope.message_type === "EVENT") return { ...next, events: [...state.events, envelope.payload.event] };
   if (["SNAPSHOT", "RESYNC"].includes(envelope.message_type)) {
-    return { ...next, frame: validateWorldFrame(envelope.payload.frame), frameSequence: envelope.sequence, status: "SYNCHRONIZED", gap: null };
+    let frame;
+    try { frame = validateWorldFrame(envelope.payload.frame); }
+    catch (error) { return { ...next, status: "LOCAL_ERROR", error: error.message }; }
+    if (state.worldInstanceId && frame.world_instance_id !== state.worldInstanceId) return { ...next, status: "RESYNCING", error: "WRONG_WORLD_INSTANCE", gap: { expectedWorldInstance: state.worldInstanceId, receivedWorldInstance: frame.world_instance_id } };
+    return { ...next, worldInstanceId: state.worldInstanceId || frame.world_instance_id, frame, frameSequence: envelope.sequence, status: "SYNCHRONIZED", gap: null };
   }
   if (envelope.message_type === "DELTA") {
     if (envelope.payload.base_sequence !== state.frameSequence) return { ...next, status: "RESYNCING", gap: { expectedBase: state.frameSequence, receivedBase: envelope.payload.base_sequence } };
-    return { ...next, frame: validateWorldFrame(envelope.payload.frame), frameSequence: envelope.sequence, status: "SYNCHRONIZED", gap: null };
+    let frame;
+    try { frame = validateWorldFrame(envelope.payload.frame); }
+    catch (error) { return { ...next, status: "LOCAL_ERROR", error: error.message }; }
+    if (state.worldInstanceId && frame.world_instance_id !== state.worldInstanceId) return { ...next, status: "RESYNCING", error: "WRONG_WORLD_INSTANCE", gap: { expectedWorldInstance: state.worldInstanceId, receivedWorldInstance: frame.world_instance_id } };
+    return { ...next, worldInstanceId: state.worldInstanceId || frame.world_instance_id, frame, frameSequence: envelope.sequence, status: "SYNCHRONIZED", gap: null };
   }
   return next;
 }

@@ -262,7 +262,13 @@ class LiveSandboxService(SandboxService):
             while not ctx.stop_requested and self.get(run_id).state == RunState.RUNNING:
                 try:
                     self._advance(run_id, continuous=True)
-                except Exception:
+                except Exception as exc:
+                    run = self.get(run_id)
+                    if run.state == RunState.RUNNING:
+                        run.error = {"category": "WORLDSTREAM_WORKER_FAILURE", "message": str(exc)}
+                        run.transition(RunState.FAILED); self.storage.write(run)
+                        self._emit(run_id, "STATUS", self._status_payload(run_id))
+                        self._emit(run_id, "SESSION_END", self._status_payload(run_id))
                     break
                 time.sleep(0.03)
         ctx.worker = threading.Thread(target=work, name=f"worldstream-{run_id}", daemon=True); ctx.worker.start()
