@@ -123,6 +123,8 @@ class CrossGraphService:
              link.assertion_class.value, link.state.value, link.provenance, link.rule_id,
              link.rule_version, link.supersedes_link_id, link.link_hash, link.effective_at,
              link.created_at, link.created_by))
+        # Any canonical link write invalidates the derived adjacency index (O(1)).
+        self._invalidate_adjacency_index(connection)
 
     def review_candidate(self, link_id: str, approve: bool, actor_id: str,
                          reason: str) -> CrossDomainLink:
@@ -212,6 +214,92 @@ class CrossGraphService:
             return tuple(dict(r) for r in connection.execute("SELECT * FROM cross_links"))
         with self.artifacts._connect() as connection:
             return tuple(dict(r) for r in connection.execute("SELECT * FROM cross_links"))
+
+    # ------------------------------------------- materialized adjacency index
+    def _link_set_hash(self, connection) -> str:
+        rows = connection.execute(
+            "SELECT link_hash FROM cross_links WHERE state=? ORDER BY link_hash",
+            (LinkState.ACTIVE.value,)).fetchall()
+        return content_hash([row["link_hash"] for row in rows])
+
+    def _invalidate_adjacency_index(self, connection) -> None:
+        """Mark the derived index stale (O(1)) whenever the canonical links change."""
+        connection.execute("DELETE FROM cross_adjacency_meta")
+
+    def adjacency_index_stale(self, verify_hash: bool = False) -> bool:
+        """Fast staleness check for the query path.
+
+        With `verify_hash=False` this is O(1): the index is stale when its meta
+        row is absent (invalidated on every canonical link write). With
+        `verify_hash=True` it additionally recomputes the canonical link-set
+        hash (O(E)) to detect a corrupt index — used by the integrity verifier,
+        not by interactive navigation.
+        """
+        with self.artifacts._connect() as connection:
+            meta = connection.execute(
+                "SELECT built_from_link_set_hash FROM cross_adjacency_meta WHERE id=1").fetchone()
+            if meta is None:
+                return True
+            if not verify_hash:
+                return False
+            return str(meta["built_from_link_set_hash"]) != self._link_set_hash(connection)
+
+    def rebuild_adjacency_index(self) -> Mapping[str, Any]:
+        """Rebuild the derived adjacency index from the canonical active links.
+
+        The index is non-authoritative: it is discarded and rebuilt from
+        cross_links, and stamped with the link-set hash it was built from.
+        """
+        with self.artifacts.transaction() as connection:
+            active = self.active_links(connection)
+            connection.execute("DELETE FROM cross_adjacency_index")
+            connection.execute("DELETE FROM cross_adjacency_meta")
+            for link in active:
+                source = self._ref_from_json(link["source_ref_json"])
+                target = self._ref_from_json(link["target_ref_json"])
+                connection.execute(
+                    "INSERT INTO cross_adjacency_index(link_id,source_key,target_key,relation_type,"
+                    "source_domain,target_domain,source_entity_type,target_entity_type,link_hash)"
+                    " VALUES(?,?,?,?,?,?,?,?,?)",
+                    (link["link_id"], link["source_key"], link["target_key"], link["relation_type"],
+                     source.domain.value, target.domain.value, source.entity_type,
+                     target.entity_type, link["link_hash"]))
+            link_set_hash = self._link_set_hash(connection)
+            connection.execute(
+                "INSERT INTO cross_adjacency_meta(id,built_from_link_set_hash,link_count,built_at)"
+                " VALUES(1,?,?,?)",
+                (link_set_hash, len(active), self.artifacts.now()))
+        return {"rebuilt": True, "link_count": len(active),
+                "built_from_link_set_hash": link_set_hash}
+
+    def ensure_adjacency_index(self) -> None:
+        """Rebuild the derived index once if stale (cheap per-operation guard)."""
+        if self.adjacency_index_stale():
+            self.rebuild_adjacency_index()
+
+    def adjacency(self, key: str, direction: str = "out",
+                  relation_types: tuple[str, ...] = (),
+                  _ensure: bool = False) -> tuple[Mapping[str, Any], ...]:
+        """Read the derived adjacency index via per-node SQL lookups.
+
+        Callers performing many lookups (e.g. a traversal) should call
+        `ensure_adjacency_index()` once up front and leave `_ensure` False so the
+        staleness check is not repeated per lookup. With `_ensure=True` a single
+        ad-hoc lookup rebuilds the index first if stale.
+        """
+        if _ensure:
+            self.ensure_adjacency_index()
+        column = "source_key" if direction == "out" else "target_key"
+        with self.artifacts._connect() as connection:
+            if relation_types:
+                marks = ",".join("?" for _ in relation_types)
+                rows = connection.execute(
+                    f"SELECT * FROM cross_adjacency_index WHERE {column}=?"
+                    f" AND relation_type IN ({marks})", (key, *relation_types)).fetchall()
+            else:
+                rows = connection.execute(
+                    f"SELECT * FROM cross_adjacency_index WHERE {column}=?", (key,)).fetchall()
+            return tuple(dict(row) for row in rows)
 
     @staticmethod
     def _effective_states(rows: tuple[Mapping[str, Any], ...]) -> dict[str, str]:
@@ -314,6 +402,29 @@ class CrossGraphService:
                 " ON c.parent_snapshot_id=s.snapshot_id WHERE c.snapshot_id IS NULL"
                 " ORDER BY s.created_at DESC LIMIT 1").fetchone()
             return dict(row) if row else None
+
+    # --------------------------------------------------------- query cache
+    def cached_query(self, query_spec: Mapping[str, Any], compute) -> Any:
+        """Derived cache for pinned queries, keyed by query + snapshot + manifest.
+
+        The cache is non-authoritative and only ever used for PINNED_REPRODUCIBLE
+        queries (a pinned snapshot/manifest pair). Exploratory-latest queries are
+        never cached here. The key always includes the current cross-graph
+        snapshot root and federation manifest hash, so a result is never served
+        from the wrong snapshot.
+        """
+        if not hasattr(self, "_query_cache"):
+            self._query_cache = {}
+        latest = self.latest_snapshot() or {}
+        snapshot_root = latest.get("root_hash")
+        manifest_hash = latest.get("federation_manifest_hash")
+        key = content_hash({"query": plain(query_spec), "snapshot_root": snapshot_root,
+                            "federation_manifest_hash": manifest_hash})
+        if key in self._query_cache:
+            return self._query_cache[key]
+        result = compute()
+        self._query_cache[key] = result
+        return result
 
     # -------------------------------------------------------------- trace break
     def record_trace_break(self, from_ref: CrossDomainEntityRef, expected_next_domain: str,

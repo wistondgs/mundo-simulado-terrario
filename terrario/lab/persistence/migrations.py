@@ -836,4 +836,39 @@ BEFORE DELETE ON cross_trace_breaks BEGIN
 END;
 """,
     ),
+    Migration(
+        6,
+        "cross_graph_materialized_adjacency",
+        r"""
+-- Derived, non-authoritative adjacency index for interactive traversal.
+-- This table is a rebuildable cache: it is never a source of truth, may be
+-- discarded and rebuilt from cross_links, and is invalidated whenever the
+-- canonical link set changes. It intentionally has no append-only triggers.
+CREATE TABLE IF NOT EXISTS cross_adjacency_index (
+    link_id TEXT PRIMARY KEY,
+    source_key TEXT NOT NULL,
+    target_key TEXT NOT NULL,
+    relation_type TEXT NOT NULL,
+    source_domain TEXT NOT NULL,
+    target_domain TEXT NOT NULL,
+    source_entity_type TEXT NOT NULL,
+    target_entity_type TEXT NOT NULL,
+    link_hash TEXT NOT NULL CHECK (length(link_hash) = 64)
+);
+CREATE INDEX IF NOT EXISTS cross_adj_outbound_idx ON cross_adjacency_index(source_key);
+CREATE INDEX IF NOT EXISTS cross_adj_inbound_idx ON cross_adjacency_index(target_key);
+CREATE INDEX IF NOT EXISTS cross_adj_relation_idx ON cross_adjacency_index(relation_type);
+CREATE INDEX IF NOT EXISTS cross_adj_source_domain_idx ON cross_adjacency_index(source_domain);
+CREATE INDEX IF NOT EXISTS cross_adj_target_domain_idx ON cross_adjacency_index(target_domain);
+
+-- Tracks which canonical link-set the derived index was built from, so a stale
+-- or corrupt index can be detected and discarded.
+CREATE TABLE IF NOT EXISTS cross_adjacency_meta (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    built_from_link_set_hash TEXT NOT NULL CHECK (length(built_from_link_set_hash) = 64),
+    link_count INTEGER NOT NULL,
+    built_at TEXT NOT NULL
+);
+""",
+    ),
 )

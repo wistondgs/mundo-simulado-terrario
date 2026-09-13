@@ -64,6 +64,41 @@ def build_links(service: CrossGraphService, count: int) -> None:
                  None, None, None, link_hash, None, now, "perf"))
 
 
+def build_sparse_links(service: CrossGraphService, count: int, fanout: int = 4) -> None:
+    """Insert `count` ACTIVE cross-links as a sparse graph (low per-node fan-out).
+
+    This is the realistic interactive-navigation case: many nodes, each with a
+    small neighborhood, rather than one node with a 100k fan-out. Endpoints are
+    synthetic (traversal does not require them to resolve).
+    """
+    now = service.artifacts.now()
+    domains = [Domain.SCENARIO, Domain.WORLD, Domain.THEORY, Domain.REFERENCE,
+               Domain.HYPOTHESIS, Domain.EXPERIMENT]
+    relations = ["INSTANTIATES_WORLD", "MAPS_TO", "DERIVED_FROM", "TESTS",
+                 "USES_SCENARIO", "MOTIVATES"]
+    with service.artifacts.transaction() as connection:
+        for index in range(count):
+            source = _ref(domains[index % len(domains)], "Entity", f"N{index}")
+            target = _ref(domains[(index + 1) % len(domains)], "Entity",
+                          f"N{(index + 1 + (index % fanout)) % max(count, 2)}")
+            relation = relations[index % len(relations)]
+            link_id = service.artifacts._identifier("link")
+            body = {"link_id": link_id, "source_ref": plain(source), "target_ref": plain(target),
+                    "relation_type": relation, "assertion_class": "USER_ASSERTED",
+                    "state": "ACTIVE", "provenance": "synthetic sparse perf", "created_at": now,
+                    "created_by": "perf", "rule_id": None, "rule_version": None,
+                    "supersedes_link_id": None, "effective_at": None}
+            link_hash = content_hash(body)
+            connection.execute(
+                "INSERT INTO cross_links(link_id,source_ref_json,target_ref_json,source_key,"
+                "target_key,relation_type,assertion_class,state,provenance,rule_id,rule_version,"
+                "supersedes_link_id,link_hash,effective_at,created_at,created_by)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (link_id, json.dumps(plain(source)), json.dumps(plain(target)), source.key(),
+                 target.key(), relation, "USER_ASSERTED", "ACTIVE", "synthetic sparse perf",
+                 None, None, None, link_hash, None, now, "perf"))
+
+
 def _time(fn, repeat=1):
     samples, result = [], None
     for _ in range(repeat):

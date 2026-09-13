@@ -76,6 +76,50 @@ class TraversalEngine:
             return True
         return key.split(":", 1)[0] in budget.allowed_domains
 
+    # -------------------------------------------------- indexed BFS (fast)
+    def bfs_indexed(self, start: CrossDomainEntityRef, budget: TraversalBudget,
+                    reverse: bool = False) -> Mapping[str, Any]:
+        """BFS over the materialized adjacency index (per-node SQL lookups).
+
+        Avoids loading the full link set; suitable for interactive navigation.
+        The index is derived and rebuilt from cross_links when stale, so this
+        path is never authoritative but always reflects the canonical links.
+        """
+        start_key = start.key()
+        direction = "in" if reverse else "out"
+        # Guard once per traversal, not per lookup: rebuild the derived index if
+        # the canonical link set changed since it was built.
+        self.service.ensure_adjacency_index()
+        visited, order, edge_count = {start_key}, [start_key], 0
+        queue, depth_of = deque([start_key]), {start_key: 0}
+        deadline = time.monotonic() + budget.timeout_s
+        truncated = False
+        while queue:
+            if time.monotonic() > deadline or len(visited) >= budget.max_nodes:
+                truncated = True
+                break
+            current = queue.popleft()
+            if depth_of[current] >= budget.max_depth:
+                continue
+            for row in self.service.adjacency(current, direction,
+                                              budget.allowed_relations):
+                neighbor = row["target_key"] if direction == "out" else row["source_key"]
+                if not self._domain_allowed(neighbor, budget):
+                    continue
+                edge_count += 1
+                if edge_count >= budget.max_edges:
+                    truncated = True
+                    break
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    depth_of[neighbor] = depth_of[current] + 1
+                    order.append(neighbor)
+                    queue.append(neighbor)
+        return {"start": start_key, "mode": "reverse" if reverse else "forward",
+                "nodes": order, "node_count": len(order), "edge_count": edge_count,
+                "truncated": truncated, "depth_reached": max(depth_of.values(), default=0),
+                "indexed": True}
+
     # ---------------------------------------------------------------- BFS
     def bfs(self, start: CrossDomainEntityRef, budget: TraversalBudget,
             reverse: bool = False) -> Mapping[str, Any]:

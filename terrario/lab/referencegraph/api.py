@@ -29,7 +29,7 @@ class ReferenceGraphAPI:
         request_id = f"req-{secrets.token_hex(8)}"
         p, headers = dict(payload or {}), dict(headers or {})
         try:
-            if method != "GET" and headers:
+            if method != "GET" and headers and self._is_mutating(parts):
                 self._authorize(headers)
             status, data = self._route(method, parts, query, p, headers)
             meta = {"request_id": request_id, "schema_version": "terrario.api/v1"}
@@ -111,6 +111,12 @@ class ReferenceGraphAPI:
             return 201, {"snapshot_id": snapshot.snapshot_id, "root_hash": snapshot.root_hash,
                          "node_count": snapshot.node_count, "edge_count": snapshot.edge_count}
         raise ArtifactNotFound("/api/v1/reference-graph/" + "/".join(parts))
+
+    def _is_mutating(self, parts: list[str]) -> bool:
+        # Only corpus imports and manual snapshot creation mutate governance
+        # state; reference/claim/protocol/provenance/find/projection queries are
+        # read-only even when sent as POST.
+        return bool(parts) and parts[0] in {"imports", "snapshots"}
 
     def _authorize(self, headers: Mapping[str, str]) -> None:
         host = headers.get("Host", "")

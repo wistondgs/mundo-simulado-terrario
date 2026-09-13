@@ -44,12 +44,18 @@ class CrossGraphAPI:
         self.session_id = f"session-{secrets.token_hex(16)}"
         self.csrf_token = secrets.token_urlsafe(32)
 
+    # Routes that mutate governance state and therefore require CSRF/local
+    # authorization. Read-only queries (even when sent as POST) do not.
+    _MUTATING_PREFIXES = (
+        ("links",), ("hyperlinks",), ("imports",), ("snapshots",), ("compositions",),
+    )
+
     def dispatch(self, method: str, parts: list[str], query: Mapping[str, list[str]],
                  payload: Mapping[str, Any] | None, headers: Mapping[str, str] | None = None):
         request_id = f"req-{secrets.token_hex(8)}"
         p, headers = dict(payload or {}), dict(headers or {})
         try:
-            if method != "GET" and headers:
+            if method != "GET" and headers and self._is_mutating(parts):
                 self._authorize(headers)
             status, data = self._route(method, parts, query, p, headers)
             return status, {"data": data, "meta": {"request_id": request_id,
@@ -145,6 +151,18 @@ class CrossGraphAPI:
         if method == "GET" and len(parts) == 2 and parts[0] == "compositions":
             return 200, self.queries.get_composition(parts[1])
         raise ArtifactNotFound("/api/v1/cross-graph/" + "/".join(parts))
+
+    def _is_mutating(self, parts: list[str]) -> bool:
+        if not parts:
+            return False
+        head = parts[0]
+        if head in {"links", "hyperlinks", "imports"}:
+            return True
+        # snapshots and compositions are mutating only on create, not on
+        # read-only sub-routes such as snapshots/diff or compositions/{id}.
+        if head in {"snapshots", "compositions"}:
+            return len(parts) == 1
+        return False
 
     def _authorize(self, headers: Mapping[str, str]) -> None:
         host = headers.get("Host", "")
