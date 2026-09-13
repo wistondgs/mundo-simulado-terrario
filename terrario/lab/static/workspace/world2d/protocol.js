@@ -31,6 +31,24 @@ export class BoundedFrameRing {
   get length() { return this.items.length; }
 }
 
+// Presentation history is intentionally bounded. The append-only server trace,
+// not browser memory, is the authority for older frames and arbitrary seeks.
+export class BoundedFrameHistory {
+  constructor(maxFrames = 512) { this.maxFrames = maxFrames; this.frames = new Map(); this.order = []; }
+  set(tick, frame) {
+    if (this.frames.has(tick)) this.order.splice(this.order.indexOf(tick), 1);
+    this.frames.set(tick, frame); this.order.push(tick);
+    while (this.order.length > this.maxFrames) this.frames.delete(this.order.shift());
+    return this;
+  }
+  get(tick) { return this.frames.get(tick); }
+  has(tick) { return this.frames.has(tick); }
+  clear() { this.frames.clear(); this.order.length = 0; }
+  keys() { return this.frames.keys(); }
+  entries() { return this.frames.entries(); }
+  get size() { return this.frames.size; }
+}
+
 export function initialTemporalState(sessionId = null) {
   return { sessionId, sequence: -1, frameSequence: -1, frame: null, status: "STALE", events: [], gap: null, error: null };
 }

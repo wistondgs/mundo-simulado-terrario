@@ -13,6 +13,9 @@ test.describe("WorldStream live sandbox", () => {
     await panel.locator("#w2dStart").click(); await page.waitForTimeout(120); await panel.locator("#w2dPause").click();
     await panel.locator("#w2dResume").click(); await page.waitForTimeout(80); await panel.locator("#w2dStop").click();
     await panel.locator("#w2dTrace").click(); await expect(panel.locator("#w2dMode")).toHaveText("TRACE PLAYBACK");
+    await panel.locator("#w2dCompareLeft").fill("0"); await panel.locator("#w2dCompareRight").fill("1"); await panel.locator("#w2dCompare").click();
+    await expect(panel.locator("#w2dDiff")).toContainText("DERIVED STATE DIFF · NOT CAUSAL");
+    await panel.locator("#w2dBookmark").click(); await expect(panel.locator("#w2dMeta")).toContainText("Local bookmark");
     await panel.locator("#w2dNext").click(); // playback navigation cannot execute a command
   });
 

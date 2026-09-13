@@ -1,4 +1,40 @@
 /** Virtualized event timeline; events stay authoritative even when paints drop. */
+const world = (frame) => frame?.views?.find((view) => view.kind === "WORLD_TRUTH_PRIVILEGED")?.payload || {};
+
+export function eventLane(event) {
+  const type = String(event.event_type || "").toUpperCase(), source = String(event.source || "").toUpperCase();
+  if (type.includes("ACTION") || source.includes("AGENT")) return "Agent";
+  if (type.includes("RULE")) return "Rules";
+  if (type.includes("RESOURCE")) return "Resources";
+  if (type.includes("TERMINATION") || type.includes("LIFECYCLE")) return "Lifecycle";
+  if (type.includes("OBSERVER") || source.includes("OBSERVER")) return "Observer";
+  return "World";
+}
+
+export function populatedLanes(events) { return [...new Set(events.map(eventLane))]; }
+
+export function objectHistory(frames, objectId) {
+  return [...frames.entries()].sort(([left], [right]) => left - right).map(([tick, frame]) => {
+    const object = world(frame).objects?.[objectId];
+    return object ? { tick, lifecycle: "PRESENT", position: object.pos, properties: object.properties || {} } : { tick, lifecycle: "ABSENT" };
+  });
+}
+
+export class LocalBookmarks {
+  constructor(storageKey = "terrario.world2d.bookmarks/v1") {
+    this.storageKey = storageKey; this.items = [];
+    try { this.items = JSON.parse(globalThis.localStorage?.getItem(storageKey) || "[]"); } catch { this.items = []; }
+  }
+  add({ traceId, tick, entityId = null, view = "WORLD_TRUTH_PRIVILEGED", note = "" }) {
+    if (!Number.isInteger(tick) || tick < 0) throw new Error("INVALID_BOOKMARK_TICK");
+    const bookmark = { id: `bookmark-${Date.now()}-${this.items.length}`, traceId, tick, entityId, view, note: String(note) };
+    this.items = [...this.items, bookmark];
+    try { globalThis.localStorage?.setItem(this.storageKey, JSON.stringify(this.items)); } catch { /* private storage is optional */ }
+    return bookmark;
+  }
+  list(traceId = null) { return this.items.filter((bookmark) => !traceId || bookmark.traceId === traceId); }
+}
+
 export class VirtualTimeline {
   constructor(container, { onSeek } = {}) {
     this.container = container; this.onSeek = onSeek || (() => {}); this.events = []; this.rowHeight = 24;
@@ -7,6 +43,7 @@ export class VirtualTimeline {
     container.addEventListener("keydown", (event) => { if (event.key === "ArrowRight") this.onSeek(1); if (event.key === "ArrowLeft") this.onSeek(-1); });
   }
   setEvents(events) { this.events = events; this.render(); }
+  lanes() { return populatedLanes(this.events); }
   render() {
     const height = this.container.clientHeight || 120, start = Math.max(0, Math.floor(this.container.scrollTop / this.rowHeight) - 3);
     const end = Math.min(this.events.length, start + Math.ceil(height / this.rowHeight) + 6);
@@ -23,7 +60,6 @@ export class VirtualTimeline {
 }
 
 export function diffFrames(left, right) {
-  const world = (frame) => frame?.views?.find((view) => view.kind === "WORLD_TRUTH_PRIVILEGED")?.payload || {};
   const a = world(left), b = world(right), ao = a.objects || {}, bo = b.objects || {};
   const idsA = new Set(Object.keys(ao)), idsB = new Set(Object.keys(bo));
   return {
