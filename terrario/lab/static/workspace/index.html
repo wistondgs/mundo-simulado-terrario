@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terrario · Scientific Visual Workspace</title>
+<link rel="stylesheet" href="workspace.css">
+</head>
+<body>
+<div id="workspace" class="workspace-shell">
+  <div class="ws-topbar">
+    <strong>TERRARIO</strong>
+    <span>Scientific Visual Workspace</span>
+    <span id="wsMode" class="ws-mode-badge exploratory">EXPLORATORY_LATEST</span>
+    <span id="wsSnapshot" class="ws-snapshot-info">snapshot: —</span>
+    <span style="flex:1"></span>
+    <span id="wsStatus" class="ws-snapshot-info">connecting…</span>
+    <button id="wsPaletteBtn" title="Command palette (Ctrl+K)">⌘K</button>
+  </div>
+  <div id="wsRoot" style="flex:1;min-height:0;position:relative"></div>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
