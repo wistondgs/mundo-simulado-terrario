@@ -32,6 +32,8 @@ from terrario.lab.persistence.codecs import experiment_draft_from_payload
 from terrario.lab.persistence.canonical import content_hash as durable_content_hash
 from terrario.lab.preregistration.service import PreregistrationService
 from terrario.lab.preregistration.api import PreregistrationAPI
+from terrario.lab.referencegraph.service import ReferenceGraphService
+from terrario.lab.referencegraph.api import ReferenceGraphAPI
 
 
 class LabAPI:
@@ -58,11 +60,15 @@ class LabAPI:
         self.observers = ObserverRegistry()
         self.preregistrations = PreregistrationService(self.root, self.artifacts, self.metrics, self.observers)
         self.api_v1 = PreregistrationAPI(self.preregistrations)
+        self.reference_graph = ReferenceGraphService(self.artifacts)
+        self.reference_graph_api = ReferenceGraphAPI(self.reference_graph)
 
     def dispatch(self, method: str, url: str, payload: dict | None = None, headers: dict | None = None):
         parsed = urlparse(url); parts = [unquote(x) for x in parsed.path.strip("/").split("/") if x]
         query = parse_qs(parsed.query)
         if parts[:2] == ["api", "v1"]:
+            if len(parts) >= 3 and parts[2] == "reference-graph":
+                return self.reference_graph_api.dispatch(method, parts[3:], query, payload, headers)
             return self.api_v1.dispatch(method, parts[2:], query, payload, headers)
         try:
             if method == "GET" and parts == ["api","capabilities"]:
