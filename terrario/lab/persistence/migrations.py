@@ -701,4 +701,139 @@ BEFORE DELETE ON ref_paradigms BEGIN
 END;
 """,
     ),
+    Migration(
+        5,
+        "scientific_cross_graph",
+        r"""
+CREATE TABLE IF NOT EXISTS cross_links (
+    link_id TEXT PRIMARY KEY,
+    source_ref_json TEXT NOT NULL,
+    target_ref_json TEXT NOT NULL,
+    source_key TEXT NOT NULL,
+    target_key TEXT NOT NULL,
+    relation_type TEXT NOT NULL,
+    assertion_class TEXT NOT NULL,
+    state TEXT NOT NULL,
+    provenance TEXT NOT NULL,
+    rule_id TEXT,
+    rule_version TEXT,
+    supersedes_link_id TEXT REFERENCES cross_links(link_id),
+    link_hash TEXT NOT NULL UNIQUE CHECK (length(link_hash) = 64),
+    effective_at TEXT,
+    created_at TEXT NOT NULL,
+    created_by TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS cross_links_source_idx ON cross_links(source_key);
+CREATE INDEX IF NOT EXISTS cross_links_target_idx ON cross_links(target_key);
+CREATE INDEX IF NOT EXISTS cross_links_relation_idx ON cross_links(relation_type);
+CREATE INDEX IF NOT EXISTS cross_links_state_idx ON cross_links(state);
+
+CREATE TABLE IF NOT EXISTS cross_hyperlinks (
+    hyperlink_id TEXT PRIMARY KEY,
+    members_json TEXT NOT NULL,
+    relation_type TEXT NOT NULL,
+    assertion_class TEXT NOT NULL,
+    state TEXT NOT NULL,
+    provenance TEXT NOT NULL,
+    link_hash TEXT NOT NULL UNIQUE CHECK (length(link_hash) = 64),
+    created_at TEXT NOT NULL,
+    created_by TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS cross_hyperlinks_state_idx ON cross_hyperlinks(state);
+
+CREATE TABLE IF NOT EXISTS cross_federation_manifests (
+    manifest_id TEXT PRIMARY KEY,
+    domain_snapshots_json TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    manifest_hash TEXT NOT NULL UNIQUE CHECK (length(manifest_hash) = 64),
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cross_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    parent_snapshot_id TEXT REFERENCES cross_snapshots(snapshot_id),
+    federation_manifest_hash TEXT NOT NULL CHECK (length(federation_manifest_hash) = 64),
+    cross_link_set_hash TEXT NOT NULL CHECK (length(cross_link_set_hash) = 64),
+    root_hash TEXT NOT NULL UNIQUE CHECK (length(root_hash) = 64),
+    link_count INTEGER NOT NULL CHECK (link_count >= 0),
+    hyperlink_count INTEGER NOT NULL CHECK (hyperlink_count >= 0),
+    actor TEXT NOT NULL,
+    provenance TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS cross_snapshots_parent_idx ON cross_snapshots(parent_snapshot_id);
+
+CREATE TABLE IF NOT EXISTS cross_trace_breaks (
+    trace_break_id TEXT PRIMARY KEY,
+    from_ref_json TEXT NOT NULL,
+    expected_next_domain TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    missing_identity_or_relation TEXT NOT NULL,
+    resolution_state TEXT NOT NULL,
+    discovered_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cross_compositions (
+    rowid INTEGER PRIMARY KEY AUTOINCREMENT,
+    composition_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    refs_json TEXT NOT NULL,
+    local_links_json TEXT NOT NULL,
+    notes TEXT NOT NULL,
+    version INTEGER NOT NULL CHECK (version > 0),
+    parent_composition_id TEXT,
+    created_at TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    UNIQUE (composition_id, version)
+);
+
+CREATE TABLE IF NOT EXISTS cross_verifications (
+    verification_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    report_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS cross_links_no_update
+BEFORE UPDATE ON cross_links BEGIN
+    SELECT RAISE(ABORT, 'cross links are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_links_no_delete
+BEFORE DELETE ON cross_links BEGIN
+    SELECT RAISE(ABORT, 'cross links are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_hyperlinks_no_update
+BEFORE UPDATE ON cross_hyperlinks BEGIN
+    SELECT RAISE(ABORT, 'cross hyperlinks are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_hyperlinks_no_delete
+BEFORE DELETE ON cross_hyperlinks BEGIN
+    SELECT RAISE(ABORT, 'cross hyperlinks are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_snapshots_no_update
+BEFORE UPDATE ON cross_snapshots BEGIN
+    SELECT RAISE(ABORT, 'cross graph snapshots are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_snapshots_no_delete
+BEFORE DELETE ON cross_snapshots BEGIN
+    SELECT RAISE(ABORT, 'cross graph snapshots are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_federation_manifests_no_update
+BEFORE UPDATE ON cross_federation_manifests BEGIN
+    SELECT RAISE(ABORT, 'federation manifests are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_federation_manifests_no_delete
+BEFORE DELETE ON cross_federation_manifests BEGIN
+    SELECT RAISE(ABORT, 'federation manifests are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_trace_breaks_no_update
+BEFORE UPDATE ON cross_trace_breaks BEGIN
+    SELECT RAISE(ABORT, 'trace breaks are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS cross_trace_breaks_no_delete
+BEFORE DELETE ON cross_trace_breaks BEGIN
+    SELECT RAISE(ABORT, 'trace breaks are append-only');
+END;
+""",
+    ),
 )
