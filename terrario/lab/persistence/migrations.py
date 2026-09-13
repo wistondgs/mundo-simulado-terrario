@@ -410,4 +410,295 @@ BEGIN
 END;
 """,
     ),
+    Migration(
+        3,
+        "scientific_reference_graph",
+        r"""
+CREATE TABLE IF NOT EXISTS ref_documents (
+    document_id TEXT PRIMARY KEY CHECK (length(document_id) = 64),
+    cas_blob_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    media_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL CHECK (size_bytes >= 0),
+    version_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    effective_at TEXT,
+    recorded_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ref_authors (
+    author_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    UNIQUE (normalized_name)
+);
+CREATE INDEX IF NOT EXISTS ref_authors_name_idx ON ref_authors(normalized_name);
+
+CREATE TABLE IF NOT EXISTS ref_venues (
+    venue_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL,
+    venue_type TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    UNIQUE (normalized_name)
+);
+
+CREATE TABLE IF NOT EXISTS ref_bibliographic (
+    biblio_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    normalized_title TEXT NOT NULL,
+    authors_json TEXT NOT NULL,
+    year TEXT NOT NULL,
+    venue_id TEXT REFERENCES ref_venues(venue_id),
+    edition TEXT,
+    doi TEXT,
+    identity_hash TEXT NOT NULL UNIQUE CHECK (length(identity_hash) = 64),
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_bibliographic_doi_idx ON ref_bibliographic(doi);
+CREATE INDEX IF NOT EXISTS ref_bibliographic_title_idx ON ref_bibliographic(normalized_title);
+CREATE INDEX IF NOT EXISTS ref_bibliographic_year_idx ON ref_bibliographic(year);
+
+CREATE TABLE IF NOT EXISTS ref_references (
+    reference_id TEXT PRIMARY KEY,
+    biblio_id TEXT NOT NULL REFERENCES ref_bibliographic(biblio_id),
+    primary_document_id TEXT REFERENCES ref_documents(document_id),
+    reference_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    d_level_tags_json TEXT NOT NULL,
+    constructs_json TEXT NOT NULL,
+    experimental_paradigms_json TEXT NOT NULL,
+    discipline TEXT NOT NULL,
+    code_url TEXT,
+    verification_status TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_references_biblio_idx ON ref_references(biblio_id);
+CREATE INDEX IF NOT EXISTS ref_references_status_idx ON ref_references(verification_status);
+
+CREATE TABLE IF NOT EXISTS ref_document_versions (
+    version_id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL REFERENCES ref_documents(document_id),
+    biblio_id TEXT NOT NULL REFERENCES ref_bibliographic(biblio_id),
+    version_type TEXT NOT NULL,
+    relation TEXT,
+    relation_target_document_id TEXT REFERENCES ref_documents(document_id),
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_document_versions_doc_idx ON ref_document_versions(document_id);
+CREATE INDEX IF NOT EXISTS ref_document_versions_biblio_idx ON ref_document_versions(biblio_id);
+
+CREATE TABLE IF NOT EXISTS ref_claims (
+    claim_id TEXT PRIMARY KEY,
+    reference_id TEXT NOT NULL REFERENCES ref_references(reference_id),
+    document_id TEXT REFERENCES ref_documents(document_id),
+    claim_text TEXT NOT NULL,
+    normalized_summary TEXT NOT NULL,
+    claim_type TEXT NOT NULL,
+    epistemic_source TEXT NOT NULL,
+    extraction_method TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    locator_json TEXT NOT NULL,
+    context TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_claims_reference_idx ON ref_claims(reference_id);
+CREATE INDEX IF NOT EXISTS ref_claims_status_idx ON ref_claims(verification_status);
+
+CREATE TABLE IF NOT EXISTS ref_nodes (
+    node_id TEXT PRIMARY KEY,
+    node_type TEXT NOT NULL,
+    reference_id TEXT REFERENCES ref_references(reference_id),
+    payload_json TEXT NOT NULL,
+    node_hash TEXT NOT NULL UNIQUE CHECK (length(node_hash) = 64),
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_nodes_type_idx ON ref_nodes(node_type);
+CREATE INDEX IF NOT EXISTS ref_nodes_reference_idx ON ref_nodes(reference_id);
+
+CREATE TABLE IF NOT EXISTS ref_edges (
+    edge_id TEXT PRIMARY KEY,
+    edge_type TEXT NOT NULL,
+    source_node_id TEXT NOT NULL REFERENCES ref_nodes(node_id),
+    target_node_id TEXT NOT NULL REFERENCES ref_nodes(node_id),
+    provenance_level TEXT NOT NULL,
+    provenance_detail TEXT NOT NULL,
+    edge_hash TEXT NOT NULL UNIQUE CHECK (length(edge_hash) = 64),
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_edges_type_idx ON ref_edges(edge_type);
+CREATE INDEX IF NOT EXISTS ref_edges_source_idx ON ref_edges(source_node_id);
+CREATE INDEX IF NOT EXISTS ref_edges_target_idx ON ref_edges(target_node_id);
+
+CREATE TABLE IF NOT EXISTS ref_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    parent_snapshot_id TEXT REFERENCES ref_snapshots(snapshot_id),
+    schema_version TEXT NOT NULL,
+    node_set_hash TEXT NOT NULL CHECK (length(node_set_hash) = 64),
+    edge_set_hash TEXT NOT NULL CHECK (length(edge_set_hash) = 64),
+    root_hash TEXT NOT NULL UNIQUE CHECK (length(root_hash) = 64),
+    node_count INTEGER NOT NULL CHECK (node_count >= 0),
+    edge_count INTEGER NOT NULL CHECK (edge_count >= 0),
+    provenance TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_snapshots_parent_idx ON ref_snapshots(parent_snapshot_id);
+
+CREATE TABLE IF NOT EXISTS ref_import_batches (
+    batch_id TEXT PRIMARY KEY,
+    source TEXT NOT NULL,
+    plan_json TEXT NOT NULL,
+    plan_hash TEXT NOT NULL CHECK (length(plan_hash) = 64),
+    snapshot_id TEXT REFERENCES ref_snapshots(snapshot_id),
+    state TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ref_import_records (
+    import_record_id TEXT PRIMARY KEY,
+    batch_id TEXT NOT NULL REFERENCES ref_import_batches(batch_id),
+    external_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    detail TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_import_records_batch_idx ON ref_import_records(batch_id);
+
+CREATE TABLE IF NOT EXISTS ref_quarantine (
+    quarantine_id TEXT PRIMARY KEY,
+    reason TEXT NOT NULL,
+    source TEXT NOT NULL,
+    batch_id TEXT REFERENCES ref_import_batches(batch_id),
+    payload_json TEXT NOT NULL,
+    resolution_state TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_quarantine_state_idx ON ref_quarantine(resolution_state);
+
+CREATE TABLE IF NOT EXISTS ref_duplicates (
+    duplicate_id TEXT PRIMARY KEY,
+    left_reference_id TEXT NOT NULL,
+    right_reference_id TEXT NOT NULL,
+    detection_method TEXT NOT NULL,
+    status TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ref_verifications (
+    verification_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    report_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS ref_claims_fts USING fts5(
+    claim_id UNINDEXED,
+    claim_text,
+    normalized_summary
+);
+
+CREATE TRIGGER IF NOT EXISTS ref_documents_no_update
+BEFORE UPDATE ON ref_documents BEGIN
+    SELECT RAISE(ABORT, 'reference documents are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_documents_no_delete
+BEFORE DELETE ON ref_documents BEGIN
+    SELECT RAISE(ABORT, 'reference documents are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_bibliographic_no_update
+BEFORE UPDATE ON ref_bibliographic BEGIN
+    SELECT RAISE(ABORT, 'bibliographic records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_bibliographic_no_delete
+BEFORE DELETE ON ref_bibliographic BEGIN
+    SELECT RAISE(ABORT, 'bibliographic records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_references_no_update
+BEFORE UPDATE ON ref_references BEGIN
+    SELECT RAISE(ABORT, 'reference records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_references_no_delete
+BEFORE DELETE ON ref_references BEGIN
+    SELECT RAISE(ABORT, 'reference records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_claims_no_update
+BEFORE UPDATE ON ref_claims BEGIN
+    SELECT RAISE(ABORT, 'source claims are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_claims_no_delete
+BEFORE DELETE ON ref_claims BEGIN
+    SELECT RAISE(ABORT, 'source claims are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_nodes_no_update
+BEFORE UPDATE ON ref_nodes BEGIN
+    SELECT RAISE(ABORT, 'reference graph nodes are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_nodes_no_delete
+BEFORE DELETE ON ref_nodes BEGIN
+    SELECT RAISE(ABORT, 'reference graph nodes are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_edges_no_update
+BEFORE UPDATE ON ref_edges BEGIN
+    SELECT RAISE(ABORT, 'reference graph edges are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_edges_no_delete
+BEFORE DELETE ON ref_edges BEGIN
+    SELECT RAISE(ABORT, 'reference graph edges are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_snapshots_no_update
+BEFORE UPDATE ON ref_snapshots BEGIN
+    SELECT RAISE(ABORT, 'reference graph snapshots are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_snapshots_no_delete
+BEFORE DELETE ON ref_snapshots BEGIN
+    SELECT RAISE(ABORT, 'reference graph snapshots are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_quarantine_no_update
+BEFORE UPDATE ON ref_quarantine BEGIN
+    SELECT RAISE(ABORT, 'quarantine records are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_quarantine_no_delete
+BEFORE DELETE ON ref_quarantine BEGIN
+    SELECT RAISE(ABORT, 'quarantine records are append-only');
+END;
+""",
+    ),
+    Migration(
+        4,
+        "reference_graph_term_indexes",
+        r"""
+CREATE TABLE IF NOT EXISTS ref_constructs (
+    reference_id TEXT NOT NULL REFERENCES ref_references(reference_id),
+    construct TEXT NOT NULL,
+    UNIQUE (reference_id, construct)
+);
+CREATE INDEX IF NOT EXISTS ref_constructs_term_idx ON ref_constructs(construct);
+CREATE INDEX IF NOT EXISTS ref_constructs_ref_idx ON ref_constructs(reference_id);
+
+CREATE TABLE IF NOT EXISTS ref_paradigms (
+    reference_id TEXT NOT NULL REFERENCES ref_references(reference_id),
+    paradigm TEXT NOT NULL,
+    UNIQUE (reference_id, paradigm)
+);
+CREATE INDEX IF NOT EXISTS ref_paradigms_term_idx ON ref_paradigms(paradigm);
+CREATE INDEX IF NOT EXISTS ref_paradigms_ref_idx ON ref_paradigms(reference_id);
+
+CREATE TRIGGER IF NOT EXISTS ref_constructs_no_update
+BEFORE UPDATE ON ref_constructs BEGIN
+    SELECT RAISE(ABORT, 'construct index is append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_constructs_no_delete
+BEFORE DELETE ON ref_constructs BEGIN
+    SELECT RAISE(ABORT, 'construct index is append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_paradigms_no_update
+BEFORE UPDATE ON ref_paradigms BEGIN
+    SELECT RAISE(ABORT, 'paradigm index is append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS ref_paradigms_no_delete
+BEFORE DELETE ON ref_paradigms BEGIN
+    SELECT RAISE(ABORT, 'paradigm index is append-only');
+END;
+""",
+    ),
 )
