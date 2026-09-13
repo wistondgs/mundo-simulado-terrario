@@ -194,6 +194,9 @@ class LiveSandboxService(SandboxService):
         if checkpoint_reason: ctx.archive.checkpoint(ctx.tick, ctx.sequence, payload, checkpoint_reason)
 
     def step(self, run_id: str):
+        return self._advance(run_id, continuous=False)
+
+    def _advance(self, run_id: str, continuous: bool):
         ctx = self._live.get(run_id)
         if ctx is None: return super().step(run_id)
         with ctx.lock:
@@ -202,6 +205,8 @@ class LiveSandboxService(SandboxService):
             scenario, world = runtime["scenario"], runtime["world"]
             before = _observation_payload(world.get_observation(0, scenario.get("view_radius", 2), scenario.get("num_channels", 4)))
             trace = super().step(run_id)
+            if continuous and self.get(run_id).state == RunState.PAUSED and not ctx.stop_requested:
+                super().resume(run_id)
             ctx.tick += 1
             after = _observation_payload(world.get_observation(0, scenario.get("view_radius", 2), scenario.get("num_channels", 4)))
             observer_trace = TransitionTrace(ctx.tick - 1,
@@ -235,11 +240,11 @@ class LiveSandboxService(SandboxService):
                 return ctx.command_acks[command.command_id]
             if command.expected_session_revision != ctx.revision:
                 raise SessionConflict(f"expected revision {command.expected_session_revision}, current {ctx.revision}")
-            ctx.revision += 1
             if command.command == "STEP": self.step(command.session_id)
             elif command.command in {"START", "RESUME"}: self._start_worker(command.session_id)
             elif command.command == "PAUSE": self.pause(command.session_id)
             elif command.command == "STOP": self.stop(command.session_id)
+            ctx.revision += 1
             ack = {"command_id": command.command_id, "accepted": True, "revision": ctx.revision,
                 "status": self._status_payload(command.session_id)}
             ctx.command_acks[command.command_id] = ack
@@ -256,9 +261,7 @@ class LiveSandboxService(SandboxService):
         def work():
             while not ctx.stop_requested and self.get(run_id).state == RunState.RUNNING:
                 try:
-                    self.step(run_id)
-                    if self.get(run_id).state == RunState.PAUSED and not ctx.stop_requested:
-                        super(LiveSandboxService, self).resume(run_id)
+                    self._advance(run_id, continuous=True)
                 except Exception:
                     break
                 time.sleep(0.03)

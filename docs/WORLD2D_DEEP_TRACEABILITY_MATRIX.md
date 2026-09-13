@@ -13,10 +13,12 @@ Statuses require implementation, test, and executed evidence.
 | Legacy `/api/sandbox` | same live service authority | legacy suite + versioned API test | PASS |
 | Three labelled synchronized views | WorldFrame validator + UI | Chromium live E2E | PASS |
 | Canvas/WebGL2/fallback/picking | `renderers.js` | existing canvas interaction; WebGL fault benchmark pending | PARTIAL |
-| Timeline/diff/identity | `timeline.js`, World2D panel | unit diff + live E2E | PASS |
-| Firefox real E2E | Playwright project/build | full run required | PENDING |
+| Timeline/diff/identity | `timeline.js`, World2D panel | virtualization, adjacent diff and stable truth identity tested; arbitrary range/bookmarks/entity history incomplete | PARTIAL |
+| Firefox real E2E | Playwright official build/project | 23 Firefox tests passed; visual baselines remain Chromium-specific | PASS |
 | 10k/50k render and 100k/1M trace gates | benchmark model | full matrix not yet executed | PARTIAL |
 | Restart/SESSION_LOST and subscriber cap | documented failure model | not implemented end-to-end | PARTIAL |
-| Protected scientific artifacts | firewall boundary + no scientific route | full regression/protected hash verification required | PENDING |
+| Protected scientific artifacts | firewall boundary + no scientific route | 70/70 protected hashes unchanged; full backend regression green | PASS |
 
 No PARTIAL/PENDING row is represented as PASS.
+
+Final executed suites: backend **442 passed, 1 skipped**; frontend unit **17 passed**; Playwright **49 passed** (26 Chromium including 3 visual baselines, 23 Firefox; Firefox visual baselines intentionally not claimed). Protected baseline: **70/70 hashes unchanged**.
