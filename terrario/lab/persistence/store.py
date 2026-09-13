@@ -8,6 +8,10 @@ import re
 import sqlite3
 import time
 import uuid
+import os
+import shutil
+import tempfile
+import zipfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -203,6 +207,55 @@ class ArtifactRepository:
             destination.close()
             source.close()
         return target
+
+    def backup_archive(self, label: str = "full") -> Path:
+        """Create a portable DB+CAS backup with a hash manifest."""
+        database = self.backup(label=label)
+        target = self.data_root / "backups" / f"terrario-{label}-{uuid.uuid4().hex[:12]}.zip"
+        files = [("terrario.db", database)]
+        files.extend((path.relative_to(self.data_root).as_posix(), path)
+                     for path in sorted(self.blobs.blobs_root.glob("*/*/*")) if path.is_file())
+        manifest = {name: {"sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                           "size_bytes": path.stat().st_size} for name, path in files}
+        with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for name, path in files: archive.write(path, name)
+            archive.writestr("backup-manifest.json", canonical_json({"schema_version": "terrario.full-backup/v1", "files": manifest}))
+        return target
+
+    @classmethod
+    def restore_archive(cls, archive_path: str | Path, target_root: str | Path) -> "ArtifactRepository":
+        """Restore into a new empty location after validating every archived byte."""
+        archive_path, target = Path(archive_path).resolve(), Path(target_root).resolve()
+        if target.exists() and any(target.iterdir()):
+            raise PersistenceError("restore target must be absent or empty")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        staging = Path(tempfile.mkdtemp(prefix="terrario-restore-", dir=target.parent))
+        try:
+            with zipfile.ZipFile(archive_path) as archive:
+                names = set(archive.namelist())
+                if "backup-manifest.json" not in names: raise PersistenceError("backup manifest missing")
+                manifest = json.loads(archive.read("backup-manifest.json"))
+                if manifest.get("schema_version") != "terrario.full-backup/v1": raise PersistenceError("unsupported backup schema")
+                for name, expected in manifest.get("files", {}).items():
+                    path = Path(name)
+                    if path.is_absolute() or ".." in path.parts or name not in names:
+                        raise PersistenceError("unsafe or missing backup member")
+                    payload = archive.read(name)
+                    if len(payload) != expected["size_bytes"] or hashlib.sha256(payload).hexdigest() != expected["sha256"]:
+                        raise PersistenceError(f"backup member failed verification: {name}")
+                    destination = staging / path; destination.parent.mkdir(parents=True, exist_ok=True)
+                    destination.write_bytes(payload)
+            connection = sqlite3.connect(staging / "terrario.db")
+            try:
+                if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                    raise PersistenceError("restored database failed integrity check")
+            finally: connection.close()
+            if target.exists(): target.rmdir()
+            os.replace(staging, target)
+            return cls(target)
+        except Exception:
+            shutil.rmtree(staging, ignore_errors=True)
+            raise
 
     def create_artifact(
         self,
@@ -509,6 +562,41 @@ class ArtifactRepository:
             delta={"imported_parent_version_id": version.get("parent_version_id"), "bundle_hash": value["bundle_hash"]},
             sealed=bool(version["sealed"]), deduplicate=True,
         )
+
+    def import_bundle_exact(self, bundle: Mapping[str, Any], actor_id: str = "bundle-import") -> ArtifactVersionRecord:
+        """Import immutable external identity exactly; conflicts are never rewritten."""
+        value = self.validate_bundle(bundle); artifact, version = value["artifact"], value["version"]
+        try:
+            existing = self.get_version(str(version["version_id"]))
+        except ArtifactNotFound: existing = None
+        if existing:
+            if existing.artifact_id != artifact["artifact_id"] or existing.scientific_hash != version["scientific_hash"]:
+                raise ProvenanceConflict("external version identity conflicts with local content")
+            return ArtifactVersionRecord(**{**existing.__dict__, "deduplicated": True})
+        now = self.now()
+        with self.transaction() as connection:
+            local_artifact = connection.execute("SELECT kind FROM artifacts WHERE artifact_id=?", (artifact["artifact_id"],)).fetchone()
+            if local_artifact and local_artifact["kind"] != artifact["kind"]:
+                raise ProvenanceConflict("external artifact identity conflicts with local kind")
+            if not local_artifact:
+                connection.execute("INSERT INTO artifacts(artifact_id,kind,created_at,created_by) VALUES(?,?,?,?)",
+                    (artifact["artifact_id"], artifact["kind"], artifact["created_at"], artifact["created_by"]))
+            duplicate = connection.execute("SELECT version_id FROM artifact_versions WHERE kind=? AND scientific_hash=?",
+                (version["kind"], version["scientific_hash"])).fetchone()
+            if duplicate: raise ProvenanceConflict("scientific content already exists under another immutable identity")
+            if version.get("parent_version_id") and not connection.execute("SELECT 1 FROM artifact_versions WHERE version_id=?", (version["parent_version_id"],)).fetchone():
+                raise ProvenanceConflict("external parent version must be imported first")
+            connection.execute("""INSERT INTO artifact_versions(version_id,artifact_id,version_number,kind,schema_version,
+                scientific_hash,scientific_payload_json,payload_json,classification,parent_version_id,parent_hash,
+                delta_json,reason,created_at,created_by,sealed) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (version["version_id"], artifact["artifact_id"], version["version_number"], version["kind"],
+                 version["schema_version"], version["scientific_hash"], canonical_json(version["scientific_payload"]),
+                 canonical_json(version["payload"]), version["classification"], version.get("parent_version_id"),
+                 version.get("parent_hash"), canonical_json(version.get("delta") or {}), version["reason"],
+                 version["created_at"], version["created_by"], int(bool(version["sealed"]))))
+            self._insert_audit(connection, self._identifier("correlation"), actor_id, "EXACT_BUNDLE_IMPORTED",
+                version["kind"], artifact["artifact_id"], {"version_id": version["version_id"], "bundle_hash": value["bundle_hash"]}, now)
+        return self.get_version(str(version["version_id"]))
 
     def integrity_check(self) -> str:
         with self._connect() as connection:
