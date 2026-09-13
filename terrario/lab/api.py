@@ -37,6 +37,7 @@ from terrario.lab.preregistration.api import PreregistrationAPI
 from terrario.lab.execution.service import ScientificExecutionService
 from terrario.lab.execution.api import ScientificExecutionAPI
 from terrario.lab.execution.dispatcher import ScientificExecutionDispatcher
+from terrario.lab.execution.observation import ScientificObservationService
 from terrario.lab.referencegraph.service import ReferenceGraphService
 from terrario.lab.referencegraph.api import ReferenceGraphAPI
 from terrario.lab.crossgraph.service import CrossGraphService
@@ -69,7 +70,8 @@ class LabAPI:
         self.api_v1 = PreregistrationAPI(self.preregistrations)
         self.scientific_executions = ScientificExecutionService(self.root, self.artifacts, self.preregistrations)
         self.scientific_execution_dispatcher = ScientificExecutionDispatcher(self.scientific_executions)
-        self.scientific_execution_api = ScientificExecutionAPI(self.scientific_executions, self.api_v1, self.scientific_execution_dispatcher)
+        self.scientific_observations = ScientificObservationService(self.scientific_executions, self.scientific_execution_dispatcher)
+        self.scientific_execution_api = ScientificExecutionAPI(self.scientific_executions, self.api_v1, self.scientific_execution_dispatcher, self.scientific_observations)
         self.world_stream_api = WorldStreamAPI(self.sandbox, self._sandbox_inputs)
         self.reference_graph = ReferenceGraphService(self.artifacts)
         self.reference_graph_api = ReferenceGraphAPI(self.reference_graph)

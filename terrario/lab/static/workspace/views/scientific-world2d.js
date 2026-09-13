@@ -1,0 +1,10 @@
+/** Read-only World2D scientific inspection; it cannot control any runtime. */
+const text = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+export class ScientificWorld2DPanel {
+  constructor(api, { onError } = {}) { this.api = api; this.onError = onError || (() => {}); }
+  render(el) {
+    this.el = el; el.innerHTML = `<section aria-label="Scientific World2D"><header><strong>WORLD2D · SCIENTIFIC EXECUTION</strong> <span class="ws-mode-badge pinned">READ-ONLY · NOT EVIDENCE</span></header><p>Terminal playback from sealed scientific raw artifacts. This panel has no start, step, pause, resume, reset or seed controls.</p><label>Execution <input id="swExec"></label><label>Trial <input id="swTrial"></label><label>Attempt <input id="swAttempt"></label><button id="swOpen">Open playback</button><pre id="swProv">No scientific trace loaded.</pre><div id="swViews"></div></section>`;
+    el.querySelector("#swOpen").onclick = () => this.open();
+  }
+  async open() { try { const q = (id) => this.el.querySelector(id).value.trim(); const page = await this.api.scientificPlayback(q("#swExec"), q("#swTrial"), q("#swAttempt")); const first = page.frames?.[0]; if (!first) throw new Error("TRACE_NOT_AVAILABLE"); this.el.querySelector("#swProv").textContent = JSON.stringify({ mode: page.mode, cursor: page.cursor, identity: first.identity, runtime_state: first.runtime_state }, null, 2); this.el.querySelector("#swViews").innerHTML = `<h4>Tick ${text(first.tick)} · frame ${text(first.frame_sequence)}</h4><details open><summary>World Truth · privileged</summary><pre>${text(JSON.stringify(first.world_truth, null, 2))}</pre></details><details><summary>Agent Observation · no truth mapping</summary><pre>${text(JSON.stringify(first.agent_observation, null, 2))}</pre></details><details><summary>Observer View</summary><pre>${text(JSON.stringify(first.observer_view, null, 2))}</pre></details>`; } catch (error) { this.onError("SCIENTIFIC_OBSERVATION_ERROR", error.message, "scientific World2D"); } }
+}

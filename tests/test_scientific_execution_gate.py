@@ -78,6 +78,17 @@ def test_dispatcher_materializes_one_real_trial_and_seals_its_trace(api):
     assert {item["artifact_type"] for item in artifacts} >= {"SCIENTIFIC_TRACE", "TRIAL_RESULT"}
 
 
+def test_terminal_scientific_playback_survives_dispatcher_memory_loss(api):
+    execution, _ = _execution(api)
+    api.dispatch("POST", f"/api/v1/scientific-executions/{execution['execution_id']}/commands", {"command": "START", "command_id": "playback-start", "expected_revision": execution["revision"]})
+    api.scientific_execution_dispatcher.run(execution["execution_id"], max_trials=1)
+    attempt = api.scientific_observations.attempts(execution["execution_id"])[0]
+    api.scientific_execution_dispatcher.frames.clear()
+    page = api.scientific_observations.playback(execution["execution_id"], attempt["trial_intent_id"], attempt["attempt_id"])
+    assert page["mode"] == "PLAYBACK" and page["frames"][0]["tick"] == 0
+    assert page["frames"][0]["identity"]["plan_hash"] == execution["plan_hash"]
+
+
 def test_execution_package_has_no_evidence_or_sandbox_imports():
     root = Path("terrario/lab/execution")
     source = "\n".join(path.read_text() for path in root.glob("*.py"))

@@ -141,4 +141,7 @@ export class ApiClient {
     return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/commands`, { command, command_id, expected_revision }, { mutation: true });
   }
   verifyScientificExecution(id) { return this.get(`/api/v1/scientific-executions/${encodeURIComponent(id)}/verify`); }
+  scientificPlayback(id, trialId, attemptId, after = -1) {
+    return this.get(`/api/v1/scientific-executions/${encodeURIComponent(id)}/trials/${encodeURIComponent(trialId)}/frames?attempt_id=${encodeURIComponent(attemptId)}&after_sequence=${after}`);
+  }
 }

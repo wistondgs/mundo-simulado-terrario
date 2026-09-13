@@ -18,6 +18,7 @@ import { GraphRenderer } from "./render/graph-renderer.js";
 import { LayoutEngine } from "./render/layout-engine.js";
 import { World2DPanel } from "./views/world2d.js";
 import { ScientificExecutionPanel } from "./views/scientific-execution.js";
+import { ScientificWorld2DPanel } from "./views/scientific-world2d.js";
 import { D2Studio } from "./views/d2studio.js";
 import { CompositionPanel } from "./views/composition.js";
 import { InspectorPanel } from "./views/inspector.js";
@@ -33,6 +34,7 @@ const state = {
   shell: null,
   world2d: null,
   execution: null,
+  scientificWorld: null,
   d2: null,
   composition: null,
   inspector: null,
@@ -188,6 +190,7 @@ async function boot() {
   state.composition = new CompositionPanel(api, { onError: showError });
   state.world2d = new World2DPanel(api, { onError: showError });
   state.execution = new ScientificExecutionPanel(api, { onError: showError });
+  state.scientificWorld = new ScientificWorld2DPanel(api, { onError: showError });
   state.d2 = new D2Studio(api, { onError: showError, onOpenWorld: openWorld });
 
   shell.registerPanel("explorer", { title: "Explorer", region: "left",
@@ -202,6 +205,8 @@ async function boot() {
     render: (el) => state.world2d.render(el) });
   shell.registerPanel("execution", { title: "Scientific Execution", region: "bottom",
     render: (el) => state.execution.render(el) });
+  shell.registerPanel("scientific-world", { title: "World2D Scientific", region: "bottom",
+    render: (el) => state.scientificWorld.render(el) });
   shell.registerPanel("d2", { title: "D2 Scientific Studio", region: "bottom",
     render: (el) => state.d2.render(el) });
   shell.mount();

@@ -9,8 +9,8 @@ from terrario.lab.persistence import ArtifactNotFound, ProvenanceConflict
 
 
 class ScientificExecutionAPI:
-    def __init__(self, service, governance_api, dispatcher=None):
-        self.service, self.governance_api, self.dispatcher = service, governance_api, dispatcher
+    def __init__(self, service, governance_api, dispatcher=None, observations=None):
+        self.service, self.governance_api, self.dispatcher, self.observations = service, governance_api, dispatcher, observations
 
     def dispatch(self, method: str, parts: list[str], query: Mapping[str, list[str]], payload: Mapping[str, Any] | None, headers: Mapping[str, str] | None = None):
         request_id, p, headers = f"req-{secrets.token_hex(8)}", dict(payload or {}), dict(headers or {})
@@ -19,14 +19,14 @@ class ScientificExecutionAPI:
             # mutations always carry headers and are CSRF-checked by the same
             # session authority as preregistration.
             if method != "GET" and headers: self.governance_api._authorize(headers)
-            status, data = self._route(method, parts, p)
+            status, data = self._route(method, parts, p, query)
             return status, {"data": data, "meta": {"request_id": request_id, "schema_version": "terrario.api/v1", "scientific_execution": True}}
         except Exception as exc:
             code = getattr(exc, "code", "INVALID_REQUEST")
             status = 404 if isinstance(exc, ArtifactNotFound) else 409 if isinstance(exc, (ExecutionConflict, ProvenanceConflict)) else 422 if isinstance(exc, ExecutionNotReady) else 403 if isinstance(exc, ExecutionUnauthorized) else 400 if isinstance(exc, (ValueError, KeyError)) else 500
             return status, {"error": {"code": code, "message": str(exc), "details": {}, "request_id": request_id}}
 
-    def _route(self, method: str, parts: list[str], p: Mapping[str, Any]):
+    def _route(self, method: str, parts: list[str], p: Mapping[str, Any], query=()):
         if method == "POST" and parts == ["scientific-executions"]:
             return 201, self.service.request(str(p["preregistration_root_hash"]), "local-user")
         if method == "GET" and parts == ["scientific-executions"]:
@@ -62,7 +62,11 @@ class ScientificExecutionAPI:
             if method == "GET" and parts[2:] == ["artifacts"]:
                 return 200, {"items": self.service.get(execution_id)["artifacts"], "next_cursor": None}
             if method == "GET" and len(parts) == 5 and parts[2] == "trials" and parts[4] == "frames":
-                return 200, {"items": self.dispatcher.frames_after(execution_id, parts[3], int(p.get("after_sequence", -1))) if self.dispatcher else (), "next_cursor": None}
+                attempt = query.get("attempt_id", [None])[0]
+                if not attempt: raise ValueError("attempt_id is required")
+                return 200, self.observations.playback(execution_id, parts[3], attempt, int(query.get("after_sequence", [-1])[0]), int(query.get("limit", [128])[0]))
+            if method == "GET" and len(parts) == 6 and parts[2] == "trials" and parts[4] == "attempts" and parts[5] == "snapshot":
+                return 200, self.observations.snapshot(execution_id, parts[3], query.get("attempt_id", [None])[0] or "")
             if method == "GET" and parts[2:] == ["export"]:
                 return 200, self.service.export_bundle(execution_id)
             if method == "POST" and parts[2:] == ["recover"]:
