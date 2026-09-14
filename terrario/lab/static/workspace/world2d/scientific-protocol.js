@@ -38,6 +38,9 @@ export function validateScientificFrame(frame) {
   for (const view of ["world_truth", "agent_observation", "observer_view"]) {
     if (!frame[view] || typeof frame[view] !== "object") throw new Error(`INCOMPLETE_ATOMIC_FRAME:${view}`);
   }
+  if (frame.cognitive_state !== undefined && (!frame.cognitive_state || typeof frame.cognitive_state !== "object" || Array.isArray(frame.cognitive_state))) {
+    throw new Error("INVALID_COGNITIVE_STATE");
+  }
   return frame;
 }
 

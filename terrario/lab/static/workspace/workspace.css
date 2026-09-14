@@ -234,6 +234,23 @@
 .w2d-spacer { flex:1; }
 .w2d-mode, [data-status] { font-size:10px; border:1px solid currentColor; border-radius:10px; padding:1px 6px; }
 .ws-world-view small { padding:2px 6px; font-size:9px; background:#e7eefb; color:#244d85; }
+.w2d-cognitive-observatory { border:1px solid var(--ws-border); border-radius:6px; margin-top:6px; overflow:hidden; }
+.w2d-cognitive-observatory > header { padding:4px 8px; background:#f1ecfb; color:#5d3c92; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.w2d-cognitive-observatory > header small { font-weight:400; text-transform:none; letter-spacing:0; color:var(--ws-muted); }
+.w2d-cognitive-observatory > div { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; padding:6px; }
+.w2d-cognitive-group { min-width:0; }
+.w2d-cognitive-group h4 { margin:0 0 3px; font-size:10px; color:var(--ws-muted); }
+.w2d-cognitive-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:3px; margin:0; }
+.w2d-cognitive-cell { margin:0; padding:3px 4px; border:1px solid var(--ws-border); border-radius:3px; min-width:0; }
+.w2d-cognitive-cell dt { font-size:9px; color:var(--ws-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.w2d-cognitive-cell dd { margin:1px 0 0; font:600 10px ui-monospace, monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.w2d-cognitive-cell dd[data-capability="NULL"] { color:var(--ws-muted); }
+.w2d-cognitive-cell dd[data-capability="UNAVAILABLE"] { color:var(--ws-warn); }
+.w2d-cognitive-cell dd[data-capability="UNSUPPORTED"] { color:var(--ws-muted); font-style:italic; }
+.w2d-cognitive-cell dd[data-capability="NON_FINITE"] { color:var(--ws-error); font-weight:700; }
+.w2d-cognitive-cell dd[data-capability="MALFORMED"] { color:var(--ws-error); font-weight:700; }
+.w2d-cognitive-derived h4 { color:#5d3c92; }
+@media (max-width: 900px) { .w2d-cognitive-observatory > div { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 .w2d-forensics { display:grid; grid-template-columns:2fr 1fr; gap:6px; height:132px; margin-top:6px; }
 .w2d-timeline { position:relative; overflow:auto; border:1px solid var(--ws-border); border-radius:5px; }
 .w2d-event { position:absolute; left:0; right:0; height:23px; overflow:hidden; text-align:left; border:0; border-bottom:1px solid var(--ws-border); background:var(--ws-panel); font-size:10px; }

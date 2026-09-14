@@ -95,6 +95,14 @@ test("frame validation requires atomic views and identity", () => {
   assert.throws(() => validateScientificFrame(noIdentity), /FRAME_IDENTITY_MISSING/);
 });
 
+test("historical frames without additive cognition remain valid", () => {
+  const historical = frame(0);
+  assert.doesNotThrow(() => validateScientificFrame(historical));
+  const cognitive = { ...historical, cognitive_state: { schema_version: "terrario.scientific-cognitive-transport/v1" } };
+  assert.doesNotThrow(() => validateScientificFrame(cognitive));
+  assert.throws(() => validateScientificFrame({ ...historical, cognitive_state: "forged" }), /INVALID_COGNITIVE_STATE/);
+});
+
 test("RESYNC_REQUIRED and ERROR events map to canonical states", () => {
   let state = reduceScientificEvent(transition(initialObservationState(), "CONNECTING"),
     { type: "SNAPSHOT", frame: frame(0), terminal: false });
@@ -104,4 +112,19 @@ test("RESYNC_REQUIRED and ERROR events map to canonical states", () => {
   state = reduceScientificEvent(state, { type: "ERROR", message: "boom" });
   assert.equal(state.status, "ERROR");
   assert.equal(state.error, "boom");
+});
+
+test("resync replaces the whole scientific frame, including cognition", () => {
+  const oldFrame = { ...frame(10), cognitive_state: { step: 10, uncertainty: 0.1 } };
+  let state = reduceScientificEvent(transition(initialObservationState(), "CONNECTING"),
+    { type: "SNAPSHOT", frame: oldFrame, terminal: false });
+  state = reduceScientificEvent(state, { type: "FRAME", frame: { ...frame(12), cognitive_state: { step: 12, uncertainty: 0.3 } } });
+  assert.equal(state.status, "RESYNCING");
+  assert.equal(state.frame.cognitive_state.step, 10);
+  const authoritative = { ...frame(12), cognitive_state: { step: 12, uncertainty: 0.3 } };
+  state = reduceScientificEvent({ ...state, frameSequence: -1 },
+    { type: "SNAPSHOT", frame: authoritative, terminal: false });
+  assert.equal(state.status, "LIVE");
+  assert.equal(state.frame.tick, 12);
+  assert.equal(state.frame.cognitive_state.step, 12);
 });
