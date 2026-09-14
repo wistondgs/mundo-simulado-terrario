@@ -24,6 +24,19 @@ is unavailable:
 Use `--device cpu` only for an explicitly CPU-scoped run. `--device auto`
 allows a documented CPU fallback.
 
+## Operational workspace
+
+Open the repository root as an Obsidian vault and begin at
+[`knowledge/00 Control/Inicio.md`](knowledge/00%20Control/Inicio.md). It is the
+operational source for navigation, prioritization and human decisions; the
+technical state remains derived from the versioned manifest and immutable
+scientific artifacts. Refresh the generated dashboard after a manifest change:
+
+```bash
+./.venv/bin/python scripts/sync_obsidian_vault.py --write
+./.venv/bin/python scripts/sync_obsidian_vault.py --check
+```
+
 ## Durable Lab artifacts
 
 Terrario Lab stores world drafts, experiment drafts, and non-executing trial

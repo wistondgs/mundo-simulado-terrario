@@ -21,3 +21,8 @@ node_modules/
 package-lock.json
 test-results/
 playwright-report/
+
+# Obsidian's shared vault settings are committed; each user's window state is not.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
