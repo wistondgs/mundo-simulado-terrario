@@ -13,7 +13,7 @@ def test_operational_hypergraph_connects_experiment_observer_and_execution_witho
     frame = next(edge for edge in edges if edge.edge_id == "OHG-03")
     assert {member.node_type for member in frame.members} >= {
         OperationalNodeType.WORLD_TRUTH, OperationalNodeType.AGENT_OBSERVATION,
-        OperationalNodeType.OBSERVER_PROFILE,
+        OperationalNodeType.SCIENTIFIC_OBSERVER,
     }
     assert all(edge.output.value != "EVIDENCE_GRAPH" for edge in edges)
 

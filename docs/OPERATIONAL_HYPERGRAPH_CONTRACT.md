@@ -9,7 +9,7 @@ causal forks. It never emits an EvidenceGraph node or a causal conclusion.
 | --- | --- |
 | OHG-01 | hypothesis + experiment + scenario/world + observer + seeds → preregistration |
 | OHG-02 | preregistration + plan + intent + scenario + agent + seeds + observer → attempt |
-| OHG-03 | attempt + World Truth + Agent Observation + observer + tick → scientific frame |
+| OHG-03 | attempt + World Truth + Agent Observation + `ScientificObserver` + tick → scientific frame |
 | OHG-04 | attempt + frames + raw trace/result → CAS blob |
 | OHG-05 | attempt + sealed trace + observer → read-only playback |
 | OHG-06 | attempt + snapshot + control/intervention + spec → causal fork |

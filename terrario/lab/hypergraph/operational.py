@@ -26,6 +26,7 @@ class OperationalNodeType(StrEnum):
     AGENT_CONFIGURATION = "AGENT_CONFIGURATION"
     SEED_PARTITION = "SEED_PARTITION"
     OBSERVER_PROFILE = "OBSERVER_PROFILE"
+    SCIENTIFIC_OBSERVER = "SCIENTIFIC_OBSERVER"
     WORLD_TRUTH = "WORLD_TRUTH"
     AGENT_OBSERVATION = "AGENT_OBSERVATION"
     SCIENTIFIC_FRAME = "SCIENTIFIC_FRAME"
@@ -110,7 +111,7 @@ OPERATIONAL_HYPEREDGES: tuple[OperationalHyperedge, ...] = (
             _member("trial_attempt", OperationalNodeType.TRIAL_ATTEMPT),
             _member("world_truth", OperationalNodeType.WORLD_TRUTH),
             _member("agent_observation", OperationalNodeType.AGENT_OBSERVATION),
-            _member("observer_profile", OperationalNodeType.OBSERVER_PROFILE),
+            _member("scientific_observer", OperationalNodeType.SCIENTIFIC_OBSERVER),
             _member("tick", OperationalNodeType.TRIAL_ATTEMPT, causal=False),
         ), OperationalNodeType.SCIENTIFIC_FRAME,
         "Binds World Truth, Agent Observation and Observer View from one tick; observer view is observational, not an agent input.",
