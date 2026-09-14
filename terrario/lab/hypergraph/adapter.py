@@ -40,3 +40,9 @@ class HypergraphAdapter:
     def export(self) -> dict:
         def encode(x): return thaw(asdict(x)) if hasattr(x, "__dataclass_fields__") else thaw(x)
         return {"nodes": [encode(x) for x in self.records], "edges": [encode(x) for x in self.edges]}
+
+    @staticmethod
+    def operational_catalog():
+        """Typed execution/observer relations, separate from theory candidates."""
+        from terrario.lab.hypergraph.operational import operational_hypergraph
+        return operational_hypergraph()
