@@ -6,8 +6,8 @@ import { execFileSync } from "node:child_process";
  * SCIENTIFIC-LIVE-OBSERVABILITY-01 golden path.
  * Real backend, real dispatcher, real ScientificTrialRuntime; no mocked transport.
  */
-function seed() {
-  const out = execFileSync(".venv/bin/python", ["scripts/seed_scientific_live_e2e.py", ".terrario"],
+function seed(agentId = "A4") {
+  const out = execFileSync(".venv/bin/python", ["scripts/seed_scientific_live_e2e.py", ".terrario", agentId],
     { encoding: "utf8", env: { ...process.env, PYTHONPATH: "." } });
   return JSON.parse(out.trim().split("\n").pop());
 }
@@ -54,6 +54,8 @@ test.describe("Scientific live observability", () => {
     expect(provenance).toContain(exec.plan_hash);
     expect(provenance).toContain("CAS_SEALED");
     await expect(panel.locator("#swViews")).toContainText("frame 100 · COMPLETED");
+    await expect(panel.locator("#swCognitive")).toContainText("A4_ADVANCED");
+    await expect(panel.locator("#swCognitive")).toContainText("Policy entropy");
 
     // Durable CAS playback with seek; provenance remains identical.
     await panel.locator("#swOpen").click();
@@ -131,5 +133,19 @@ test.describe("Scientific live observability", () => {
       `/api/v1/scientific-executions/${exec.execution_id}/trials/${trace.trial_intent_id}/live?attempt_id=forged-attempt`,
       { headers: auth });
     expect(response.status()).toBe(404);
+  });
+
+  test("less-capable A0 view states unavailable domains instead of fabricating signals", async ({ page, request }) => {
+    const exec = seed("A0");
+    await startAndDispatch(request, exec);
+    const trace = await attemptOf(request, exec.execution_id);
+    await page.goto("/workspace/index.html");
+    const panel = page.locator('[data-panel="scientific-world"]');
+    await panel.locator("#swExec").fill(exec.execution_id);
+    await panel.locator("#swTrial").fill(trace.trial_intent_id);
+    await panel.locator("#swAttempt").fill(trace.attempt_id);
+    await panel.locator("#swLive").click();
+    await expect(panel.locator("#swCognitive")).toContainText("A0_RANDOM");
+    await expect(panel.locator("#swCognitive")).toContainText("UNSUPPORTED");
   });
 });

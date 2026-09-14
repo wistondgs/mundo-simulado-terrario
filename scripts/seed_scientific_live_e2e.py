@@ -18,13 +18,13 @@ from terrario.lab.api import LabAPI
 from tests.test_lab_02c_api import experiment_payload
 
 
-def _locked_preregistration(api, preregistration_id: str) -> str:
+def _locked_preregistration(api, preregistration_id: str, agent_id: str) -> str:
     suffix = preregistration_id.removeprefix("PR-LIVE-")
     # Vary the seeds so the draft's scientific hash is unique per E2E run; the
     # content-addressed store rejects silent duplicate scientific payloads.
     offset = int(suffix[:6], 16) % 100000
-    payload = experiment_payload(draft_id=f"ED-LIVE-{suffix}", world_seeds=[100000 + offset, 200000 + offset],
-                                 agent_seeds=[300000 + offset])
+    payload = experiment_payload(draft_id=f"ED-LIVE-{suffix}", agent_ids=[agent_id],
+                                 world_seeds=[100000 + offset, 200000 + offset], agent_seeds=[300000 + offset])
     status, experiment = api.dispatch("POST", "/api/experiment-drafts", payload)
     assert status == 201, experiment
     status, matrix = api.dispatch("POST", "/api/trial-matrices/build", payload)
@@ -66,9 +66,10 @@ def _locked_preregistration(api, preregistration_id: str) -> str:
 
 def main() -> None:
     data_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".terrario")
+    agent_id = sys.argv[2] if len(sys.argv) > 2 else "A4"
     api = LabAPI(Path("."), data_root=data_root)
     preregistration_id = f"PR-LIVE-{secrets.token_hex(6)}"
-    root = _locked_preregistration(api, preregistration_id)
+    root = _locked_preregistration(api, preregistration_id, agent_id)
     status, response = api.dispatch("POST", "/api/v1/scientific-executions", {"preregistration_root_hash": root})
     assert status == 201, response
     execution = response["data"]
