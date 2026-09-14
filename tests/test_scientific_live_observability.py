@@ -171,6 +171,51 @@ def test_live_to_terminal_to_playback_provenance_continuity(api):
         assert str(live_first["identity"][key]) == str(play_first["identity"][key])
     assert live_first["identity"]["plan_hash"] == execution["plan_hash"]
     assert live_first["frame_sequence"] == play_first["frame_sequence"] == 0
+    assert live_first["tick"] == play_first["tick"] == 0
+    assert live_first["cognitive_state"] == play_first["cognitive_state"]
+
+
+def test_cognitive_state_stays_atomic_with_later_durable_frames(api):
+    execution, attempt = _completed(api)
+    live, eid, tid, aid = _live(api, execution, attempt)
+    live_frames = live.frames_after(eid, tid, aid, _cursor(eid, tid, aid, -1))["frames"]
+    api.scientific_execution_dispatcher.frames.clear()
+    api.scientific_execution_dispatcher.live.drop_attempt(eid, tid, aid)
+    durable = api.scientific_observations.playback(eid, tid, aid)["frames"]
+    assert [(frame["frame_sequence"], frame["tick"], frame["cognitive_state"]) for frame in live_frames] == [
+        (frame["frame_sequence"], frame["tick"], frame["cognitive_state"]) for frame in durable
+    ]
+    assert all(frame["cognitive_state"]["step"] != "NOT_APPLICABLE" for frame in durable)
+
+
+def test_terminal_frame_keeps_its_atomic_cognitive_state_and_completed_contract(api):
+    execution, attempt = _completed(api)
+    frames = api.scientific_observations.playback(execution["execution_id"], attempt["trial_intent_id"], attempt["attempt_id"])["frames"]
+    final = frames[-1]
+    assert final["runtime_state"] == "COMPLETED"
+    assert final["tick"] == final["world_truth"]["time"]
+    assert final["cognitive_state"]["schema_version"] == "terrario.scientific-cognitive-transport/v1"
+
+
+def test_publication_fault_fails_materialization_only_after_the_real_trial_runs(api, monkeypatch):
+    execution = _running(api)
+    dispatcher = api.scientific_execution_dispatcher
+    published = []
+
+    def fail_after_capture(frame):
+        published.append(frame)
+        raise RuntimeError("deterministic live publisher fault")
+
+    monkeypatch.setattr(dispatcher.live, "publish", fail_after_capture)
+    with pytest.raises(ValueError, match="OBSERVER_MATERIALIZATION_FAILED"):
+        dispatcher.run(execution["execution_id"], max_trials=1)
+    # The sink received a real initial ScientificFrame and then failed closed
+    # only at materialization; it did not stop the controller trajectory.
+    assert published and published[0]["frame_sequence"] == 0
+    attempt = api.scientific_observations.attempts(execution["execution_id"])[0]
+    assert attempt["projected_state"] == "MATERIALIZATION_FAILED"
+    artifact_types = {artifact["artifact_type"] for artifact in api.scientific_executions.get(execution["execution_id"])["artifacts"]}
+    assert "SCIENTIFIC_TRACE" not in artifact_types
 
 
 def test_durable_playback_after_service_reconstruction(api):

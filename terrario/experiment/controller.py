@@ -6,7 +6,7 @@ import json
 import os
 import subprocess
 from copy import deepcopy
-from typing import Any
+from typing import Any, Callable, Mapping
 
 import numpy as np
 import yaml
@@ -23,7 +23,7 @@ from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
 from terrario.world.opportunities import OpportunityLifecycle
-from terrario.agent.scientific import scientific_state as build_scientific_state
+from terrario.agent.scientific import scientific_state as build_scientific_state, scientific_transport_projection
 
 
 def load_scenario(path: str) -> dict[str, Any]:
@@ -156,6 +156,7 @@ class ExperimentController:
         rule_engine: RuleEngine, scheduler: ChangeScheduler,
         observer: ScientificObserver, seed: int, scenario: dict[str, Any] | None = None,
         learning_enabled: bool = True, phase: str = "training",
+        frame_sink: Callable[[Mapping[str, Any]], None] | None = None,
     ) -> dict[str, Any]:
         active_scenario = scenario or self.scenario
         max_steps = min(self.config.max_steps_per_episode, active_scenario.get("duration", 500))
@@ -164,6 +165,7 @@ class ExperimentController:
         energy_history: list[float] = []
         action_history: list[int] = []
         step_traces: list[dict[str, Any]] = []
+        observation_faults: list[dict[str, Any]] = []
         change_step = next(iter(active_scenario.get("changes", [])), {}).get("at_step")
         forensic_policy = ForensicWindowPolicy(change_step) if change_step is not None else None
         lifecycle = OpportunityLifecycle(active_scenario.get("opportunity_lifecycle", {}), active_scenario.get("world_seed", seed))
@@ -245,6 +247,28 @@ class ExperimentController:
                 transition, world_state_mgr.observer_snapshot(step), agent.agent_identity,
                 agent.get_internal_state(), agent_events, parameter_deltas, observer_annotations, scientific_snapshot,
             )
+            # The optional sink is observer-only.  It receives state captured in
+            # this exact transition, never re-reads mutable agent internals.
+            if frame_sink is not None:
+                try:
+                    captured_frame = {
+                        "tick": step + 1,
+                        "simulation_time": float(world_state_mgr.serialize()["time"]),
+                        "world_revision": int(truth.rules_version),
+                        "world_truth": world_state_mgr.serialize(),
+                        "agent_observation": {
+                            "channels": observation_t1.channels.tolist(), "mask": observation_t1.mask.tolist(),
+                            "agent_energy": observation_t1.agent_energy, "time_fraction": observation_t1.time_fraction,
+                        },
+                        "observer_view": {"events": list(consequence.observer_events), "causal_interaction": observer_annotations},
+                        "scientific_state": scientific_transport_projection(scientific_snapshot),
+                        "trace_cursor": step,
+                        "runtime_state": "COMPLETED" if consequence.done else "RUNNING",
+                    }
+                    frame_sink(captured_frame)
+                except Exception as exc:
+                    observation_faults.append({"kind": "FRAME_SINK_FAILURE", "tick": step + 1,
+                                               "error_type": type(exc).__name__, "message": str(exc)})
             if observer.mode == "forensic_full" and (forensic_policy is None or forensic_policy.should_capture(step)):
                 observer.capture_forensic(agent, step, parameter_deltas or {})
             if self.config.checkpoint_every > 0 and (step + 1) % self.config.checkpoint_every == 0:
@@ -258,6 +282,7 @@ class ExperimentController:
             "num_steps": len(energy_history), "compute_cost": getattr(agent, "compute_cost", 1.0),
             "opportunity_events": [event.__dict__ for event in lifecycle.events],
             "opportunity_records": [record.__dict__ for record in lifecycle.records.values()],
+            "observation_faults": observation_faults,
         }
 
     def _find_target(self, world_mgr: WorldStateManager, agent_id: int, action: Action) -> ObjectSpec | None:

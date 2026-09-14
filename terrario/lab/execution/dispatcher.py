@@ -58,6 +58,8 @@ class ScientificExecutionDispatcher:
                 self.frames[key].append(payload)
                 self.live.publish(payload)
             result = run_materialized_trial(self.service.artifacts.data_root / "runtime" / execution_id / claim["attempt_id"], identity, scenario_path=scenario_path, observer_profile=str(identity_row["observer_profile"]), step_limit=int(plan["protocol"]["step_limit"]), frame_sink=sink)
+            if result["observation_faults"]:
+                raise ValueError("OBSERVER_MATERIALIZATION_FAILED: " + canonical_json(result["observation_faults"]))
             self.service.record_raw_artifact(execution_id, "SCIENTIFIC_TRACE", canonical_json({"identity": identity.__dict__, "frames": self.frames[key]}).encode(), worker_id, claim["trial_intent_id"], claim["attempt_id"])
             self.service.record_raw_artifact(execution_id, "TRIAL_RESULT", canonical_json(result).encode(), worker_id, claim["trial_intent_id"], claim["attempt_id"])
             with self.service.artifacts.transaction() as con:

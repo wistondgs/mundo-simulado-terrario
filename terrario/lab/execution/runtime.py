@@ -16,6 +16,7 @@ from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
 from terrario.observer.logger import ScientificObserver
+from terrario.agent.scientific import scientific_state, scientific_transport_projection
 from terrario.lab.persistence.canonical import content_hash
 
 SCIENTIFIC_FRAME_SCHEMA = "terrario.scientific-frame/v1"
@@ -35,9 +36,12 @@ class ScientificFrame:
     identity: ScientificTrialIdentity; tick: int; simulation_time: float; world_revision: int; frame_sequence: int
     world_truth: Mapping[str, Any]; agent_observation: Mapping[str, Any]; observer_view: Mapping[str, Any]
     runtime_state: str; trace_cursor: int; schema_version: str = SCIENTIFIC_FRAME_SCHEMA
+    # Additive: historical v1 frames legitimately omit this field.
+    cognitive_state: Mapping[str, Any] | None = None
     def __post_init__(self):
         if self.tick < 0 or self.frame_sequence < 0: raise ValueError("scientific frame tick/sequence must be non-negative")
         if not all(isinstance(x, Mapping) for x in (self.world_truth, self.agent_observation, self.observer_view)): raise ValueError("scientific frame requires all atomic views")
+        if self.cognitive_state is not None and not isinstance(self.cognitive_state, Mapping): raise ValueError("scientific frame cognitive state must be a mapping or absent")
 
 
 def run_materialized_trial(root: Path, identity: ScientificTrialIdentity, *, scenario_path: Path,
@@ -53,20 +57,33 @@ def run_materialized_trial(root: Path, identity: ScientificTrialIdentity, *, sce
     rules = RuleEngine(); rules.load_rules(scenario.get("rules", {})); world.set_rules_version(rules.version)
     scheduler = ChangeScheduler(scenario.get("changes", []), rules); agent = controller._create_agent(identity.agent_identity, identity.agent_seed, scenario)
     observer = ScientificObserver(str(root / "observer"), config.observer_mode, {"scientific_trial_identity": identity.__dict__, "plan_hash": identity.plan_hash, "preregistration_root_hash": identity.preregistration_root_hash})
+    observation_faults: list[dict[str, Any]] = []
     try:
-        if frame_sink: frame_sink(_frame(identity, world, scenario, agent, 0, 0, "RUNNING", 0))
-        episode = controller.run_episode(agent, world, Physics(), rules, scheduler, observer, identity.agent_seed, scenario=scenario, phase="scientific_execution")
         if frame_sink:
-            for sequence, trace in enumerate(episode["traces"], 1): frame_sink(_trace_frame(identity, trace, sequence, "COMPLETED"))
+            try:
+                frame_sink(_frame(identity, world, scenario, agent, 0, 0, "RUNNING", 0))
+            except Exception as exc:
+                observation_faults.append({"kind": "FRAME_SINK_FAILURE", "tick": 0,
+                                           "error_type": type(exc).__name__, "message": str(exc)})
+        def capture(step_frame):
+            if frame_sink:
+                frame_sink(_captured_frame(identity, step_frame, int(step_frame["tick"]), step_frame["runtime_state"]))
+        episode = controller.run_episode(agent, world, Physics(), rules, scheduler, observer, identity.agent_seed,
+            scenario=scenario, phase="scientific_execution", frame_sink=capture if frame_sink else None)
     finally: observer.close()
-    return {"identity": identity.__dict__, "episode": episode, "config_hash": config.config_hash(), "observer_dir": str(root / "observer")}
+    observation_faults.extend(episode["observation_faults"])
+    return {"identity": identity.__dict__, "episode": episode, "config_hash": config.config_hash(),
+            "observer_dir": str(root / "observer"), "observation_faults": observation_faults}
 
 
 def _frame(identity, world, scenario, agent, tick, sequence, state, cursor):
     observation = world.get_observation(0, scenario.get("view_radius", 2), scenario.get("num_channels", 4)); truth = world.serialize()
     agent_view = {"channels": observation.channels.tolist(), "mask": observation.mask.tolist(), "agent_energy": observation.agent_energy, "time_fraction": observation.time_fraction}
-    return ScientificFrame(identity, tick, float(truth["time"]), int(truth.get("rules_version", 0)), sequence, truth, agent_view, {"profile": "SCIENTIFIC", "agent_identity": dict(agent.agent_identity)}, state, cursor)
+    return ScientificFrame(identity, tick, float(truth["time"]), int(truth.get("rules_version", 0)), sequence, truth, agent_view, {"profile": "SCIENTIFIC", "agent_identity": dict(agent.agent_identity)}, state, cursor, cognitive_state=scientific_transport_projection(scientific_state(agent)))
 
 
-def _trace_frame(identity, trace, sequence, state):
-    return ScientificFrame(identity, int(trace["step"]) + 1, float(int(trace["step"]) + 1), 0, sequence, {"state_hash": trace["state_hash"], "energy": trace["energy"]}, {"status": "NOT_RETAINED_IN_RAW_STEP_TRACE"}, {"events": trace["observer_events"], "causal_interaction": trace["causal_interaction"]}, state, sequence)
+def _captured_frame(identity, captured, sequence, state):
+    """Build a frame from the transition-captured snapshot, never from replay."""
+    return ScientificFrame(identity, int(captured["tick"]), float(captured["simulation_time"]), int(captured["world_revision"]),
+        sequence, captured["world_truth"], captured["agent_observation"], captured["observer_view"], state,
+        int(captured["trace_cursor"]), cognitive_state=captured["scientific_state"])
