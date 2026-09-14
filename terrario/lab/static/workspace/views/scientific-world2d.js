@@ -1,10 +1,132 @@
-/** Read-only World2D scientific inspection; it cannot control any runtime. */
+/** Read-only World2D scientific inspection; it cannot control any runtime.
+ * Modes: SCIENTIFIC · LIVE / RESYNCING / TERMINAL / PLAYBACK. Never evidence controls. */
+import { ScientificLiveClient, initialObservationState, reduceScientificEvent, transition }
+  from "../world2d/scientific-protocol.js";
+
 const text = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
 export class ScientificWorld2DPanel {
-  constructor(api, { onError } = {}) { this.api = api; this.onError = onError || (() => {}); }
-  render(el) {
-    this.el = el; el.innerHTML = `<section aria-label="Scientific World2D"><header><strong>WORLD2D · SCIENTIFIC EXECUTION</strong> <span class="ws-mode-badge pinned">READ-ONLY · NOT EVIDENCE</span></header><p>Terminal playback from sealed scientific raw artifacts. This panel has no start, step, pause, resume, reset or seed controls.</p><label>Execution <input id="swExec"></label><label>Trial <input id="swTrial"></label><label>Attempt <input id="swAttempt"></label><button id="swOpen">Open playback</button><pre id="swProv">No scientific trace loaded.</pre><div id="swViews"></div></section>`;
-    el.querySelector("#swOpen").onclick = () => this.open();
+  constructor(api, { onError } = {}) {
+    this.api = api; this.onError = onError || (() => {});
+    this.state = initialObservationState();
+    this.client = new ScientificLiveClient(api, {
+      onEvent: (event) => this._event(event),
+      onStatus: (value) => this._connection(value),
+      onError: (error) => this._streamError(error),
+    });
+    this.playbackFrames = new Map(); this.presentedSequence = -1;
   }
-  async open() { try { const q = (id) => this.el.querySelector(id).value.trim(); const page = await this.api.scientificPlayback(q("#swExec"), q("#swTrial"), q("#swAttempt")); const first = page.frames?.[0]; if (!first) throw new Error("TRACE_NOT_AVAILABLE"); this.el.querySelector("#swProv").textContent = JSON.stringify({ mode: page.mode, cursor: page.cursor, identity: first.identity, runtime_state: first.runtime_state }, null, 2); this.el.querySelector("#swViews").innerHTML = `<h4>Tick ${text(first.tick)} · frame ${text(first.frame_sequence)}</h4><details open><summary>World Truth · privileged</summary><pre>${text(JSON.stringify(first.world_truth, null, 2))}</pre></details><details><summary>Agent Observation · no truth mapping</summary><pre>${text(JSON.stringify(first.agent_observation, null, 2))}</pre></details><details><summary>Observer View</summary><pre>${text(JSON.stringify(first.observer_view, null, 2))}</pre></details>`; } catch (error) { this.onError("SCIENTIFIC_OBSERVATION_ERROR", error.message, "scientific World2D"); } }
+
+  render(el) {
+    this.el = el;
+    el.innerHTML = `<section aria-label="Scientific World2D"><header><strong>WORLD2D · SCIENTIFIC EXECUTION</strong> <span id="swMode" class="ws-mode-badge pinned">SCIENTIFIC · IDLE</span> <span class="ws-mode-badge">READ-ONLY</span></header><p>Live observation and sealed-CAS playback of scientific attempts. This panel has no start, step, pause, resume, reset, seed, or intervention controls.</p><label>Execution <input id="swExec"></label><label>Trial <input id="swTrial"></label><label>Attempt <input id="swAttempt"></label><button id="swLive">Attach live</button><button id="swResync" disabled>Resync</button><button id="swOpen" disabled>Open playback</button><button id="swClose" disabled>Disconnect viewer</button><span id="swConn" aria-live="polite">STALE</span></section><div id="swStatus" aria-live="polite"></div><pre id="swProv">No scientific attempt attached.</pre><div id="swSeek" hidden><button id="swPrev">‹</button><input id="swScrub" type="range" min="0" max="0" value="0" aria-label="Playback seek"><button id="swNext">›</button><span id="swSeekLabel"></span></div><div id="swViews"></div>`;
+    el.querySelector("#swLive").onclick = () => this.attachLive();
+    el.querySelector("#swResync").onclick = () => this.resync();
+    el.querySelector("#swOpen").onclick = () => this.openPlayback();
+    el.querySelector("#swClose").onclick = () => this.disconnect();
+    el.querySelector("#swPrev").onclick = () => this.seek(this.presentedSequence - 1);
+    el.querySelector("#swNext").onclick = () => this.seek(this.presentedSequence + 1);
+    el.querySelector("#swScrub").oninput = (event) => this.seek(Number(event.target.value));
+  }
+
+  _ids() { const q = (id) => this.el.querySelector(id).value.trim(); return { exec: q("#swExec"), trial: q("#swTrial"), attempt: q("#swAttempt") }; }
+  _setMode() { this.el.querySelector("#swMode").textContent = `SCIENTIFIC · ${this.state.status}`; }
+  _connection(value) { if (this.el) this.el.querySelector("#swConn").textContent = value; }
+  _controls() {
+    const status = this.state.status;
+    this.el.querySelector("#swResync").disabled = !(status === "LIVE" || status === "RESYNCING" || status === "LOST");
+    this.el.querySelector("#swOpen").disabled = status !== "TERMINAL";
+    this.el.querySelector("#swClose").disabled = !(status === "LIVE" || status === "RESYNCING" || status === "CONNECTING");
+    this.el.querySelector("#swSeek").hidden = status !== "PLAYBACK";
+  }
+  _apply(next) { this.state = next; this._setMode(); this._controls(); }
+
+  async attachLive() {
+    const { exec, trial, attempt } = this._ids();
+    if (!exec || !trial || !attempt) { this.onError("SCIENTIFIC_OBSERVATION_ERROR", "execution, trial and attempt are required", "scientific World2D"); return; }
+    try {
+      if (!this.api.csrfToken) await this.api.initSession();
+      this.client.close(); this._apply(transition(initialObservationState(), "CONNECTING"));
+      const snapshot = await this.client.snapshot(exec, trial, attempt);
+      this._apply(reduceScientificEvent(this.state, { type: "SNAPSHOT", ...snapshot }));
+      this.client.after = this.state.frameSequence;
+      this._renderFrame(this.state.frame);
+      this._renderProvenance();
+      if (this.state.status === "TERMINAL") { this._status("Attempt already terminal; durable CAS playback is available."); return; }
+      void this.client.connect(exec, trial, attempt);
+    } catch (error) { this._apply(reduceScientificEvent(this.state, { type: "ERROR", message: error.message })); this.onError("SCIENTIFIC_OBSERVATION_ERROR", error.message, "scientific World2D"); }
+  }
+
+  _event(event) {
+    const before = this.state;
+    this._apply(reduceScientificEvent(before, event));
+    if (this.state.status === "RESYNCING" && before.status !== "RESYNCING") {
+      this._status(`Gap detected (${this.state.gap?.reason || `expected ${this.state.gap?.expected}, received ${this.state.gap?.received}`}); resyncing from authoritative snapshot.`);
+      void this.resync(); return;
+    }
+    if (event.type === "FRAME" || event.type === "SNAPSHOT") { this._renderFrame(this.state.frame); this._renderProvenance(); }
+    if (event.type === "TERMINAL") { this._status("Terminal event received; raw artifacts sealed. Durable CAS playback is available."); this._renderProvenance(); }
+    if (event.type === "LOST") this._status("Connection lost; the viewer will reconnect with its cursor.");
+  }
+
+  async resync() {
+    const { exec, trial, attempt } = this._ids();
+    try {
+      const snapshot = await this.client.snapshot(exec, trial, attempt);
+      this._apply(reduceScientificEvent({ ...this.state, frameSequence: -1 }, { type: "SNAPSHOT", ...snapshot }));
+      this.client.after = this.state.frameSequence;
+      this._renderFrame(this.state.frame); this._renderProvenance();
+      this._status(this.state.status === "TERMINAL" ? "Resynced; attempt is terminal." : "Resynchronized from authoritative snapshot.");
+    } catch (error) { this._apply(reduceScientificEvent(this.state, { type: "ERROR", message: error.message })); this.onError("SCIENTIFIC_OBSERVATION_ERROR", error.message, "scientific resync"); }
+  }
+
+  async openPlayback() {
+    const { exec, trial, attempt } = this._ids();
+    try {
+      this.client.close();
+      const page = await this.client.playback(exec, trial, attempt);
+      if (!page.frames?.length) throw new Error("TRACE_UNAVAILABLE");
+      this.playbackFrames.clear();
+      for (const frame of page.frames) this.playbackFrames.set(frame.frame_sequence, frame);
+      this._apply(reduceScientificEvent(this.state, { type: "SNAPSHOT", frame: page.frames[0], terminal: true, artifact_state: "CAS_SEALED", earliest_retained_sequence: 0, latest_sequence: page.frames[page.frames.length - 1].frame_sequence }));
+      this._apply(transition(this.state, "PLAYBACK"));
+      const scrub = this.el.querySelector("#swScrub"); scrub.max = Math.max(...this.playbackFrames.keys()); scrub.value = 0;
+      this.seek(0); this._renderProvenance();
+      this._status(`Durable CAS playback · ${this.playbackFrames.size} frames · provenance identical to live.`);
+    } catch (error) { this._apply(reduceScientificEvent(this.state, { type: "ERROR", message: error.message })); this.onError("SCIENTIFIC_OBSERVATION_ERROR", error.message, "scientific playback"); }
+  }
+
+  seek(sequence) {
+    if (this.state.status !== "PLAYBACK" || !this.playbackFrames.has(sequence)) return;
+    this.presentedSequence = sequence;
+    this.el.querySelector("#swScrub").value = sequence;
+    this.el.querySelector("#swSeekLabel").textContent = `frame ${sequence}`;
+    this._renderFrame(this.playbackFrames.get(sequence));
+  }
+
+  disconnect() { this.client.close(); this._apply(transition(this.state, "IDLE")); this._connection("STALE"); this._status("Viewer disconnected; the trial is unaffected."); }
+
+  _streamError(error) { this._connection("STALE"); this.onError("WORLDSTREAM_ERROR", error.message, `SCIENTIFIC · ${this.state.status}`); }
+
+  _renderProvenance() {
+    const identity = this.state.identity || {};
+    this.el.querySelector("#swProv").textContent = JSON.stringify({
+      classification: "SCIENTIFIC_OBSERVATION", observation_state: this.state.status,
+      execution_id: identity.execution_id, trial_intent_id: identity.trial_intent_id, attempt_id: identity.attempt_id,
+      plan_hash: identity.plan_hash, preregistration_root_hash: identity.preregistration_root_hash,
+      software_identity: identity.software_identity, scenario_identity: identity.scenario_identity,
+      agent_identity: identity.agent_identity, world_seed: identity.world_seed, agent_seed: identity.agent_seed,
+      contract_version: identity.schema_version, frame_sequence: this.state.frameSequence,
+      artifact_state: this.state.artifactState, terminal: this.state.terminal,
+    }, null, 2);
+  }
+
+  _renderFrame(frame) {
+    if (!frame) return;
+    this.el.querySelector("#swViews").innerHTML = `<h4>Tick ${text(frame.tick)} · frame ${text(frame.frame_sequence)} · ${text(frame.runtime_state)}</h4><details open><summary>World Truth · privileged</summary><pre>${text(JSON.stringify(frame.world_truth, null, 2))}</pre></details><details><summary>Agent Observation · no truth mapping</summary><pre>${text(JSON.stringify(frame.agent_observation, null, 2))}</pre></details><details><summary>Observer View</summary><pre>${text(JSON.stringify(frame.observer_view, null, 2))}</pre></details>`;
+  }
+
+  _status(message) { const el = this.el.querySelector("#swStatus"); if (el) el.textContent = message; }
+
+  async open() { return this.openPlayback(); }
 }
