@@ -112,6 +112,9 @@ export class ApiClient {
   searchClaims(text) { return this.post("/api/v1/reference-graph/claims/search", { text }); }
   projection(filters) { return this.post("/api/v1/reference-graph/projection", filters); }
 
+  // ---- operational hypergraph (read-only architecture, never evidence) ----
+  operationalHypergraph() { return this.get("/api/operational-hypergraph"); }
+
   // ---- world / scenario (legacy lab API) ----
   worldDefinition(worldId) { return this.get(`/api/worlds/${encodeURIComponent(worldId)}`); }
   worldPreview(worldId, seed) {

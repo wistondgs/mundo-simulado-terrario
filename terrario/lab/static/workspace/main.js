@@ -23,6 +23,7 @@ import { D2Studio } from "./views/d2studio.js";
 import { CompositionPanel } from "./views/composition.js";
 import { InspectorPanel } from "./views/inspector.js";
 import { ExplorerPanel } from "./views/explorer.js";
+import { OperationalHypergraphPanel } from "./views/operational-hypergraph.js";
 import { CommandPalette } from "./views/palette.js";
 
 const api = new ApiClient();
@@ -39,6 +40,7 @@ const state = {
   composition: null,
   inspector: null,
   explorer: null,
+  operationalHypergraph: null,
   palette: null,
 };
 
@@ -186,6 +188,7 @@ async function boot() {
   state.shell = shell;
 
   state.explorer = new ExplorerPanel(api, { onOpen: handleExplorerOpen });
+  state.operationalHypergraph = new OperationalHypergraphPanel(api, { onError: showError });
   state.inspector = new InspectorPanel(api, { onError: showError });
   state.composition = new CompositionPanel(api, { onError: showError });
   state.world2d = new World2DPanel(api, { onError: showError });
@@ -195,6 +198,8 @@ async function boot() {
 
   shell.registerPanel("explorer", { title: "Explorer", region: "left",
     render: (el) => state.explorer.render(el) });
+  shell.registerPanel("operational-hypergraph", { title: "Operational Hypergraph", region: "left",
+    render: (el) => state.operationalHypergraph.render(el) });
   shell.registerPanel("canvas", { title: "Scientific Canvas", region: "center",
     render: (el) => { el.classList.add("no-pad"); buildCanvas(el); } });
   shell.registerPanel("inspector", { title: "Inspector", region: "right",

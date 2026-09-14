@@ -222,6 +222,10 @@ class LabAPI:
                 if action == "agent-view": return 200, thaw(self.model.agent_view(rid, step))
             if parts == ["api", "hypotheses"]: return 200, thaw(self.model.hypotheses())
             if parts == ["api", "hypergraph"]: return 200, self._hypergraph()
+            if parts == ["api", "operational-hypergraph"]:
+                return 200, {"schema_version": "terrario.operational-hypergraph/v1",
+                             "classification": "OPERATIONAL_DERIVED_NOT_EVIDENCE",
+                             "hyperedges": thaw(HypergraphAdapter.operational_catalog())}
             if parts == ["api", "theory", "summary"]: return 200, self.theory_summary
             if parts == ["api", "theory", "graph"]: return (200, self.theory_graph.export()) if self.theory_graph else (404, {"error": "no theory snapshot"})
             if parts == ["api", "theory", "drafts"]:
