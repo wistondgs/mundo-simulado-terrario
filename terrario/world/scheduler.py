@@ -87,3 +87,18 @@ class ChangeScheduler:
 
         self._history.extend(fired)
         return fired
+
+    def export_causal_state(self) -> dict[str, Any]:
+        return {"schema_version": "terrario.change-scheduler-causal/v1", "changes": [
+            {"at_step": item.at_step, "rules": item.rules, "fired": item.fired} for item in self._changes]}
+
+    def restore_causal_state(self, payload: dict[str, Any]) -> None:
+        if payload.get("schema_version") != "terrario.change-scheduler-causal/v1":
+            raise ValueError("SCHEMA_MISMATCH: scheduler")
+        changes = payload.get("changes")
+        if not isinstance(changes, list) or len(changes) != len(self._changes):
+            raise ValueError("SNAPSHOT_INCOMPLETE: scheduler changes")
+        for target, source in zip(self._changes, changes, strict=True):
+            if target.at_step != source.get("at_step") or target.rules != source.get("rules"):
+                raise ValueError("RESTORE_NOT_EXACT: scheduler definition")
+            target.fired = bool(source["fired"])

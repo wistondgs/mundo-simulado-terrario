@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+import math
 
 import numpy as np
 
@@ -140,6 +141,39 @@ class RuleEngine:
 
         self._rules = parsed
         self._version += 1
+
+    def export_causal_state(self) -> dict[str, Any]:
+        """Versioned, explicit rule state used by an exact causal snapshot."""
+        return {"schema_version": "terrario.rule-engine-causal/v1", "version": self._version,
+                "rules": {"rules": [{"id": rule.rule_id, "condition": {
+                    "object_channels": [{"index": item.index, "min": None if math.isinf(item.min_val) and item.min_val < 0 else item.min_val, "max": None if math.isinf(item.max_val) and item.max_val > 0 else item.max_val}
+                                        for item in rule.condition.channel_conditions], "action": rule.condition.action},
+                    "effect": {"energy_delta": rule.effect.energy_delta,
+                               "destroy_object": rule.effect.destroy_object,
+                               "transform_channels": rule.effect.transform_channels.tolist() if rule.effect.transform_channels is not None else None}}
+                    for rule in self._rules]}}
+
+    def restore_causal_state(self, payload: dict[str, Any]) -> None:
+        if payload.get("schema_version") != "terrario.rule-engine-causal/v1":
+            raise ValueError("SCHEMA_MISMATCH: rule engine")
+        rules = payload.get("rules")
+        if not isinstance(rules, dict) or not isinstance(rules.get("rules"), list):
+            raise ValueError("SNAPSHOT_INCOMPLETE: rules")
+        # Normalize the explicit multiple-channel representation to the public
+        # loader; this does not infer or default any missing causal value.
+        normalized = {"rules": []}
+        for rule in rules["rules"]:
+            copied = {**rule, "condition": dict(rule["condition"])}
+            copied["condition"]["object_channels"] = [
+                {"index": item["index"], **({} if item.get("min") is None else {"min": item["min"]}),
+                 **({} if item.get("max") is None else {"max": item["max"]})}
+                for item in copied["condition"].get("object_channels", [])]
+            normalized["rules"].append(copied)
+        self.load_rules(normalized)
+        if self._version != 1:
+            # Fresh instances start at zero. A restore must preserve the exact
+            # recorded revision rather than accepting the loader's incidental one.
+            self._version = int(payload["version"])
 
     def evaluate(
         self,

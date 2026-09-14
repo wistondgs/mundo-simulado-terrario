@@ -1023,4 +1023,56 @@ CREATE TRIGGER IF NOT EXISTS scientific_execution_verifications_no_delete
 BEFORE DELETE ON scientific_execution_verifications BEGIN SELECT RAISE(ABORT, 'execution verification is immutable'); END;
 """,
     ),
+    Migration(
+        8,
+        "causal_intervention_fork_core",
+        r"""
+CREATE TABLE IF NOT EXISTS causal_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    execution_id TEXT NOT NULL,
+    trial_intent_id TEXT NOT NULL,
+    attempt_id TEXT NOT NULL,
+    snapshot_hash TEXT NOT NULL UNIQUE CHECK(length(snapshot_hash)=64),
+    blob_hash TEXT NOT NULL REFERENCES blob_manifests(blob_hash),
+    schema_version TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS causal_forks (
+    fork_id TEXT PRIMARY KEY,
+    parent_snapshot_id TEXT NOT NULL REFERENCES causal_snapshots(snapshot_id),
+    parent_execution_id TEXT NOT NULL,
+    parent_trial_intent_id TEXT NOT NULL,
+    parent_attempt_id TEXT NOT NULL,
+    identity_hash TEXT NOT NULL UNIQUE CHECK(length(identity_hash)=64),
+    shared_history_hash TEXT NOT NULL CHECK(length(shared_history_hash)=64),
+    intervention_spec_hash TEXT NOT NULL CHECK(length(intervention_spec_hash)=64),
+    state TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS causal_fork_events (
+    event_id TEXT PRIMARY KEY,
+    fork_id TEXT NOT NULL REFERENCES causal_forks(fork_id),
+    sequence INTEGER NOT NULL CHECK(sequence > 0),
+    event_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    event_hash TEXT NOT NULL UNIQUE CHECK(length(event_hash)=64),
+    created_at TEXT NOT NULL,
+    UNIQUE(fork_id, sequence)
+);
+CREATE TABLE IF NOT EXISTS causal_branch_bindings (
+    branch_id TEXT PRIMARY KEY,
+    fork_id TEXT NOT NULL REFERENCES causal_forks(fork_id),
+    role TEXT NOT NULL CHECK(role IN ('CONTROL','INTERVENTION')),
+    artifact_blob_hash TEXT REFERENCES blob_manifests(blob_hash),
+    trace_hash TEXT,
+    UNIQUE(fork_id, role)
+);
+CREATE TRIGGER IF NOT EXISTS causal_snapshots_no_update BEFORE UPDATE ON causal_snapshots BEGIN SELECT RAISE(ABORT, 'causal snapshots are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS causal_snapshots_no_delete BEFORE DELETE ON causal_snapshots BEGIN SELECT RAISE(ABORT, 'causal snapshots are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS causal_fork_events_no_update BEFORE UPDATE ON causal_fork_events BEGIN SELECT RAISE(ABORT, 'causal fork events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS causal_fork_events_no_delete BEFORE DELETE ON causal_fork_events BEGIN SELECT RAISE(ABORT, 'causal fork events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS causal_branch_bindings_no_update BEFORE UPDATE ON causal_branch_bindings BEGIN SELECT RAISE(ABORT, 'causal branch bindings are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS causal_branch_bindings_no_delete BEFORE DELETE ON causal_branch_bindings BEGIN SELECT RAISE(ABORT, 'causal branch bindings are immutable'); END;
+""",
+    ),
 )

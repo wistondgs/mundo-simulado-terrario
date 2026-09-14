@@ -6,6 +6,7 @@ No learning, no state, no memory. Selects actions uniformly at random.
 from __future__ import annotations
 
 from typing import Any
+import base64
 
 import torch
 
@@ -67,3 +68,19 @@ class A0Random(AgentInterface):
 
     def parameter_count(self) -> int:
         return 0
+
+    def export_causal_state(self) -> dict[str, Any]:
+        """All A0 state that can affect a future decision, explicitly encoded."""
+        return {"schema_version": "terrario.agent-a0-causal/v1", "step": self._step,
+                "generator_state": base64.b64encode(self._generator.get_state().numpy().tobytes()).decode("ascii")}
+
+    def restore_causal_state(self, payload: dict[str, Any]) -> None:
+        if payload.get("schema_version") != "terrario.agent-a0-causal/v1":
+            raise ValueError("SCHEMA_MISMATCH: A0")
+        encoded = payload.get("generator_state")
+        if not isinstance(encoded, str) or not isinstance(payload.get("step"), int):
+            raise ValueError("SNAPSHOT_INCOMPLETE: A0")
+        raw = base64.b64decode(encoded.encode("ascii"), validate=True)
+        self._generator.set_state(torch.frombuffer(bytearray(raw), dtype=torch.uint8).clone())
+        self._step = payload["step"]
+        self._trace.clear()
