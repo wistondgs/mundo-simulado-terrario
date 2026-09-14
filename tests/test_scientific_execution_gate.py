@@ -73,7 +73,7 @@ def test_dispatcher_materializes_one_real_trial_and_seals_its_trace(api):
         trial = con.execute("SELECT trial_intent_id FROM run_attempts WHERE projected_state='COMPLETED' LIMIT 1").fetchone()[0]
     frames = api.scientific_execution_dispatcher.frames_after(execution["execution_id"], trial)
     assert len(frames) > 1 and frames[0]["tick"] == 0
-    assert all(frame["identity"].execution_id == execution["execution_id"] for frame in frames)
+    assert all(frame["identity"]["execution_id"] == execution["execution_id"] for frame in frames)
     artifacts = api.scientific_executions.get(execution["execution_id"])["artifacts"]
     assert {item["artifact_type"] for item in artifacts} >= {"SCIENTIFIC_TRACE", "TRIAL_RESULT"}
 

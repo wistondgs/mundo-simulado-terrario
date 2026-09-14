@@ -355,6 +355,56 @@ def handler_factory(api: LabAPI, static_dir: Path):
                     self.send_error(429, str(exc)); return
                 finally:
                     if acquired: api.sandbox.release_subscriber(session_id)
+            if len(stream_parts) == 7 and stream_parts[:2] == ["api", "v1"] and stream_parts[2] == "scientific-executions" and stream_parts[4] == "trials" and stream_parts[6] == "stream":
+                acquired = False
+                try:
+                    api.api_v1._authorize(dict(self.headers))
+                    execution_id, trial_intent_id = stream_parts[3], stream_parts[5]
+                    attempt_id = parse_qs(parsed.query).get("attempt_id", [None])[0]
+                    if not attempt_id: self.send_error(400, "attempt_id is required"); return
+                    live = api.scientific_execution_dispatcher.live
+                    live.acquire_subscriber(execution_id, trial_intent_id, attempt_id)
+                    acquired = True
+                    after = int(parse_qs(parsed.query).get("after_sequence", ["-1"])[0])
+                    cursor = {"schema_version": "terrario.scientific-live/v1", "execution_id": execution_id,
+                              "trial_intent_id": trial_intent_id, "attempt_id": attempt_id, "frame_sequence": after}
+                    self.send_response(200); self.send_header("Content-Type", "text/event-stream")
+                    self.send_header("Cache-Control", "no-cache, no-transform"); self.send_header("Connection", "keep-alive")
+                    self.send_header("X-Accel-Buffering", "no"); self.end_headers()
+                    last_heartbeat = 0.0
+                    while True:
+                        try:
+                            page = live.frames_after(execution_id, trial_intent_id, attempt_id, cursor)
+                        except Exception as exc:
+                            payload = {"code": getattr(exc, "code", "SCIENTIFIC_LIVE_ERROR"), "message": str(exc),
+                                       "attempt_id": attempt_id, "earliest_hint": after + 1}
+                            self.wfile.write(f"id: {max(after, 0)}\nevent: RESYNC_REQUIRED\ndata: {json.dumps(payload, separators=(',', ':'))}\n\n".encode())
+                            self.wfile.flush(); return
+                        for frame in page["frames"]:
+                            self.wfile.write(f"id: {frame['frame_sequence']}\nevent: FRAME\ndata: {json.dumps(frame, separators=(',', ':'))}\n\n".encode())
+                            after = int(frame["frame_sequence"])
+                        cursor = page["cursor"]
+                        if page["frames"]: self.wfile.flush()
+                        if page["terminal"]:
+                            payload = {"schema_version": "terrario.scientific-live/v1", **page["terminal_state"],
+                                       "execution_id": execution_id, "trial_intent_id": trial_intent_id, "attempt_id": attempt_id}
+                            self.wfile.write(f"id: {max(after, 0)}\nevent: TERMINAL\ndata: {json.dumps(payload, separators=(',', ':'))}\n\n".encode())
+                            self.wfile.flush(); return
+                        now = __import__("time").monotonic()
+                        if now - last_heartbeat >= 5:
+                            payload = {"schema_version": "terrario.scientific-live/v1", "execution_id": execution_id,
+                                       "trial_intent_id": trial_intent_id, "attempt_id": attempt_id, "frame_sequence": after}
+                            self.wfile.write(f"id: {max(after, 0)}\nevent: HEARTBEAT\ndata: {json.dumps(payload, separators=(',', ':'))}\n\n".encode()); self.wfile.flush()
+                            last_heartbeat = now
+                        live.wait_for_frames(execution_id, trial_intent_id, attempt_id, after, timeout=1.0)
+                except (BrokenPipeError, ConnectionResetError):
+                    return
+                except PermissionError as exc:
+                    self.send_error(403, str(exc)); return
+                except ValueError as exc:
+                    self.send_error(429, str(exc)); return
+                finally:
+                    if acquired: api.scientific_execution_dispatcher.live.release_subscriber(execution_id, trial_intent_id, attempt_id)
             if self.path.startswith("/api/"):
                 status, payload = api.dispatch("GET", self.path, headers=dict(self.headers))
                 body = json.dumps(payload).encode()

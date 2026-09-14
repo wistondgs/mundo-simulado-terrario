@@ -22,8 +22,12 @@ class ScientificExecutionAPI:
             status, data = self._route(method, parts, p, query)
             return status, {"data": data, "meta": {"request_id": request_id, "schema_version": "terrario.api/v1", "scientific_execution": True}}
         except Exception as exc:
+            from terrario.lab.execution.live import (AttemptNotRunning, ContractMismatch, CursorInvalid,
+                CursorTooOld, CursorWrongAttempt, LiveAttemptNotFound, LiveResyncRequired, SubscriberLimit)
+            from terrario.lab.execution.observation import (ArtifactNotSealed, AttemptNotFound, ResyncRequired,
+                TraceCorrupted, TraceUnavailable)
             code = getattr(exc, "code", "INVALID_REQUEST")
-            status = 404 if isinstance(exc, ArtifactNotFound) else 409 if isinstance(exc, (ExecutionConflict, ProvenanceConflict)) else 422 if isinstance(exc, ExecutionNotReady) else 403 if isinstance(exc, ExecutionUnauthorized) else 400 if isinstance(exc, (ValueError, KeyError)) else 500
+            status = 404 if isinstance(exc, (ArtifactNotFound, LiveAttemptNotFound, AttemptNotFound)) else 409 if isinstance(exc, (ExecutionConflict, ProvenanceConflict, CursorTooOld, LiveResyncRequired, ResyncRequired, TraceCorrupted, TraceUnavailable, ArtifactNotSealed, AttemptNotRunning)) else 422 if isinstance(exc, ExecutionNotReady) else 403 if isinstance(exc, ExecutionUnauthorized) else 429 if isinstance(exc, SubscriberLimit) else 400 if isinstance(exc, (ValueError, KeyError, CursorInvalid, CursorWrongAttempt, ContractMismatch)) else 500
             return status, {"error": {"code": code, "message": str(exc), "details": {}, "request_id": request_id}}
 
     def _route(self, method: str, parts: list[str], p: Mapping[str, Any], query=()):
@@ -67,6 +71,20 @@ class ScientificExecutionAPI:
                 return 200, self.observations.playback(execution_id, parts[3], attempt, int(query.get("after_sequence", [-1])[0]), int(query.get("limit", [128])[0]))
             if method == "GET" and len(parts) == 6 and parts[2] == "trials" and parts[4] == "attempts" and parts[5] == "snapshot":
                 return 200, self.observations.snapshot(execution_id, parts[3], query.get("attempt_id", [None])[0] or "")
+            if method == "GET" and len(parts) == 5 and parts[2] == "trials" and parts[4] == "live":
+                attempt = query.get("attempt_id", [None])[0]
+                if not attempt: raise ValueError("attempt_id is required")
+                return 200, self.observations.live_snapshot(execution_id, parts[3], attempt)
+            if method == "GET" and len(parts) == 6 and parts[2] == "trials" and parts[4] == "live" and parts[5] == "stream":
+                attempt = query.get("attempt_id", [None])[0]
+                if not attempt: raise ValueError("attempt_id is required")
+                cursor = self._live_cursor(query, execution_id, parts[3], attempt)
+                return 200, self.dispatcher.live.frames_after(execution_id, parts[3], attempt, cursor,
+                                                              int(query.get("limit", [256])[0]))
+            if method == "POST" and len(parts) == 6 and parts[2] == "trials" and parts[4] == "live" and parts[5] == "resync":
+                attempt = str(p.get("attempt_id") or "")
+                if not attempt: raise ValueError("attempt_id is required")
+                return 200, self.observations.live_snapshot(execution_id, parts[3], attempt)
             if method == "GET" and parts[2:] == ["export"]:
                 return 200, self.service.export_bundle(execution_id)
             if method == "POST" and parts[2:] == ["recover"]:
@@ -74,3 +92,17 @@ class ScientificExecutionAPI:
         if method == "POST" and parts == ["scientific-execution-bundles", "validate"]:
             return 200, self.service.validate_bundle(str(p["archive_path"]))
         raise ArtifactNotFound("/api/v1/" + "/".join(parts))
+
+    @staticmethod
+    def _live_cursor(query: Mapping[str, list[str]], execution_id: str, trial_intent_id: str, attempt_id: str) -> Mapping[str, Any]:
+        """Build the attempt-bound live cursor from the query; tampering fails closed."""
+        from terrario.lab.execution.live import LIVE_SCHEMA, validate_cursor
+        after = int(query.get("after_sequence", [-1])[0])
+        cursor = {"schema_version": LIVE_SCHEMA, "execution_id": execution_id,
+                  "trial_intent_id": trial_intent_id, "attempt_id": attempt_id, "frame_sequence": after}
+        for key in ("execution_id", "trial_intent_id", "attempt_id"):
+            supplied = query.get(f"cursor_{key}", [None])[0]
+            if supplied is not None and supplied != cursor[key]:
+                from terrario.lab.execution.live import CursorWrongAttempt
+                raise CursorWrongAttempt(f"cursor {key} does not match route attempt")
+        return validate_cursor(cursor)

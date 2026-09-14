@@ -15,6 +15,8 @@ class ScientificObservationError(RuntimeError): code = "SCIENTIFIC_OBSERVATION_E
 class AttemptNotFound(ScientificObservationError): code = "ATTEMPT_NOT_FOUND"
 class ResyncRequired(ScientificObservationError): code = "RESYNC_REQUIRED"
 class TraceCorrupted(ScientificObservationError): code = "TRACE_CORRUPTED"
+class TraceUnavailable(ScientificObservationError): code = "TRACE_UNAVAILABLE"
+class ArtifactNotSealed(ScientificObservationError): code = "ARTIFACT_NOT_SEALED"
 
 @dataclass(frozen=True)
 class ScientificFrameCursor:
@@ -45,6 +47,14 @@ class ScientificObservationService:
         frames = self._frames(execution_id, trial_intent_id, attempt_id)
         if not frames: raise AttemptNotFound(attempt_id)
         frame = frames[-1]; return {"schema_version": OBSERVATION_SCHEMA, "cursor": self._cursor(execution_id, trial_intent_id, attempt_id, frame), "frame": frame, "runtime_state": frame["runtime_state"], "artifact_state": "CAS_SEALED"}
+
+    def live_snapshot(self, execution_id: str, trial_intent_id: str, attempt_id: str) -> Mapping[str, Any]:
+        """Authoritative attach point: live publisher state while running, CAS once terminal."""
+        if self.dispatcher and self.dispatcher.live.has_attempt(execution_id, trial_intent_id, attempt_id):
+            return self.dispatcher.live.snapshot(execution_id, trial_intent_id, attempt_id)
+        snapshot = self.snapshot(execution_id, trial_intent_id, attempt_id)
+        return {**snapshot, "mode": "TERMINAL_SNAPSHOT", "terminal": True,
+                "earliest_retained_sequence": 0, "latest_sequence": snapshot["cursor"]["frame_sequence"]}
 
     def playback(self, execution_id: str, trial_intent_id: str, attempt_id: str, after: int = -1, limit: int = 128) -> Mapping[str, Any]:
         if not 1 <= limit <= MAX_PLAYBACK_PAGE: raise ValueError("playback page limit exceeded")
