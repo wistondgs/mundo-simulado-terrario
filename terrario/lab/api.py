@@ -355,17 +355,23 @@ def handler_factory(api: LabAPI, static_dir: Path):
                     self.send_error(429, str(exc)); return
                 finally:
                     if acquired: api.sandbox.release_subscriber(session_id)
-            if len(stream_parts) == 7 and stream_parts[:2] == ["api", "v1"] and stream_parts[2] == "scientific-executions" and stream_parts[4] == "trials" and stream_parts[6] == "stream":
+            if len(stream_parts) == 8 and stream_parts[:2] == ["api", "v1"] and stream_parts[2] == "scientific-executions" and stream_parts[4] == "trials" and stream_parts[6] == "live" and stream_parts[7] == "stream":
                 acquired = False
                 try:
                     api.api_v1._authorize(dict(self.headers))
                     execution_id, trial_intent_id = stream_parts[3], stream_parts[5]
                     attempt_id = parse_qs(parsed.query).get("attempt_id", [None])[0]
                     if not attempt_id: self.send_error(400, "attempt_id is required"); return
+                    # A cursor bound to a different attempt/execution/trial fails closed.
+                    query = parse_qs(parsed.query)
+                    for key, expected in (("cursor_execution_id", execution_id), ("cursor_trial_intent_id", trial_intent_id), ("cursor_attempt_id", attempt_id)):
+                        supplied = query.get(key, [None])[0]
+                        if supplied is not None and supplied != expected:
+                            self.send_error(400, f"CURSOR_WRONG_ATTEMPT: {key}"); return
                     live = api.scientific_execution_dispatcher.live
                     live.acquire_subscriber(execution_id, trial_intent_id, attempt_id)
                     acquired = True
-                    after = int(parse_qs(parsed.query).get("after_sequence", ["-1"])[0])
+                    after = int(query.get("after_sequence", ["-1"])[0])
                     cursor = {"schema_version": "terrario.scientific-live/v1", "execution_id": execution_id,
                               "trial_intent_id": trial_intent_id, "attempt_id": attempt_id, "frame_sequence": after}
                     self.send_response(200); self.send_header("Content-Type", "text/event-stream")
