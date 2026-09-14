@@ -16,6 +16,7 @@ Esta es la puerta de entrada del proyecto en Obsidian. Aquí se decide y se sigu
 - [[knowledge/01 Roadmap/Ruta activa|Ruta activa]] — secuencia mínima para avanzar sin reauditar.
 - [[knowledge/00 Control/Registro de decisiones|Registro de decisiones]] — decisiones humanas, reversibles o no, con su evidencia.
 - [[knowledge/02 Arquitectura/Mapa del sistema|Mapa del sistema]] — límites de dominio y puntos de entrada.
+- [[knowledge/02 Arquitectura/Informe de estado verificable 2026-09-14|Informe verificable del sistema]] — arquitectura, capacidades, Fork Core, límites y trabajo pendiente a `f105eb2`.
 - [[knowledge/03 Protocolos/Flujo de trabajo|Flujo de trabajo]] — cómo mantener este vault como interfaz de control.
 
 ## Ritual de inicio

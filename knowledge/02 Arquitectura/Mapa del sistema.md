@@ -36,4 +36,8 @@ La lista completa y verificable está en [[knowledge/_generated/Estado tecnico#I
 | Revisión científica determinista | `scripts/build_scientific_review.py` |
 | Estado operativo | [[knowledge/_generated/Estado tecnico]] |
 
+## Informe de corte
+
+El estado técnico consolidado del corte `f105eb2`, incluyendo la calificación limitada de Fork Core y las capacidades de observación en vivo, se conserva en [[knowledge/02 Arquitectura/Informe de estado verificable 2026-09-14|Informe verificable del sistema]]. No sustituye al manifiesto ni a los artefactos inmutables.
+
 Para contratos y límites de escritura, consulta [[knowledge/03 Protocolos/Flujo de trabajo|Flujo de trabajo]] y [LAB_ARCHITECTURE.md](../../docs/LAB_ARCHITECTURE.md).
