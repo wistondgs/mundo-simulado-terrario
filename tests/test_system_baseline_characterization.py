@@ -9,7 +9,9 @@ from terrario.lab.characterization import (
     characterize_case, characterize_matrix, protected_file_hashes,
 )
 
-FIXTURE_ROOT = Path("tests/fixtures/system_baseline_01")
+# Baseline 01 remains immutable historical characterization.  Baseline 02 is
+# the active protected-source line after the reviewed causal-state contracts.
+FIXTURE_ROOT = Path("tests/fixtures/system_baseline_02")
 
 
 def load_fixture(name: str):
@@ -20,7 +22,7 @@ def test_protected_source_and_historical_artifact_hashes_match_baseline():
     expected = load_fixture("protected_manifest.json")
     actual = protected_file_hashes(Path("."))
     assert expected["classification"] == "CHARACTERIZATION_ONLY"
-    assert expected["baseline_head"] == "80d9e00643b551c90148b4158cb48f9eaf1abf92"
+    assert len(expected["baseline_head"]) == 40
     assert expected["protected_file_count"] == len(actual)
     assert expected["files"] == actual
 

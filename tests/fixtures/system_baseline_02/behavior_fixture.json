@@ -1,0 +1,1321 @@
+{
+  "cases": {
+    "D2:A0_RANDOM": {
+      "actions": [
+        9,
+        23,
+        3,
+        2
+      ],
+      "agent_id": "A0_RANDOM",
+      "agent_identity": {
+        "architecture_id": "A0_RANDOM",
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "instantiated_agent_class": "A0Random",
+        "parameter_count": 0,
+        "requested_agent_id": "A0_RANDOM"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_blocked_object"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_blocked_object"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "b9830933ff2fd8a9d72a953aa252c50e3d063fc524c6f7cc001e88818657c0d3",
+        "37b92181d84902134739974d33de3d1adad9f6edd57808bd9c37c56c6c0bff2f",
+        "7944e5d55d2cbce335735d3f6dda4a14b933b577c80d5a6a2e41505d2849524c"
+      ],
+      "observation_t_hashes": [
+        "e96bcfaf698157ffc7c2739128ab6af8ff31faaf3606dc92dc2a0869885ce43e",
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "b9830933ff2fd8a9d72a953aa252c50e3d063fc524c6f7cc001e88818657c0d3",
+        "37b92181d84902134739974d33de3d1adad9f6edd57808bd9c37c56c6c0bff2f"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D2",
+      "scenario_materialization_hash": "8e01060b32d2f84d701045cc0f7d660510c34e852ae68c277702309033cf01e5",
+      "scenario_source": "scenarios/d2_properties.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "52bdc4c781717d4ca2c73e7dc47b99960d318a945d3e0b08fdd03a27a1eabf61",
+        "d2994426120d13cc6e9533abfcd69d67b5e86e30acae02f5779f1fc3785916ac",
+        "b81a3eee928563c639d6a230431455047a4f8c1d55b11a528f294cf0fd1b177d",
+        "9f42664856d49e26e88f3792b8ae5b6a314ebc445c281a996f24976215b0cdc1"
+      ]
+    },
+    "D2:A1_REACTIVE": {
+      "actions": [
+        12,
+        8,
+        4,
+        6
+      ],
+      "agent_id": "A1_REACTIVE",
+      "agent_identity": {
+        "architecture_id": "A1_REACTIVE",
+        "device": "cpu",
+        "initial_parameters_hash": "fa54b3807c43ad9b844c51eee8bc9fabb5f9ccd51b4837ffbcde0a26b15c7c3d",
+        "instantiated_agent_class": "A1Reactive",
+        "parameter_count": 170169,
+        "requested_agent_id": "A1_REACTIVE"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        },
+        {
+          "agent_events": [],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_success_obj_1"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_blocked_object"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_blocked_object"
+          ]
+        },
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "5c334fa832ee34088e770476caa750a84916735225ed978d9599d21d094ceda1",
+        "4383fed2ee26e6ee60ed343c34d980a103f4bf322a614a72509544cd33193d10",
+        "8d57f4e65da234e0b67d130f58d64219e60d5294312d2f5ec9731c0dd2303dc7"
+      ],
+      "observation_t_hashes": [
+        "e96bcfaf698157ffc7c2739128ab6af8ff31faaf3606dc92dc2a0869885ce43e",
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "5c334fa832ee34088e770476caa750a84916735225ed978d9599d21d094ceda1",
+        "4383fed2ee26e6ee60ed343c34d980a103f4bf322a614a72509544cd33193d10"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D2",
+      "scenario_materialization_hash": "8e01060b32d2f84d701045cc0f7d660510c34e852ae68c277702309033cf01e5",
+      "scenario_source": "scenarios/d2_properties.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "52bdc4c781717d4ca2c73e7dc47b99960d318a945d3e0b08fdd03a27a1eabf61",
+        "da1fb6fcc0cfc88d2306173316735d6edc016d7fea0f39268c3bbf36711d13ec",
+        "687350632c390e9c0b95dc73e70faecafc310394b77a5748e90a19f12eb97cff",
+        "5e0485bb61d0fa694c8c62ce4167576299fc0aa8cc60ba55a5670132aff05c33"
+      ]
+    },
+    "D2:A4_ADVANCED": {
+      "actions": [
+        22,
+        1,
+        13,
+        12
+      ],
+      "agent_id": "A4_ADVANCED",
+      "agent_identity": {
+        "architecture_id": "A4_ADVANCED",
+        "device": "cpu",
+        "initial_parameters_hash": "5deef7c67b31875111e1eebbc4527e97fcc7029ddfef83589fc64bbb2ea6bc63",
+        "instantiated_agent_class": "A4Advanced",
+        "parameter_count": 1351617,
+        "requested_agent_id": "A4_ADVANCED"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        },
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        },
+        {
+          "agent_events": [],
+          "energy_delta": -3.0,
+          "observer_events": [
+            "consume_pending_obj_4"
+          ]
+        }
+      ],
+      "final_energy": 97.0,
+      "metrics": {
+        "acquisition_rate": -0.9,
+        "efficiency": 24.25,
+        "final_energy": 97.0,
+        "mean_energy": 99.25,
+        "num_steps": 4,
+        "prediction_errors": [
+          0.1302215457,
+          0.0878492594,
+          0.2283467054,
+          3.0407379903
+        ]
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "6911451679136b4bd1a1db46f45237c026e5a59cd8eac44c758de78310cca844",
+        "74d351fb0ea50e11cc0e803a42c436467e5c625a8d6c388c7fd5b55ce53fb343",
+        "e2fdf52aadd5963f99321c6ef8558a443ac4d5d8821aef2f5e1bc720447f4834"
+      ],
+      "observation_t_hashes": [
+        "e96bcfaf698157ffc7c2739128ab6af8ff31faaf3606dc92dc2a0869885ce43e",
+        "65422628f31cb86ac8d7da8f75604e656c015904907405f5b65b5e8d2cd7dbc0",
+        "6911451679136b4bd1a1db46f45237c026e5a59cd8eac44c758de78310cca844",
+        "74d351fb0ea50e11cc0e803a42c436467e5c625a8d6c388c7fd5b55ce53fb343"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D2",
+      "scenario_materialization_hash": "8e01060b32d2f84d701045cc0f7d660510c34e852ae68c277702309033cf01e5",
+      "scenario_source": "scenarios/d2_properties.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "52bdc4c781717d4ca2c73e7dc47b99960d318a945d3e0b08fdd03a27a1eabf61",
+        "0b441bd1edeea194a2e45a1c1d3a53a9c36dbbe66c2e68fbdecb5a9fac722301",
+        "2e7eb4efee3764684468fa0ee44f64b8ab4dbbd30e1e8ffe588a11c91366f4ad",
+        "e91df5240fd51671503bcadb1e16962c1aa6c2ea51fc6124b0d766551f8ae976"
+      ]
+    },
+    "D3:A0_RANDOM": {
+      "actions": [
+        9,
+        23,
+        3,
+        2
+      ],
+      "agent_id": "A0_RANDOM",
+      "agent_identity": {
+        "architecture_id": "A0_RANDOM",
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "instantiated_agent_class": "A0Random",
+        "parameter_count": 0,
+        "requested_agent_id": "A0_RANDOM"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "93068a86c8ac6ceabc0b8cb4a41fe77014eac961814e1bc65eb5aad6640b4ddc",
+        "9f1e540b9e1a23c15be2ce1e01b25ae4889ed8b21977f9dc06f775f241b41129",
+        "574cb351d051a6fca39c4ab9ee9c76cbf15337515b0d4314e3d5d867c8ae0419",
+        "ba88a6bbf45aeea6da831e54cce24b9b7ba1a3c0dfae6f37a478e900e37f867b"
+      ],
+      "observation_t_hashes": [
+        "9865da4b3e0c42ce0411d08d2b69a2fbf630aa1cc8c3a5fd3ff059dfd4b235e2",
+        "93068a86c8ac6ceabc0b8cb4a41fe77014eac961814e1bc65eb5aad6640b4ddc",
+        "9f1e540b9e1a23c15be2ce1e01b25ae4889ed8b21977f9dc06f775f241b41129",
+        "574cb351d051a6fca39c4ab9ee9c76cbf15337515b0d4314e3d5d867c8ae0419"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D3",
+      "scenario_materialization_hash": "75ad7a2075d1b29ce0db943c236966bf0d8df79ed807e25d19ff4d807889154b",
+      "scenario_source": "scenarios/d3_causality.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "761fdf26d29910d79b2091c54719a3127eb30e49eae10ada2ec213cfac93b031",
+        "135367e54a963569d64d533e5d23ec7f6973b5a9e34bad01410b81f6f0cbf04a",
+        "69576c804e7484b17567bde31bce2cb1d1fa06785aa95e29527204e26d37800d",
+        "ec96a84e4e4272a9f07d6ba19814bb847308b0c1d0c281fdf066095c3bfd7bb0"
+      ]
+    },
+    "D3:A1_REACTIVE": {
+      "actions": [
+        12,
+        8,
+        4,
+        6
+      ],
+      "agent_id": "A1_REACTIVE",
+      "agent_identity": {
+        "architecture_id": "A1_REACTIVE",
+        "device": "cpu",
+        "initial_parameters_hash": "fa54b3807c43ad9b844c51eee8bc9fabb5f9ccd51b4837ffbcde0a26b15c7c3d",
+        "instantiated_agent_class": "A1Reactive",
+        "parameter_count": 170169,
+        "requested_agent_id": "A1_REACTIVE"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [],
+          "energy_delta": -4.0,
+          "observer_events": [
+            "consume_pending_obj_7"
+          ]
+        },
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_blocked_object"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_blocked_object"
+          ]
+        },
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        }
+      ],
+      "final_energy": 96.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "efficiency": 24.0,
+        "final_energy": 96.0,
+        "mean_energy": 96.0,
+        "num_steps": 4,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "9dcc91a9d19e8f6c7164597b0e86419491cee1cf3bb90acd4281de317dc6a93d",
+        "b66fe8169c57dbe0719b072bbd8a5718ca9bb05b6f6e6942e77e1d429f433e09",
+        "20251de07aa94f780b43ddd3a9a3af4dc59d7f0876335e779117b7407b7b8b31",
+        "6a575e393fd53089c01c5310d6e7d9f5b95e2b7d38cc2ba6aa64985fc4c6ce76"
+      ],
+      "observation_t_hashes": [
+        "9865da4b3e0c42ce0411d08d2b69a2fbf630aa1cc8c3a5fd3ff059dfd4b235e2",
+        "9dcc91a9d19e8f6c7164597b0e86419491cee1cf3bb90acd4281de317dc6a93d",
+        "b66fe8169c57dbe0719b072bbd8a5718ca9bb05b6f6e6942e77e1d429f433e09",
+        "20251de07aa94f780b43ddd3a9a3af4dc59d7f0876335e779117b7407b7b8b31"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D3",
+      "scenario_materialization_hash": "75ad7a2075d1b29ce0db943c236966bf0d8df79ed807e25d19ff4d807889154b",
+      "scenario_source": "scenarios/d3_causality.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "393d2f1274fad708da28276e97f85899e91dff63cc0394332f5b914137e24313",
+        "02f6d13fba1bf4346b10eef3c7a120613570ac8785b4a70331b89be7c23da1d8",
+        "4864f5a0f260475be22969237c0fc908a2e7da44eb4c2d00f3d48669564b8bb7",
+        "ad64ae1be1ca79256419aa6206de13f75057ae3a202e61df208b9aa0e443e0da"
+      ]
+    },
+    "D3:A4_ADVANCED": {
+      "actions": [
+        22,
+        1,
+        13,
+        12
+      ],
+      "agent_id": "A4_ADVANCED",
+      "agent_identity": {
+        "architecture_id": "A4_ADVANCED",
+        "device": "cpu",
+        "initial_parameters_hash": "5deef7c67b31875111e1eebbc4527e97fcc7029ddfef83589fc64bbb2ea6bc63",
+        "instantiated_agent_class": "A4Advanced",
+        "parameter_count": 1351617,
+        "requested_agent_id": "A4_ADVANCED"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        },
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "prediction_errors": [
+          0.1354828477,
+          0.1111269593,
+          0.2556861043,
+          0.1562355459
+        ]
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "93068a86c8ac6ceabc0b8cb4a41fe77014eac961814e1bc65eb5aad6640b4ddc",
+        "674ccedb374262cc63d178ce6576c49befa09ead321f944baf7a6c40a82fb253",
+        "586adde90ac287a7419d8f4fda77c7ef6289d599d59a7a977689f3ae51a70676",
+        "36a365628ea824b43429d482cf85fdbb6f733b24d43564a55b465231b562a95a"
+      ],
+      "observation_t_hashes": [
+        "9865da4b3e0c42ce0411d08d2b69a2fbf630aa1cc8c3a5fd3ff059dfd4b235e2",
+        "93068a86c8ac6ceabc0b8cb4a41fe77014eac961814e1bc65eb5aad6640b4ddc",
+        "674ccedb374262cc63d178ce6576c49befa09ead321f944baf7a6c40a82fb253",
+        "586adde90ac287a7419d8f4fda77c7ef6289d599d59a7a977689f3ae51a70676"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D3",
+      "scenario_materialization_hash": "75ad7a2075d1b29ce0db943c236966bf0d8df79ed807e25d19ff4d807889154b",
+      "scenario_source": "scenarios/d3_causality.yaml",
+      "scheduled_changes": [],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "761fdf26d29910d79b2091c54719a3127eb30e49eae10ada2ec213cfac93b031",
+        "0997bf28e9f59cf9d4f0b470ddcb03e88059cf57a7a1b88ad1c1dcc6172a9ea9",
+        "0023875fe3965f5aae2fc45b08f4a1e9b848f70d264b239a6942cf05bae2fabe",
+        "92d01dbfa0a10b1e1b4d472085167fb304a9db414054a8b9e18d816428d69c70"
+      ]
+    },
+    "D4:A0_RANDOM": {
+      "actions": [
+        9,
+        23,
+        3,
+        2
+      ],
+      "agent_id": "A0_RANDOM",
+      "agent_identity": {
+        "architecture_id": "A0_RANDOM",
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "instantiated_agent_class": "A0Random",
+        "parameter_count": 0,
+        "requested_agent_id": "A0_RANDOM"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_success"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_success"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "adaptation_latency": -1.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "perseveration_cost": 0,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "831fefb3b82de3fcb4fe696c0af71da62de7f555d921b7415106980135c75523",
+        "97fddeddcd962d70f066890e9a9637e71daac6c4eaa60fb10405cede71fa13e8"
+      ],
+      "observation_t_hashes": [
+        "b8d4a70fafa68788b74744b184873b4e3071741658e984f2dd3103c80c827b26",
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "831fefb3b82de3fcb4fe696c0af71da62de7f555d921b7415106980135c75523"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D4",
+      "scenario_materialization_hash": "11e07e8f70260ecfbbb1a57e3146aa5ca8f3cdedf9014260ce7f687d27983d73",
+      "scenario_source": "scenarios/d4_change.yaml",
+      "scheduled_changes": [
+        {
+          "at_step": 750,
+          "rules": {
+            "rules": [
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "min": 0.7
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": -4.0
+                },
+                "id": "rule_001_reversed"
+              },
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "max": 0.3
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": 8.0
+                },
+                "id": "rule_002_reversed"
+              }
+            ]
+          }
+        }
+      ],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "6f095cc7ce30ecc5b2d7ec027bad5cdcf9128a0ec9624107ca4857620c97869a",
+        "0c6b8e0ffb5c68c3717f72a4bb90e657f2124dd9aab398229de26e987bb6260b",
+        "b082d2195428a32116014b61aafef255b55a6f4aeca702f15c5f10eb1017d453",
+        "3df4076f6edcf0b546ab5379b94b49d291f1b06272fc718ce86bfbdd05564fec"
+      ]
+    },
+    "D4:A1_REACTIVE": {
+      "actions": [
+        12,
+        8,
+        4,
+        6
+      ],
+      "agent_id": "A1_REACTIVE",
+      "agent_identity": {
+        "architecture_id": "A1_REACTIVE",
+        "device": "cpu",
+        "initial_parameters_hash": "fa54b3807c43ad9b844c51eee8bc9fabb5f9ccd51b4837ffbcde0a26b15c7c3d",
+        "instantiated_agent_class": "A1Reactive",
+        "parameter_count": 170169,
+        "requested_agent_id": "A1_REACTIVE"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "push_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_blocked_object"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_blocked_object"
+          ]
+        },
+        {
+          "agent_events": [],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "push_success_obj_4"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "adaptation_latency": -1.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "perseveration_cost": 0,
+        "prediction_errors": []
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "1e519be29023a41f3b7b5d0b08e846a3c72711e18c5d00d68921b5874121ff11",
+        "bd47eecf65bde54a2c4a7b4c7c1537bbc278e70120b85035cc58c732a5e9750b"
+      ],
+      "observation_t_hashes": [
+        "b8d4a70fafa68788b74744b184873b4e3071741658e984f2dd3103c80c827b26",
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "1e519be29023a41f3b7b5d0b08e846a3c72711e18c5d00d68921b5874121ff11"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D4",
+      "scenario_materialization_hash": "11e07e8f70260ecfbbb1a57e3146aa5ca8f3cdedf9014260ce7f687d27983d73",
+      "scenario_source": "scenarios/d4_change.yaml",
+      "scheduled_changes": [
+        {
+          "at_step": 750,
+          "rules": {
+            "rules": [
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "min": 0.7
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": -4.0
+                },
+                "id": "rule_001_reversed"
+              },
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "max": 0.3
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": 8.0
+                },
+                "id": "rule_002_reversed"
+              }
+            ]
+          }
+        }
+      ],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "6f095cc7ce30ecc5b2d7ec027bad5cdcf9128a0ec9624107ca4857620c97869a",
+        "0c6b8e0ffb5c68c3717f72a4bb90e657f2124dd9aab398229de26e987bb6260b",
+        "28ba50928965c04a5c18c0492bb54b143f60aa4b99b60a11fd913cadb9cde26e",
+        "b5812b6e6f62af9533bb85d353279cd713a30439509eae0b1c03fb7e0a2e438a"
+      ]
+    },
+    "D4:A4_ADVANCED": {
+      "actions": [
+        22,
+        1,
+        13,
+        12
+      ],
+      "agent_id": "A4_ADVANCED",
+      "agent_identity": {
+        "architecture_id": "A4_ADVANCED",
+        "device": "cpu",
+        "initial_parameters_hash": "5deef7c67b31875111e1eebbc4527e97fcc7029ddfef83589fc64bbb2ea6bc63",
+        "instantiated_agent_class": "A4Advanced",
+        "parameter_count": 1351617,
+        "requested_agent_id": "A4_ADVANCED"
+      },
+      "agent_seed": 1001732,
+      "checkpoint_steps": [
+        2,
+        4
+      ],
+      "consequences": [
+        {
+          "agent_events": [
+            "noop"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "noop"
+          ]
+        },
+        {
+          "agent_events": [
+            "move_blocked_object"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "move_blocked_object"
+          ]
+        },
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        },
+        {
+          "agent_events": [
+            "consume_no_target"
+          ],
+          "energy_delta": 0.0,
+          "observer_events": [
+            "consume_no_target"
+          ]
+        }
+      ],
+      "final_energy": 100.0,
+      "metrics": {
+        "acquisition_rate": 0.0,
+        "adaptation_latency": -1.0,
+        "efficiency": 25.0,
+        "final_energy": 100.0,
+        "mean_energy": 100.0,
+        "num_steps": 4,
+        "perseveration_cost": 0,
+        "prediction_errors": [
+          0.1124981642,
+          0.11210078,
+          0.2255619019,
+          0.0720345676
+        ]
+      },
+      "num_steps": 4,
+      "observation_t1_hashes": [
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "1e519be29023a41f3b7b5d0b08e846a3c72711e18c5d00d68921b5874121ff11",
+        "97fddeddcd962d70f066890e9a9637e71daac6c4eaa60fb10405cede71fa13e8"
+      ],
+      "observation_t_hashes": [
+        "b8d4a70fafa68788b74744b184873b4e3071741658e984f2dd3103c80c827b26",
+        "044a8ba21558e31213050d5a8307911ef9b15ac6e9810743a1f656b463bc3492",
+        "60d5bb129ea476469720e55acc1ad1bff956a64195404f5779cff47439d60e1d",
+        "1e519be29023a41f3b7b5d0b08e846a3c72711e18c5d00d68921b5874121ff11"
+      ],
+      "rules_versions": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "scenario_id": "D4",
+      "scenario_materialization_hash": "11e07e8f70260ecfbbb1a57e3146aa5ca8f3cdedf9014260ce7f687d27983d73",
+      "scenario_source": "scenarios/d4_change.yaml",
+      "scheduled_changes": [
+        {
+          "at_step": 750,
+          "rules": {
+            "rules": [
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "min": 0.7
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": -4.0
+                },
+                "id": "rule_001_reversed"
+              },
+              {
+                "condition": {
+                  "action": "CONSUME",
+                  "object_channel": {
+                    "index": 0,
+                    "max": 0.3
+                  }
+                },
+                "effect": {
+                  "destroy_object": true,
+                  "energy_delta": 8.0
+                },
+                "id": "rule_002_reversed"
+              }
+            ]
+          }
+        }
+      ],
+      "termination": [
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "terminated": false,
+          "truncated": true
+        }
+      ],
+      "trace_counts": {
+        "consequence": 4,
+        "provenance": 4,
+        "sensation": 4,
+        "transition": 4,
+        "world": 4
+      },
+      "trace_file_kinds": [
+        "events/consequence.parquet",
+        "events/provenance.parquet",
+        "events/sensation.parquet",
+        "events/transition.parquet",
+        "events/world.parquet"
+      ],
+      "trace_manifest_verified": true,
+      "world_seed": 1729,
+      "world_state_hashes": [
+        "6f095cc7ce30ecc5b2d7ec027bad5cdcf9128a0ec9624107ca4857620c97869a",
+        "0c6b8e0ffb5c68c3717f72a4bb90e657f2124dd9aab398229de26e987bb6260b",
+        "28ba50928965c04a5c18c0492bb54b143f60aa4b99b60a11fd913cadb9cde26e",
+        "3df4076f6edcf0b546ab5379b94b49d291f1b06272fc718ce86bfbdd05564fec"
+      ]
+    }
+  },
+  "classification": "ENGINEERING_CHARACTERIZATION_NOT_EVIDENCE",
+  "schema_version": "terrario.system-baseline/v1",
+  "seed_policy": {
+    "agent_seed": 1001732,
+    "world_seed": 1729
+  },
+  "semantic_digest": "2461bd9cdcc629da78f30d777b8fe8022a8ee18bb84244d625c4622526946884",
+  "steps": 4
+}

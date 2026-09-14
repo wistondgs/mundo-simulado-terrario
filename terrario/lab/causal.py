@@ -199,6 +199,16 @@ class CausalForkService:
 
     def restore(self, snapshot: CausalForkSnapshot, identity: ScientificTrialIdentity, scenario_path: Path) -> CausalRuntime:
         if snapshot.snapshot_hash != content_hash({key: value for key, value in asdict(snapshot).items() if key != "payload_hash"}) or snapshot.payload_hash != content_hash(snapshot.payload): raise ForkError("SNAPSHOT_CORRUPT")
+        with self.artifacts._connect() as con:
+            row = con.execute("SELECT snapshot_hash,blob_hash FROM causal_snapshots WHERE snapshot_id=?", (snapshot.snapshot_id,)).fetchone()
+        if row is None or row["snapshot_hash"] != snapshot.snapshot_hash or not self.artifacts.blobs.verify(row["blob_hash"]):
+            raise ForkError("SNAPSHOT_CORRUPT: CAS")
+        try:
+            sealed = json.loads(self.artifacts.blobs.read(row["blob_hash"]))
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            raise ForkError("SNAPSHOT_CORRUPT: CAS") from exc
+        if content_hash(sealed) != content_hash(asdict(snapshot)):
+            raise ForkError("SNAPSHOT_CORRUPT: CAS payload")
         if (identity.execution_id, identity.trial_intent_id, identity.attempt_id, identity.plan_hash, identity.preregistration_root_hash) != (snapshot.execution_id, snapshot.trial_intent_id, snapshot.attempt_id, snapshot.plan_hash, snapshot.preregistration_root): raise ForkError("RESTORE_NOT_EXACT: identity binding")
         if identity.software_identity != snapshot.software_identity: raise ForkError("SOFTWARE_INCOMPATIBLE")
         return CausalRuntime.restore(self.root, identity, scenario_path, snapshot.payload)
