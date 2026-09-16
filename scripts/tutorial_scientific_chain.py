@@ -47,7 +47,7 @@ def ok(status: int, payload: dict, expected: int = 201) -> dict:
 def main() -> None:
     if len(sys.argv) < 2:
         raise SystemExit("uso: tutorial_scientific_chain.py <root de datos ABSOLUTO> "
-                         "[escenario] [agente] [pasos] -- nunca el .terrario vivo")
+                         "[escenario] [agente] [pasos] [semilla] -- nunca el .terrario vivo")
     data_root = Path(sys.argv[1])
     # Opcionales, con los valores del tutorial por defecto. Sirven para producir
     # una traza de un escenario distinto (p. ej. D4, cuyas reglas se invierten)
@@ -55,14 +55,18 @@ def main() -> None:
     scenario_id = sys.argv[2] if len(sys.argv) > 2 else "D2"
     agent_id = sys.argv[3] if len(sys.argv) > 3 else "A4"
     step_limit = int(sys.argv[4]) if len(sys.argv) > 4 else 100
+    # Semilla explícita: sin ella el tag es aleatorio y la corrida no es
+    # reproducible, lo que impide usar este camino para una fase de calibración
+    # cuyas semillas deben quedar declaradas y ser disjuntas de las confirmatorias.
+    fixed_seed = int(sys.argv[5]) if len(sys.argv) > 5 else None
     if not data_root.is_absolute():
         raise SystemExit("el root de datos debe ser absoluto; me niego a una ruta implícita")
     if data_root.resolve() == (Path(".").resolve() / ".terrario"):
         raise SystemExit("me niego a correr el tutorial contra el data root científico vivo")
 
     api = LabAPI(Path("."), data_root=data_root)
-    tag = secrets.token_hex(4)
-    offset = int(tag, 16) % 100000
+    tag = f"{fixed_seed:08x}" if fixed_seed is not None else secrets.token_hex(4)
+    offset = (fixed_seed if fixed_seed is not None else int(tag, 16)) % 100000
     print(f"TUTORIAL {tag} · data root: {data_root}")
 
     step(1, "Compose", "ExperimentDraft durable (diseño desechable, un solo brazo, una semilla)")
