@@ -48,8 +48,12 @@ def main() -> int:
     print(f"EMPIRICAL_EVIDENCE: {evidence}")
     print(f"SUPERSESSION_LINEAGE_LINKS: {links}")
     print(f"CONSTRUCT_VALIDATED_METRICS: {valid_metrics or 'NONE'}")
-    print("AGENT_EXECUTED: NO")
-    print("SCIENTIFIC_RESULT: NO")
+    # Estas dos NO son mediciones del root: son atestaciones sobre esta misma
+    # ejecución, que abre la base en modo lectura.  Con el prefijo no pueden
+    # confundirse con `SCIENTIFIC_RESULTS`, que sí se midió arriba y difería
+    # de `SCIENTIFIC_RESULT` en un solo carácter.
+    print("THIS_REPORT_EXECUTED_AGENT: NO")
+    print("THIS_REPORT_WROTE_RESULT: NO")
     print("CL7_RUNTIME_DEMO: " + ("BLOCKED_PENDING_AUTHORIZED_EXPERIMENT" if blockers else "READY_FOR_AUTHORIZED_INGESTION"))
     print("BLOCKERS: " + (", ".join(blockers) if blockers else "NONE"))
     return 0

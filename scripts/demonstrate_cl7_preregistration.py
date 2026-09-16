@@ -63,9 +63,13 @@ def main() -> int:
     print("TERMINAL_RULE: FROZEN")
     print(f"LOCKED: {'YES' if state == 'PREREGISTERED_LOCKED' else 'NO'}")
     print("AUTHORIZED: NO")
-    print("AGENT_EXECUTED: NO")
-    print("SCIENTIFIC_RESULTS: 0")
-    print("EVIDENCE_GRAPH_WRITES: 0")
+    # Atestaciones sobre ESTA ejecución, no mediciones del root de datos. Misma
+    # convención que `demonstrate_cl7_runtime_readiness.py`, donde
+    # `SCIENTIFIC_RESULT` y `SCIENTIFIC_RESULTS` se diferenciaban en un carácter
+    # y significaban cosas distintas.
+    print("THIS_REPORT_EXECUTED_AGENT: NO")
+    print("THIS_REPORT_WROTE_RESULTS: 0")
+    print("THIS_REPORT_WROTE_EVIDENCE_GRAPH: 0")
     blockers = [item["rule_id"] for item in readiness["findings"] if item["blocking"]]
     print("READY_FOR_HUMAN_AUTHORIZATION: " + ("YES" if not blockers else "NO"))
     print("BLOCKERS: " + (", ".join(blockers) if blockers else "NONE"))

@@ -160,7 +160,7 @@ El fallo es **correcto** —falla cerrado, en 1,6 s, con mensaje exacto— y el 
 antes (`BLOCKED_CUDA` en el composer). El defecto es de puerta de entrada: lo primero que alguien
 teclea no arranca. Una línea: `device: "cpu"`.
 
-### D-05 · Colisión de etiquetas entre medición y atestación — MEDIO
+### D-05 · Colisión de etiquetas entre medición y atestación — MEDIO · **REPARADO**
 
 En `demonstrate_cl7_runtime_readiness.py`, dos líneas seguidas:
 
@@ -172,6 +172,10 @@ SCIENTIFIC_RESULT: NO     <- literal, atestación del propio script
 Un carácter de diferencia, significados distintos, nada que distinga lo medido de lo declarado.
 El script **no miente** (abre la base en `mode=ro`), pero es exactamente la clase de ambigüedad
 que produjo un «no le entiendo».
+
+**Reparado.** Las atestaciones llevan prefijo `THIS_REPORT_` en los dos scripts de demostración,
+de modo que ninguna puede confundirse con una medición del root. Ningún test dependía de las
+etiquetas antiguas.
 
 ### D-06 · `verify()` no es idempotente — MEDIO · propuesto, sin aplicar
 

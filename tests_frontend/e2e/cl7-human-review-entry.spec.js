@@ -34,4 +34,25 @@ test.describe("CL-7 human review entry", () => {
     await review.locator("input").fill(`REVIEW ${seeded.artifact_hash.slice(0, 12)}`);
     await expect(record).toBeEnabled();
   });
+
+  test("shows what is being decided, including what the metric does not measure", async ({ page }) => {
+    // The gate is only a gate if the reviewer can see the object.  This card
+    // used to show five identifiers and a free-text reason -- no scenario, no
+    // seeds, no metric semantics -- and the reviewer's recorded answer was
+    // "no le entiendo".
+    const seeded = seedPendingReview();
+    await page.goto("/review-center.html");
+    const review = page.locator("article.review.pending", { hasText: seeded.review_id });
+
+    const design = review.locator("details.design");
+    await expect(design).toContainText("Qué estás decidiendo");
+    await expect(design).toContainText("Semillas de mundo");
+    await expect(design).toContainText("Repeticiones");
+
+    // The metric block must state the construct AND its declared limits.
+    const metric = design.locator("ul.metrics > li").first();
+    await expect(metric).toContainText("Mide");
+    await expect(metric).toContainText("NO mide");
+    await expect(metric.locator("ul.not-measured li").first()).not.toBeEmpty();
+  });
 });

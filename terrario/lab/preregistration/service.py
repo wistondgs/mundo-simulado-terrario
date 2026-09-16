@@ -487,7 +487,65 @@ class PreregistrationService:
                    JOIN artifact_versions v ON v.version_id = r.artifact_version_id
                    ORDER BY r.created_at, r.review_id"""
             ).fetchall()
-            return tuple(dict(x) for x in rows)
+        # Summarised OUTSIDE the connection: `get_version` opens its own.
+        return tuple(dict(x) | {"design_summary": self._design_summary(x)} for x in rows)
+
+    def _design_summary(self, row: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        """What the reviewer is deciding, not just which object it is.
+
+        The listing above already promises that "a human reviewer must see the
+        immutable object they are deciding about", but it returned only the
+        binding -- kind, hash, schema version.  A reviewer was asked to type a
+        ceremony string against a hash with no sight of the scenario, the arms,
+        the seeds or what the metric does and does not measure.  That produced
+        a REQUEST_CHANGES whose entire stated reason was "no le entiendo".
+
+        This projection is read-only and derived; it adds no field that is not
+        already sealed in the artifact or declared in the metric registry, and
+        it never fails the listing: an unsummarisable artifact yields None.
+        """
+        if row["artifact_kind"] != "ExperimentDraft":
+            return None
+        try:
+            payload = self.artifacts.get_version(str(row["artifact_version_id"])).payload
+        except Exception:
+            return None
+        metrics = []
+        for metric_id in payload.get("metric_ids", ()):
+            try:
+                definition = self.metrics.get(str(metric_id))
+            except Exception:
+                metrics.append({"metric_id": str(metric_id), "known": False})
+                continue
+            metrics.append({
+                "metric_id": definition.metric_id, "known": True,
+                "construct": definition.construct,
+                "computed_as": definition.mathematical_definition,
+                "measured_through": definition.proxy,
+                "unit": definition.unit,
+                # The reviewer's most common question is what a number will NOT
+                # entitle them to claim.  The registry already states it.
+                "does_not_measure": list(definition.limitations),
+                "implementation_status": definition.implementation_status.value,
+                "construct_validation": definition.construct_validation_status.value,
+            })
+        provenance = payload.get("provenance") or {}
+        return {
+            "draft_id": payload.get("draft_id"),
+            "scenario_id": payload.get("scenario_id"),
+            "agent_ids": list(payload.get("agent_ids", ())),
+            "controls": list(payload.get("controls", ())),
+            "variant_ids": list(payload.get("variant_ids", ())),
+            "world_seeds": list(payload.get("world_seeds", ())),
+            "agent_seeds": list(payload.get("agent_seeds", ())),
+            "repetitions": payload.get("repetitions"),
+            "step_limit": payload.get("step_limit"),
+            "device_requirement": payload.get("device_requirement"),
+            "manipulation_check": payload.get("manipulation_check"),
+            "source_artifact": provenance.get("source_artifact"),
+            "composition_reason": provenance.get("reason"),
+            "metrics": metrics,
+        }
 
     def _assemble(self, request: Mapping[str, Any]) -> PreregistrationDraft:
         experiment_record = self.artifacts.get_version(str(request["experiment_draft_version_id"]))

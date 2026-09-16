@@ -25,12 +25,54 @@ async function legacyGet(path) {
   return payload;
 }
 
+function designBlock(summary) {
+  // El revisor firma una ceremonia contra un hash. Sin ver qué propone el
+  // diseño ni qué NO mide la métrica, la única respuesta honesta posible es
+  // "no le entiendo". Todo lo de aquí está sellado en el artefacto o
+  // declarado en el registro de métricas; nada se deriva ni se infiere.
+  if (!summary) return "";
+  const seeds = (list) => (list && list.length ? list.join(", ") : "—");
+  const metrics = (summary.metrics || []).map((m) => {
+    if (!m.known) return `<li><code>${escapeHtml(m.metric_id)}</code> — <strong>desconocida para el registro</strong></li>`;
+    const unvalidated = m.construct_validation !== "VALIDATED_FOR_CONSTRUCT";
+    const notMeasured = (m.does_not_measure || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
+    return `<li>
+      <code>${escapeHtml(m.metric_id)}</code>
+      <div><small>Mide</small> ${escapeHtml(m.construct || "—")}</div>
+      <div><small>Se calcula</small> <code>${escapeHtml(m.computed_as || "—")}</code> <small>en</small> ${escapeHtml(m.unit || "—")}</div>
+      <div><small>Observada a través de</small> ${escapeHtml(m.measured_through || "—")}</div>
+      ${notMeasured ? `<div><small>NO mide</small><ul class="not-measured">${notMeasured}</ul></div>` : ""}
+      <div><small>Estado</small> ${escapeHtml(m.implementation_status)} ·
+        <strong class="${unvalidated ? "warning-inline" : ""}">${escapeHtml(m.construct_validation)}</strong>
+        ${unvalidated ? " — un resultado con esta métrica no es publicable como evidencia" : ""}</div>
+    </li>`;
+  }).join("");
+  return `<details class="design" open>
+    <summary>Qué estás decidiendo</summary>
+    <div class="facts">
+      <div class="fact"><small>Diseño</small><code>${escapeHtml(summary.draft_id || "—")}</code></div>
+      <div class="fact"><small>Escenario</small><strong>${escapeHtml(summary.scenario_id || "—")}</strong></div>
+      <div class="fact"><small>Agentes</small><strong>${escapeHtml(seeds(summary.agent_ids))}</strong></div>
+      <div class="fact"><small>Controles</small><strong>${escapeHtml(seeds(summary.controls))}</strong></div>
+      <div class="fact"><small>Semillas de mundo</small><code>${escapeHtml(seeds(summary.world_seeds))}</code></div>
+      <div class="fact"><small>Semillas de agente</small><code>${escapeHtml(seeds(summary.agent_seeds))}</code></div>
+      <div class="fact"><small>Repeticiones</small><strong>${escapeHtml(String(summary.repetitions ?? "—"))}</strong></div>
+      <div class="fact"><small>Pasos</small><strong>${escapeHtml(String(summary.step_limit ?? "—"))}</strong></div>
+      <div class="fact"><small>Dispositivo</small><strong>${escapeHtml(summary.device_requirement || "—")}</strong></div>
+      <div class="fact"><small>Origen</small><code>${escapeHtml(summary.source_artifact || "—")}</code></div>
+    </div>
+    ${summary.manipulation_check ? "" : `<p class="warning">Sin comprobación de manipulación declarada: nada verificará que la intervención ocurrió de verdad.</p>`}
+    ${metrics ? `<h3>Métricas</h3><ul class="metrics">${metrics}</ul>` : ""}
+  </details>`;
+}
+
 function reviewCard(review) {
   const pending = !review.latest_decision;
   const hash = review.artifact_hash || "HASH_UNAVAILABLE";
   const card = document.createElement("article");
   card.className = `review ${pending ? "pending" : "decided"}`;
   card.innerHTML = `<div class="facts"><div class="fact"><small>Solicitud</small><code>${escapeHtml(review.review_id)}</code></div><div class="fact"><small>Tipo</small><strong>${escapeHtml(review.review_kind)}</strong></div><div class="fact"><small>Estado</small><strong>${pending ? "PENDIENTE" : escapeHtml(review.latest_decision)}</strong></div><div class="fact"><small>Versión exacta</small><code>${escapeHtml(review.artifact_version_id)}</code></div><div class="fact"><small>Hash científico</small><code>${escapeHtml(hash)}</code></div></div><p style="margin:10px 0 0"><strong>Solicitud:</strong> ${escapeHtml(review.reason)}</p>`;
+  card.insertAdjacentHTML("beforeend", designBlock(review.design_summary));
   if (!pending) return card;
   if (review.review_kind !== "EXPERIMENT_DESIGN") {
     card.insertAdjacentHTML("beforeend", `<p class="warning">La revisión de preregistro se completa en el panel Preregistros, donde se muestran sus warnings y ceremonia de lock.</p>`);
