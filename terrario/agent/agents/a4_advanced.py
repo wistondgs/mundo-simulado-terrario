@@ -45,6 +45,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "use_uncertainty": True,
     "use_planner": True,
     "use_online_learning": True,
+    # Ablatable at the CONSUMPTION site, not at construction: see __init__.
+    "use_homeostasis": True,
+    # The eta the ORGANISM regulates against, which is not the world's death
+    # boundary (energy <= 0) nor the observer's eta in the viability metric.
+    # Declared here so a preregistration can set it instead of finding it
+    # hardcoded in a constructor signature.
+    "homeostasis_threshold": 0.5,
     "temporal_core": "ssm",
     "latent_dim": 128,
     "hidden_dim": 256,
@@ -146,7 +153,14 @@ class A4Advanced(AgentInterface):
         self.planner = Planner(generator=self._generator)
 
         # ── Homeostasis ──────────────────────────────────────────────
-        self.homeostasis = HomeostaticState()
+        # The flag gates CONSUMPTION, not construction.  The homeostatic state
+        # is tracked either way, so the observer trace keeps its shape and the
+        # control arm still reports drive and exploration_bias; what the flag
+        # removes is whether that pressure reaches the action distribution.
+        # Ablating the bookkeeping too would confound "viability has no causal
+        # authority" with "viability was not measured".
+        self._use_homeostasis: bool = self.config["use_homeostasis"]
+        self.homeostasis = HomeostaticState(threshold=self.config["homeostasis_threshold"])
 
         # ── Online learner ───────────────────────────────────────────
         self._use_online_learning: bool = self.config["use_online_learning"]
@@ -264,8 +278,11 @@ class A4Advanced(AgentInterface):
         # ── Policy ───────────────────────────────────────────────────
         logits = self.policy_head(state)
 
-        # Modulate temperature by homeostatic exploration bias
-        temperature = 1.0 + self.homeostasis.exploration_bias
+        # Modulate temperature by homeostatic exploration bias.  This is the
+        # only site where the organism's viability pressure reaches behaviour:
+        # `drive` is computed and reported but consumed nowhere.  With
+        # use_homeostasis False the temperature is the unmodulated 1.0.
+        temperature = (1.0 + self.homeostasis.exploration_bias) if self._use_homeostasis else 1.0
 
         # ── Uncertainty bonus ────────────────────────────────────────
         if self._use_uncertainty:
