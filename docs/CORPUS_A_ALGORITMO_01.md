@@ -258,3 +258,19 @@ regulada; la variedad del **regulador** no tiene canal, y `grep -rn "variety\|re
 `terrario/` devuelve únicamente este mismo instrumento. El Caso 3 del ADR —`V_R(t₁) > V_R(t₀)`—
 es Clase B, no Clase A. Es la señal más interesante del marco corregido y es, hoy, la menos
 medible.
+
+---
+
+## 8. Adenda 2026-09-16 (tarde) · la columna llegó, parcialmente
+
+La §4 sostiene que al corpus le falta un compromiso observable por claim. La generación v0.4 del
+corpus vivo —fuera de este repositorio— trae una familia nueva, `HISTORY_DEPENDENCE`, cuyas 15
+fuentes están seleccionadas **por el control que cada una declara**, y cuyo criterio
+`P(R' | H₁, D') ≠ P(R' | H₀, D')` es el Gate H2 de `PROCESO_DE_TRABAJO_01` §8.
+
+Eso responde la aduana 1 para esa familia. **No** mueve los bloques 3 y 4 de Clase B: siguen sin
+canal en Terrario. El bloqueo pasa de doble a simple.
+
+Detalle: nada de v0.4 está en el snapshot versionado. El repositorio y el corpus vivo están
+desincronizados por una generación entera. Análisis en
+[CORPUS_V04_ANALISIS_01.md](CORPUS_V04_ANALISIS_01.md).

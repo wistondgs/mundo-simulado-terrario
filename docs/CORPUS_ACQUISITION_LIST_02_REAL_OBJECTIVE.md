@@ -10,6 +10,14 @@ la pregunta anterior («qué considera la gente que es inteligente»). Ésta sir
 **Método:** se auditó `CORPUS_MASTER.csv` (152 fichas) contra los tres pilares. Lo marcado
 `[PROPUESTA]` **no está en tu catálogo** — lo aporto yo y hay que verificar DOI al catalogarlo.
 
+> **CORRECCIÓN 2026-09-16 (tarde) · `CORPUS_GAPS_v0.4`.** La recomendación de compra n.º 1 de
+> este documento quedó obsoleta el mismo día. **Ashby *Design for a Brain* ya está en el corpus**
+> —2.ª ed. 1960, `ARC-001` = `ADOA-001`, 304 pp., verificada— y lo que estaba mal era el
+> registro: `MISSING_AND_RESTRICTED.md` marca TI-0048 como `RESTRICTED` por un 404. No había que
+> comprarlo: había que corregir la ficha. Las correcciones puntuales van marcadas abajo; el texto
+> original se conserva. Análisis completo en
+> [CORPUS_V04_ANALISIS_01.md](CORPUS_V04_ANALISIS_01.md).
+
 ---
 
 ## 0. Primero: lo que YA tienes y sirve al objetivo real
@@ -39,7 +47,7 @@ todo el corpus para lo que quieres hacer.** Si esta semana solo lees dos cosas, 
 | Prio | id | Obra | Qué aporta a Terrario |
 |:--:|---|---|---|
 | **1** | TI-0052 | Maturana & Varela (1980) *Autopoiesis and Cognition* | el texto fundacional de la palabra que usaste; define clausura operacional y qué cuenta como sistema que se produce a sí mismo |
-| **2** | TI-0048 | Ashby (1952) *Design for a Brain* | **ultraestabilidad**: un sistema que cambia sus propios parámetros cuando sus variables esenciales salen del rango viable. Es **exactamente `d4_change`** — las reglas se invierten y el agente debe re-estabilizarse. La teoría de tu escenario más importante está aquí, escrita en 1952 |
+| ~~**2**~~ **OBTENIDA** | TI-0048 | Ashby *Design for a Brain* | **ultraestabilidad**: un sistema que cambia sus propios parámetros cuando sus variables esenciales salen del rango viable. Es **exactamente `d4_change`** — las reglas se invierten y el agente debe re-estabilizarse. **v0.4: presente como 2.ª ed. 1960 (`ARC-001`/`ADOA-001`), no la 1.ª de 1952. La ficha TI-0048 sigue diciendo `RESTRICTED` y hay que corregirla.** |
 | **3** | TI-0054 | Powers (1973) *Behavior: The Control of Perception* | controlar la percepción, no la conducta. Se mapea directo sobre el estado homeostático de A4 |
 | 4 | TI-0122 | Varela, Thompson & Rosch (1991) *The Embodied Mind* | enacción: la cognición como acoplamiento, no como representación |
 | 5 | TI-0047 | Wiener (1948) *Cybernetics* | la fuente; retroalimentación y propósito |
@@ -49,6 +57,12 @@ todo el corpus para lo que quieres hacer.** Si esta semana solo lees dos cosas, 
 
 > **Ashby 1952 es mi recomendación no obvia.** La ultraestabilidad es el mecanismo formal de
 > «autoevolutivo» y es anterior a todo el vocabulario moderno. Y tu D4 la implementa sin saberlo.
+>
+> **Corregido por v0.4:** el texto ya estaba en el disco. La recomendación acertó en el qué y
+> falló en el cómo — no era una compra, era una desincronía de registro. Lo que sigue faltando
+> del linaje cibernético es Wiener 1948 (TI-0047), Rosenblueth–Wiener–Bigelow 1943 (`ADOA-003`),
+> Powers 1973 (`ADOA-007`) y Maturana–Varela 1980: ninguno con copia legal. Varela 1979 es OA
+> con descarga manual.
 
 ---
 
@@ -88,12 +102,15 @@ Ya tienes POET, Gödel Machines, curiosidad y RND. Faltan dos piezas:
 
 ## Orden de compra, si hay que elegir
 
-1. **Ashby 1952, *Design for a Brain*** — la teoría de tu D4, y barato de conseguir por ser de 1952.
-2. **Maturana & Varela 1980** — el fundamento del primer pilar.
-3. **Nelson & Narens 1990** — el capítulo que te dice cómo construir el segundo pilar.
-4. **Powers 1973** — el lazo de control para A4.
+1. ~~**Ashby 1952, *Design for a Brain***~~ — **YA LO TIENES.** v0.4 lo verifica como 2.ª ed.
+   1960 (`ARC-001`/`ADOA-001`). Acción: corregir la ficha TI-0048, no comprar.
+2. **Maturana & Varela 1980** — el fundamento del primer pilar. Sin copia legal; sigue vigente.
+3. **Nelson & Narens 1990** — el capítulo que te dice cómo construir el segundo pilar. **Sigue
+   vigente y es ahora la primera de la lista**: v0.4 no tocó metacognición, así que el pilar 2
+   continúa en cero.
+4. **Powers 1973** — el lazo de control para A4. Sin copia legal; sigue vigente.
 
-Con esos cuatro, los tres pilares tienen fundamento citable. Los demás son profundidad.
+Con esos tres, los tres pilares tienen fundamento citable. Los demás son profundidad.
 
 ## Lo que NO hace falta comprar
 
