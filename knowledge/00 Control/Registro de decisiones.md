@@ -22,6 +22,14 @@ Este registro es la fuente operativa de las decisiones humanas. No reescribe evi
 - **Consecuencia:** cae sobre `viability-recovery-profile` antes de su firma. Introduce una tercera causa de `recovery_steps = None` —recuperación dentro de una región viable distinta— que hoy se informaría como fracaso.
 - **Evidencia:** [[ADR-001 Variedad dinamica|el ADR completo]] y [docs/CORPUS_A_ALGORITMO_01.md](../../docs/CORPUS_A_ALGORITMO_01.md).
 
+## ADR-002 — El objetivo es desarrollo endógeno de capacidad
+
+- **Estado:** PROPOSED — requiere firma humana
+- **Fecha:** 2026-09-16
+- **Decisión:** el objetivo deja de formularse como mejora de desempeño y pasa a ser desarrollo endógeno de capacidad en una relación organismo–mundo cambiante. Separa cuatro fenómenos: regulación, reorganización endógena, desarrollo de capacidad y mejora del proceso de adquisición.
+- **Consecuencia:** el gate 1 no puede decidirse hoy retirando la recompensa externa: la variable esencial y la señal de refuerzo son la misma magnitud (`agent.energy` / `consequence.energy_delta`). Y hay tres fronteras de viabilidad simultáneas sin reconciliar.
+- **Evidencia:** [[ADR-002 Objetivo desarrollo endogeno|el ADR completo]] y [docs/VARIABLES_ESENCIALES_Y_REORGANIZACION_01.md](../../docs/VARIABLES_ESENCIALES_Y_REORGANIZACION_01.md).
+
 ## Nueva decisión
 
 Duplica [[knowledge/90 Recursos/Plantillas/Decisión|la plantilla de decisión]] en esta carpeta y enlázala desde aquí. No borres entradas: márcalas `SUPERSEDED` y enlaza la decisión que las reemplaza.
