@@ -4,8 +4,9 @@ This module does not use sandbox services or evidence-producing code paths.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Callable, Mapping
 
 from terrario.core.rng import RNGManager
@@ -26,7 +27,13 @@ SCIENTIFIC_FRAME_SCHEMA = "terrario.scientific-frame/v1"
 class ScientificTrialIdentity:
     execution_id: str; trial_intent_id: str; attempt_id: str; plan_hash: str; preregistration_root_hash: str
     software_identity: str; scenario_identity: str; agent_identity: str; world_seed: int; agent_seed: int
+    agent_config: Mapping[str, Any] = field(default_factory=dict)
     schema_version: str = "terrario.scientific-trial-identity/v1"
+    def __post_init__(self):
+        if any(not isinstance(key, str) or not key.startswith("use_") or not isinstance(value, bool)
+               for key, value in self.agent_config.items()):
+            raise ValueError("scientific trial identity requires explicit boolean use_* agent config")
+        object.__setattr__(self, "agent_config", MappingProxyType(dict(self.agent_config)))
     @property
     def identity_hash(self) -> str: return content_hash(self)
 
@@ -44,19 +51,45 @@ class ScientificFrame:
         if self.cognitive_state is not None and not isinstance(self.cognitive_state, Mapping): raise ValueError("scientific frame cognitive state must be a mapping or absent")
 
 
+def scientific_trial_identity_payload(identity: ScientificTrialIdentity) -> dict[str, Any]:
+    """Canonicalizable identity projection; never leak a mutable config handle."""
+    return {
+        "execution_id": identity.execution_id, "trial_intent_id": identity.trial_intent_id,
+        "attempt_id": identity.attempt_id, "plan_hash": identity.plan_hash,
+        "preregistration_root_hash": identity.preregistration_root_hash,
+        "software_identity": identity.software_identity, "scenario_identity": identity.scenario_identity,
+        "agent_identity": identity.agent_identity, "world_seed": identity.world_seed,
+        "agent_seed": identity.agent_seed, "agent_config": dict(identity.agent_config),
+        "schema_version": identity.schema_version,
+    }
+
+
+def scientific_frame_payload(frame: ScientificFrame) -> dict[str, Any]:
+    """Explicit durable frame projection compatible with immutable contracts."""
+    return {
+        "identity": scientific_trial_identity_payload(frame.identity), "tick": frame.tick,
+        "simulation_time": frame.simulation_time, "world_revision": frame.world_revision,
+        "frame_sequence": frame.frame_sequence, "world_truth": dict(frame.world_truth),
+        "agent_observation": dict(frame.agent_observation), "observer_view": dict(frame.observer_view),
+        "runtime_state": frame.runtime_state, "trace_cursor": frame.trace_cursor,
+        "schema_version": frame.schema_version,
+        "cognitive_state": None if frame.cognitive_state is None else dict(frame.cognitive_state),
+    }
+
+
 def run_materialized_trial(root: Path, identity: ScientificTrialIdentity, *, scenario_path: Path,
                            observer_profile: str, step_limit: int,
                            frame_sink: Callable[[ScientificFrame], None] | None = None) -> Mapping[str, Any]:
     """Run one sealed intent through the real controller and public engine loop."""
     if not scenario_path.is_file(): raise ValueError("TRIAL_MATERIALIZATION_FAILED: scenario path missing")
-    config = ExperimentConfig(identity.execution_id, None, str(scenario_path), [identity.agent_identity], {}, [identity.world_seed], 1,
+    config = ExperimentConfig(identity.execution_id, None, str(scenario_path), [identity.agent_identity], dict(identity.agent_config), [identity.world_seed], 1,
         int(step_limit), observer_profile if observer_profile in ScientificObserver.VALID_MODES else "scientific_standard", max(1, min(int(step_limit), 100)), str(root), "cpu")
     controller = ExperimentController(config); scenario = materialize_scenario(controller.scenario, identity.world_seed); scenario["world_seed"] = identity.world_seed
     RNGManager.set_global_determinism(identity.agent_seed)
     world = WorldStateManager(build_world_state(scenario), scenario.get("duration", config.max_steps_per_episode), scenario.get("max_energy", 100.0), scenario.get("step_energy_cost", 0.0), scenario.get("expose_time_fraction", True))
     rules = RuleEngine(); rules.load_rules(scenario.get("rules", {})); world.set_rules_version(rules.version)
     scheduler = ChangeScheduler(scenario.get("changes", []), rules); agent = controller._create_agent(identity.agent_identity, identity.agent_seed, scenario)
-    observer = ScientificObserver(str(root / "observer"), config.observer_mode, {"scientific_trial_identity": identity.__dict__, "plan_hash": identity.plan_hash, "preregistration_root_hash": identity.preregistration_root_hash})
+    observer = ScientificObserver(str(root / "observer"), config.observer_mode, {"scientific_trial_identity": scientific_trial_identity_payload(identity), "plan_hash": identity.plan_hash, "preregistration_root_hash": identity.preregistration_root_hash})
     observation_faults: list[dict[str, Any]] = []
     try:
         if frame_sink:
@@ -72,7 +105,7 @@ def run_materialized_trial(root: Path, identity: ScientificTrialIdentity, *, sce
             scenario=scenario, phase="scientific_execution", frame_sink=capture if frame_sink else None)
     finally: observer.close()
     observation_faults.extend(episode["observation_faults"])
-    return {"identity": identity.__dict__, "episode": episode, "config_hash": config.config_hash(),
+    return {"identity": scientific_trial_identity_payload(identity), "episode": episode, "config_hash": config.config_hash(),
             "observer_dir": str(root / "observer"), "observation_faults": observation_faults}
 
 

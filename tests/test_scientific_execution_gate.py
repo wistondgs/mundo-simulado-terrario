@@ -1,4 +1,5 @@
 """Regression tests for SCIENTIFIC-EXECUTION-GATE-01."""
+import json
 from pathlib import Path
 
 import pytest
@@ -63,6 +64,21 @@ def test_execution_rejects_nonexact_root_and_illegal_transition(api):
         assert_transition(ExecutionState.REQUESTED.value, ExecutionState.RUNNING)
 
 
+def test_mutating_api_csrf_headers_are_case_insensitive(api):
+    """HTTP field casing must not turn a valid local request into a 403."""
+    root = api.preregistrations.get("PR-CORE-1")["scientific_hash"]
+    status, response = api.dispatch(
+        "POST", "/api/v1/scientific-executions", {"preregistration_root_hash": root},
+        headers={"x-csrf-token": api.api_v1.csrf_token})
+    assert status == 201 and response["data"]["state"] == "REQUESTED"
+    status, _ = api.dispatch("POST", "/api/v1/cross-graph/snapshots", {},
+                             headers={"x-csrf-token": api.cross_graph_api.csrf_token})
+    assert status == 201
+    status, _ = api.dispatch("POST", "/api/v1/reference-graph/snapshots", {},
+                             headers={"x-csrf-token": api.reference_graph_api.csrf_token})
+    assert status == 201
+
+
 def test_dispatcher_materializes_one_real_trial_and_seals_its_trace(api):
     execution, _ = _execution(api)
     status, started = api.dispatch("POST", f"/api/v1/scientific-executions/{execution['execution_id']}/commands", {
@@ -76,6 +92,14 @@ def test_dispatcher_materializes_one_real_trial_and_seals_its_trace(api):
     assert all(frame["identity"]["execution_id"] == execution["execution_id"] for frame in frames)
     artifacts = api.scientific_executions.get(execution["execution_id"])["artifacts"]
     assert {item["artifact_type"] for item in artifacts} >= {"SCIENTIFIC_TRACE", "TRIAL_RESULT"}
+    trace_ref = next(item for item in artifacts if item["artifact_type"] == "SCIENTIFIC_TRACE")
+    trace = json.loads(api.artifacts.blobs.read(trace_ref["blob_hash"]))
+    transitions = [frame for frame in trace["frames"] if frame["tick"] > 0]
+    assert transitions
+    # The runtime seals the narrow observer projections on every transition;
+    # whether a plan exists is a condition-level fact, never inferred here.
+    assert all(isinstance(frame["observer_view"]["decision_trace"], list) for frame in transitions)
+    assert all(isinstance(frame["observer_view"]["planner_proposal_trace"], list) for frame in transitions)
 
 
 def test_terminal_scientific_playback_survives_dispatcher_memory_loss(api):

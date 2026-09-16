@@ -15,6 +15,7 @@ from terrario.lab.preregistration.domain import (
     StudyIntent,
     ValidationFinding,
 )
+from terrario.lab.preregistration.cl7 import PLANNING_TRACE_METRIC_ID, paired_matrix_report
 
 POLICY_VERSION = "preregistration-policy-1.0"
 
@@ -42,6 +43,7 @@ RULES = (
     RuleDefinition("PR-EXPOSURE-001", "1", FindingSeverity.EXPOSURE_WARNING, "Holdout exposure history is disclosed."),
     RuleDefinition("PR-RESOURCE-001", "1", FindingSeverity.RESOURCE_WARNING, "Required execution resources are not silently substituted."),
     RuleDefinition("PR-PROXY-001", "1", FindingSeverity.SCIENTIFIC_WARNING, "Metric implementation is not construct validation."),
+    RuleDefinition("PR-CL7-001", "1", FindingSeverity.INTEGRITY_ERROR, "Planning-trace ablation uses a complete paired treatment matrix."),
 )
 RULE_BY_ID = {rule.rule_id: rule for rule in RULES}
 
@@ -156,6 +158,29 @@ def validate_preregistration(
     matrix_agent = {int(cell["agent_seed"]) for cell in cells if "agent_seed" in cell}
     if matrix_world != set(seeds.world_seeds) or matrix_agent != set(seeds.agent_seeds):
         findings.append(_finding("PR-MATRIX-001", "trial_matrix.seeds", "TrialMatrix seeds differ from SeedCommitment."))
+    if PLANNING_TRACE_METRIC_ID in metric_by_id:
+        cl7 = paired_matrix_report(trial_matrix)
+        if not cl7["valid"]:
+            findings.append(_finding("PR-CL7-001", "trial_matrix", "CL-7 paired-ablation matrix is incomplete or contradictory.", **cl7))
+        metric = metric_by_id[PLANNING_TRACE_METRIC_ID]
+        try:
+            from terrario.lab.planning_trace_metric import specification, validate_construct
+            expected_spec = specification()["metric_spec_hash"]
+            expected_calibration = validate_construct()["calibration_report_hash"]
+        except Exception:
+            expected_spec = expected_calibration = None
+        overlap = {
+            kind: sorted(set(metric.calibration_seed_set.get(kind, ())) & set(metric.confirmatory_seed_set.get(kind, ())) )
+            for kind in {"world", "agent"}
+        }
+        if (metric.specification_hash != expected_spec or metric.calibration_report_hash != expected_calibration
+                or not metric.calibration_report_id or any(overlap.values())):
+            findings.append(_finding("PR-CL7-001", "metrics.planned-action-evaluation-pathway",
+                "CL-7 metric calibration, specification, or held-out seed binding is invalid.",
+                specification_hash=metric.specification_hash, expected_specification_hash=expected_spec,
+                calibration_report_hash=metric.calibration_report_hash,
+                expected_calibration_report_hash=expected_calibration,
+                calibration_confirmatory_overlap="PARTIAL" if any(overlap.values()) else "NONE", overlap=overlap))
 
     if draft.analysis.multiplicity_policy == "" or not draft.analysis.missing_data_policy or not draft.analysis.interpretation_boundary:
         findings.append(_finding("PR-ANALYSIS-001", "analysis", "Analysis, missing data, and interpretation policies must be explicit."))

@@ -116,6 +116,8 @@ def build_graph(snapshot_id: str, imported, experiments: Iterable[Any] = (), run
             if title: source_titles[str(title).strip().casefold()] = f"SourceRecord:{source.id}"
     for claim in imported.claims:
         source_id = source_titles.get(claim.source_id.strip().casefold())
+        if not source_id and f"SourceRecord:{claim.source_id}" in graph.theory_nodes:
+            source_id = f"SourceRecord:{claim.source_id}"
         embedded_id = re.search(r"\[((?:TI|DEV|X)\w*-?\d+)\]", claim.source_id)
         if not source_id and embedded_id and f"SourceRecord:{embedded_id.group(1)}" in graph.theory_nodes:
             source_id = f"SourceRecord:{embedded_id.group(1)}"

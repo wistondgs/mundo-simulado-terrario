@@ -44,6 +44,46 @@
 .ws-mode-badge.exploratory { background: #e7eefb; color: var(--ws-accent); border: 1px solid var(--ws-accent); }
 .ws-mode-badge.pinned { background: #eaf5ef; color: var(--ws-ok); border: 1px solid var(--ws-ok); }
 .ws-snapshot-info { font-size: 11px; color: var(--ws-muted); font-family: ui-monospace, monospace; }
+.ws-lab-link { color: var(--ws-accent); font-size: 11px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ws-lab-link:hover { text-decoration: underline; }
+
+/* Context navigation keeps instruments available without mounting all work at once. */
+.ws-context-nav {
+  padding: 8px 12px;
+  background: #eef1ee;
+  border-bottom: 1px solid var(--ws-border);
+  flex: 0 0 auto;
+  overflow-x: auto;
+}
+.ws-context-tabs { display: flex; gap: 4px; min-width: max-content; }
+.ws-context-nav button {
+  appearance: none;
+  min-width: 164px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ws-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  text-align: left;
+}
+.ws-context-nav button strong, .ws-context-nav button small { display: block; }
+.ws-context-nav button strong { font-size: 12px; }
+.ws-context-nav button small { font-size: 10px; margin-top: 1px; }
+.ws-context-nav button:hover { background: #f8faf8; border-color: var(--ws-border); }
+.ws-context-nav button.active { background: var(--ws-panel); border-color: var(--ws-accent); color: var(--ws-text); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.ws-context-pages { flex: 1; min-height: 0; overflow: hidden; }
+.ws-context-page { height: 100%; min-height: 0; }
+.ws-context-page[hidden] { display: none; }
+.ws-context-grid { height: 100%; min-height: 0; display: grid; gap: 4px; padding: 4px; }
+.ws-context-explore { grid-template-columns: minmax(190px, .7fr) minmax(0, 2fr) minmax(240px, .9fr); grid-template-rows: minmax(0, 1fr) minmax(150px, .7fr); }
+.ws-context-explore [data-panel="explorer"] { grid-column: 1; grid-row: 1 / span 2; }
+.ws-context-explore [data-panel="canvas"] { grid-column: 2; grid-row: 1 / span 2; }
+.ws-context-explore [data-panel="inspector"] { grid-column: 3; grid-row: 1; }
+.ws-context-explore [data-panel="composition"] { grid-column: 3; grid-row: 2; }
+.ws-context-design { grid-template-columns: minmax(260px, .8fr) minmax(0, 1.7fr); }
+.ws-context-execute { grid-template-columns: minmax(300px, .75fr) minmax(0, 1.6fr); }
+.ws-context-world { grid-template-columns: minmax(0, 1fr); }
 
 .ws-grid { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .ws-main { flex: 1; display: flex; min-height: 0; }
@@ -57,7 +97,7 @@
   flex-direction: column;
   background: var(--ws-panel);
   border: 1px solid var(--ws-border);
-  margin: 4px;
+  margin: 0;
   border-radius: 6px;
   min-width: 0;
   min-height: 0;
@@ -87,26 +127,8 @@
 .ws-panel-body.no-pad { padding: 0; }
 
 .ws-fullscreen { position: fixed !important; inset: 12px; z-index: 60; margin: 0; box-shadow: 0 8px 40px rgba(0,0,0,0.25); }
-.ws-has-fullscreen .ws-grid > *:not(.ws-fullscreen) { visibility: hidden; }
+.ws-has-fullscreen .ws-context-page.active .ws-panel:not(.ws-fullscreen) { visibility: hidden; }
 
-.ws-switcher {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  z-index: 50;
-}
-.ws-switch {
-  border: 1px solid var(--ws-border);
-  background: var(--ws-panel);
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 11px;
-  cursor: pointer;
-  color: var(--ws-muted);
-}
 .ws-empty { padding: 20px; color: var(--ws-muted); text-align: center; font-size: 12px; }
 
 /* Canvas */
@@ -263,7 +285,47 @@
 @media (prefers-reduced-motion: reduce) {
   .workspace-shell * { animation: none !important; transition: none !important; }
 }
+@media (max-width: 900px) {
+  .ws-topbar { gap: 8px; flex-wrap: wrap; }
+  .ws-topbar > span[style] { display: none; }
+  .ws-context-nav { padding: 6px; }
+  .ws-context-nav button { min-width: 138px; }
+  .ws-context-explore, .ws-context-design, .ws-context-execute { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(4, minmax(260px, auto)); overflow-y: auto; padding: 6px; }
+  .ws-context-explore [data-panel], .ws-context-design [data-panel], .ws-context-execute [data-panel] { grid-column: auto; grid-row: auto; }
+  .ws-context-world { overflow: auto; min-height: 760px; }
+}
 
 /* Scrollbar */
 .ws-panel-body::-webkit-scrollbar, .ws-palette-results::-webkit-scrollbar { width: 8px; height: 8px; }
 .ws-panel-body::-webkit-scrollbar-thumb { background: var(--ws-border); border-radius: 4px; }
+
+/* Execution: state and next legal step read first; the full record stays one disclosure away. */
+.se-summary { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:8px 10px; margin:6px 0 10px;
+  border:1px solid var(--ws-border); border-left:3px solid var(--ws-accent); background:#fbfcfb; font-size:12px; }
+.se-summary code { font-family:ui-monospace, monospace; }
+.se-summary em { flex-basis:100%; font-style:normal; color:var(--ws-muted); }
+.se-state { padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.04em;
+  background:#eef1ee; border:1px solid var(--ws-border); }
+.se-state-ready, .se-state-running { background:#eaf5ef; border-color:var(--ws-ok); color:var(--ws-ok); }
+.se-state-pausing, .se-state-paused, .se-state-recovery_required { background:#fdf3e6; border-color:var(--ws-warn); color:var(--ws-warn); }
+.se-state-failed, .se-state-aborted, .se-state-cancelled { background:#fbeceb; border-color:var(--ws-error); color:var(--ws-error); }
+.se-hint { font-size:11px; color:var(--ws-muted); margin:2px 0 8px; }
+.se-hint.ok::after { content:" · " attr(data-state); color:var(--ws-ok); font-weight:600; }
+.se-hint.warn::after { content:" · " attr(data-state); color:var(--ws-warn); font-weight:600; }
+.scientific-execution [data-command]:disabled, .scientific-execution button:disabled { opacity:.45; cursor:not-allowed; }
+.scientific-execution details summary { cursor:pointer; font-size:11px; font-weight:600; color:var(--ws-muted);
+  text-transform:uppercase; letter-spacing:.05em; padding:6px 0; }
+
+/* World2D: one toolbar, but the groups say which mode each control belongs to. */
+.w2d-group { display:flex; align-items:center; gap:6px; padding:2px 8px 2px 0; border-right:1px solid var(--ws-border); }
+.w2d-group:last-child { border-right:0; }
+.w2d-group > .w2d-group-label { font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ws-muted); white-space:nowrap; }
+.ws-sandbox-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+
+/* An empty instrument explains its own precondition instead of showing a blank rectangle. */
+.ws-canvas-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:6px; padding:24px; text-align:center; color:var(--ws-muted); font-size:12px;
+  pointer-events:none; }
+.ws-canvas-empty strong { font-size:13px; color:var(--ws-text); }
+.ws-canvas-empty[hidden] { display:none; }

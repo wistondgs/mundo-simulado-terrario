@@ -80,3 +80,12 @@ def test_02c_api_has_no_scientific_execution_route_or_review_bypass(tmp_path):
     assert service.dispatch("POST","/api/experiment-drafts/execute",experiment_payload())[0] in {400,405}
     status,body=service.dispatch("POST","/api/experiment-drafts/validate",experiment_payload(source_review_state="APPROVED_FOR_EXECUTION"))
     assert status==400 and "unknown experiment draft fields" in body["error"]
+
+
+def test_hypergraph_exposes_explicit_portfolio_bridge_without_browser_id_guessing(tmp_path):
+    service = api(tmp_path)
+    status, graph = service.dispatch("GET", "/api/hypergraph")
+    assert status == 200
+    candidates = [node for node in graph["nodes"] if node.get("node_type") == "HyperedgeCandidateRecord"]
+    assert candidates
+    assert all(node.get("experiment_design_source_id") == node["original_id"] for node in candidates)

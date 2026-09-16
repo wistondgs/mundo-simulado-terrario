@@ -114,12 +114,16 @@ export class ApiClient {
 
   // ---- operational hypergraph (read-only architecture, never evidence) ----
   operationalHypergraph() { return this.get("/api/operational-hypergraph"); }
+  operationalHypothesisStatus() { return this.get("/api/operational-hypotheses/status"); }
+  createOperationalHypothesis() { return this.post("/api/operational-hypotheses", {}, { mutation: true }); }
 
   // ---- world / scenario (legacy lab API) ----
   worldDefinition(worldId) { return this.get(`/api/worlds/${encodeURIComponent(worldId)}`); }
   worldPreview(worldId, seed) {
     return this.get(`/api/worlds/${encodeURIComponent(worldId)}/preview?seed=${seed}`);
   }
+  d2ProtocolAudit() { return this.get("/api/studio/d2/protocol-audit"); }
+  d2VisualFixture() { return this.get("/api/studio/d2/visual-fixture"); }
   runAgentView(runId, step) {
     return this.get(`/api/runs/${encodeURIComponent(runId)}/agent-view?step=${step}`);
   }
@@ -142,6 +146,10 @@ export class ApiClient {
   }
   scientificCommand(id, command, command_id, expected_revision) {
     return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/commands`, { command, command_id, expected_revision }, { mutation: true });
+  }
+  dispatchScientificExecution(id) {
+    return this.post(`/api/v1/scientific-executions/${encodeURIComponent(id)}/dispatch`,
+                     { worker_id: "workspace-local" }, { mutation: true });
   }
   verifyScientificExecution(id) { return this.get(`/api/v1/scientific-executions/${encodeURIComponent(id)}/verify`); }
   scientificPlayback(id, trialId, attemptId, after = -1) {

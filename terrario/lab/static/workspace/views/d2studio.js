@@ -23,6 +23,10 @@ export class D2Studio {
     this.traceBreaks = [];
     this.layer = "reference precedents";
     this.references = [];
+    this.protocolAudit = null;
+    this.visualFixture = null;
+    this.fixtureSequence = 0;
+    this.fixtureTimer = null;
   }
 
   render(container) {
@@ -33,9 +37,13 @@ export class D2Studio {
         <span style="flex:1"></span>
         <div id="d2LayerTabs"></div>
         <button id="d2OpenWorld">Open D2 World2D</button>
+        <button id="d2OpenVisualFixture">Open D2 visual validation fixture</button>
       </div>
+      <div id="d2ProtocolAudit" style="margin:6px 0"></div>
+      <div id="d2VisualFixture" style="margin:6px 0"></div>
       <div id="d2Body"></div>`;
     container.querySelector("#d2OpenWorld").onclick = () => this.onOpenWorld("D2");
+    container.querySelector("#d2OpenVisualFixture").onclick = () => this._loadVisualFixture();
     this._renderLayerTabs();
     this._load();
   }
@@ -59,10 +67,92 @@ export class D2Studio {
     try {
       const result = await this.api.projection({ d_level: "D2" });
       this.references = result.references || [];
+      try { this.protocolAudit = await this.api.d2ProtocolAudit(); }
+      catch (error) { this.protocolAudit = { error: error.message }; }
+      this._renderProtocolAudit();
       this._renderBody();
     } catch (error) {
       this.onError("DOMAIN_UNAVAILABLE", error.message, "D2 projection");
     }
+  }
+
+  _renderProtocolAudit() {
+    const target = this.container?.querySelector("#d2ProtocolAudit");
+    if (!target) return;
+    const audit = this.protocolAudit;
+    if (!audit) { target.textContent = "D2 protocol audit loading…"; return; }
+    if (audit.error) { target.textContent = `D2 protocol audit unavailable: ${audit.error}`; return; }
+    const status = audit.all_cases_pass ? "PASS" : "FAIL_CLOSED";
+    target.innerHTML = `<div class="ws-trace-break">
+      <strong>D2 INSTRUMENT SELF-AUDIT · ${status}</strong>
+      <small>${escapeHtml(audit.protocol_id)} · ${escapeHtml(audit.fixture_origin)}</small>
+      <div style="font-size:11px;margin-top:3px">${(audit.cases || []).map((item) =>
+        `${escapeHtml(item.condition_id)}@${escapeHtml(item.tick)}: ${item.render_alignment_errors?.length ? "MISALIGNED" : "ALIGNED"}`).join(" · ")}</div>
+      <small>Observer fixture only · no agent execution · no EvidenceGraph write.</small>
+    </div>`;
+  }
+
+  async _loadVisualFixture() {
+    try {
+      this._stopFixturePlayback();
+      this.visualFixture = await this.api.d2VisualFixture();
+      this.fixtureSequence = 0;
+      this._renderVisualFixture();
+    } catch (error) {
+      this.onError("D2_VISUAL_FIXTURE_UNAVAILABLE", error.message, "D2 visual fixture");
+    }
+  }
+
+  _stopFixturePlayback() {
+    if (this.fixtureTimer) clearInterval(this.fixtureTimer);
+    this.fixtureTimer = null;
+  }
+
+  _seekFixture(sequence) {
+    const frames = this.visualFixture?.frames || [];
+    if (!frames.length) return;
+    this.fixtureSequence = Math.max(0, Math.min(Number(sequence), frames.length - 1));
+    this._renderVisualFixture();
+  }
+
+  _toggleFixturePlayback() {
+    if (this.fixtureTimer) { this._stopFixturePlayback(); this._renderVisualFixture(); return; }
+    this.fixtureTimer = setInterval(() => {
+      const frames = this.visualFixture?.frames || [];
+      if (this.fixtureSequence >= frames.length - 1) { this._stopFixturePlayback(); this._renderVisualFixture(); return; }
+      this._seekFixture(this.fixtureSequence + 1);
+    }, 500);
+    this._renderVisualFixture();
+  }
+
+  _renderVisualFixture() {
+    const target = this.container?.querySelector("#d2VisualFixture");
+    if (!target || !this.visualFixture) return;
+    const fixture = this.visualFixture, frames = fixture.frames || [], frame = frames[this.fixtureSequence];
+    if (!frame) { target.textContent = "D2 visual fixture has no frames."; return; }
+    const visible = new Set(frame.visible_object_ids || []);
+    const lifecycle = frame.lifecycle || {};
+    const objects = frame.world_truth?.objects || [];
+    target.innerHTML = `<section class="ws-trace-break" aria-label="D2 visual validation fixture">
+      <strong>D2 VISUAL VALIDATION FIXTURE</strong>
+      <small>${escapeHtml(fixture.fixture_id)} · ${escapeHtml(fixture.epistemic_scope)}</small>
+      <div style="margin:5px 0"><button id="d2FixtureFirst">First</button> <button id="d2FixturePrev">Previous</button>
+      <button id="d2FixturePlay">${this.fixtureTimer ? "Pause" : "Play"}</button> <button id="d2FixtureNext">Next</button>
+      <button id="d2FixtureLast">Last</button> <input id="d2FixtureSeek" type="range" min="0" max="${frames.length - 1}" value="${this.fixtureSequence}" aria-label="D2 fixture timeline seek">
+      <output id="d2FixtureTick">tick ${escapeHtml(frame.tick)} · frame ${escapeHtml(frame.frame_sequence)} · ${escapeHtml(frame.phase)}</output></div>
+      <div data-d2-semantic-frame="${escapeHtml(frame.frame_id)}" style="font-size:11px">
+        <div><strong>World Truth · privileged</strong> ${objects.map((item) => `<span class="ws-tag" data-d2-object-id="${escapeHtml(item.object_id)}">#${escapeHtml(item.object_id)} ${visible.has(item.object_id) ? "VISIBLE" : "OCCLUDED"} · ${escapeHtml(lifecycle[item.object_id] || "visible")}</span>`).join(" ")}</div>
+        <div><strong>Observer View</strong> <span data-d2-errors>${escapeHtml((frame.observer_view?.errors || []).join(", ") || "NO_ERROR")}</span> <small>${escapeHtml(frame.observer_view?.scope)}</small></div>
+        <div><strong>Agent Observation</strong> ${escapeHtml(frame.agent_observation?.availability)} · <strong>Cognitive State</strong> ${escapeHtml(frame.cognitive_state?.availability)}</div>
+        <details><summary>Frame semantic record</summary><pre>${escapeHtml(JSON.stringify(frame, null, 2))}</pre></details>
+      </div>
+    </section>`;
+    target.querySelector("#d2FixtureFirst").onclick = () => this._seekFixture(0);
+    target.querySelector("#d2FixturePrev").onclick = () => this._seekFixture(this.fixtureSequence - 1);
+    target.querySelector("#d2FixturePlay").onclick = () => this._toggleFixturePlayback();
+    target.querySelector("#d2FixtureNext").onclick = () => this._seekFixture(this.fixtureSequence + 1);
+    target.querySelector("#d2FixtureLast").onclick = () => this._seekFixture(frames.length - 1);
+    target.querySelector("#d2FixtureSeek").oninput = (event) => this._seekFixture(event.target.value);
   }
 
   _renderBody() {

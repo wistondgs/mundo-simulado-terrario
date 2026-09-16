@@ -1,0 +1,112 @@
+# Terrario dev/test harness. Run from the repository root:
+#   docker compose -f docker/compose.yaml run --rm pytest
+#   docker compose -f docker/compose.yaml run --rm e2e
+#   docker compose -f docker/compose.yaml up lab      # UI on http://127.0.0.1:8765
+#
+# Scientific execution is NOT part of this harness. See docs/DOCKER_HARNESS.md.
+
+x-harness: &harness
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: terrario-harness:local
+  # The repository is mounted at its host absolute path, not at /repo or /app.
+  # config_hash hashes the absolute scenario path and that hash is sealed into
+  # trial artifacts, so a different mount point would silently produce
+  # non-comparable bytes. The path contains spaces; every entry quotes it.
+  working_dir: "/home/wis/mundo simulado terrario"
+  # uid 1000 matches the host owner, so nothing the container writes into the
+  # bind mount comes back root-owned.
+  user: "1000:1000"
+  environment:
+    TERRARIO_REPO: "/home/wis/mundo simulado terrario"
+    PYTHONPATH: "."
+    # Browsers live in the base image, not in the node_modules volume.
+    PLAYWRIGHT_BROWSERS_PATH: "/ms-playwright"
+    HOME: "/tmp/terrario-home"
+    # Four test modules import a verified corpus that lives OUTSIDE the
+    # repository (516 MB under the user's home). tests/theory_helpers.py:14-26
+    # resolves it from this variable first, then from $HOME/Documentos and
+    # $HOME/Documents -- and HOME is remapped in here, so the variable is the
+    # only reliable route. Without it those four modules fail at collection.
+    TERRARIO_PRIMARY_SOURCE_ROOT: "/corpus"
+    # playwright.config.js resolves this to the E2E backend's data root. Inside
+    # the container it lives under the shadowed .terrario volume, so E2E state
+    # never lands in the host's gitignored .sandbox/ through the bind mount.
+    TERRARIO_E2E_DATA_ROOT: "/home/wis/mundo simulado terrario/.terrario/e2e"
+  volumes:
+    - type: bind
+      source: "../"
+      target: "/home/wis/mundo simulado terrario"
+    # Three volumes shadow host directories that must never be shared:
+    #   .terrario  - the live 2.5 GB scientific data root. playwright.config.js
+    #                starts the server with `--root .` and no --data-root, so
+    #                without this shadow the container would open, migrate and
+    #                write the host's production SQLite and CAS.
+    #   .venv      - the host venv is 7.6 GB and not relocatable.
+    #   node_modules - installed against the container's Node.
+    - type: volume
+      source: terrario-data
+      target: "/home/wis/mundo simulado terrario/.terrario"
+    - type: volume
+      source: terrario-venv
+      target: "/home/wis/mundo simulado terrario/.venv"
+    - type: volume
+      source: terrario-node
+      target: "/home/wis/mundo simulado terrario/node_modules"
+    - type: volume
+      source: terrario-home
+      target: /tmp/terrario-home
+    # Read-only: the corpus is source material, never written by a test.
+    # Override the host path with TERRARIO_CORPUS if yours differs.
+    - type: bind
+      source: "${TERRARIO_CORPUS:-/home/wis/Documentos/teoria de la inteligencia}"
+      target: /corpus
+      read_only: true
+
+services:
+  # Interactive shell in the harness.
+  shell:
+    <<: *harness
+    command: ["bash"]
+
+  # The lab UI, published on the host loopback. Mutating routes enforce a
+  # localhost Host/Origin guard, so reach it at 127.0.0.1 and not by container
+  # name or container IP.
+  lab:
+    <<: *harness
+    command: ["python", "-m", "terrario.lab.api",
+              "--root", ".",
+              "--data-root", "/home/wis/mundo simulado terrario/.terrario",
+              "--host", "0.0.0.0", "--port", "8765"]
+    ports:
+      - "127.0.0.1:8765:8765"
+
+  # The harness carries torch's CPU wheel because the host GPU is dead at the
+  # driver level. torch CPU kernels are not bit-identical across build variants,
+  # so the behaviour characterization gate -- which compares agent output hashes
+  # against a fixture recorded with the host's +cu121 build -- cannot pass here.
+  # It is deselected BY NAME, not skipped by a marker, so the exclusion is one
+  # line of configuration a reader can see, and it remains a host-only gate.
+  pytest:
+    <<: *harness
+    command: [".venv/bin/python", "-m", "pytest", "-q",
+              "--deselect",
+              "tests/test_system_baseline_characterization.py::test_d2_d3_d4_a0_a1_a4_match_checked_in_behavior"]
+
+  # The full suite with nothing excluded, for confirming that the deselected
+  # gate is the ONLY thing the CPU wheel costs.
+  pytest-all:
+    <<: *harness
+    command: [".venv/bin/python", "-m", "pytest", "-q"]
+
+  # Playwright starts its own backend on 8877 through playwright.config.js.
+  e2e:
+    <<: *harness
+    command: ["npx", "playwright", "test"]
+
+volumes:
+  terrario-data:
+  terrario-venv:
+  terrario-node:
+  terrario-home:

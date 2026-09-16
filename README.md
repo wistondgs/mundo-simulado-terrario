@@ -37,6 +37,20 @@ scientific artifacts. Refresh the generated dashboard after a manifest change:
 ./.venv/bin/python scripts/sync_obsidian_vault.py --check
 ```
 
+## Containerised dev/test harness
+
+A Docker harness runs the test suites and the lab UI in a disposable environment, so ports, stray
+servers and runtime state cannot collide with the host's. It is **not** an execution environment for
+science: a preregistration seals `observed_environment` into its bundle root hash and no gate
+compares that against the environment that actually runs, so scientific execution stays on the host.
+
+```bash
+docker compose -f docker/compose.yaml run --rm pytest
+```
+
+See [`docs/DOCKER_HARNESS.md`](docs/DOCKER_HARNESS.md) for the scientific boundary, the design
+decisions and the measured deviations from the host.
+
 ## Durable Lab artifacts
 
 Terrario Lab stores world drafts, experiment drafts, and non-executing trial

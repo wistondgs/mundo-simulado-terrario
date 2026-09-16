@@ -58,6 +58,7 @@ test.describe("workspace interactions", () => {
   test("D2 studio shows trace breaks layer", async ({ page }) => {
     await page.goto("/workspace/index.html");
     await page.waitForTimeout(2000);
+    await page.locator('[data-context-target="design"]').click();
     const d2 = page.locator('[data-panel="d2"]');
     await expect(d2).toBeVisible();
     // switch to trace breaks layer
@@ -73,6 +74,7 @@ test.describe("workspace interactions", () => {
   test("World2D panel renders three distinctly-labelled views", async ({ page }) => {
     await page.goto("/workspace/index.html");
     await page.waitForTimeout(1500);
+    await page.locator('[data-context-target="world"]').click();
     const world = page.locator('[data-panel="world"]');
     await expect(world).toBeVisible();
     await expect(world.locator(".ws-world-view.truth header")).toHaveText(/World Truth/i);

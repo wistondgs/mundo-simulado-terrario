@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Mapping
 
 from terrario.lab.execution.live import ScientificLivePublisher
-from terrario.lab.execution.runtime import ScientificTrialIdentity, run_materialized_trial
+from terrario.lab.execution.runtime import (
+    ScientificTrialIdentity, run_materialized_trial, scientific_frame_payload,
+    scientific_trial_identity_payload,
+)
 from terrario.lab.persistence.canonical import canonical_json
 
 
@@ -25,7 +27,19 @@ class ScientificExecutionDispatcher:
             if claimed is None: break
             self._run_claimed(execution_id, claimed, worker_id)
             completed += 1
-        return self.service.get(execution_id)
+        execution = self.service.get(execution_id)
+        # A worker, not the visual client, closes the execution only after the
+        # full sealed plan has completed.  Failed, paused, cancelled, or still
+        # pending jobs deliberately remain non-terminal for explicit handling.
+        if execution["state"] == "RUNNING":
+            with self.service.artifacts._connect() as con:
+                states = [row[0] for row in con.execute(
+                    """SELECT jobs.projected_state FROM execution_jobs jobs
+                       JOIN execution_batches batches ON batches.batch_id=jobs.batch_id
+                       WHERE batches.idempotency_key=?""", (execution_id,))]
+            if states and all(state == "COMPLETED" for state in states):
+                return self.service.complete(execution_id, worker_id)
+        return execution
 
     def frames_after(self, execution_id: str, trial_intent_id: str, after: int = -1) -> tuple[Mapping[str, Any], ...]:
         return tuple(x for x in self.frames.get(f"{execution_id}:{trial_intent_id}", ()) if int(x["frame_sequence"]) > after)
@@ -50,17 +64,17 @@ class ScientificExecutionDispatcher:
             if execution["plan_hash"] != plan["plan_hash"] if "plan_hash" in plan else False: raise ValueError("INVALID_PLAN_HASH")
             scenario_id = str(plan["protocol"]["scenario_id"]).lower()
             scenario_path = self.service.root / "scenarios" / {"d0":"d0_differences.yaml","d1":"d1_objects.yaml","d2":"d2_properties.yaml","d3":"d3_causality.yaml","d4":"d4_change.yaml"}[scenario_id]
-            identity = ScientificTrialIdentity(execution_id, claim["trial_intent_id"], claim["attempt_id"], execution["plan_hash"], execution["preregistration_root_hash"], execution["software_snapshot"]["content_hash"] if "content_hash" in execution["software_snapshot"] else execution["software_snapshot"].get("values", {}).get("commit", "UNKNOWN"), plan["protocol"]["scenario_hash"], str(identity_row["agent_id"]), int(identity_row["world_seed"]), int(identity_row["agent_seed"]))
+            identity = ScientificTrialIdentity(execution_id, claim["trial_intent_id"], claim["attempt_id"], execution["plan_hash"], execution["preregistration_root_hash"], execution["software_snapshot"]["content_hash"] if "content_hash" in execution["software_snapshot"] else execution["software_snapshot"].get("values", {}).get("commit", "UNKNOWN"), plan["protocol"]["scenario_hash"], str(identity_row["agent_id"]), int(identity_row["world_seed"]), int(identity_row["agent_seed"]), dict(identity_row.get("agent_config") or {}))
             key = f"{execution_id}:{claim['trial_intent_id']}"; self.frames[key] = []
-            self.live.begin_attempt(identity.__dict__)
+            self.live.begin_attempt(scientific_trial_identity_payload(identity))
             def sink(frame):
-                payload = asdict(frame)
+                payload = scientific_frame_payload(frame)
                 self.frames[key].append(payload)
                 self.live.publish(payload)
             result = run_materialized_trial(self.service.artifacts.data_root / "runtime" / execution_id / claim["attempt_id"], identity, scenario_path=scenario_path, observer_profile=str(identity_row["observer_profile"]), step_limit=int(plan["protocol"]["step_limit"]), frame_sink=sink)
             if result["observation_faults"]:
                 raise ValueError("OBSERVER_MATERIALIZATION_FAILED: " + canonical_json(result["observation_faults"]))
-            self.service.record_raw_artifact(execution_id, "SCIENTIFIC_TRACE", canonical_json({"identity": identity.__dict__, "frames": self.frames[key]}).encode(), worker_id, claim["trial_intent_id"], claim["attempt_id"])
+            self.service.record_raw_artifact(execution_id, "SCIENTIFIC_TRACE", canonical_json({"identity": scientific_trial_identity_payload(identity), "frames": self.frames[key]}).encode(), worker_id, claim["trial_intent_id"], claim["attempt_id"])
             self.service.record_raw_artifact(execution_id, "TRIAL_RESULT", canonical_json(result).encode(), worker_id, claim["trial_intent_id"], claim["attempt_id"])
             with self.service.artifacts.transaction() as con:
                 con.execute("UPDATE run_attempts SET projected_state='COMPLETED',finished_at=? WHERE attempt_id=?", (self.service.artifacts.now(), claim["attempt_id"]))

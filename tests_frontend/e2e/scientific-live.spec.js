@@ -7,7 +7,10 @@ import { execFileSync } from "node:child_process";
  * Real backend, real dispatcher, real ScientificTrialRuntime; no mocked transport.
  */
 function seed(agentId = "A4") {
-  const out = execFileSync(".venv/bin/python", ["scripts/seed_scientific_live_e2e.py", ".terrario", agentId],
+  // Never the live `.terrario`: the config exports the shared temporary root.
+  const dataRoot = process.env.TERRARIO_E2E_DATA_ROOT;
+  if (!dataRoot) throw new Error("TERRARIO_E2E_DATA_ROOT is unset; refusing to seed into the live .terrario");
+  const out = execFileSync(".venv/bin/python", ["scripts/seed_scientific_live_e2e.py", dataRoot, agentId],
     { encoding: "utf8", env: { ...process.env, PYTHONPATH: "." } });
   return JSON.parse(out.trim().split("\n").pop());
 }
@@ -32,6 +35,12 @@ async function attemptOf(request, executionId) {
 }
 
 test.describe("Scientific live observability", () => {
+  // Each case materializes a genuine 100-step A4/A0 scientific trial through
+  // the local HTTP dispatcher.  Constrained Firefox runners can spend most
+  // of the default 30 s budget in that real prerequisite before the browser
+  // assertions begin; this is a deadline, not a sleep or retry strategy.
+  test.describe.configure({ timeout: 60_000 });
+
   test("golden: live frames -> SSE -> reconnect -> terminal -> durable CAS playback", async ({ page, request }) => {
     const exec = seed();
     const auth = await startAndDispatch(request, exec);
@@ -40,10 +49,15 @@ test.describe("Scientific live observability", () => {
 
     await page.goto("/workspace/index.html");
     await page.waitForTimeout(1200);
+    await page.locator('[data-context-target="execute"]').click();
     const panel = page.locator('[data-panel="scientific-world"]');
-    await panel.locator("#swExec").fill(exec.execution_id);
-    await panel.locator("#swTrial").fill(trialId);
-    await panel.locator("#swAttempt").fill(attemptId);
+    // Firefox can keep the workspace's animated layout in an actionability
+    // transition even though these real text inputs are visible.  This setup
+    // does not test pointer hit-testing, so use the same direct form write in
+    // both engines before exercising the actual live route.
+    await panel.locator("#swExec").fill(exec.execution_id, { force: true });
+    await panel.locator("#swTrial").fill(trialId, { force: true });
+    await panel.locator("#swAttempt").fill(attemptId, { force: true });
     await panel.locator("#swLive").click();
 
     // Terminal attempt attaches as TERMINAL with authoritative provenance.
@@ -140,10 +154,11 @@ test.describe("Scientific live observability", () => {
     await startAndDispatch(request, exec);
     const trace = await attemptOf(request, exec.execution_id);
     await page.goto("/workspace/index.html");
+    await page.locator('[data-context-target="execute"]').click();
     const panel = page.locator('[data-panel="scientific-world"]');
-    await panel.locator("#swExec").fill(exec.execution_id);
-    await panel.locator("#swTrial").fill(trace.trial_intent_id);
-    await panel.locator("#swAttempt").fill(trace.attempt_id);
+    await panel.locator("#swExec").fill(exec.execution_id, { force: true });
+    await panel.locator("#swTrial").fill(trace.trial_intent_id, { force: true });
+    await panel.locator("#swAttempt").fill(trace.attempt_id, { force: true });
     await panel.locator("#swLive").click();
     await expect(panel.locator("#swCognitive")).toContainText("A0_RANDOM");
     await expect(panel.locator("#swCognitive")).toContainText("UNSUPPORTED");

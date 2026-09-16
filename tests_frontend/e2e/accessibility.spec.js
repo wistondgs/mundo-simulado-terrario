@@ -67,6 +67,7 @@ test.describe("accessibility", () => {
 
   test("World2D live and playback controls work keyboard-only with announced state", async ({ page }) => {
     await page.goto("/workspace/index.html"); await page.waitForTimeout(1200);
+    await page.locator('[data-context-target="world"]').click();
     const panel = page.locator('[data-panel="world"]');
     await expect(panel.locator("#w2dStepLabel")).toHaveAttribute("role", "status");
     await expect(panel.locator("#w2dTimeline")).toHaveAttribute("aria-label", "Observer event timeline");

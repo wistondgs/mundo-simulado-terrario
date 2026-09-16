@@ -178,6 +178,23 @@ class PreregistrationRepository:
         version = self.artifacts.get_version(version_id)
         now, review_id = self.artifacts.now(), self.artifacts._identifier("review")
         with self.artifacts.transaction() as connection:
+            if review_kind == "EXPERIMENT_DESIGN":
+                # A second click must not create a second pending decision for
+                # the same immutable design. The review itself remains a
+                # human action; only request creation is idempotent here.
+                pending = connection.execute(
+                    """SELECT review_id, requested_by, reason, created_at
+                       FROM review_requests r
+                       WHERE r.artifact_version_id=? AND r.review_kind=?
+                       AND NOT EXISTS (SELECT 1 FROM review_decisions d WHERE d.review_id=r.review_id)
+                       ORDER BY r.created_at, r.review_id LIMIT 1""",
+                    (version_id, review_kind),
+                ).fetchone()
+                if pending is not None:
+                    return {"review_id": str(pending["review_id"]), "artifact_version_id": version_id,
+                            "artifact_hash": version.scientific_hash, "review_kind": review_kind,
+                            "requested_by": str(pending["requested_by"]), "reason": str(pending["reason"]),
+                            "created_at": str(pending["created_at"]), "deduplicated": True}
             connection.execute(
                 "INSERT INTO review_requests(review_id,artifact_version_id,review_kind,requested_by,reason,created_at) VALUES(?,?,?,?,?,?)",
                 (review_id, version_id, review_kind, actor_id, reason, now),
@@ -195,7 +212,7 @@ class PreregistrationRepository:
                 }, actor_id, now)
         return {"review_id": review_id, "artifact_version_id": version_id,
                 "artifact_hash": version.scientific_hash, "review_kind": review_kind,
-                "requested_by": actor_id, "reason": reason, "created_at": now}
+                "requested_by": actor_id, "reason": reason, "created_at": now, "deduplicated": False}
 
     def record_review_decision(
         self, review_id: str, artifact_hash: str, decision: ReviewDecisionValue,

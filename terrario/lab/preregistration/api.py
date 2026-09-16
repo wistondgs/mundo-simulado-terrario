@@ -8,6 +8,13 @@ from terrario.lab.persistence import ArtifactNotFound, DuplicateArtifact, Proven
 from terrario.lab.preregistration.domain import PreregistrationError
 
 
+def _header(headers: Mapping[str, str], name: str) -> str | None:
+    """Return an HTTP field without depending on its transport spelling."""
+    wanted = name.casefold()
+    return next((str(value) for key, value in headers.items()
+                 if str(key).casefold() == wanted), None)
+
+
 class PreregistrationAPI:
     def __init__(self, service):
         self.service = service
@@ -117,18 +124,18 @@ class PreregistrationAPI:
         raise ArtifactNotFound("/api/v1/" + "/".join(parts))
 
     def _authorize(self, headers: Mapping[str, str]) -> None:
-        host = headers.get("Host", "")
-        origin = headers.get("Origin", "")
+        host = _header(headers, "Host") or ""
+        origin = _header(headers, "Origin") or ""
         if host and not (host.startswith("127.0.0.1") or host.startswith("localhost")):
             raise PermissionError("non-local Host rejected")
         if origin and not (origin.startswith("http://127.0.0.1") or origin.startswith("http://localhost")):
             raise PermissionError("non-local Origin rejected")
-        if headers.get("X-CSRF-Token") != self.csrf_token:
+        if _header(headers, "X-CSRF-Token") != self.csrf_token:
             raise PermissionError("invalid CSRF token")
 
     @staticmethod
     def _if_match(headers: Mapping[str, str], payload: Mapping[str, Any]) -> str:
-        value = headers.get("If-Match") or payload.get("expected_hash")
+        value = _header(headers, "If-Match") or payload.get("expected_hash")
         if not value: raise ValueError("If-Match is required")
         return str(value).strip('"')
 

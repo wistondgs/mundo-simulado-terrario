@@ -11,11 +11,36 @@ export class OperationalHypergraphPanel {
 
   render(container) {
     this.container = container;
-    container.innerHTML = `<div id="operationalHypergraph" aria-live="polite">Loading operational hypergraph…</div>`;
+    container.innerHTML = `<div id="operationalHypothesis" aria-live="polite">Checking audited hypothesis path…</div><div id="operationalHypergraph" aria-live="polite">Loading operational hypergraph…</div>`;
     this.load();
   }
 
+  async _hypothesisControl() {
+    const target = this.container?.querySelector("#operationalHypothesis");
+    if (!target) return;
+    try {
+      const status = await this.api.operationalHypothesisStatus();
+      if (!status.available) {
+        target.textContent = `Audited hypothesis path unavailable: configure ${status.required_environment}.`;
+        return;
+      }
+      target.innerHTML = `<button id="createOperationalHypothesis">Create audited hypothesis</button> <small>H02 × H08 only · REVIEW_REQUIRED · no execution</small><pre id="operationalHypothesisResult"></pre>`;
+      target.querySelector("#createOperationalHypothesis").onclick = async () => {
+        const result = target.querySelector("#operationalHypothesisResult");
+        result.textContent = "Deriving from verified role bindings…";
+        try {
+          const created = await this.api.createOperationalHypothesis();
+          result.textContent = JSON.stringify({
+            hypothesis: created.hypothesis, experiment_draft_preview: created.experiment_draft_preview,
+            scientific_execution: created.scientific_execution,
+          }, null, 2);
+        } catch (error) { this.onError("HYPOTHESIS_DERIVATION_FAILED", error.message, "operational hypothesis"); result.textContent = error.message; }
+      };
+    } catch (error) { this.onError("DOMAIN_UNAVAILABLE", error.message, "operational hypothesis"); }
+  }
+
   async load() {
+    void this._hypothesisControl();
     try {
       const response = await this.api.operationalHypergraph();
       this.edges = response.hyperedges || [];

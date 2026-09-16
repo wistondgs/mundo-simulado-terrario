@@ -122,6 +122,15 @@ class MetricRegistry:
             MetricImplementationStatus.PARTIAL, ConstructValidationStatus.NOT_VALIDATED_FOR_CONSTRUCT,
             "OBSERVE-02 source audit"))
         self.register(MetricDefinition(
+            "planned-action-evaluation-pathway", METRIC_SCHEMA_VERSION,
+            "planned-action evaluation pathway availability", "schema-valid observer-only planner proposal trace",
+            "terrario.lab.planning_trace_metric:evaluate_scientific_trace", "valid planner proposal traces / eligible decision sites", "proportion of decision sites", Direction.HIGHER_IS_BETTER,
+            "[0, 1] for an exact observer trace; not a general planning-quality score", ("decision", "planner_proposal_trace"),
+            "per condition and matched-seed contrast", ("D2",),
+            ("does not establish future-sensitive choice quality or an internal plan representation", "no energy or reward substitution"),
+            MetricImplementationStatus.IMPLEMENTED, ConstructValidationStatus.VALIDATED_FOR_CONSTRUCT,
+            "CL7-METRIC-CONSTRUCT-VALIDATION-01"))
+        self.register(MetricDefinition(
             "adaptation-recovery-steps", METRIC_SCHEMA_VERSION, "adaptation", "recovery steps",
             None, None, "steps", Direction.LOWER_IS_BETTER, "nonnegative integer",
             ("causal_intervention", "recovery_event"), "per intervention", ("D4",),
@@ -157,6 +166,7 @@ class ObserverRegistry:
             ObserverChannel("agent_energy", "AgentObservation", 1, "float", 16, SeparationClass.AGENT_VISIBLE, "LOW", "LOW", "behavioral proxy", "AVAILABLE"),
             ObserverChannel("sensation", "AgentObservation", 1, "SensationTrace", 400, SeparationClass.AGENT_VISIBLE, "LOW", "MEDIUM", "input audit", "AVAILABLE"),
             ObserverChannel("decision", "AgentInterface", 1, "DecisionTrace", 240, SeparationClass.SCIENTIFIC_STATE, "LOW", "LOW", "decision audit", "AVAILABLE"),
+            ObserverChannel("planner_proposal_trace", "agent.get_trace_events", 1, "PlannerProposalTrace", 2048, SeparationClass.SCIENTIFIC_STATE, "MEDIUM", "MEDIUM", "observer-only planned-action pathway audit", "AVAILABLE"),
             ObserverChannel("prediction_error", "get_scientific_state", 1, "PredictionTrace", 320, SeparationClass.SCIENTIFIC_STATE, "MEDIUM", "LOW", "operational prediction diagnostic", "CONDITIONAL"),
             ObserverChannel("internal_tensors", "get_scientific_state", 1, "tensor summary/raw", 4096, SeparationClass.DEBUG_ONLY, "HIGH", "HIGH", "debug inspection only", "CONDITIONAL"),
             ObserverChannel("causal_intervention", "ChangeScheduler", 1, "structured event", 160, SeparationClass.OBSERVER_ONLY, "LOW", "LOW", "manipulation timing", "AVAILABLE"),
@@ -164,8 +174,8 @@ class ObserverRegistry:
         self._channels = {x.channel_id: x for x in rows}
         self._profiles = {
             "SUMMARY": ObserverProfile("SUMMARY", "performance", ("world", "consequence", "agent_energy")),
-            "STANDARD": ObserverProfile("STANDARD", "scientific_standard", ("world", "consequence", "agent_energy", "sensation", "decision", "prediction_error", "causal_intervention")),
-            "FORENSIC_WINDOW": ObserverProfile("FORENSIC_WINDOW", "forensic_full", ("world", "consequence", "agent_energy", "sensation", "decision", "prediction_error", "causal_intervention", "internal_tensors")),
+            "STANDARD": ObserverProfile("STANDARD", "scientific_standard", ("world", "consequence", "agent_energy", "sensation", "decision", "planner_proposal_trace", "prediction_error", "causal_intervention")),
+            "FORENSIC_WINDOW": ObserverProfile("FORENSIC_WINDOW", "forensic_full", ("world", "consequence", "agent_energy", "sensation", "decision", "planner_proposal_trace", "prediction_error", "causal_intervention", "internal_tensors")),
             "FULL_DEBUG": ObserverProfile("FULL_DEBUG", "forensic_full", tuple(x.channel_id for x in rows)),
         }
 

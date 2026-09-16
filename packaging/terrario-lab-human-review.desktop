@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Terrario Lab — revisión humana
+Comment=Abre la revisión humana y el preregistro local de Terrario
+Exec="/home/wis/mundo simulado terrario/scripts/launch_terrario_lab.sh"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Development;
+Keywords=Terrario;Lab;Ciencia;Preregistro;Revisión;

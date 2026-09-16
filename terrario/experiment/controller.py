@@ -69,6 +69,28 @@ def materialize_scenario(scenario: dict[str, Any], world_seed: int) -> dict[str,
     return resolved
 
 
+def _observer_decision_trace(agent_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Project decision facts required by the observer-only metric contract."""
+    return [
+        {key: event[key] for key in ("op", "step", "action_int") if key in event}
+        for event in agent_events if event.get("op") == "decide"
+    ]
+
+
+def _observer_planner_proposal_trace(agent_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Project the declared plan proposal contract without exposing agent state.
+
+    The retained fields are all produced by the planner at decision time.  In
+    particular, this projection never adds a target, oracle action, world
+    truth, or post-hoc evaluator label.
+    """
+    fields = ("op", "horizon", "num_candidates", "best_action", "best_score", "rollouts")
+    return [
+        {key: event[key] for key in fields if key in event}
+        for event in agent_events if event.get("op") == "plan"
+    ]
+
+
 def build_world_state(scenario: dict[str, Any]) -> WorldState:
     grid_w, grid_h = scenario["grid_size"]
     occupancy = np.zeros((grid_h, grid_w), dtype=np.int32)
@@ -260,7 +282,14 @@ class ExperimentController:
                             "channels": observation_t1.channels.tolist(), "mask": observation_t1.mask.tolist(),
                             "agent_energy": observation_t1.agent_energy, "time_fraction": observation_t1.time_fraction,
                         },
-                        "observer_view": {"events": list(consequence.observer_events), "causal_interaction": observer_annotations},
+                        # Captured after the agent acts and never routed back
+                        # into its observation.  This is a narrow scientific
+                        # projection, not a copy of mutable internal state.
+                        "observer_view": {
+                            "events": list(consequence.observer_events), "causal_interaction": observer_annotations,
+                            "decision_trace": _observer_decision_trace(agent_events),
+                            "planner_proposal_trace": _observer_planner_proposal_trace(agent_events),
+                        },
                         "scientific_state": scientific_transport_projection(scientific_snapshot),
                         "trace_cursor": step,
                         "runtime_state": "COMPLETED" if consequence.done else "RUNNING",

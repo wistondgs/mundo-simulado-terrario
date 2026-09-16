@@ -1,67 +1,40 @@
 /**
- * Workspace shell: a multipanel scientific workstation. Panels dock, resize,
- * hide/show, and fullscreen; the layout persists as a user preference (never
- * scientific state). The shell hosts the Explorer, Scientific Canvas,
- * Inspector, Provenance, Composition, Timeline/History, and World panels.
+ * Workspace shell with context navigation. A context is a presentation boundary,
+ * never a scientific state: panels keep their own contracts and identities.
  */
-import { viewportState, transientState } from "../core/state.js";
+import { viewportState } from "../core/state.js";
 
-const LAYOUT_KEY = "terrario.workspace.layout.v1";
+const CONTEXT_KEY = "terrario.workspace.context.v1";
 
 export class WorkspaceShell {
-  /**
-   * @param {HTMLElement} root
-   */
   constructor(root) {
     this.root = root;
     this.panels = new Map();
-    this.layout = this._loadLayout();
-  }
-
-  _loadLayout() {
-    try {
-      return JSON.parse(localStorage.getItem(LAYOUT_KEY)) || this._defaultLayout();
-    } catch {
-      return this._defaultLayout();
-    }
-  }
-
-  _defaultLayout() {
-    return {
-      left: { visible: true, size: 20 },
-      right: { visible: true, size: 26 },
-      bottom: { visible: true, size: 26 },
-      center: { visible: true, size: 54 },
-      fullscreen: null,
+    this.contexts = new Map();
+    this.pages = new Map();
+    this.activeContext = null;
+    this._onHashChange = () => {
+      const context = location.hash.match(/^#context=([a-z-]+)$/)?.[1];
+      if (context && this.contexts.has(context)) this.navigate(context, { persist: false });
     };
   }
 
-  persistLayout() {
-    viewportState.set({ panelLayout: this.layout });
-    try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(this.layout)); } catch {}
+  registerContext(id, definition) {
+    this.contexts.set(id, { id, title: definition.title, description: definition.description || "" });
   }
 
-  /**
-   * @param {string} id
-   * @param {{title:string, region:string, render:function}} def
-   */
   registerPanel(id, def) {
     const panel = document.createElement("section");
-    panel.className = `ws-panel ws-${def.region}`;
+    panel.className = `ws-panel ws-${def.region || "center"}`;
     panel.dataset.panel = id;
+    panel.dataset.context = def.context || "explore";
     panel.setAttribute("aria-label", def.title);
     const header = document.createElement("header");
     header.className = "ws-panel-head";
-    header.innerHTML = `
-      <strong>${def.title}</strong>
-      <span class="ws-panel-tools">
-        <button data-action="hide" title="Hide panel" aria-label="Hide panel">–</button>
-        <button data-action="fullscreen" title="Fullscreen" aria-label="Fullscreen">⛶</button>
-      </span>`;
+    header.innerHTML = `<strong>${def.title}</strong><span class="ws-panel-tools"><button data-action="fullscreen" title="Ampliar panel" aria-label="Ampliar ${def.title}">⛶</button></span>`;
     const body = document.createElement("div");
     body.className = "ws-panel-body";
     panel.append(header, body);
-    header.querySelector('[data-action="hide"]').onclick = () => this.hidePanel(id);
     header.querySelector('[data-action="fullscreen"]').onclick = () => this.toggleFullscreen(id);
     this.panels.set(id, { ...def, element: panel, body });
     def.render(body);
@@ -71,96 +44,103 @@ export class WorkspaceShell {
   mount() {
     this.root.classList.add("workspace-shell");
     this.root.innerHTML = "";
-    const grid = document.createElement("div");
-    grid.className = "ws-grid";
-    const regions = { left: [], center: [], right: [], bottom: [] };
-    for (const [id, panel] of this.panels) {
-      (regions[panel.region] || regions.center).push(panel.element);
-    }
-    const left = this._region("left", regions.left);
-    const center = this._region("center", regions.center);
-    const right = this._region("right", regions.right);
-    const bottom = this._region("bottom", regions.bottom);
-    const main = document.createElement("div");
-    main.className = "ws-main";
-    main.append(left, center, right);
-    grid.append(main, bottom);
-    this.root.append(grid);
-    this._applyLayout();
-    this._buildPanelSwitcher();
-  }
+    const navigation = document.createElement("nav");
+    navigation.className = "ws-context-nav";
+    navigation.setAttribute("aria-label", "Contextos de trabajo");
+    const tablist = document.createElement("div");
+    tablist.className = "ws-context-tabs";
+    tablist.setAttribute("role", "tablist");
+    tablist.addEventListener("keydown", (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const ids = [...this.contexts.keys()];
+      const focused = document.activeElement?.dataset?.contextTarget;
+      const current = Math.max(0, ids.indexOf(focused || this.activeContext));
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? ids.length - 1
+        : (current + (event.key === 'ArrowRight' ? 1 : -1) + ids.length) % ids.length;
+      this.navigate(ids[next]);
+      this.root.querySelector(`[data-context-target="${ids[next]}"]`)?.focus();
+    });
+    const pages = document.createElement("div");
+    pages.className = "ws-context-pages";
 
-  _region(name, elements) {
-    const region = document.createElement("div");
-    region.className = `ws-region ws-region-${name}`;
-    region.dataset.region = name;
-    for (const el of elements) region.append(el);
-    if (!elements.length) region.append(this._emptyRegion(name));
-    return region;
-  }
-
-  _emptyRegion(name) {
-    const div = document.createElement("div");
-    div.className = "ws-empty";
-    div.textContent = "Panel hidden";
-    return div;
-  }
-
-  _applyLayout() {
-    for (const [name, region] of [["left", ".ws-region-left"], ["center", ".ws-region-center"],
-                                   ["right", ".ws-region-right"], ["bottom", ".ws-region-bottom"]]) {
-      const el = this.root.querySelector(region);
-      if (!el) continue;
-      const conf = this.layout[name] || {};
-      el.style.display = conf.visible === false ? "none" : "";
-      if (conf.size) {
-        if (name === "bottom") el.style.height = `${conf.size}%`;
-        else el.style.flex = `0 0 ${conf.size}%`;
-      }
-    }
-  }
-
-  _buildPanelSwitcher() {
-    const bar = document.createElement("div");
-    bar.className = "ws-switcher";
-    for (const [id, panel] of this.panels) {
+    for (const context of this.contexts.values()) {
       const button = document.createElement("button");
-      button.textContent = panel.title;
-      button.className = "ws-switch";
-      button.onclick = () => this.togglePanel(id);
-      bar.append(button);
+      button.type = "button";
+      button.setAttribute("role", "tab");
+      button.dataset.contextTarget = context.id;
+      button.setAttribute("aria-controls", `ws-context-${context.id}`);
+      button.innerHTML = `<strong>${context.title}</strong><small>${context.description}</small>`;
+      button.onclick = () => this.navigate(context.id);
+      tablist.append(button);
+
+      const page = document.createElement("section");
+      page.className = "ws-context-page";
+      page.dataset.contextPage = context.id;
+      page.id = `ws-context-${context.id}`;
+      page.setAttribute("aria-label", context.title);
+      page.setAttribute("role", "tabpanel");
+      const grid = document.createElement("div");
+      grid.className = `ws-context-grid ws-context-${context.id}`;
+      for (const panel of this.panels.values()) {
+        if (panel.context === context.id) grid.append(panel.element);
+      }
+      if (!grid.children.length) grid.innerHTML = '<p class="ws-empty">No hay instrumentos registrados en este contexto.</p>';
+      page.append(grid);
+      pages.append(page);
+      this.pages.set(context.id, page);
     }
-    this.root.append(bar);
+    navigation.append(tablist);
+    this.root.append(navigation, pages);
+    if (!this._listeningForHistory) {
+      window.addEventListener("hashchange", this._onHashChange);
+      this._listeningForHistory = true;
+    }
+    this.navigate(this._initialContext(), { persist: false, replace: true });
   }
 
-  togglePanel(id) {
-    const panel = this.panels.get(id);
-    if (!panel) return;
-    const region = panel.region;
-    this.layout[region] = this.layout[region] || {};
-    this.layout[region].visible = !(this.layout[region].visible !== false);
-    this.persistLayout();
-    this._applyLayout();
+  _initialContext() {
+    const fromHash = location.hash.match(/^#context=([a-z-]+)$/)?.[1];
+    if (fromHash && this.contexts.has(fromHash)) return fromHash;
+    try {
+      const saved = localStorage.getItem(CONTEXT_KEY);
+      if (saved && this.contexts.has(saved)) return saved;
+    } catch {}
+    return this.contexts.keys().next().value;
   }
 
-  hidePanel(id) {
-    const panel = this.panels.get(id);
-    if (!panel) return;
-    this.layout[panel.region] = this.layout[panel.region] || {};
-    this.layout[panel.region].visible = false;
-    this.persistLayout();
-    this._applyLayout();
+  navigate(id, { persist = true, replace = false } = {}) {
+    if (!this.contexts.has(id)) return;
+    this.activeContext = id;
+    for (const [contextId, page] of this.pages) {
+      const active = contextId === id;
+      page.hidden = !active;
+      page.classList.toggle("active", active);
+    }
+    this.root.querySelectorAll("[data-context-target]").forEach((button) => {
+      const active = button.dataset.contextTarget === id;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-current", active ? "page" : "false");
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.tabIndex = active ? 0 : -1;
+    });
+    viewportState.set({ activeContext: id });
+    if (persist) {
+      try { localStorage.setItem(CONTEXT_KEY, id); } catch {}
+      const hash = `#context=${id}`;
+      if (replace) history.replaceState(null, "", hash);
+      else if (location.hash !== hash) history.pushState(null, "", hash);
+    }
   }
 
   toggleFullscreen(id) {
     const panel = this.panels.get(id);
     if (!panel) return;
-    const isFull = this.layout.fullscreen === id;
-    this.layout.fullscreen = isFull ? null : id;
-    for (const [pid, p] of this.panels) {
-      p.element.classList.toggle("ws-fullscreen", pid === id && !isFull);
-    }
-    this.root.classList.toggle("ws-has-fullscreen", !isFull);
-    this.persistLayout();
+    const isFull = panel.element.classList.toggle("ws-fullscreen");
+    this.root.classList.toggle("ws-has-fullscreen", isFull);
+    const button = panel.element.querySelector('[data-action="fullscreen"]');
+    button?.setAttribute("aria-pressed", isFull ? "true" : "false");
+    button?.setAttribute("title", isFull ? "Restaurar panel" : "Ampliar panel");
+    button?.setAttribute("aria-label", `${isFull ? "Restaurar" : "Ampliar"} ${panel.title}`);
   }
 }

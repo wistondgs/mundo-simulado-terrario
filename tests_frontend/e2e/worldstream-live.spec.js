@@ -4,6 +4,7 @@ import { test, expect } from "@playwright/test";
 test.describe("WorldStream live sandbox", () => {
   test("creates a real session, streams tick zero, and steps atomically", async ({ page }) => {
     await page.goto("/workspace/index.html"); await page.waitForTimeout(1200);
+    await page.locator('[data-context-target="world"]').click();
     const panel = page.locator('[data-panel="world"]'); await panel.locator("#w2dLive").click();
     await expect(panel.locator("#w2dMode")).toHaveText("LIVE SANDBOX"); await expect(panel.locator("#w2dConnection")).toHaveText("CONNECTED", { timeout: 10_000 });
     await expect(panel.locator("#w2dStepLabel")).toContainText("tick 0"); await panel.locator("#w2dNext").click();

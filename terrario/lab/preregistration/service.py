@@ -19,7 +19,7 @@ from terrario.lab.preregistration.commitments import CommitmentBuilder
 from terrario.lab.preregistration.domain import (
     AnalysisPlan, CausalDesignCommitment, CausalMode, ControlCommitment,
     AmendmentRecord, DeviationRecord, DeviationType, EndpointCommitment, EndpointRole,
-    EnvironmentRequirement, ExclusionPolicy, ExposureKind, ExposureStatus,
+    EnvironmentRequirement, ExclusionPolicy, ExclusionRule, ExposureKind, ExposureStatus,
     FailurePolicy, FailureRule, MetricCommitment, ObservedEnvironment,
     ObserverChannelCommitment, ObserverCommitment, Partition,
     PreregistrationDraft, PreregistrationNotReady, PreregistrationReadinessReport, ProtocolSnapshot,
@@ -468,7 +468,25 @@ class PreregistrationService:
 
     def review_requests(self) -> tuple[Mapping[str, Any], ...]:
         with self.artifacts._connect() as connection:
-            rows = connection.execute("SELECT * FROM review_requests ORDER BY created_at,review_id").fetchall()
+            # A human reviewer must see the immutable object they are deciding
+            # about.  Returning only a version ID forces a client to guess or
+            # reconstruct the decision binding and is unsafe for a local UI.
+            rows = connection.execute(
+                """SELECT r.*, v.kind AS artifact_kind, v.scientific_hash AS artifact_hash,
+                          v.schema_version AS artifact_schema_version,
+                          (SELECT d.decision FROM review_decisions d
+                           WHERE d.review_id = r.review_id
+                           ORDER BY d.created_at DESC, d.decision_id DESC LIMIT 1) AS latest_decision,
+                          (SELECT d.decision_id FROM review_decisions d
+                           WHERE d.review_id = r.review_id
+                           ORDER BY d.created_at DESC, d.decision_id DESC LIMIT 1) AS latest_decision_id,
+                          (SELECT d.created_at FROM review_decisions d
+                           WHERE d.review_id = r.review_id
+                           ORDER BY d.created_at DESC, d.decision_id DESC LIMIT 1) AS decided_at
+                   FROM review_requests r
+                   JOIN artifact_versions v ON v.version_id = r.artifact_version_id
+                   ORDER BY r.created_at, r.review_id"""
+            ).fetchall()
             return tuple(dict(x) for x in rows)
 
     def _assemble(self, request: Mapping[str, Any]) -> PreregistrationDraft:
@@ -491,12 +509,6 @@ class PreregistrationService:
         self._reject_unknown(causal, {"mode", "manipulated_variable", "intervention", "comparison", "control",
             "outcome", "estimand", "manipulation_check", "identification_assumptions", "known_confounders",
             "rival_predictions"}, "causal_design")
-        metrics = tuple(self._metric_commitment(x) for x in experiment.metric_ids)
-        role = EndpointRole.EXPLORATORY if intent is StudyIntent.EXPLORATORY else EndpointRole.PRIMARY
-        endpoints = tuple(EndpointCommitment(**{**x, "role": EndpointRole(x["role"])}) for x in request.get("endpoints", ())) or tuple(
-            EndpointCommitment(f"endpoint-{i+1}", metric.metric_id, role, "agent-vs-control",
-                "difference in aggregate proxy", "REPORT_EFFECT_AND_UNCERTAINTY")
-            for i, metric in enumerate(metrics))
         channels = self.observers.expand(experiment.observer_profile)
         observer = ObserverCommitment(experiment.observer_profile, self.observers.profile(experiment.observer_profile).schema_version,
             tuple(ObserverChannelCommitment(x.channel_id, x.payload_schema, x.frequency,
@@ -504,6 +516,15 @@ class PreregistrationService:
         seeds = SeedCommitment.materialize(experiment.world_seeds, experiment.agent_seeds,
             tuple(int(x) for x in (request.get("randomization") or {}).get("seeds", ())),
             tuple(int(x) for x in (request.get("randomization") or {}).get("replacement_seeds", ())))
+        metrics = tuple(self._metric_commitment(x, seeds) for x in experiment.metric_ids)
+        is_cl7 = any(metric.metric_id == "planned-action-evaluation-pathway" for metric in metrics)
+        role = EndpointRole.EXPLORATORY if intent is StudyIntent.EXPLORATORY else EndpointRole.PRIMARY
+        endpoints = tuple(EndpointCommitment(**{**x, "role": EndpointRole(x["role"])}) for x in request.get("endpoints", ())) or tuple(
+            EndpointCommitment(f"endpoint-{i+1}", metric.metric_id, role,
+                "PLANNER_PRESERVED-vs-PLANNER_ABLATED" if metric.metric_id == "planned-action-evaluation-pathway" else "agent-vs-control",
+                "paired difference in pathway availability" if metric.metric_id == "planned-action-evaluation-pathway" else "difference in aggregate proxy",
+                "REPORT_EFFECT_AND_UNCERTAINTY")
+            for i, metric in enumerate(metrics))
         partition = Partition.HOLDOUT if intent in {StudyIntent.CONFIRMATORY, StudyIntent.REPLICATION} else Partition.EXPLORATORY_TEST
         partitions = tuple(SeedPartition(Partition(x["partition"]), str(x["seed_kind"]),
             tuple(int(v) for v in x["seeds"]), x.get("exception_reason")) for x in request.get("partitions", ())) or (
@@ -540,14 +561,19 @@ class PreregistrationService:
             "aggregation", "effect_measure", "uncertainty_reporting", "statistical_method", "multiplicity_policy",
             "missing_data_policy", "sensitivity_analyses", "interpretation_boundary"}, "analysis")
         analysis = AnalysisPlan(str(analysis_data.get("mode", "DESCRIPTIVE_ONLY")),
-            tuple(analysis_data.get("comparisons", ({"comparison_id": "agent-vs-control", "paired_seeds": True},))),
+            tuple(analysis_data.get("comparisons", (({"comparison_id": "PLANNER_PRESERVED-vs-PLANNER_ABLATED",
+                "unit_of_analysis": "seed_pair", "pairing": "Pi preserved ↔ Pi ablated",
+                "support_criterion": "all valid paired contrasts are positive",
+                "contradiction_criterion": "any valid paired contrast is negative",
+                "inconclusive_criterion": "a pair is NOT_EVALUABLE or contrast is zero"}
+                if is_cl7 else {"comparison_id": "agent-vs-control", "paired_seeds": True}),))),
             tuple(analysis_data.get("transformations", ())),
-            tuple(analysis_data.get("grouping_variables", ("condition_id", "variant_id"))),
-            str(analysis_data.get("aggregation", "mean by condition with paired-seed detail")),
-            str(analysis_data.get("effect_measure", "mean difference")),
+            tuple(analysis_data.get("grouping_variables", ("seed_pair_id", "arm_id") if is_cl7 else ("condition_id", "variant_id"))),
+            str(analysis_data.get("aggregation", "paired contrasts retained through analysis" if is_cl7 else "mean by condition with paired-seed detail")),
+            str(analysis_data.get("effect_measure", "within-seed-pair preserved minus ablated proportion" if is_cl7 else "mean difference")),
             str(analysis_data.get("uncertainty_reporting", "interval and raw paired effects")),
             analysis_data.get("statistical_method"), str(analysis_data.get("multiplicity_policy", "NONE_EXPLICIT")),
-            str(analysis_data.get("missing_data_policy", "REPORT_AND_MARK_INCOMPLETE")),
+            str(analysis_data.get("missing_data_policy", "NOT_EVALUABLE_INVALIDATES_PAIR_AND_IS_REPORTED" if is_cl7 else "REPORT_AND_MARK_INCOMPLETE")),
             tuple(analysis_data.get("sensitivity_analyses", ())),
             str(analysis_data.get("interpretation_boundary", "No automatic causal or evidential conclusion.")))
         total = int(matrix.get("total_trials", 0))
@@ -565,8 +591,20 @@ class PreregistrationService:
             RandomizationPlan("NONE", "1", None, (), (), (), tuple(str(x["trial_id"]) for x in matrix.get("cells", ()))),
             ReplicationPlan(experiment.world_seeds, tuple(f"rep-{x}" for x in experiment.world_seeds),
                 total, tuple((*experiment.agent_ids, *(x.control_id for x in experiment.controls))), ("same pinned protocol",)),
-            analysis, StoppingRule("FIXED_TRIAL_COUNT", total, matrix_record.scientific_hash, "1", {}),
-            ExclusionPolicy(()), FailurePolicy(tuple(FailureRule(x, "HUMAN_REVIEW_REQUIRED") for x in
+            analysis, StoppingRule("FIXED_TRIAL_COUNT", total, matrix_record.scientific_hash, "1", {
+                "exact_cell_count": 8 if is_cl7 else total,
+                "exact_valid_terminal_attempts_required": 8 if is_cl7 else total,
+                "technical_retry": "same cell only after nonterminal technical failure; maximum one retry",
+                "scientific_rerun": "forbidden; an unfavorable valid terminal result is not retry-eligible",
+                "terminal_execution_contract": ("terminal ScientificFrame", "sealed trace", "trace hash-chain valid",
+                    "required metric events present", "no unresolved critical integrity error") if is_cl7 else (),
+            }),
+            ExclusionPolicy(tuple() if not is_cl7 else (
+                ExclusionRule("TRACE_INTEGRITY_FAILURE", "sealed trace cannot be verified", "cell", "trace hash-chain invalid", "PRE_EXECUTION_POLICY"),
+                ExclusionRule("PROTOCOL_MISMATCH", "committed identity/config differs", "cell", "identity or treatment signature mismatch", "PRE_EXECUTION_POLICY"),
+                ExclusionRule("NONTERMINAL_EXECUTION", "terminal contract is unmet", "attempt", "attempt lacks terminal ScientificFrame", "PRE_EXECUTION_POLICY"),
+                ExclusionRule("CORRUPTED_ARTIFACT", "required artifact cannot be decoded", "attempt", "artifact hash or codec verification fails", "PRE_EXECUTION_POLICY"),
+            )), FailurePolicy(tuple(FailureRule(x, "HUMAN_REVIEW_REQUIRED") for x in
                 ("PROCESS_CRASH", "TIMEOUT", "NUMERICAL_ERROR", "CORRUPTED_ARTIFACT", "INVALID_WORLD",
                  "INCOMPLETE_EPISODE", "HARDWARE_FAILURE", "INVALID_TRACE"))),
             StorageTracePolicy(("manifest", "analysis-input"), tuple(x.channel_id for x in channels),
@@ -574,13 +612,25 @@ class PreregistrationService:
             requirement, self._observed_environment(request.get("observed_environment")),
             self._software_manifest(request.get("software")), dict(request.get("ui_preferences") or {}))
 
-    def _metric_commitment(self, metric_id: str) -> MetricCommitment:
+    def _metric_commitment(self, metric_id: str, seeds: SeedCommitment) -> MetricCommitment:
         metric = self.metrics.get(metric_id)
-        return MetricCommitment(metric.metric_id, metric.schema_version, metric.implementation_ref,
+        base = MetricCommitment(metric.metric_id, metric.schema_version, metric.implementation_ref,
             content_hash(metric.implementation_ref) if metric.implementation_ref else None,
             metric.construct, metric.proxy, metric.required_signals, metric.unit, metric.direction.value,
             metric.aggregation, metric.applicability, "ERROR", metric.limitations,
             metric.implementation_status.value, metric.construct_validation_status.value)
+        if metric_id != "planned-action-evaluation-pathway":
+            return base
+        # Calibration is deliberately disjoint from the current confirmatory
+        # matrix.  These are commitments, not a run and not a result.
+        from terrario.lab.planning_trace_metric import specification, validate_construct
+        report = validate_construct()
+        calibration = {"world": (17,), "agent": (23,)}
+        confirmatory = {"world": seeds.world_seeds, "agent": seeds.agent_seeds}
+        return replace(base, specification_hash=specification()["metric_spec_hash"],
+            calibration_report_id="CALIBRATION-PLANNING-TRACE-CONSTRUCT-V1",
+            calibration_report_hash=report["calibration_report_hash"], calibration_seed_set=calibration,
+            confirmatory_seed_set=confirmatory)
 
     def _readiness_for(self, draft: PreregistrationDraft) -> PreregistrationReadinessReport:
         matrix = self.artifacts.get_version(draft.protocol.trial_matrix_version_id).payload

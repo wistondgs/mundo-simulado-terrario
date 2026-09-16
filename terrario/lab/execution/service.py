@@ -322,10 +322,16 @@ class ScientificExecutionService:
             draft = current.payload["draft"]
             matrix = self.artifacts.get_version(draft["protocol"]["trial_matrix_version_id"]).payload
             blockers: list[str] = []
+            scenario = str(draft["protocol"]["scenario_id"])
             for cell in matrix.get("cells", ()):
-                variant = str(cell.get("variant_id", ""))
-                scenario = str(draft["protocol"]["scenario_id"])
-                if variant not in {scenario, f"{scenario}-base"}: blockers.append("UNRESOLVED_VARIANT_BINDING")
+                # A treatment arm binds its intervention in agent_config and runs on
+                # the base scenario. TreatmentArm.variant ("preserved"/"ablated") is
+                # descriptive metadata by the composer's own contract, never a world
+                # variant awaiting binding; reading it as one blocked every paired
+                # CL-7 protocol at bind-authorization, after all four human gates.
+                if cell.get("arm_id") in {"PLANNER_PRESERVED", "PLANNER_ABLATED"} and cell.get("agent_config"):
+                    continue
+                if str(cell.get("variant_id", "")) not in {scenario, f"{scenario}-base"}: blockers.append("UNRESOLVED_VARIANT_BINDING")
             return {"ready": not blockers, "preregistration_id": prereg_id, "root": root, "blockers": sorted(set(blockers))}
         except Exception as exc:
             return {"ready": False, "root": root, "blockers": [getattr(exc, "code", "PREREGISTRATION_INVALID")]}
@@ -339,7 +345,13 @@ class ScientificExecutionService:
         record = self.artifacts.current(preregistration_id, "Preregistration")
         draft = record.payload["draft"]
         matrix = self.artifacts.get_version(draft["protocol"]["trial_matrix_version_id"]).payload
-        trials = tuple({k: cell[k] for k in ("trial_id", "variant_id", "condition_id", "agent_id", "world_seed", "agent_seed", "repetition", "metric_ids", "observer_profile")} for cell in matrix["cells"])
+        trials = tuple({
+            **{k: cell[k] for k in ("trial_id", "variant_id", "condition_id", "agent_id", "world_seed", "agent_seed", "repetition", "metric_ids", "observer_profile")},
+            # Historical generic matrices had no intervention configuration.
+            # They are safe only as an explicit empty binding; operational
+            # mappings receive an immutable nonempty config from the compiler.
+            "agent_config": dict(cell.get("agent_config") or {}),
+        } for cell in matrix["cells"])
         protocol = {key: draft["protocol"][key] for key in ("scenario_id", "scenario_hash", "world_definition_hash", "observation_interface_hash", "action_interface_hash", "intervention_schema_hash", "agent_ids", "agent_identity_hashes", "controls", "step_limit", "repetitions", "termination", "device_requirement") if key in draft["protocol"]}
         protocol.update({"randomization": draft["randomization"], "stopping": draft["stopping"], "failures": draft["failures"], "exclusions": draft["exclusions"], "observer": draft["observer"], "metrics": draft["metrics"]})
         return ScientificExecutionPlan(root, str(draft["protocol"]["trial_matrix_hash"]), len(trials), trials, protocol, environment.content_hash, software.content_hash)

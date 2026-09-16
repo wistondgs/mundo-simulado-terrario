@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -74,9 +75,33 @@ class TheoryImport:
 
 
 class TheoryIngestor:
-    def __init__(self, snapshot_dir: str | Path):
+    def __init__(self, snapshot_dir: str | Path, *, include_operational_evidence: bool = False):
         self.root = Path(snapshot_dir)
         if not (self.root / "snapshot_manifest.json").is_file(): raise ValueError("snapshot_manifest.json is required")
+        self.evidence_root = self.root.parent.parent / "theory_operational_artifacts" / self.root.name
+        self.include_operational_evidence = include_operational_evidence
+        if include_operational_evidence:
+            self._verify_operational_evidence()
+
+    def _evidence_path(self, name: str) -> Path:
+        return self.evidence_root / name
+
+    def _verify_operational_evidence(self) -> None:
+        if not self.evidence_root.exists():
+            return
+        manifest_path = self._evidence_path("operational_manifest.json")
+        if not manifest_path.is_file():
+            raise ValueError("operational evidence manifest is required")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        snapshot = json.loads((self.root / "snapshot_manifest.json").read_text(encoding="utf-8"))
+        if (manifest.get("schema") != "terrario.theory.operational-evidence/v1"
+                or manifest.get("base_snapshot_id") != snapshot.get("snapshot_id")
+                or manifest.get("base_snapshot_manifest_sha256") != hashlib.sha256((self.root / "snapshot_manifest.json").read_bytes()).hexdigest()):
+            raise ValueError("operational evidence does not match its base snapshot")
+        for name, digest in manifest.get("artifacts", {}).items():
+            path = self._evidence_path(name)
+            if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                raise ValueError("operational evidence artifact integrity mismatch")
 
     def ingest(self) -> TheoryImport:
         return TheoryImport(
@@ -107,14 +132,24 @@ class TheoryIngestor:
                 integrity = row.get("Estado T1", "UNRESOLVED")
                 blocked = integrity in {"MISMATCH", "INCOMPLETE_HTML", "UNAVAILABLE", "LIMITED_SCAN", "QUARANTINED_DO_NOT_CITE"}
                 yield SourceRecord(**self._base(sample, row, sid, _text(row), EpistemicStatus.RAW), integrity_status=integrity, valid_evidence_source=not blocked)
+        primary = self._evidence_path("PRIMARY_SOURCE_PROVENANCE_v0.1.csv")
+        if self.include_operational_evidence and primary.exists():
+            for row in _rows(primary):
+                sid = row["source_id"]
+                base = self._base(primary, row, sid, _text(row), EpistemicStatus.RAW)
+                base["source_artifact"] = row["source_artifact"]
+                base["source_version"] = row["source_version"]
+                yield SourceRecord(**base, integrity_status=row.get("identity_verification", "UNRESOLVED"), valid_evidence_source=row.get("identity_verification") == "VERIFIED_SHA256")
 
     def _claims(self) -> Iterable[ClaimRecord]:
-        for name in ("CLAIMS_RELATIONS_v0.1.csv", "CLAIMS_RELATIONS_PATCH_v0.3.csv"):
-            path = self.root / name
+        paths = [self.root / name for name in ("CLAIMS_RELATIONS_v0.1.csv", "CLAIMS_RELATIONS_PATCH_v0.3.csv")]
+        if self.include_operational_evidence:
+            paths.append(self._evidence_path("HYPEREDGE_ROLE_CLAIMS_v0.1.csv"))
+        for path in paths:
             if not path.exists(): continue
             for row in _rows(path):
                 cid = row["claim_id"]; attribution = row.get("explicit_or_inferred", "UNRESOLVED")
-                yield ClaimRecord(**self._base(path, row, cid, row.get("claim_text_or_paraphrase", _text(row)), _status_for_attribution(attribution)), source_id=row.get("fuente", "UNRESOLVED"), attribution=attribution)
+                yield ClaimRecord(**self._base(path, row, cid, row.get("claim_text_or_paraphrase", _text(row)), _status_for_attribution(attribution)), source_id=row.get("source_id", row.get("fuente", "UNRESOLVED")), attribution=attribution)
 
     def _raw_concepts(self) -> Iterable[RawConceptRecord]:
         seen = set()

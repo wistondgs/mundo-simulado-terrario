@@ -9,6 +9,8 @@ from terrario.lab.experiment_composer import (
     DraftProvenance,
     DraftState,
     ExperimentDraft,
+    HypothesisExperimentCondition,
+    HypothesisExperimentMapping,
 )
 from terrario.lab.world_authoring import WorldDraft
 from terrario.lab.world_contracts import WorldProvenance
@@ -67,6 +69,26 @@ def experiment_draft_from_payload(payload: Mapping[str, Any]) -> ExperimentDraft
         )
         for value in payload["controls"]
     )
+    mapping_payload = payload.get("hypothesis_mapping")
+    mapping = None if mapping_payload is None else HypothesisExperimentMapping(
+        schema_version=str(mapping_payload["schema_version"]),
+        hypothesis_semantic_id=str(mapping_payload["hypothesis_semantic_id"]),
+        prediction=str(mapping_payload["prediction"]),
+        independent_variable=str(mapping_payload["independent_variable"]),
+        dependent_variable=str(mapping_payload["dependent_variable"]),
+        conditions=tuple(HypothesisExperimentCondition(
+            condition_id=str(value["condition_id"]), intervention=str(value["intervention"]),
+            expected_pattern=str(value["expected_pattern"]), rationale=str(value["rationale"]),
+            agent_config=dict(value.get("agent_config") or {}),
+        ) for value in mapping_payload["conditions"]),
+        agent_capability=str(mapping_payload["agent_capability"]),
+        scenario_rationale=str(mapping_payload["scenario_rationale"]),
+        metric_id=str(mapping_payload["metric_id"]), metric_rationale=str(mapping_payload["metric_rationale"]),
+        failure_criterion=str(mapping_payload["failure_criterion"]),
+        derivation_rule=str(mapping_payload["derivation_rule"]),
+        source_claim_ids=tuple(str(value) for value in mapping_payload["source_claim_ids"]),
+        field_rationales=dict(mapping_payload["field_rationales"]),
+    )
     return ExperimentDraft(
         draft_id=str(payload["draft_id"]), schema_version=str(payload["schema_version"]),
         state=DraftState(payload["state"]), scenario_id=str(payload["scenario_id"]),
@@ -85,7 +107,7 @@ def experiment_draft_from_payload(payload: Mapping[str, Any]) -> ExperimentDraft
             parent_id=provenance.get("parent_id"), parent_hash=provenance.get("parent_hash"),
             changed_fields=tuple(str(value) for value in provenance.get("changed_fields", ())),
             created_at=str(provenance.get("created_at", "RUNTIME"))),
-        ui_preferences=dict(payload.get("ui_preferences") or {}),
+        ui_preferences=dict(payload.get("ui_preferences") or {}), hypothesis_mapping=mapping,
     )
 
 

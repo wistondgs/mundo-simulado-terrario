@@ -192,6 +192,17 @@ class MetricCommitment:
     limitations: tuple[str, ...]
     implementation_status: str
     validation_status: str
+    specification_hash: str | None = None
+    calibration_report_id: str | None = None
+    calibration_report_hash: str | None = None
+    calibration_seed_set: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+    confirmatory_seed_set: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        def freeze(value: Mapping[str, tuple[int, ...]]) -> Mapping[str, tuple[int, ...]]:
+            return MappingProxyType({str(key): tuple(int(seed) for seed in seeds) for key, seeds in value.items()})
+        object.__setattr__(self, "calibration_seed_set", freeze(self.calibration_seed_set))
+        object.__setattr__(self, "confirmatory_seed_set", freeze(self.confirmatory_seed_set))
 
 
 @dataclass(frozen=True)

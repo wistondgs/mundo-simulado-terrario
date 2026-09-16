@@ -92,6 +92,41 @@ def test_client_cannot_spoof_authority(api):
     assert status == 400 and "state" in error["error"]["message"]
 
 
+def test_human_review_queue_exposes_exact_artifact_binding_and_decision_state(api):
+    experiment, _ = sources(api)
+    status, created = api.dispatch("POST", "/api/v1/review-requests", {
+        "artifact_version_id": experiment["version_id"], "reason": "review exact design"})
+    assert status == 201
+    status, queue = api.dispatch("GET", "/api/v1/review-requests")
+    assert status == 200
+    item = next(x for x in queue["data"]["items"] if x["review_id"] == created["data"]["review_id"])
+    assert item["artifact_version_id"] == experiment["version_id"]
+    assert item["artifact_hash"] == experiment["scientific_hash"]
+    assert item["artifact_kind"] == "ExperimentDraft"
+    assert item["latest_decision"] is None
+
+    status, decision = api.dispatch("POST", f"/api/v1/review-requests/{created['data']['review_id']}/decisions", {
+        "artifact_hash": experiment["scientific_hash"], "decision": "APPROVE_FOR_EXPERIMENT_DESIGN",
+        "reason": "human review queue decision"})
+    assert status == 201
+    status, queue = api.dispatch("GET", "/api/v1/review-requests")
+    item = next(x for x in queue["data"]["items"] if x["review_id"] == created["data"]["review_id"])
+    assert item["latest_decision"] == "APPROVE_FOR_EXPERIMENT_DESIGN"
+    assert item["latest_decision_id"] == decision["data"]["decision_id"]
+
+
+def test_experiment_design_review_request_is_idempotent_while_pending(api):
+    experiment, _ = sources(api)
+    status, first = api.dispatch("POST", "/api/v1/review-requests", {
+        "artifact_version_id": experiment["version_id"], "reason": "first explicit review request"})
+    assert status == 201 and first["data"]["deduplicated"] is False
+    status, second = api.dispatch("POST", "/api/v1/review-requests", {
+        "artifact_version_id": experiment["version_id"], "reason": "accidental second click"})
+    assert status == 201
+    assert second["data"]["deduplicated"] is True
+    assert second["data"]["review_id"] == first["data"]["review_id"]
+
+
 def test_complete_human_review_lock_and_verification(api):
     _, _, candidate, _, _, attestation = locked_flow(api)
     assert attestation["bundle_root_hash"] == candidate["bundle_root_hash"]

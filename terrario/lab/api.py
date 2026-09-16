@@ -6,6 +6,8 @@ import argparse
 from dataclasses import replace
 import json
 import mimetypes
+import os
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
@@ -14,7 +16,7 @@ from terrario.lab.hypergraph.adapter import HypergraphAdapter
 from terrario.lab.models import thaw
 from terrario.lab.read_model import LabReadModel
 from terrario.lab.theory.store import TheoryGraphStore
-from terrario.lab.theory.compiler import HypothesisCompiler
+from terrario.lab.theory.compiler import HypothesisCompiler, OperationalExperimentCompiler, OperationalHypothesisCompiler
 from terrario.lab.theory.ingestion import TheoryIngestor
 from terrario.lab.theory.factory import build_portfolio
 from terrario.lab.theory.scientific_review import review_portfolio
@@ -38,10 +40,17 @@ from terrario.lab.execution.service import ScientificExecutionService
 from terrario.lab.execution.api import ScientificExecutionAPI
 from terrario.lab.execution.dispatcher import ScientificExecutionDispatcher
 from terrario.lab.execution.observation import ScientificObservationService
+from terrario.lab.evidence_publication import EmpiricalResultPublicationService
+from terrario.lab.evidence_api import EmpiricalEvidenceAPI
 from terrario.lab.referencegraph.service import ReferenceGraphService
 from terrario.lab.referencegraph.api import ReferenceGraphAPI
 from terrario.lab.crossgraph.service import CrossGraphService
 from terrario.lab.crossgraph.api import CrossGraphAPI
+from terrario.lab.hypergraph.theory_operational import (
+    BindingRequirement, CompositionRule, RoleCompatibility, compose, load_bindings, materialize,
+)
+from terrario.lab.d2_operational import D2BindingProtocol
+from terrario.lab.d2_visual_fixture import build_d2_visual_validation_fixture, validate_visual_fixture_payload
 
 
 class LabAPI:
@@ -53,6 +62,8 @@ class LabAPI:
         summary = graphs[-1].parent / "ingestion_summary.json" if graphs else None
         self.theory_summary = json.loads(summary.read_text()) if summary and summary.exists() else {}
         self.theory_import = TheoryIngestor(graphs[-1].parent).ingest() if graphs else None
+        configured_source_root = os.environ.get("TERRARIO_PRIMARY_SOURCE_ROOT")
+        self.primary_source_root = Path(configured_source_root).resolve() if configured_source_root else None
         snapshot_id = self.theory_summary.get("snapshot_id", graphs[-1].parent.name if graphs else "NOT_AVAILABLE")
         self.experiment_portfolio = build_portfolio(self.theory_import.hyperedges, snapshot_id) if self.theory_import else None
         self.scientific_review = review_portfolio(self.experiment_portfolio) if self.experiment_portfolio else None
@@ -72,6 +83,8 @@ class LabAPI:
         self.scientific_execution_dispatcher = ScientificExecutionDispatcher(self.scientific_executions)
         self.scientific_observations = ScientificObservationService(self.scientific_executions, self.scientific_execution_dispatcher)
         self.scientific_execution_api = ScientificExecutionAPI(self.scientific_executions, self.api_v1, self.scientific_execution_dispatcher, self.scientific_observations)
+        self.empirical_results = EmpiricalResultPublicationService(self.artifacts, self.preregistrations)
+        self.empirical_evidence_api = EmpiricalEvidenceAPI(self.empirical_results, self.api_v1)
         self.world_stream_api = WorldStreamAPI(self.sandbox, self._sandbox_inputs)
         self.reference_graph = ReferenceGraphService(self.artifacts)
         self.reference_graph_api = ReferenceGraphAPI(self.reference_graph)
@@ -84,6 +97,8 @@ class LabAPI:
         if parts[:2] == ["api", "v1"]:
             if len(parts) >= 3 and parts[2] in {"scientific-executions", "execution-authorizations"}:
                 return self.scientific_execution_api.dispatch(method, parts[2:], query, payload, headers)
+            if len(parts) >= 3 and parts[2] == "empirical-results":
+                return self.empirical_evidence_api.dispatch(method, parts[2:], query, payload, headers)
             if len(parts) >= 3 and parts[2] == "world-stream":
                 if method != "GET" and headers:
                     self.api_v1._authorize(headers)
@@ -130,7 +145,11 @@ class LabAPI:
                 return 200,{"parent":parent.draft_id,"child":thaw(child),"diff":thaw(draft_diff(parent,child)),"persisted":False}
             if method == "POST" and parts == ["api","trial-matrices","build"]:
                 draft,scenario=self._experiment_draft_input(payload or {}); findings=validate_experiment_draft(draft,scenario,self.metrics,self.observers)
-                blockers=tuple(sorted({x.code for x in findings if x.blocking})); by_condition={key:blockers for key in (*draft.agent_ids,*(c.control_id for c in draft.controls))} if blockers else {}
+                blockers=tuple(sorted({x.code for x in findings if x.blocking}))
+                condition_ids = (tuple(item.condition_id for item in draft.hypothesis_mapping.conditions)
+                                 if draft.hypothesis_mapping is not None
+                                 else (*draft.agent_ids, *(c.control_id for c in draft.controls)))
+                by_condition={key:blockers for key in condition_ids} if blockers else {}
                 matrix=build_trial_matrix(draft,by_condition,int((payload or {}).get("warning_threshold",500)))
                 matrix_payload=thaw(matrix); matrix_scientific={key:value for key,value in matrix_payload.items() if key not in {"warnings","execution_performed"}}
                 matrix_id=f"TM-{durable_content_hash(matrix_scientific)[:20]}"
@@ -144,6 +163,16 @@ class LabAPI:
             if method == "GET" and parts == ["api","studio","d2"]:
                 if self.d2_configuration is None: return 404,{"error":"D2 is not implemented in this project root"}
                 return 200, {"configuration":thaw(self.d2_configuration),"views":thaw(d2_views(self.world_registry.get("D2"))),"generalization":generalization_check(self.world_registry)}
+            if method == "GET" and parts == ["api", "studio", "d2", "protocol-audit"]:
+                scenario_path = self.root / "scenarios" / "d2_properties.yaml"
+                if not scenario_path.exists(): return 404, {"error": "D2 protocol scenario is unavailable"}
+                return 200, thaw(D2BindingProtocol(scenario_path).self_audit())
+            if method == "GET" and parts == ["api", "studio", "d2", "visual-fixture"]:
+                scenario_path = self.root / "scenarios" / "d2_properties.yaml"
+                if not scenario_path.exists(): return 404, {"error": "D2 protocol scenario is unavailable"}
+                fixture = build_d2_visual_validation_fixture(scenario_path).payload()
+                validate_visual_fixture_payload(fixture)
+                return 200, fixture
             if method == "GET" and len(parts)==4 and parts[:2]==["api","worlds"] and parts[3]=="preview":
                 wid=parts[2].upper(); seed=int(query.get("seed",[42])[0]); compiled=self.compiled_worlds[wid]
                 self.preregistrations.record_exposure(wid,compiled.definition.content_hash,seed,"PREVIEWED","local-user","LEGACY_WORLD_PREVIEW",f"{wid}:{seed}")
@@ -206,6 +235,48 @@ class LabAPI:
                 if self.d2_configuration is None: return 404,{"error":"D2 configuration is unavailable"}
                 decoded=configuration_from_payload(payload or {},self.d2_configuration)
                 return 200,{"configuration":thaw(decoded),"scientific_hash":decoded.content_hash}
+            if method == "POST" and parts == ["api", "operational-hypotheses"]:
+                draft, experiment = self._derive_operational_hypothesis()
+                stored = self.artifacts.create_artifact(
+                    "OperationalHypothesisDraft", draft.payload(), "terrario.theory.hypothesis-draft/v2",
+                    scientific_payload=draft.payload(), artifact_id=draft.semantic_id,
+                    classification="REVIEW_REQUIRED_HYPOTHESIS", reason="source-backed operational hypothesis derivation",
+                    initial_state=draft.epistemic_status, deduplicate=True,
+                )
+                experiment_payload = thaw(experiment)
+                experiment_scientific = experiment.scientific_payload()
+                try:
+                    prior_experiment = self.artifacts.current(experiment.draft_id, "ExperimentDraft")
+                except ArtifactNotFound:
+                    experiment_stored = self.artifacts.create_artifact(
+                        "ExperimentDraft", experiment_payload, experiment.schema_version,
+                        scientific_payload=experiment_scientific, artifact_id=experiment.draft_id,
+                        classification="REVIEW_BLOCKED_DERIVED_EXPERIMENT_DRAFT",
+                        reason="CL-4 deterministic mapping from review-required operational hypothesis",
+                        initial_state=experiment.state.value, deduplicate=True,
+                    )
+                else:
+                    if prior_experiment.scientific_hash == durable_content_hash(experiment_scientific):
+                        experiment_stored = prior_experiment
+                    else:
+                        experiment_stored = self.artifacts.create_version(
+                            experiment.draft_id, experiment_payload, experiment.schema_version,
+                            scientific_payload=experiment_scientific,
+                            classification="REVIEW_BLOCKED_DERIVED_EXPERIMENT_DRAFT",
+                            reason="CL7 observer-only metric channel materialization before review",
+                            delta={"reason": "planner_proposal_trace channel added to exact declared metric"},
+                            state=experiment.state.value, deduplicate=True,
+                        )
+                lineage = self._reconcile_operational_draft_binding(experiment_stored, draft.semantic_id)
+                return 201, {"artifact_type": "OperationalHypothesisDraft", "durable": True,
+                             "artifact_id": stored.artifact_id, "deduplicated": stored.deduplicated, "hypothesis": stored.payload,
+                             "scientific_hash": stored.scientific_hash, "experiment_draft_preview": experiment_payload,
+                             "experiment_draft": {"artifact_id": experiment_stored.artifact_id,
+                                 "version_id": experiment_stored.version_id, "scientific_hash": experiment_stored.scientific_hash,
+                                 "state": self.artifacts.current_state(experiment_stored.version_id),
+                                 "deduplicated": experiment_stored.deduplicated, "payload": experiment_stored.payload},
+                             "experiment_draft_lineage": lineage,
+                             "scientific_execution": False}
             if method != "GET": return 405, {"error":"mutation endpoint not available; configuration validation creates no persisted state"}
             if parts == ["api", "status"]:
                 return 200, {"mode": "READ_ONLY", "experiments": len(self.model.experiments()), "runs": len(self.model.runs()), "theory": self.theory_summary, "h_adapt": "BLOCKED_CUDA", "durable_artifacts": self.artifacts.count(), "database_integrity": self.artifacts.integrity_check()}
@@ -226,6 +297,11 @@ class LabAPI:
                 return 200, {"schema_version": "terrario.operational-hypergraph/v1",
                              "classification": "OPERATIONAL_DERIVED_NOT_EVIDENCE",
                              "hyperedges": thaw(HypergraphAdapter.operational_catalog())}
+            if parts == ["api", "operational-hypotheses", "status"]:
+                return 200, {"available": self._operational_source_available(),
+                             "source_root_configured": self.primary_source_root is not None,
+                             "required_environment": "TERRARIO_PRIMARY_SOURCE_ROOT",
+                             "classification": "REVIEW_REQUIRED_HYPOTHESIS_ONLY"}
             if parts == ["api", "theory", "summary"]: return 200, self.theory_summary
             if parts == ["api", "theory", "graph"]: return (200, self.theory_graph.export()) if self.theory_graph else (404, {"error": "no theory snapshot"})
             if parts == ["api", "theory", "drafts"]:
@@ -254,6 +330,83 @@ class LabAPI:
 
     @staticmethod
     def _one(value): return (200, thaw(value)) if value is not None else (404, {"error": "not found"})
+
+    def _operational_source_available(self) -> bool:
+        if self.primary_source_root is None:
+            return False
+        expected = self.primary_source_root / "09_Inteligencia_Formal_AGI" / "TI-0077_Yann_LeCun_A_Path_Towards_Autonomous_Machine_Intelligence.pdf"
+        return expected.is_file()
+
+    def _derive_operational_hypothesis(self):
+        """The one reviewed operational path; no candidate/role inference is accepted."""
+        if not self._operational_source_available() or self.theory_import is None:
+            raise ValueError("source-backed derivation unavailable; configure TERRARIO_PRIMARY_SOURCE_ROOT with the verified corpus")
+        snapshot = Path(self.theory_summary.get("snapshot_id", ""))
+        snapshot_dir = self.root / "theory_snapshots" / snapshot
+        imported = TheoryIngestor(snapshot_dir, include_operational_evidence=True).ingest()
+        evidence_dir = snapshot_dir.parent.parent / "theory_operational_artifacts" / snapshot_dir.name
+
+        def edge(candidate_id: str):
+            candidate = next(item for item in imported.hyperedges if item.id == candidate_id)
+            bindings = load_bindings(evidence_dir / "HYPEREDGE_ROLE_BINDINGS_v0.2.csv", candidate_id)
+            return materialize(candidate, bindings, imported, primary_source_root=self.primary_source_root)
+
+        edge02, edge08 = edge("HYPERCAND-02"), edge("HYPERCAND-08")
+        derived = compose(edge02, edge08, compatibility=(RoleCompatibility(
+            BindingRequirement("agent", "agent"), BindingRequirement("actor", "action_sequence_proposer"),
+            "both source-backed roles explicitly produce actions",
+        ),), rule=CompositionRule("ACTION_PRODUCING_AGENT_REFINEMENT", "v1", "architectural actor refines formal agent action role"),
+            provenance="role-compatible structural refinement; TI-0071 + TI-0077")
+        hypothesis = OperationalHypothesisCompiler().compile(derived, {
+            edge02.semantic_id: edge02, edge08.semantic_id: edge08, derived.semantic_id: derived,
+        })
+        entry = self.world_registry.get("D2")
+        experiment = OperationalExperimentCompiler().compile(
+            hypothesis, scenario=entry.scenario, difficulty_fingerprint=configuration_for(entry).difficulty.fingerprint,
+        )
+        return hypothesis, experiment
+
+    def _reconcile_operational_draft_binding(self, current, hypothesis_id: str):
+        """Link a review-blocked pre-binding draft to its executable binding repair.
+
+        Only a draft that is still review-blocked and has the same scientific
+        question may be superseded.  This prevents a new config contract from
+        silently replacing a preregistered or executed protocol.
+        """
+        def mapping_key(payload):
+            mapping = payload.get("hypothesis_mapping") or {}
+            return (
+                mapping.get("hypothesis_semantic_id"), mapping.get("prediction"),
+                mapping.get("metric_id"), tuple(mapping.get("source_claim_ids") or ()),
+            )
+        target_key = mapping_key(current.payload)
+        if target_key[0] != hypothesis_id:
+            raise ValueError("operational experiment lineage hypothesis mismatch")
+        candidates = [item for item in self.artifacts.list_artifacts("ExperimentDraft")
+                      if item.artifact_id != current.artifact_id and mapping_key(item.payload) == target_key]
+        linked = []
+        for old in candidates:
+            old_state = self.artifacts.current_state(old.version_id)
+            if old_state not in {"REVIEW_BLOCKED", "SUPERSEDED"}:
+                raise ValueError("operational draft binding repair refuses non-review-blocked history")
+            with self.artifacts.transaction() as con:
+                existing = con.execute("SELECT link_id FROM artifact_links WHERE source_version_id=? AND target_version_id=? AND relation='SUPERSEDED_BY'", (old.version_id, current.version_id)).fetchone()
+                if existing:
+                    linked.append({"old_version_id": old.version_id, "link_id": existing["link_id"], "deduplicated": True})
+                    continue
+                now = self.artifacts.now()
+                if old_state != "SUPERSEDED":
+                    sequence = con.execute("SELECT COALESCE(MAX(sequence),0)+1 FROM artifact_state_events WHERE version_id=?", (old.version_id,)).fetchone()[0]
+                    self.artifacts._insert_state_event(con, old.version_id, int(sequence), old_state, "SUPERSEDED", "CL7-CONDITION-BINDING-REPAIR", "replaced by explicit immutable condition binding", now)
+                link_id = "experiment-draft-supersession-" + durable_content_hash((old.version_id, current.version_id))[:24]
+                provenance = {"schema_version": "terrario.experiment-draft-binding-reconciliation/v1",
+                              "reason": "explicit condition config replaces non-executable prose-only mapping",
+                              "old_scientific_hash": old.scientific_hash, "current_scientific_hash": current.scientific_hash,
+                              "hypothesis_id": hypothesis_id}
+                con.execute("INSERT INTO artifact_links(link_id,source_version_id,target_version_id,relation,epistemic_status,provenance_json,created_at) VALUES(?,?,?,?,?,?,?)", (link_id, old.version_id, current.version_id, "SUPERSEDED_BY", "REVIEW_REQUIRED", json.dumps(provenance, sort_keys=True, separators=(",", ":")), now))
+                self.artifacts._insert_audit(con, self.artifacts._identifier("correlation"), "CL7-CONDITION-BINDING-REPAIR", "EXPERIMENT_DRAFT_BINDING_RECONCILED", "ExperimentDraft", old.artifact_id, {"replacement_artifact_id": current.artifact_id, "link_id": link_id}, now)
+                linked.append({"old_version_id": old.version_id, "link_id": link_id, "deduplicated": False})
+        return tuple(linked)
 
     def _sandbox_inputs(self,payload):
         wid=str(payload.get("world_id","D2")).upper(); entry=self.world_registry.get(wid); compiled=self.compiled_worlds[wid]
@@ -305,7 +458,22 @@ class LabAPI:
     def _hypergraph(self):
         if self.theory_graph:
             graph = self.theory_graph.export(); theory = graph["theory_graph"]; evidence = graph["evidence_graph"]
-            return {"snapshot_id": graph["snapshot_id"], "nodes": [*theory["nodes"], *evidence["nodes"]], "edges": [*theory["edges"], *evidence["edges"]]}
+            portfolio_sources = ({entry.family.source_hyperedge_id for entry in self.experiment_portfolio.entries}
+                                 if self.experiment_portfolio else set())
+            nodes = []
+            for raw in [*theory["nodes"], *evidence["nodes"]]:
+                node = dict(raw)
+                if node.get("node_type") == "HyperedgeCandidateRecord":
+                    # Graph node keys are namespaced for graph identity while
+                    # the portfolio is keyed by the source record identity.
+                    # Publish the bridge explicitly so the browser never has
+                    # to guess or strip a namespace to find a design.
+                    source_id = str(node.get("original_id") or node.get("record_id") or "")
+                    if source_id in portfolio_sources:
+                        node["experiment_design_source_id"] = source_id
+                nodes.append(node)
+            return {"snapshot_id": graph["snapshot_id"], "nodes": nodes,
+                    "edges": [*theory["edges"], *evidence["edges"]]}
         nodes, edges = [], []
         for h in self.model.hypotheses():
             nodes.append({"id": h.id, "label": h.id, "type": "Hypothesis", "status": "UNTESTED_HYPOTHESIS", "provenance": h.source})
@@ -426,7 +594,10 @@ def handler_factory(api: LabAPI, static_dir: Path):
                     self.send_error(404); return
                 body = target.read_bytes(); self.send_response(200)
                 self.send_header("Content-Type", mimetypes.guess_type(target.name)[0] or "application/octet-stream")
-            self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+            try:
+                self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                return
         def do_POST(self):
             length=int(self.headers.get("Content-Length","0")); raw=self.rfile.read(length)
             if length > 1_048_576: self.send_error(413,"JSON payload exceeds 1 MiB"); return
@@ -441,16 +612,56 @@ def handler_factory(api: LabAPI, static_dir: Path):
     return Handler
 
 
-def serve(root: str | Path, host: str = "127.0.0.1", port: int = 8765):
-    api = LabAPI(root); static_dir = Path(__file__).parent / "static"
-    server = ThreadingHTTPServer((host, port), handler_factory(api, static_dir))
+class LabHTTPServer(ThreadingHTTPServer):
+    """Local lab server sized for a browser, not for a single client.
+
+    The `socketserver` default accept queue is 5. A browser opens several
+    parallel connections per origin and this API also holds long-lived SSE
+    streams, so five pending connections is easy to exceed during a long
+    session or an end-to-end suite; the overflow surfaces to the browser as a
+    refused connection rather than as a slow one. `block_on_close` is disabled
+    so an open SSE stream cannot keep the process alive on shutdown.
+    """
+
+    request_queue_size = 128
+    daemon_threads = True
+    block_on_close = False
+
+    #: Disconnects that are normal for a browser, not faults of this server.
+    _CLIENT_DISCONNECT = (BrokenPipeError, ConnectionResetError, ConnectionAbortedError)
+
+    def handle_error(self, request, client_address):
+        """Keep a closed page from looking like a server fault.
+
+        `BaseHTTPRequestHandler.handle_one_request` flushes the response with
+        only `TimeoutError` guarded, so a viewer closing a page mid-response
+        reaches `handle_error` and prints a traceback. The request is already
+        over and both SSE handlers release their subscriber in a `finally`, so
+        there is nothing to recover: only the noise is suppressed. Every other
+        exception still reports normally.
+        """
+        if isinstance(sys.exc_info()[1], self._CLIENT_DISCONNECT):
+            return
+        super().handle_error(request, client_address)
+
+
+def serve(
+    root: str | Path,
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    data_root: str | Path | None = None,
+):
+    if data_root is not None and not Path(data_root).is_absolute():
+        raise ValueError("--data-root must be absolute; refusing an implicit root escape")
+    api = LabAPI(root, data_root=data_root); static_dir = Path(__file__).parent / "static"
+    server = LabHTTPServer((host, port), handler_factory(api, static_dir))
     print(f"Terrario Lab: http://{host}:{port}", flush=True)
     server.serve_forever()
 
 
 def main():
-    parser = argparse.ArgumentParser(); parser.add_argument("--root", default="."); parser.add_argument("--host", default="127.0.0.1"); parser.add_argument("--port", type=int, default=8765)
-    args = parser.parse_args(); serve(args.root, args.host, args.port)
+    parser = argparse.ArgumentParser(); parser.add_argument("--root", default="."); parser.add_argument("--host", default="127.0.0.1"); parser.add_argument("--port", type=int, default=8765); parser.add_argument("--data-root")
+    args = parser.parse_args(); serve(args.root, args.host, args.port, args.data_root)
 
 
 if __name__ == "__main__": main()

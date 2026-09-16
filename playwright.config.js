@@ -1,5 +1,17 @@
 // @ts-check
 import { defineConfig, devices } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
+
+// The backend under test and the seed script must share ONE data root, and it
+// must never be the live `.terrario`: that root holds locked preregistrations
+// and real human decisions, and every E2E seed writes review requests, a lock
+// and an execution. It is resolved to an absolute path (the API refuses a
+// relative --data-root) and exported so worker processes and the seed script
+// see the same value. `.sandbox/` is gitignored. Override for a container.
+const E2E_DATA_ROOT = path.resolve(process.env.TERRARIO_E2E_DATA_ROOT || ".sandbox/e2e-data-root");
+process.env.TERRARIO_E2E_DATA_ROOT = E2E_DATA_ROOT;
+fs.mkdirSync(E2E_DATA_ROOT, { recursive: true });
 
 /**
  * Playwright configuration for the Scientific Visual Workspace E2E suite.
@@ -36,10 +48,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: ".venv/bin/python -m terrario.lab.api --root . --host 127.0.0.1 --port 8877",
+    command: `.venv/bin/python -m terrario.lab.api --root . --host 127.0.0.1 --port 8877 --data-root "${E2E_DATA_ROOT}"`,
     url: "http://127.0.0.1:8877/api/v1/cross-graph",
     reuseExistingServer: false,
     timeout: 30_000,
-    env: { PYTHONPATH: "." },
+    env: { PYTHONPATH: ".", TERRARIO_E2E_DATA_ROOT: E2E_DATA_ROOT },
   },
 });

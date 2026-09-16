@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 from terrario.lab.api import LabAPI
 from functools import lru_cache
 from terrario.lab.theory.scientific_review import (
@@ -6,13 +9,18 @@ from terrario.lab.theory.scientific_review import (
 )
 
 
+# These tests read theory snapshots under the repo root; the durable store they
+# open must never be the live .terrario. One scratch root serves the whole module.
+_DATA_ROOT = Path(tempfile.mkdtemp(prefix="terrario-scientific-review-")) / ".terrario"
+
+
 @lru_cache(maxsize=1)
-def report(): return review_portfolio(LabAPI(".").experiment_portfolio)
+def report(): return review_portfolio(LabAPI(".", data_root=_DATA_ROOT).experiment_portfolio)
 def review(pid): return next(r for r in report().reviews if r.portfolio_id == pid)
 
 
 def test_portfolio_freeze_is_deterministic_and_complete():
-    api=LabAPI("."); a=payload_bytes(canonical_portfolio_payload(api.experiment_portfolio)); b=payload_bytes(canonical_portfolio_payload(api.experiment_portfolio))
+    api=LabAPI(".", data_root=_DATA_ROOT); a=payload_bytes(canonical_portfolio_payload(api.experiment_portfolio)); b=payload_bytes(canonical_portfolio_payload(api.experiment_portfolio))
     assert a == b and len(report().reviews) == 8 and len(report().portfolio_input_hash) == 64
 
 

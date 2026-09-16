@@ -18,6 +18,7 @@ test.describe("visual QA", () => {
   test("world2d panel baseline", async ({ page }) => {
     await page.goto("/workspace/index.html");
     await page.waitForTimeout(1500);
+    await page.locator('[data-context-target="world"]').click();
     const world = page.locator('[data-panel="world"]');
     await expect(world).toHaveScreenshot("world2d-panel.png", {
       maxDiffPixelRatio: 0.02,
@@ -27,6 +28,7 @@ test.describe("visual QA", () => {
   test("d2 studio baseline", async ({ page }) => {
     await page.goto("/workspace/index.html");
     await page.waitForTimeout(1500);
+    await page.locator('[data-context-target="design"]').click();
     const d2 = page.locator('[data-panel="d2"]');
     await expect(d2).toHaveScreenshot("d2-studio.png", {
       maxDiffPixelRatio: 0.02,

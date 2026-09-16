@@ -1,0 +1,7 @@
+claim_id,source_id,source_locator,claim_text_or_paraphrase,explicit_or_inferred,role_evidence_status
+CLM-H08-001,TI-0077,"§3, PDF p. 6","The configurator performs executive control and pre-configures perception, world model, cost, and actor for the task.",EXPLICIT,BACKED
+CLM-H08-002,TI-0077,"§3, PDF p. 6","The perception module estimates the current state of the world.",EXPLICIT,BACKED
+CLM-H08-003,TI-0077,"§3, PDF p. 6","The world model estimates missing state information and predicts plausible future states, including outcomes of actor-proposed action sequences.",EXPLICIT,BACKED
+CLM-H08-004,TI-0077,"§3, PDF p. 7","The short-term memory module stores relevant past, current, and future world states together with intrinsic-cost values.",EXPLICIT,BACKED
+CLM-H08-005,TI-0077,"§3, PDF pp. 6–7","The cost module computes energy from intrinsic cost and a trainable critic that estimates future intrinsic energies.",EXPLICIT,BACKED
+CLM-H08-006,TI-0077,"§3, PDF p. 7","The actor module proposes action sequences, evaluates them through the world model and cost, and outputs an optimized action sequence.",EXPLICIT,BACKED

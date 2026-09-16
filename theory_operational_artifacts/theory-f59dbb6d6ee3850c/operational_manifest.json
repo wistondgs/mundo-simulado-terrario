@@ -1,0 +1,10 @@
+{
+  "base_snapshot_id": "theory-f59dbb6d6ee3850c",
+  "base_snapshot_manifest_sha256": "44cac69a0fa6e6f057881365de2f95bdd1d95c4aaa94e245061e9fe92ee7de98",
+  "schema": "terrario.theory.operational-evidence/v1",
+  "artifacts": {
+    "HYPEREDGE_ROLE_BINDINGS_v0.2.csv": "57f831ae96bc60dc5c97e6c07fb2c532f5e385c45ed650bf07ce009a579cb4ea",
+    "HYPEREDGE_ROLE_CLAIMS_v0.1.csv": "b2494e908aa497190930ed929fcb15216a1ebc2877e6dad28dcdd1f92634c9a8",
+    "PRIMARY_SOURCE_PROVENANCE_v0.1.csv": "f662c149ff8bdebd55e0082cd61681555652f87df78774c816ca678c77a455df"
+  }
+}

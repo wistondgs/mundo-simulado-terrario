@@ -16,6 +16,7 @@ const summary = (values) => ({ samples: values.length, p50_ms: percentile(values
 test("World2D live command-to-visible latency uses the real sandbox and SSE", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.goto("/workspace/index.html"); await page.waitForTimeout(1000);
+  await page.locator('[data-context-target="world"]').click();
   const panel = page.locator('[data-panel="world"]'), samples = { step: [], start_to_visible: [], pause_ack: [], resume_to_visible: [] };
   const tick = async () => Number((await panel.locator("#w2dStepLabel").textContent()).match(/tick (\d+)/)?.[1]);
   for (let index = 0; index < 10; index++) {

@@ -1,0 +1,5 @@
+# The build context is this directory only: the image carries the toolchain and
+# the repository arrives as a bind mount. Nothing else belongs in the context.
+*
+!Dockerfile
+!entrypoint.sh

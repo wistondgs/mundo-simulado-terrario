@@ -21,6 +21,13 @@ from terrario.lab.crossgraph.verify import CrossGraphVerifier
 from terrario.lab.persistence import ArtifactNotFound
 
 
+def _header(headers: Mapping[str, str], name: str) -> str | None:
+    """Read HTTP fields case-insensitively, as required by HTTP."""
+    wanted = name.casefold()
+    return next((str(value) for key, value in headers.items()
+                 if str(key).casefold() == wanted), None)
+
+
 def _ref(payload: Mapping[str, Any]) -> CrossDomainEntityRef:
     return CrossDomainEntityRef(
         Domain(str(payload["domain"])), str(payload["entity_type"]), str(payload["entity_id"]),
@@ -165,11 +172,11 @@ class CrossGraphAPI:
         return False
 
     def _authorize(self, headers: Mapping[str, str]) -> None:
-        host = headers.get("Host", "")
-        origin = headers.get("Origin", "")
+        host = _header(headers, "Host") or ""
+        origin = _header(headers, "Origin") or ""
         if host and not (host.startswith("127.0.0.1") or host.startswith("localhost")):
             raise PermissionError("non-local Host rejected")
         if origin and not (origin.startswith("http://127.0.0.1") or origin.startswith("http://localhost")):
             raise PermissionError("non-local Origin rejected")
-        if headers.get("X-CSRF-Token") != self.csrf_token:
+        if _header(headers, "X-CSRF-Token") != self.csrf_token:
             raise PermissionError("invalid CSRF token")

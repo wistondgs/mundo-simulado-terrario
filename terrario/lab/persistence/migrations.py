@@ -1075,4 +1075,69 @@ CREATE TRIGGER IF NOT EXISTS causal_branch_bindings_no_update BEFORE UPDATE ON c
 CREATE TRIGGER IF NOT EXISTS causal_branch_bindings_no_delete BEFORE DELETE ON causal_branch_bindings BEGIN SELECT RAISE(ABORT, 'causal branch bindings are immutable'); END;
 """,
     ),
+    Migration(
+        9,
+        "empirical_result_publication_core",
+        r"""
+-- CL-7 owns an append-only empirical ledger.  It does not write to the
+-- historical TheoryGraph/EvidenceGraph projection: those are read models.
+CREATE TABLE IF NOT EXISTS scientific_results (
+    result_id TEXT PRIMARY KEY,
+    result_hash TEXT NOT NULL UNIQUE CHECK(length(result_hash)=64),
+    execution_id TEXT NOT NULL REFERENCES scientific_executions(execution_id),
+    trial_intent_id TEXT NOT NULL REFERENCES trial_intents(trial_intent_id),
+    attempt_id TEXT NOT NULL REFERENCES run_attempts(attempt_id),
+    preregistration_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
+    preregistration_root_hash TEXT NOT NULL CHECK(length(preregistration_root_hash)=64),
+    execution_plan_hash TEXT NOT NULL CHECK(length(execution_plan_hash)=64),
+    hypothesis_id TEXT NOT NULL,
+    hypothesis_revision TEXT NOT NULL,
+    metric_id TEXT NOT NULL,
+    metric_version TEXT NOT NULL,
+    metric_artifact_descriptor_hash TEXT NOT NULL REFERENCES scientific_execution_artifacts(descriptor_hash),
+    trace_artifact_descriptor_hash TEXT NOT NULL REFERENCES scientific_execution_artifacts(descriptor_hash),
+    envelope_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(attempt_id, metric_id, metric_version)
+);
+
+CREATE TABLE IF NOT EXISTS empirical_evidence (
+    evidence_id TEXT PRIMARY KEY,
+    evidence_hash TEXT NOT NULL UNIQUE CHECK(length(evidence_hash)=64),
+    result_id TEXT NOT NULL UNIQUE REFERENCES scientific_results(result_id),
+    hypothesis_id TEXT NOT NULL,
+    hypothesis_revision TEXT NOT NULL,
+    relation TEXT NOT NULL CHECK(relation IN ('EVIDENCE_FOR','EVIDENCE_AGAINST','UNRESOLVED')),
+    qualification TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS empirical_evidence_links (
+    link_id TEXT PRIMARY KEY,
+    evidence_id TEXT NOT NULL REFERENCES empirical_evidence(evidence_id),
+    source_kind TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    target_kind TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    relation TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(evidence_id, source_kind, source_id, target_kind, target_id, relation)
+);
+CREATE INDEX IF NOT EXISTS empirical_evidence_hypothesis_idx ON empirical_evidence(hypothesis_id,hypothesis_revision);
+CREATE INDEX IF NOT EXISTS empirical_evidence_links_target_idx ON empirical_evidence_links(target_kind,target_id);
+
+CREATE TRIGGER IF NOT EXISTS scientific_results_no_update
+BEFORE UPDATE ON scientific_results BEGIN SELECT RAISE(ABORT, 'scientific result is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS scientific_results_no_delete
+BEFORE DELETE ON scientific_results BEGIN SELECT RAISE(ABORT, 'scientific result is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS empirical_evidence_no_update
+BEFORE UPDATE ON empirical_evidence BEGIN SELECT RAISE(ABORT, 'empirical evidence is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS empirical_evidence_no_delete
+BEFORE DELETE ON empirical_evidence BEGIN SELECT RAISE(ABORT, 'empirical evidence is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS empirical_evidence_links_no_update
+BEFORE UPDATE ON empirical_evidence_links BEGIN SELECT RAISE(ABORT, 'empirical evidence link is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS empirical_evidence_links_no_delete
+BEFORE DELETE ON empirical_evidence_links BEGIN SELECT RAISE(ABORT, 'empirical evidence link is immutable'); END;
+""",
+    ),
 )

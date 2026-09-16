@@ -77,7 +77,14 @@ function buildCanvas(container) {
     <button data-act="ungroup" title="Clear selection">Clear</button>`;
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-label", "Scientific graph canvas");
-  wrap.append(toolbar, canvas);
+  // A blank canvas is indistinguishable from a broken one; say which action fills it.
+  const empty = document.createElement("div");
+  empty.className = "ws-canvas-empty";
+  empty.id = "wsCanvasEmpty";
+  empty.innerHTML = `<strong>Sin porción de grafo cargada</strong>
+    <span>Abra una referencia o un mundo desde <em>Explorer</em>, o busque un constructo con la paleta (Ctrl+K).</span>
+    <span>El lienzo muestra una porción del cross-graph con su snapshot; no afirma que una relación sea verdadera.</span>`;
+  wrap.append(toolbar, canvas, empty);
   container.append(wrap);
 
   const renderer = new GraphRenderer(canvas, {
@@ -172,6 +179,12 @@ function mergeSlice(slice) {
   state.renderer.setGraph(state.graph);
   viewportState.set({ pinnedSnapshot: slice.snapshot_manifest });
   updateSnapshotBadge(slice.snapshot_manifest);
+  updateCanvasEmptyState();
+}
+
+function updateCanvasEmptyState() {
+  const empty = document.getElementById("wsCanvasEmpty");
+  if (empty) empty.hidden = state.graph.nodes.length > 0;
 }
 
 function updateSnapshotBadge(manifest) {
@@ -186,6 +199,10 @@ async function boot() {
   const root = document.getElementById("wsRoot");
   const shell = new WorkspaceShell(root);
   state.shell = shell;
+  shell.registerContext("explore", { title: "Explorar", description: "Referencias, grafo e inspección" });
+  shell.registerContext("design", { title: "Diseño", description: "Lineage operacional y configuración D2" });
+  shell.registerContext("execute", { title: "Ejecución", description: "Autorizar, observar y verificar" });
+  shell.registerContext("world", { title: "Mundo", description: "Preview, sandbox y trazas" });
 
   state.explorer = new ExplorerPanel(api, { onOpen: handleExplorerOpen });
   state.operationalHypergraph = new OperationalHypergraphPanel(api, { onError: showError });
@@ -196,23 +213,23 @@ async function boot() {
   state.scientificWorld = new ScientificWorld2DPanel(api, { onError: showError });
   state.d2 = new D2Studio(api, { onError: showError, onOpenWorld: openWorld });
 
-  shell.registerPanel("explorer", { title: "Explorer", region: "left",
+  shell.registerPanel("explorer", { title: "Explorer", context: "explore", region: "left",
     render: (el) => state.explorer.render(el) });
-  shell.registerPanel("operational-hypergraph", { title: "Operational Hypergraph", region: "left",
+  shell.registerPanel("operational-hypergraph", { title: "Operational Hypergraph", context: "design", region: "left",
     render: (el) => state.operationalHypergraph.render(el) });
-  shell.registerPanel("canvas", { title: "Scientific Canvas", region: "center",
+  shell.registerPanel("canvas", { title: "Scientific Canvas", context: "explore", region: "center",
     render: (el) => { el.classList.add("no-pad"); buildCanvas(el); } });
-  shell.registerPanel("inspector", { title: "Inspector", region: "right",
+  shell.registerPanel("inspector", { title: "Inspector", context: "explore", region: "right",
     render: (el) => state.inspector.render(el) });
-  shell.registerPanel("composition", { title: "Research Composition", region: "right",
+  shell.registerPanel("composition", { title: "Research Composition", context: "explore", region: "right",
     render: (el) => state.composition.render(el) });
-  shell.registerPanel("world", { title: "World2D", region: "bottom",
+  shell.registerPanel("world", { title: "World2D", context: "world", region: "center",
     render: (el) => state.world2d.render(el) });
-  shell.registerPanel("execution", { title: "Scientific Execution", region: "bottom",
+  shell.registerPanel("execution", { title: "Scientific Execution", context: "execute", region: "left",
     render: (el) => state.execution.render(el) });
-  shell.registerPanel("scientific-world", { title: "World2D Scientific", region: "bottom",
+  shell.registerPanel("scientific-world", { title: "World2D Scientific", context: "execute", region: "center",
     render: (el) => state.scientificWorld.render(el) });
-  shell.registerPanel("d2", { title: "D2 Scientific Studio", region: "bottom",
+  shell.registerPanel("d2", { title: "D2 Scientific Studio", context: "design", region: "center",
     render: (el) => state.d2.render(el) });
   shell.mount();
 
@@ -298,8 +315,8 @@ async function openReference(referenceId) {
 }
 
 function openWorld(worldId) {
+  state.shell.navigate("world");
   state.world2d.openWorld(worldId);
-  state.shell.togglePanel("world");
 }
 
 function handlePaletteAction(action) {
