@@ -30,6 +30,7 @@ export class CommandPalette {
     this.open = false;
     this.activeIndex = 0;
     this.results = [];
+    this._updateToken = 0;
   }
 
   toggle() {
@@ -68,6 +69,13 @@ export class CommandPalette {
   }
 
   async _update(query) {
+    // One keystroke fires one _update, and each awaits a reference search, so
+    // typing N characters leaves N of them in flight.  They resolve out of
+    // order: without this token the slowest reply wins and the list ends up
+    // showing an older prefix's matches.  For a short prefix the first command
+    // is a different one ("p" matches "Open reference" before "Pin snapshot"),
+    // so Enter would run a command the operator never chose.
+    const token = ++this._updateToken;
     const q = query.trim();
     const commandMatches = COMMANDS.filter((c) =>
       c.label.toLowerCase().includes(q.toLowerCase()));
@@ -80,6 +88,7 @@ export class CommandPalette {
         }));
       } catch { /* degrade */ }
     }
+    if (token !== this._updateToken) return;  // a newer keystroke already owns the list
     this.results = [
       ...commandMatches.map((c) => ({ ...c, arg: c.needsArg ? q : undefined })),
       ...searchResults,

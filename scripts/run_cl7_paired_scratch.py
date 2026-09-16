@@ -20,6 +20,10 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from terrario.lab.api import LabAPI
 from terrario.lab.persistence import DuplicateArtifact, ProvenanceConflict
 from terrario.lab.experiment_composer import build_trial_matrix, state_for, validate_draft

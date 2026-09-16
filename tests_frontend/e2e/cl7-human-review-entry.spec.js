@@ -1,19 +1,37 @@
 // @ts-check
 import { test, expect } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 
-const REVIEW_ID = "review-82c0a332b5524f1f9907aa0d5ce2c067";
-const DRAFT_HASH = "ac03a38f909efab73cea98efa1cc439215464d4b43ab2bc07dcb8f0150b21770";
+/**
+ * The human review ceremony gate.
+ *
+ * This test seeds its own pending EXPERIMENT_DESIGN review in the E2E data
+ * root.  It previously hard-coded the review id and design hash of the real
+ * CL-7 design, so it only passed while the suite ran against the live
+ * `.terrario` -- and it typed into a real pending human-review form.  It also
+ * broke the moment the scientist actually decided that review.
+ */
+function seedPendingReview() {
+  const dataRoot = process.env.TERRARIO_E2E_DATA_ROOT;
+  if (!dataRoot) throw new Error("TERRARIO_E2E_DATA_ROOT is unset; refusing to seed into the live .terrario");
+  const out = execFileSync(".venv/bin/python", ["scripts/seed_pending_design_review_e2e.py", dataRoot],
+    { encoding: "utf8", env: { ...process.env, PYTHONPATH: "." } });
+  return JSON.parse(out.trim().split("\n").pop());
+}
 
 test.describe("CL-7 human review entry", () => {
   test("binds the pending design decision to the exact draft and requires a ceremony", async ({ page }) => {
+    const seeded = seedPendingReview();
+
     await page.goto("/review-center.html");
-    const review = page.locator("article.review.pending", { hasText: REVIEW_ID });
-    await expect(review).toContainText(DRAFT_HASH);
-    await expect(review.getByRole("button", { name: "Registrar decisión auditada" })).toBeDisabled();
+    const review = page.locator("article.review.pending", { hasText: seeded.review_id });
+    await expect(review).toContainText(seeded.artifact_hash);
+    const record = review.getByRole("button", { name: "Registrar decisión auditada" });
+    await expect(record).toBeDisabled();
 
     await review.locator("textarea").fill("I reviewed the exact version and will decide explicitly.");
-    await expect(review.getByRole("button", { name: "Registrar decisión auditada" })).toBeDisabled();
-    await review.locator("input").fill(`REVIEW ${DRAFT_HASH.slice(0, 12)}`);
-    await expect(review.getByRole("button", { name: "Registrar decisión auditada" })).toBeEnabled();
+    await expect(record).toBeDisabled();
+    await review.locator("input").fill(`REVIEW ${seeded.artifact_hash.slice(0, 12)}`);
+    await expect(record).toBeEnabled();
   });
 });

@@ -208,22 +208,46 @@ Lo que **no** se corrió: `scientific-live.spec.js` completo, porque instancia a
 es humana mientras CL‑7 siga pendiente. Correrlo una vez es la prueba definitiva del cierre y no
 produce evidencia científica alguna: escribe en el root temporal.
 
-### No medido — cerrado por decisión, no por olvido
+### Medido el 2026-09-16
 
-La suite completa **no se llevó a término** dentro del contenedor: se detuvo al 12 % sin fallos,
-porque la caracterización instancia agentes y la persona responsable decidió no ejecutar agentes
-mientras CL‑7 siga pendiente. Las e2e no se lanzaron. Por tanto siguen sin número:
+Esta sección reemplaza a la anterior, titulada «No medido», según la instrucción que ella misma
+dejó escrita: *cuando se midan, esta sección debe reemplazarse por resultados, no ampliarse con
+más hipótesis*. Las corridas fueron autorizadas por el investigador como parte de la revisión
+nocturna; ninguna escribió en el root científico vivo (hash `5527cf7b…` sin cambio, verificado
+al principio y al final).
 
-| Hipótesis | Origen |
-| --- | --- |
-| Las tres pruebas de `visual-qa` fallarán por la pila de fuentes del host | comparan con `maxDiffPixelRatio 0.02` |
-| Firefox sin display pierde WebGL2 | medido en el host con `DISPLAY` desactivado |
-| `webServer` podría superar los 30 s en el primer arranque frío | arranque en el host: 9,8 s |
-| `tests/test_scientific_live_observability.py` puede colgarse | observado dos veces en el host, intermitente |
+#### Suite Python: el coste de la rueda CPU es exactamente un test
 
-Referencia del host contra la que comparar cuando se corra:
-`1 failed, 532 passed, 1 skipped` (con `test_scientific_live_observability.py` excluido). El
-`1 failed` es el gate de hashes protegidos, desfasado respecto a HEAD desde el commit `410b2693`;
-reconciliarlo es una decisión de línea base científica, no un arreglo de tests.
+| | tests | pasan | skip | fallan | tiempo |
+|---|---:|---:|---:|---:|---:|
+| Host | 562 | 560 | 1 | 1 | 10 min 09 s |
+| Contenedor (1 deseleccionado) | 561 | **559** | 1 | 1 | 15 min 55 s |
 
-Cuando se midan, esta sección debe reemplazarse por resultados, no ampliarse con más hipótesis.
+560 − 559 = 1, **exactamente el gate de caracterización deseleccionado por nombre**. La hipótesis
+queda confirmada: la rueda `+cpu` no cuesta nada más. El único fallo en ambos lados es el gate de
+hashes protegidos, que es una decisión de línea base pendiente, no un defecto del contenedor.
+
+Sobrecoste de tiempo: **factor 1,57×**.
+
+El guard de `tests/conftest.py` imprimió `terrario live data root: unchanged (guard passed)`
+también dentro del contenedor, lo que confirma que el volumen nombrado **sombrea de verdad** el
+`.terrario` del host — la parte del diseño que no se podía comprobar sin correrla.
+
+#### Suite e2e: 101 pasan, 12 fallan, y los 12 estaban predichos
+
+| Hipótesis previa | Veredicto | Evidencia |
+| --- | --- | --- |
+| Las tres pruebas de `visual-qa` fallarán por la pila de fuentes del host | **CONFIRMADA** | exactamente 3 fallos, los tres `toHaveScreenshot`: `workspace shell`, `world2d panel`, `d2 studio` |
+| Firefox sin display pierde WebGL2 | **CONFIRMADA** | 9 fallos, todos en Firefox: las 8 de `world2d-performance` (100 → 50 000 entidades) y la de `world2d-renderer-resilience` |
+| `webServer` podría superar los 30 s en el primer arranque frío | **REFUTADA** | arrancó dentro del plazo; la suite corrió entera en 7 min 58 s |
+| `tests/test_scientific_live_observability.py` puede colgarse | **REFUTADA** | no se colgó; la suite Python cerró en 15 min 55 s |
+
+Total: 113 pruebas, las mismas que en host. En host pasan 113/113; en contenedor 101/113, y la
+diferencia son **las 12 que dependen de fuentes del sistema y de aceleración gráfica** — ninguna
+de ellas es una prueba de lógica científica.
+
+**Conclusión operativa:** el contenedor sirve para la suite Python y para las e2e que no
+dependen del renderizado. Las tres de `visual-qa` y las diez de WebGL2 siguen siendo **gates de
+host**, por la misma razón que el gate de caracterización: comparan contra una línea base
+grabada con la pila del host.
+

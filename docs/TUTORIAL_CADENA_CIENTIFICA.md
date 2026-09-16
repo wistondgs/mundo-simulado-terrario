@@ -9,7 +9,7 @@ y ciencia — y es toda la diferencia.
 ## Cómo reproducirlo
 
 ```bash
-PYTHONPATH=. ./.venv/bin/python scripts/tutorial_scientific_chain.py "$PWD/.sandbox/tutorial-data-root"
+./.venv/bin/python scripts/tutorial_scientific_chain.py "$PWD/.sandbox/tutorial-data-root"
 ```
 
 El script exige un root **absoluto** y **se niega** a correr contra `.terrario`, el root vivo. Para ver

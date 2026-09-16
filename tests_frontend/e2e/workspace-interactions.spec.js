@@ -92,9 +92,12 @@ test.describe("workspace interactions", () => {
     // toggle via palette action
     await page.keyboard.press("Control+k");
     await page.keyboard.type("pin snapshot");
-    await expect(page.locator(".ws-palette-item").first()).toBeVisible();
+    // Assert WHICH command is about to run, not merely that the list is
+    // populated: each keystroke fires an async reference search, so a stale
+    // reply used to be able to repaint the list with an older prefix's
+    // matches and Enter would fire a different command.
+    await expect(page.locator(".ws-palette-item").first()).toContainText("Pin snapshot");
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(400);
     await expect(badge).toHaveText("PINNED_REPRODUCIBLE");
   });
 
