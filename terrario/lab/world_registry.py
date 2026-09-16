@@ -18,7 +18,14 @@ class WorldScenarioRegistry:
     def entries(self): return tuple(self._entries)
     def get(self,identifier: str): return next(e for e in self._entries if e.world_id==identifier)
     def _load(self):
-        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml"}; result=[]
+        # D4S is additive, NOT a remapping of D4: changing which file an existing
+        # identifier resolves to would alter the config_hash of every design that
+        # already references it. `d4_change.yaml` declares no energy dynamics
+        # (step_energy_cost absent), so the essential variable never moves there
+        # and viability can never be threatened; `d4_adaptation_scientific.yaml`
+        # declares step_energy_cost 0.06 and the ACQUISITION/CAUSAL_CHANGE/RECOVERY
+        # phases, which is what an ultrastability measurement needs.
+        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml","D4S":"d4_adaptation_scientific.yaml"}; result=[]
         for did,name in files.items():
             path=self.root/"scenarios"/name
             if not path.is_file(): result.append(RegistryEntry(did,"NOT_STARTED",str(path),(),None,None)); continue

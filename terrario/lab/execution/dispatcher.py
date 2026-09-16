@@ -11,6 +11,7 @@ from terrario.lab.execution.runtime import (
     scientific_trial_identity_payload,
 )
 from terrario.lab.persistence.canonical import canonical_json
+from terrario.lab.world_registry import WorldScenarioRegistry
 
 
 class ScientificExecutionDispatcher:
@@ -62,8 +63,16 @@ class ScientificExecutionDispatcher:
             execution = self.service.get(execution_id); plan = execution["plan"]
             identity_row = claim["identity"]
             if execution["plan_hash"] != plan["plan_hash"] if "plan_hash" in plan else False: raise ValueError("INVALID_PLAN_HASH")
-            scenario_id = str(plan["protocol"]["scenario_id"]).lower()
-            scenario_path = self.service.root / "scenarios" / {"d0":"d0_differences.yaml","d1":"d1_objects.yaml","d2":"d2_properties.yaml","d3":"d3_causality.yaml","d4":"d4_change.yaml"}[scenario_id]
+            # Resolved through the world registry rather than a second copy of the
+            # scenario map.  The duplicate silently diverged: registering D4S in the
+            # registry left the dispatcher unable to dispatch it, and the failure
+            # surfaced only after the plan was sealed and the authorization consumed.
+            # One source, and an unknown id still fails closed.
+            scenario_id = str(plan["protocol"]["scenario_id"])
+            try:
+                scenario_path = Path(WorldScenarioRegistry(self.service.root).get(scenario_id).source)
+            except StopIteration:
+                raise ValueError(f"UNKNOWN_SCENARIO_ID: {scenario_id}") from None
             identity = ScientificTrialIdentity(execution_id, claim["trial_intent_id"], claim["attempt_id"], execution["plan_hash"], execution["preregistration_root_hash"], execution["software_snapshot"]["content_hash"] if "content_hash" in execution["software_snapshot"] else execution["software_snapshot"].get("values", {}).get("commit", "UNKNOWN"), plan["protocol"]["scenario_hash"], str(identity_row["agent_id"]), int(identity_row["world_seed"]), int(identity_row["agent_seed"]), dict(identity_row.get("agent_config") or {}))
             key = f"{execution_id}:{claim['trial_intent_id']}"; self.frames[key] = []
             self.live.begin_attempt(scientific_trial_identity_payload(identity))

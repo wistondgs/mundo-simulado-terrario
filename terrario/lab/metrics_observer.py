@@ -102,7 +102,9 @@ class StorageEstimate:
 class MetricRegistry:
     def __init__(self):
         self._metrics: dict[str, MetricDefinition] = {}
-        for did in ("D0", "D1", "D2", "D3", "D4"):
+        # D4S mirrors D4: every registered scenario carries its own energy-trajectory
+        # binding, because the world adapter derives the binding id from the scenario id.
+        for did in ("D0", "D1", "D2", "D3", "D4", "D4S"):
             self.register(MetricDefinition(
                 f"{did}-energy-trajectory", METRIC_SCHEMA_VERSION,
                 "bounded behavioral performance", "energy trajectory",
@@ -136,6 +138,33 @@ class MetricRegistry:
             ("causal_intervention", "recovery_event"), "per intervention", ("D4",),
             ("recovery detector is not implemented",), MetricImplementationStatus.PROPOSED,
             ConstructValidationStatus.NOT_VALIDATED_FOR_CONSTRUCT, "theory proposal; not runtime implementation"))
+        # Ashby's viability frame (An Introduction to Cybernetics ch. 10, corpus
+        # TI-0049): E within eta under disturbance D.  Derived observer-side from
+        # world_truth energy and world_revision -- no new runtime signal, so the
+        # agent is untouched and behaviour stays byte-identical.
+        #
+        # Deliberately registered NOT_VALIDATED_FOR_CONSTRUCT.  The detector
+        # passes six synthetic cases in
+        # `viability_recovery_metric.validate_construct()`, but promoting a
+        # metric to VALIDATED is what makes a result publishable as evidence.
+        # That promotion is a human decision taken against the report, not a
+        # default a library grants itself.
+        self.register(MetricDefinition(
+            "viability-recovery-profile", METRIC_SCHEMA_VERSION,
+            "maintenance of essential variables within the viable set under disturbance",
+            "excursion depth, dwell outside eta, ticks to sustained re-entry, variety ratio",
+            "terrario.lab.viability_recovery_metric.evaluate_scientific_trace",
+            "depth in energy units; dwell and recovery in ticks; variety as a ratio",
+            "mixed", Direction.LOWER_IS_BETTER, "nonnegative",
+            ("world_truth.agents.energy", "world_truth.max_energy", "world_revision"),
+            "per disturbance", ("D4", "D4S"),
+            ("does not establish that the organism reorganised its own parameters "
+             "-- Ashby's ultrastability proper -- only that the essential variable returned",
+             "no reward, task success or goal attainment",
+             "eta boundary and dwell threshold are declared per preregistration, not universal"),
+            MetricImplementationStatus.IMPLEMENTED,
+            ConstructValidationStatus.NOT_VALIDATED_FOR_CONSTRUCT,
+            "detector validated on synthetic trajectories; construct promotion pending human review"))
 
     def register(self, metric: MetricDefinition) -> None:
         self._metrics[metric.metric_id] = metric

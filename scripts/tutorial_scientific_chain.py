@@ -46,8 +46,15 @@ def ok(status: int, payload: dict, expected: int = 201) -> dict:
 
 def main() -> None:
     if len(sys.argv) < 2:
-        raise SystemExit("uso: tutorial_scientific_chain.py <root de datos ABSOLUTO> -- nunca el .terrario vivo")
+        raise SystemExit("uso: tutorial_scientific_chain.py <root de datos ABSOLUTO> "
+                         "[escenario] [agente] [pasos] -- nunca el .terrario vivo")
     data_root = Path(sys.argv[1])
+    # Opcionales, con los valores del tutorial por defecto. Sirven para producir
+    # una traza de un escenario distinto (p. ej. D4, cuyas reglas se invierten)
+    # sin duplicar la cadena entera en otro script.
+    scenario_id = sys.argv[2] if len(sys.argv) > 2 else "D2"
+    agent_id = sys.argv[3] if len(sys.argv) > 3 else "A4"
+    step_limit = int(sys.argv[4]) if len(sys.argv) > 4 else 100
     if not data_root.is_absolute():
         raise SystemExit("el root de datos debe ser absoluto; me niego a una ruta implícita")
     if data_root.resolve() == (Path(".").resolve() / ".terrario"):
@@ -59,8 +66,9 @@ def main() -> None:
     print(f"TUTORIAL {tag} · data root: {data_root}")
 
     step(1, "Compose", "ExperimentDraft durable (diseño desechable, un solo brazo, una semilla)")
-    payload = {"draft_id": f"ED-TUTORIAL-{tag}", "scenario_id": "D2", "agent_ids": ["A4"], "controls": [],
-               "world_seeds": [100000 + offset], "agent_seeds": [300000 + offset], "source_artifact": "HYPERCAND-01"}
+    payload = {"draft_id": f"ED-TUTORIAL-{tag}", "scenario_id": scenario_id, "agent_ids": [agent_id], "controls": [],
+               "world_seeds": [100000 + offset], "agent_seeds": [300000 + offset], "source_artifact": "HYPERCAND-01",
+               "step_limit": step_limit}
     experiment = ok(*api.dispatch("POST", "/api/experiment-drafts", payload))
     show(version_id=experiment["version_id"], scientific_hash=experiment["scientific_hash"][:16] + "…",
          estado=experiment["draft"]["state"], ejecucion_cientifica=experiment["scientific_execution"])

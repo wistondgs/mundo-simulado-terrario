@@ -52,7 +52,14 @@ def test_schema_incompatibility_fails_explicitly():
     with pytest.raises(ConfigError,match="unsupported schema"): replace(config(),schema_version="v0")
 
 def test_registry_d0_d4_is_behavior_verified_not_name_inferred():
-    entries=registry().entries(); assert [x.world_id for x in entries]==["D0","D1","D2","D3","D4"]
+    # The list is pinned so the registry cannot grow silently. D4S was added
+    # deliberately: `d4_change.yaml` declares no energy dynamics, so the
+    # essential variable never moves there and viability cannot be measured;
+    # `d4_adaptation_scientific.yaml` declares step_energy_cost and the
+    # ACQUISITION/CAUSAL_CHANGE/RECOVERY phases. D4 still resolves to its
+    # original file -- remapping it would change the config_hash of every
+    # design that already references it.
+    entries=registry().entries(); assert [x.world_id for x in entries]==["D0","D1","D2","D3","D4","D4S"]
     assert all(x.status=="IMPLEMENTED" and x.verified_by and x.definition for x in entries)
 
 def test_canonical_serialization_is_stable_and_lossless_semantically():
