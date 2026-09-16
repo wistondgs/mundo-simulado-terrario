@@ -227,3 +227,34 @@ no una línea de código.**
 
 Y el corpus, mientras tanto, no necesita crecer. Necesita que ~27 de sus claims declaren a qué
 observación se comprometen.
+
+---
+
+## 7. Adenda 2026-09-16 · el eje transversal de variedad
+
+ADR-001 (`knowledge/00 Control/ADR-001 Variedad dinamica.md`, PROPOSED) indexa por tiempo todo lo
+anterior: `Eₜ, 𝒱ₜ, Dₜ, Rₜ`. Eso **reclasifica parte del triaje de la §3**, y conviene decirlo
+antes de que alguien lo lea como si siguiera vigente sin matices.
+
+La clase de un bloque depende de si su variedad está congelada:
+
+| Bloque | Con `𝒱` congelada | Con `𝒱ₜ` |
+|---|---|---|
+| 1 núcleo existencial | **A** — instrumentable | **B** — η es hoy `viable_floor × max_energy`, y `max_energy` se fija una vez por episodio |
+| 16 adaptación · 46 recuperación | **A** | **B** para el Caso 3: reorganización hacia `𝒱₂ ≠ 𝒱₀` |
+| 45 robustez · 20 persistencia | **A** | **A** — no dependen de que `𝒱` se mueva |
+| 27 planificación · 9 predicción · 62 criterios | **A** | **A** — CL-7 no toca `𝒱` |
+
+De los ocho de la Clase A, **cinco sobreviven sin cambios y tres se vuelven condicionales.** El
+que se vuelve condicional es precisamente el que la §6 recomendaba firmar a continuación.
+
+Lo que la corrección **no** cambia: la ruta de siete etapas, las tres aduanas, y el hecho de que
+la etapa 4 sea manual. Lo que sí cambia es que la etapa 4 ahora debe declarar **qué congela** —
+un η fijo deja de ser una elección de parámetro y pasa a ser un control declarado, con su propia
+justificación.
+
+`dV_R/dt` merece una línea aparte. `variety_ratio` mide la variedad de **E**, la variable
+regulada; la variedad del **regulador** no tiene canal, y `grep -rn "variety\|repertoire"` sobre
+`terrario/` devuelve únicamente este mismo instrumento. El Caso 3 del ADR —`V_R(t₁) > V_R(t₀)`—
+es Clase B, no Clase A. Es la señal más interesante del marco corregido y es, hoy, la menos
+medible.
