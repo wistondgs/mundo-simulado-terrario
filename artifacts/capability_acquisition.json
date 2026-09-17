@@ -1,0 +1,7006 @@
+{
+  "schema_version": "terrario.lab.capability-acquisition/v1",
+  "classification": "ENGINEERING_SANDBOX_NOT_EVIDENCE",
+  "world": "D4T",
+  "steps": 1200,
+  "probes": 400,
+  "addressing_mode": "T0_DIRECTIONAL",
+  "train_bands": {
+    "favourable": [
+      0.7,
+      0.84
+    ],
+    "unfavourable": [
+      0.16,
+      0.3
+    ]
+  },
+  "test_bands": {
+    "favourable": [
+      0.86,
+      0.98
+    ],
+    "unfavourable": [
+      0.02,
+      0.14
+    ]
+  },
+  "chance_level": 0.5,
+  "summary": {
+    "held_out": {
+      "prediction": {
+        "n": 8,
+        "mean_G": 0.010312,
+        "positive_seeds": 4,
+        "negative_seeds": 3,
+        "shuffled_mean_G": 0.025
+      },
+      "selection": {
+        "n": 8,
+        "mean_G": 0.003125,
+        "positive_seeds": 6,
+        "negative_seeds": 1,
+        "shuffled_mean_G": 0.018125
+      },
+      "realisation": {
+        "n": 8,
+        "mean_G": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "shuffled_mean_G": 0.0
+      }
+    },
+    "decorrelated": {
+      "prediction": {
+        "n": 8,
+        "mean_G": 0.009687,
+        "positive_seeds": 3,
+        "negative_seeds": 4,
+        "shuffled_mean_G": 0.01625
+      },
+      "selection": {
+        "n": 8,
+        "mean_G": 0.007812,
+        "positive_seeds": 4,
+        "negative_seeds": 4,
+        "shuffled_mean_G": 0.004062
+      },
+      "realisation": {
+        "n": 8,
+        "mean_G": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "shuffled_mean_G": 0.0
+      }
+    },
+    "seen_values": {
+      "prediction": {
+        "n": 8,
+        "mean_G": 0.02375,
+        "positive_seeds": 5,
+        "negative_seeds": 3,
+        "shuffled_mean_G": 0.018437
+      },
+      "selection": {
+        "n": 8,
+        "mean_G": -0.015313,
+        "positive_seeds": 3,
+        "negative_seeds": 4,
+        "shuffled_mean_G": -0.014375
+      },
+      "realisation": {
+        "n": 8,
+        "mean_G": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "shuffled_mean_G": 0.0
+      }
+    }
+  },
+  "runs": [
+    {
+      "seed": 1000041,
+      "stream_length": 999,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.405,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4975,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.47,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4875,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.43,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4725,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.485,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5425,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5525,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5075,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4725,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.47,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5525,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5025,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5125,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4675,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.55,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.08,
+            "frozen_delta": 0.095,
+            "G": -0.015,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.485,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.405,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.405,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.02,
+            "frozen_delta": -0.025,
+            "G": 0.045,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0975,
+              "frozen_delta": 0.095,
+              "G": 0.0025,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.405,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.405,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.03,
+              "frozen_delta": -0.025,
+              "G": 0.055,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0725,
+            "frozen_delta": 0.0,
+            "G": 0.0725,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5425,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0075,
+            "frozen_delta": 0.065,
+            "G": -0.0575,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4875,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5525,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4875,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0425,
+              "frozen_delta": 0.0,
+              "G": 0.0425,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.02,
+              "frozen_delta": 0.065,
+              "G": -0.085,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4675,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4875,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5525,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4875,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.1225,
+            "frozen_delta": 0.065,
+            "G": 0.0575,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5525,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.43,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.43,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.035,
+            "frozen_delta": 0.0275,
+            "G": 0.0075,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5075,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.12,
+              "frozen_delta": 0.065,
+              "G": 0.055,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.55,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.43,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.495,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.43,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0425,
+              "frozen_delta": 0.0275,
+              "G": 0.015,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 249.9
+    },
+    {
+      "seed": 1000042,
+      "stream_length": 966,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.505,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.43,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.535,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4825,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.525,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.515,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.475,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.485,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5325,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.49,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5325,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.49,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.485,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.03,
+            "frozen_delta": 0.0275,
+            "G": -0.0575,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.475,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.07,
+            "frozen_delta": 0.06,
+            "G": 0.01,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.43,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.49,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.43,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.015,
+              "frozen_delta": 0.0275,
+              "G": -0.0425,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.49,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.07,
+              "frozen_delta": 0.06,
+              "G": 0.01,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.43,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.49,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.43,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.005,
+            "frozen_delta": -0.0025,
+            "G": -0.0025,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.535,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.535,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0025,
+            "frozen_delta": 0.035,
+            "G": -0.0325,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.485,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4825,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4825,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.0175,
+              "frozen_delta": -0.0025,
+              "G": -0.015,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.535,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.535,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0025,
+              "frozen_delta": 0.035,
+              "G": -0.0325,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.485,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4825,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4825,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.01,
+            "frozen_delta": -0.0075,
+            "G": -0.0025,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.525,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.525,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": -0.02,
+            "frozen_delta": 0.0025,
+            "G": -0.0225,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.0075,
+              "frozen_delta": -0.0075,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.525,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.525,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.02,
+              "frozen_delta": 0.0025,
+              "G": -0.0225,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.495,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 219.9
+    },
+    {
+      "seed": 1000043,
+      "stream_length": 1016,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.475,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.5025,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.46,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4725,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5125,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.5325,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.3525,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.46,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5125,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.535,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.365,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4725,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5025,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4725,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5325,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.455,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.535,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4675,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0425,
+            "frozen_delta": -0.0025,
+            "G": 0.045,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.475,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.475,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": -0.15,
+            "frozen_delta": 0.0,
+            "G": -0.15,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.3525,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5025,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5025,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5025,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0425,
+              "frozen_delta": -0.0025,
+              "G": 0.045,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.475,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.475,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.005,
+              "frozen_delta": 0.0,
+              "G": -0.005,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.04,
+            "G": -0.04,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.04,
+            "frozen_delta": 0.0,
+            "G": 0.04,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.005,
+              "frozen_delta": 0.04,
+              "G": -0.045,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.455,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.46,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.46,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.055,
+              "frozen_delta": 0.0,
+              "G": 0.055,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0225,
+            "frozen_delta": 0.0075,
+            "G": 0.015,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.535,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": -0.1675,
+            "frozen_delta": 0.0,
+            "G": -0.1675,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.365,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0225,
+              "frozen_delta": 0.0075,
+              "G": 0.015,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.535,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.065,
+              "frozen_delta": 0.0,
+              "G": -0.065,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4675,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 221.8
+    },
+    {
+      "seed": 1000044,
+      "stream_length": 1066,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5275,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.52,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.415,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4925,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.58,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.53,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.58,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5825,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4625,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5125,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.58,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.57,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0525,
+            "frozen_delta": -0.0075,
+            "G": 0.06,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.58,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5275,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5275,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0,
+            "frozen_delta": -0.005,
+            "G": 0.005,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0525,
+              "frozen_delta": -0.0075,
+              "G": 0.06,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.58,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": -0.005,
+              "G": 0.005,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.08,
+            "frozen_delta": 0.08,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.415,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.415,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0,
+            "frozen_delta": -0.03,
+            "G": 0.03,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.1,
+              "frozen_delta": 0.08,
+              "G": 0.02,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.415,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.495,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.415,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": -0.03,
+              "G": 0.03,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0025,
+            "frozen_delta": -0.05,
+            "G": 0.0525,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5825,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.58,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.58,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0,
+            "frozen_delta": -0.0175,
+            "G": 0.0175,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.01,
+              "frozen_delta": -0.05,
+              "G": 0.04,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.57,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.58,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.53,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.58,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": -0.0175,
+              "G": 0.0175,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.53,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.53,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.53,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 241.5
+    },
+    {
+      "seed": 1000045,
+      "stream_length": 999,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.505,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4625,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.45,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.44,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.425,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.47,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4625,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5075,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.51,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4075,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.505,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5075,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.48,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.48,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.48,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.005,
+            "frozen_delta": -0.005,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0525,
+            "frozen_delta": 0.0525,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0225,
+              "frozen_delta": -0.005,
+              "G": 0.0275,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.065,
+              "frozen_delta": 0.0525,
+              "G": 0.0125,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0125,
+            "frozen_delta": 0.06,
+            "G": -0.0475,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.45,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.51,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.45,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.08,
+            "frozen_delta": -0.0325,
+            "G": 0.1125,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.44,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4075,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.44,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0475,
+              "frozen_delta": 0.06,
+              "G": -0.0125,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.45,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.51,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.45,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.04,
+              "frozen_delta": -0.0325,
+              "G": 0.0725,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.48,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.44,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4075,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.44,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.075,
+            "frozen_delta": 0.08,
+            "G": -0.005,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.425,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.425,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0375,
+            "frozen_delta": 0.0375,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5075,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5075,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.055,
+              "frozen_delta": 0.08,
+              "G": -0.025,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.48,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.425,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.425,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.01,
+              "frozen_delta": 0.0375,
+              "G": -0.0275,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.48,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5075,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 221.8
+    },
+    {
+      "seed": 1000046,
+      "stream_length": 999,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4825,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.485,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.505,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.495,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4925,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.485,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.495,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.575,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4725,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.415,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5475,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.45,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4825,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.505,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5025,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.03,
+            "frozen_delta": -0.0275,
+            "G": 0.0575,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0025,
+            "frozen_delta": -0.0675,
+            "G": 0.07,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.485,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4825,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.415,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4825,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.05,
+              "frozen_delta": -0.0275,
+              "G": -0.0225,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.45,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": -0.0675,
+              "G": 0.0675,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4825,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4825,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.415,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4825,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.01,
+            "frozen_delta": 0.0125,
+            "G": -0.0025,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.485,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.485,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": -0.0075,
+            "frozen_delta": 0.0425,
+            "G": -0.05,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5475,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.505,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0425,
+              "frozen_delta": 0.0125,
+              "G": 0.03,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5275,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.485,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.485,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0425,
+              "G": -0.0425,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5475,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.505,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.08,
+            "frozen_delta": 0.025,
+            "G": 0.055,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.575,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.495,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.005,
+            "G": -0.005,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0075,
+              "frozen_delta": 0.025,
+              "G": -0.0175,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.495,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.495,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.005,
+              "G": -0.005,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4975,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 246.5
+    },
+    {
+      "seed": 1000047,
+      "stream_length": 1016,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.49,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.515,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5525,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4625,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.555,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.5125,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4975,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5275,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4675,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4525,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.46,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.415,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.535,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5425,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.52,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5425,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4675,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.53,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": 0.0075,
+            "frozen_delta": 0.03,
+            "G": -0.0225,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4975,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.49,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.49,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.005,
+            "frozen_delta": 0.0025,
+            "G": 0.0025,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.52,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.515,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.0525,
+              "frozen_delta": 0.03,
+              "G": 0.0225,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5425,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.49,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.49,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.005,
+              "frozen_delta": 0.0025,
+              "G": 0.0025,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.52,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.025,
+            "frozen_delta": -0.1,
+            "G": 0.075,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5275,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5525,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.4525,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5525,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.03,
+            "frozen_delta": -0.0025,
+            "G": 0.0325,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4625,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.01,
+              "frozen_delta": -0.1,
+              "G": 0.09,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5425,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5525,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.4525,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5525,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.03,
+              "frozen_delta": -0.0025,
+              "G": 0.0325,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4925,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.46,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.0875,
+            "frozen_delta": -0.14,
+            "G": 0.0525,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4675,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.555,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.415,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.555,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0175,
+            "frozen_delta": 0.0225,
+            "G": -0.005,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.53,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.535,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5125,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.0875,
+              "frozen_delta": -0.14,
+              "G": 0.0525,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4675,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.555,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.415,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.555,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": 0.0175,
+              "frozen_delta": 0.0225,
+              "G": -0.005,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.53,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.535,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 251.5
+    },
+    {
+      "seed": 1000048,
+      "stream_length": 983,
+      "before": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5025,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.5175,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.5,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.4725,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "value": 0.4725,
+            "support": 400,
+            "reason": null
+          },
+          "selection": {
+            "status": "OK",
+            "value": 0.5325,
+            "support": 400,
+            "reason": null
+          },
+          "realisation": {
+            "status": "OK",
+            "value": 1.0,
+            "support": 400,
+            "reason": null
+          }
+        }
+      },
+      "after": {
+        "L": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.425,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.56,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4925,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4475,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.425,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5875,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "F": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.41,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.47,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.46,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.46,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.535,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        },
+        "S": {
+          "held_out": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.5175,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.515,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "decorrelated": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.49,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.4625,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          },
+          "seen_values": {
+            "prediction": {
+              "status": "OK",
+              "value": 0.4875,
+              "support": 400,
+              "reason": null
+            },
+            "selection": {
+              "status": "OK",
+              "value": 0.5125,
+              "support": 400,
+              "reason": null
+            },
+            "realisation": {
+              "status": "OK",
+              "value": 1.0,
+              "support": 400,
+              "reason": null
+            }
+          }
+        }
+      },
+      "gains": {
+        "held_out": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.0775,
+            "frozen_delta": -0.0925,
+            "G": 0.015,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.425,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5025,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.41,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5025,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.0425,
+            "frozen_delta": 0.0,
+            "G": 0.0425,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.56,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5175,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.015,
+              "frozen_delta": -0.0925,
+              "G": 0.1075,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.41,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5025,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.0025,
+              "frozen_delta": 0.0,
+              "G": -0.0025,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.515,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5175,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "decorrelated": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.0075,
+            "frozen_delta": -0.03,
+            "G": 0.0225,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4925,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.47,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": -0.025,
+            "frozen_delta": -0.0125,
+            "G": -0.0125,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.4475,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": -0.01,
+              "frozen_delta": -0.03,
+              "G": 0.02,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.49,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.47,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.01,
+              "frozen_delta": -0.0125,
+              "G": 0.0025,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4625,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.46,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        },
+        "seen_values": {
+          "prediction": {
+            "status": "OK",
+            "exam": "prediction",
+            "learner_delta": -0.0475,
+            "frozen_delta": -0.0125,
+            "G": -0.035,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.425,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.46,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.4725,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "selection": {
+            "status": "OK",
+            "exam": "selection",
+            "learner_delta": 0.055,
+            "frozen_delta": 0.0025,
+            "G": 0.0525,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 0.5875,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 0.535,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 0.5325,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "realisation": {
+            "status": "OK",
+            "exam": "realisation",
+            "learner_delta": 0.0,
+            "frozen_delta": 0.0,
+            "G": 0.0,
+            "readings": {
+              "L_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "L_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_after": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              },
+              "F_before": {
+                "status": "OK",
+                "value": 1.0,
+                "support": 400,
+                "reason": null
+              }
+            }
+          },
+          "shuffled_control": {
+            "prediction": {
+              "status": "OK",
+              "exam": "prediction",
+              "learner_delta": 0.015,
+              "frozen_delta": -0.0125,
+              "G": 0.0275,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.4875,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.46,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.4725,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "selection": {
+              "status": "OK",
+              "exam": "selection",
+              "learner_delta": -0.02,
+              "frozen_delta": 0.0025,
+              "G": -0.0225,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 0.5125,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 0.535,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 0.5325,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            },
+            "realisation": {
+              "status": "OK",
+              "exam": "realisation",
+              "learner_delta": 0.0,
+              "frozen_delta": 0.0,
+              "G": 0.0,
+              "readings": {
+                "L_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "L_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_after": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                },
+                "F_before": {
+                  "status": "OK",
+                  "value": 1.0,
+                  "support": 400,
+                  "reason": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "seconds": 222.5
+    }
+  ]
+}

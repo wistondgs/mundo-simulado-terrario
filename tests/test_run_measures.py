@@ -112,8 +112,14 @@ def test_every_mesh_survives_the_emptiest_mix(tmp_path):
     # tasa_direccionamiento is conditional on there having been an opportunity
     # at all, and conversion on there having been something to convert: with no
     # denominator the honest answer is "not evaluable", never zero.
+    # tasa_realizacion needs an intention that resolved; contabilidad_energetica
+    # needs non-consuming steps and a declared cost to reconcile against; and
+    # colapso_politica withholds its verdict unless all four of its conditions are
+    # known -- with the uncertainty module ablated one of them is not, and
+    # deciding a conjunction on three of four would be inventing the fourth.
     condicionales = {"aciertos_al_comer", "mejor_tramo_al_comer", "cambio_propio",
-                     "tasa_direccionamiento", "conversion_aprendizaje"}
+                     "tasa_direccionamiento", "conversion_aprendizaje",
+                     "tasa_realizacion", "contabilidad_energetica", "colapso_politica"}
     assert {m["key"] for m in medido["measures"]} == incondicionales | condicionales
 
 

@@ -64,7 +64,8 @@ def test_a_chosen_mix_reaches_the_running_organism(tmp_path):
     mix = {"use_planner": False, "use_world_model": False, "use_homeostasis": False}
     _, mixed_timeline = _run(api, mix)
     assert sorted(mixed_timeline[0]["scientific_state"]["active_ablations"]) == [
-        "use_entropy_regularization", "use_homeostasis", "use_planner", "use_world_model"]
+        "use_entropy_regularization", "use_factored_action", "use_homeostasis",
+        "use_planner", "use_world_model"]
 
     # And switching ON a default-off concept removes it from the list, which is
     # the same rule read in the other direction.
