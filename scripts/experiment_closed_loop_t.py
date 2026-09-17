@@ -95,7 +95,7 @@ ARMS = {"T0": {"addressing_mode": "T0_DIRECTIONAL"},
         "T1": {"addressing_mode": "T1_ENTITY"}}
 
 PRIMARY = ("p_valid_reference_given_consume", "p_executable_given_consume",
-           "p_executable_given_consume_and_contact",
+           "p_executable_given_consume_and_contact", "p_beneficial_given_valid",
            "n_informative", "p_informative_given_consume", "learning_conversion")
 WASTE = ("w_reference", "w_reach", "w_other")
 SECONDARY = ("effective_meals", "hit_rate_given_valid", "final_energy", "steps_lived",
@@ -168,6 +168,49 @@ def metrics_of(trace) -> dict[str, Reading]:
         if isinstance(state.get("policy_entropy"), (int, float)):
             entropies.append(float(state["policy_entropy"]))
 
+    # ── The full decomposition of a consume attempt ──────────────────
+    #
+    #   N_consume = N_nonexistent + N_out_of_range + N_valid + N_other
+    #   N_valid   = N_beneficial  + N_harmful      + N_neutral
+    #
+    # Three questions that used to live inside one failure rate, and a fourth
+    # that only becomes askable once they are apart:
+    #
+    #   REFERENCE       did it point at something that exists?
+    #   AFFORDANCE      could it act on that thing?
+    #   DISCRIMINATION  was choosing that thing correct?
+    #   LEARNING        did the discrimination improve with experience?
+    #
+    # N_other should be zero or exactly explained; it is reported either way
+    # rather than folded into one of the others.
+    declared = (trace[0].get("observer_world") or {}).get("step_energy_cost") if trace else None
+    baseline = -float(declared) if isinstance(declared, (int, float)) \
+        and not isinstance(declared, bool) and declared > 0 else None
+    energies = []
+    for step in trace:
+        world = step.get("observer_world") or {}
+        agents = world.get("agents") or {}
+        entries = list(agents.values()) if isinstance(agents, dict) else list(agents)
+        energies.append(float(entries[0]["energy"]) if entries
+                        and isinstance(entries[0].get("energy"), (int, float)) else None)
+    beneficial = harmful = neutral = 0
+    unclassified = 0
+    for index in range(1, len(trace)):
+        contract = (trace[index].get("agent_action") or {}).get("action_contract")
+        if not contract or contract["target_status"] != STATUS_OK:
+            continue
+        before, after = energies[index - 1], energies[index]
+        if before is None or after is None or baseline is None:
+            unclassified += 1
+            continue
+        effect = (after - before) - baseline
+        if effect > 0.5:
+            beneficial += 1
+        elif effect < -0.5:
+            harmful += 1
+        else:
+            neutral += 1
+
     consumes = operations.get("CONSUME", 0)
     # THE DENOMINATOR, and the one place this instrument nearly went wrong.
     #
@@ -226,6 +269,19 @@ def metrics_of(trace) -> dict[str, Reading]:
         "experienced_opportunity": _reading(measures, "tasa_oportunidad"),
     }
     out["_status_counts"] = statuses
+    out["_decomposition"] = {
+        "N_consume": consumes, "N_addressed": addressed,
+        "N_nonexistent": absent, "N_out_of_range": unreachable,
+        "N_valid": valid, "N_other": other,
+        "identity_holds": addressed == absent + unreachable + valid + other,
+        "N_beneficial": beneficial, "N_harmful": harmful, "N_neutral": neutral,
+        "N_valid_unclassified": unclassified,
+        "valid_identity_holds": valid == beneficial + harmful + neutral + unclassified,
+        "baseline_source": "DECLARED_STEP_COST" if baseline is not None
+        else "UNAVAILABLE_SO_VALID_OUTCOMES_ARE_UNCLASSIFIED",
+    }
+    out["p_beneficial_given_valid"] = ratio(beneficial, valid - unclassified,
+                                            what="discrimination given a valid target")
     out["_denominator_addressed_attempts"] = addressed
     out["_denominator_definition"] = ("steps whose operation carried a referent; "
                                       "NOT_ADDRESSED excluded so both arms share it")
@@ -235,9 +291,25 @@ def metrics_of(trace) -> dict[str, Reading]:
     return out
 
 
+def _median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    return (ordered[middle] if len(ordered) % 2
+            else (ordered[middle - 1] + ordered[middle]) / 2)
+
+
 def paired_test(deltas: list[float], *, bootstrap: int = 20000,
                 seed: int = 20260917) -> dict:
-    """Exact sign-flip permutation on the paired differences, plus a bootstrap CI."""
+    """Exact sign-flip permutation on the paired differences, plus a bootstrap CI.
+
+    The weight belongs on the MAGNITUDE and the CONSISTENCY of the effect, not on
+    clearing a threshold. With sixteen pairs, a p-value is a weak summary of a
+    small sample, while the sign counts say directly how many worlds moved the
+    same way -- which is the question a mechanism has to answer. Both are
+    reported; neither is the verdict on its own.
+    """
     n = len(deltas)
     if n < 2:
         return {"status": Status.NOT_EVALUABLE.value, "n_pairs": n,
@@ -258,9 +330,16 @@ def paired_test(deltas: list[float], *, bootstrap: int = 20000,
     rng = random.Random(seed)
     resamples = sorted(sum(rng.choice(deltas) for _ in range(n)) / n
                        for _ in range(bootstrap))
+    positive = sum(1 for d in deltas if d > 0)
+    negative = sum(1 for d in deltas if d < 0)
     return {
         "status": Status.OK.value, "n_pairs": n,
         "mean_delta": round(observed, 6),
+        "median_delta": round(_median(deltas), 6),
+        "signs": {"positive": positive, "negative": negative,
+                  "zero": n - positive - negative},
+        "consistency": round(max(positive, negative) / n, 4),
+        "deltas": [round(d, 6) for d in deltas],
         "ci95": [round(resamples[int(0.025 * bootstrap)], 6),
                  round(resamples[int(0.975 * bootstrap)], 6)],
         "p_value": round(p, 6), "method": method,
@@ -305,7 +384,10 @@ def main() -> int:
                 dropped.append({"seed": seed, "T0": a.status.value, "T1": b.status.value})
         results[metric] = {
             "T0_mean": _mean(per_run["T0"], seeds, metric),
+            "T0_median": _median_of(per_run["T0"], seeds, metric),
             "T1_mean": _mean(per_run["T1"], seeds, metric),
+            "T1_median": _median_of(per_run["T1"], seeds, metric),
+            "support_n": len(deltas),
             "paired": paired_test(deltas),
             "dropped_pairs": dropped,
             "family": ("PRIMARY" if metric in PRIMARY else
@@ -326,8 +408,12 @@ def main() -> int:
         "world": args.world, "steps": args.steps, "seeds": seeds,
         "statistical_unit": "trial (seed pair); steps are NOT independent replicates",
         "results": results,
-        "runs": {arm: {str(s): {k: v.as_record() for k, v in m.items()
-                                if isinstance(v, Reading)}
+        "runs": {arm: {str(s): {**{k: v.as_record() for k, v in m.items()
+                                   if isinstance(v, Reading)},
+                                "decomposition": m["_decomposition"],
+                                "status_counts": m["_status_counts"],
+                                "operation_counts": m["_operation_counts"],
+                                "denominator": m["_denominator_definition"]}
                        for s, m in runs.items()} for arm, runs in per_run.items()},
         "elapsed_seconds": round(time.time() - started, 1),
     }
@@ -342,8 +428,12 @@ def main() -> int:
                 continue
             paired = result["paired"]
             verdict = paired.get("verdict", paired.get("status"))
-            print(f"  {metric:<36} T0={result['T0_mean']}  T1={result['T1_mean']}  "
-                  f"delta={paired.get('mean_delta')}  p={paired.get('p_value')}  {verdict}")
+            signs = paired.get("signs") or {}
+            print(f"  {metric:<38} n={result['support_n']:>2}  "
+                  f"T0={result['T0_median']}  T1={result['T1_median']}  "
+                  f"medΔ={paired.get('median_delta')}  "
+                  f"signos=+{signs.get('positive','-')}/-{signs.get('negative','-')}  "
+                  f"p={paired.get('p_value')}  {verdict}")
     print(f"\nwrote {path}")
     return 0
 
@@ -351,6 +441,12 @@ def main() -> int:
 def _mean(runs, seeds, metric):
     values = [float(runs[s][metric]) for s in seeds if runs[s][metric].evaluable]
     return round(sum(values) / len(values), 4) if values else "NOT_EVALUABLE"
+
+
+def _median_of(runs, seeds, metric):
+    values = [float(runs[s][metric]) for s in seeds if runs[s][metric].evaluable]
+    median = _median(values)
+    return round(median, 4) if median is not None else "NOT_EVALUABLE"
 
 
 if __name__ == "__main__":

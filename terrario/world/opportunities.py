@@ -39,7 +39,7 @@ class OpportunityRecord:
     respawn_parent: int | None = None
 
 
-def _stream(seed: int, kind: str, key: int) -> "np.random.Generator":
+def _stream(seed: int, kind: str, key: int, generation: int = 0) -> "np.random.Generator":
     """A generator keyed on identity, never on how many calls came before.
 
     The cooldown and the placement draw used to be seeded from
@@ -59,7 +59,8 @@ def _stream(seed: int, kind: str, key: int) -> "np.random.Generator":
     variate whether it was the first thing eaten or the fortieth. Trajectories
     may diverge; the shocks attached to a given opportunity do not.
     """
-    mixed = hashlib.blake2b(f"{seed}:{kind}:{key}".encode(), digest_size=8).digest()
+    mixed = hashlib.blake2b(f"{seed}:{kind}:{key}:{generation}".encode(),
+                            digest_size=8).digest()
     return np.random.default_rng(int.from_bytes(mixed, "big"))
 
 
@@ -74,6 +75,10 @@ class OpportunityLifecycle:
         self._next_opportunity_id = 1
         self._pending: list[dict[str, Any]] = []
         self._recent_positions: list[tuple[int, int]] = []
+        #: opportunity_id -> (lineage root, generation). The root identifies the
+        #: opportunity across all its reappearances; the generation counts them
+        #: WITHIN that lineage, never globally.
+        self._lineage: dict[int, tuple[int, int]] = {}
         self.events: list[OpportunityEvent] = []
         self.records: dict[int, OpportunityRecord] = {}
 
@@ -88,6 +93,7 @@ class OpportunityLifecycle:
             opportunity_id = self._next_opportunity_id
             self._next_opportunity_id += 1
             obj.properties["opportunity_id"] = opportunity_id
+            self._lineage[opportunity_id] = (opportunity_id, 0)
             distance = abs(obj.pos.x - agent.pos.x) + abs(obj.pos.y - agent.pos.y)
             self.records[opportunity_id] = OpportunityRecord(opportunity_id, causal_class, step, obj.pos.to_tuple(), reachable_at_spawn=True, visible_at_spawn=distance <= 2, min_distance_during_lifetime=distance)
 
@@ -98,13 +104,15 @@ class OpportunityLifecycle:
         opportunity_id = int(obj.properties.get("opportunity_id", self._next_opportunity_id))
         self._next_opportunity_id = max(self._next_opportunity_id, opportunity_id + 1)
         event_index = len(self.events)
-        rng = _stream(self._seed, "cooldown", opportunity_id)
+        root, generation = self._lineage.get(opportunity_id, (opportunity_id, 0))
+        next_generation = generation + 1
+        rng = _stream(self._seed, "cooldown", root, next_generation)
         low, high = self._config.get("cooldown_steps", [3, 8])
         due_step = step + int(rng.integers(int(low), int(high) + 1))
         self._pending.append({
             "due_step": due_step, "causal_class": causal_class, "channels": obj.channels.copy(),
             "opportunity_id": self._next_opportunity_id, "event_index": event_index,
-            "spawn_key": self._next_opportunity_id,
+            "lineage_root": root, "generation": next_generation,
         })
         self._next_opportunity_id += 1
         event = OpportunityEvent("despawn", opportunity_id, causal_class, step, obj.pos.to_tuple())
@@ -122,12 +130,15 @@ class OpportunityLifecycle:
         emitted: list[OpportunityEvent] = []
         agent_pos = world._mutable_state().agents[agent_id].pos
         for pending in due:
-            position = self._spawn_position(world, agent_pos, pending["spawn_key"])
+            position = self._spawn_position(world, agent_pos,
+                                            pending["lineage_root"], pending["generation"])
             obj = ObjectSpec(
                 object_id=self._next_object_id, pos=Position(*position), channels=pending["channels"], movable=False,
                 properties={"causal_class": pending["causal_class"], "opportunity_id": pending["opportunity_id"]},
             )
             self._next_object_id += 1
+            self._lineage[pending["opportunity_id"]] = (pending["lineage_root"],
+                                                        pending["generation"])
             distance = abs(position[0] - agent_pos.x) + abs(position[1] - agent_pos.y)
             self.records[pending["opportunity_id"]] = OpportunityRecord(
                 pending["opportunity_id"], pending["causal_class"], step, position,
@@ -140,17 +151,24 @@ class OpportunityLifecycle:
         return emitted
 
     def _spawn_position(self, world: WorldStateManager, agent_pos: Position,
-                        spawn_key: int) -> tuple[int, int]:
+                        lineage_root: int, generation: int) -> tuple[int, int]:
         """Where a respawn lands.
 
-        The DRAW is keyed on the opportunity's identity, so the same variate
-        comes up for the same opportunity in either arm. The candidate SET is
-        another matter: it excludes occupied cells, cells too close to the agent
-        and recently-consumed positions, so it depends on where the organism is
-        and on what it has eaten. That is a declared rule of this scenario --
-        the world places new opportunities relative to the organism -- and not a
-        bookkeeping leak. It means a paired comparison holds the shock SCHEDULE
-        fixed while placement still follows each arm's own trajectory, by design.
+        Two quantities, and they must not be confused:
+
+            U          ~ RNG(seed, stream, lineage root, generation)   EXOGENOUS
+            C_t        = f(World_t, Agent_t, recent_positions)         ENDOGENOUS
+            Spawn_t    = g(C_t, U)
+
+        The latent variate is coupled across arms. Its physical REALISATION may
+        differ, because the feasible set is part of the world's endogenous state:
+        with the same u = 0.63, candidates [A,B,C,D] give C and candidates [A,D]
+        give D. That is not an RNG leak; it is the trajectory, and the path
+
+            T -> trajectory -> C_t -> respawn position -> future experience
+
+        belongs to the total effect of T. Removing it would make D4T a different
+        world, which is a decision about the scenario and not about the harness.
         """
         state = world._mutable_state()
         margin = int(self._config.get("placement_margin", 1))
@@ -162,7 +180,7 @@ class OpportunityLifecycle:
         ]
         if not candidates:
             candidates = [(x, y) for x in range(margin, state.grid_height - margin) for y in range(margin, state.grid_width - margin) if state.occupancy[x, y] == 0]
-        rng = _stream(self._seed, "placement", spawn_key)
+        rng = _stream(self._seed, "placement", lineage_root, generation)
         return candidates[int(rng.integers(len(candidates)))]
 
     def geometry(self, world: WorldStateManager, agent_id: int = 0, view_radius: int = 2) -> dict[str, Any]:
