@@ -1,0 +1,150 @@
+{
+  "schema_version": "terrario.docs.cartography-manifest/v1",
+  "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
+  "written_at": "2026-09-17",
+  "head": "1e3fbb1",
+  "sections": {
+    "I · Topología real del repositorio": {
+      "files": {
+        "scripts/ablation_study.py": "0c0e936e9b8d2d7ae70878f9c9a23a958ad9c3779f84eddffc6fb63a4f420ad7",
+        "scripts/screen_concepts.py": "a50ab9ce2ede7d2ea0cec2fdd63cb46df68ccd18b3c2e863d7fd6c8c5c85e26f",
+        "scripts/simulate_d4_signal.py": "537b73811863658abc824d06d73c74b5c7aaf5a76a5e9376cbd53e01b4da0a15",
+        "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
+        "terrario/experiment/controller.py": "1707841a393bce3373c797f28f0b928f92cb7cad2d88538eadc631ae8f233402",
+        "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
+        "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
+        "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
+        "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
+        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da",
+        "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990"
+      }
+    },
+    "II · Autoridad sobre el estado del mundo": {
+      "files": {
+        "terrario/core/types.py": "c2a61dd4694b02a2781ef6246e3d2e282bedd6ad31749511a0dfe91dee63e73e",
+        "terrario/lab/planning_trace_metric.py": "0dcbbc25eab0bc7770e694c088bb180523f7b2806da9bc316474a57162ced971",
+        "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",
+        "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
+        "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990",
+        "terrario/world/state.py": "9fdc7773f111f7c1a95bfa1cd8683e6a264875d7da65ed47fbccca9b043635ce",
+        "tests/test_agent_observer_view_separation.py": "968d142cef3245c3d992a5ed0cd30b201fe5b4f0ab145947d6986324a397a264",
+        "tests/test_observer_passivity_campaign.py": "1d4b198596c460f47cecc87aff2b18f0305c9a333d164f048544aa134f6627af"
+      }
+    },
+    "III · WorldDefinition y física declarada": {
+      "files": {
+        "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
+        "terrario/experiment/controller.py": "1707841a393bce3373c797f28f0b928f92cb7cad2d88538eadc631ae8f233402",
+        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da",
+        "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
+        "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
+      }
+    },
+    "IV · OpportunityLifecycle y dinámica de objetos": {
+      "files": {
+        "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
+        "tests/test_exogenous_rng_coupling.py": "054cdffadcfbd64fb20401a01bcaabed548d6d118ba8d11f08b49b05673c4904"
+      }
+    },
+    "V · RNG, determinismo y causalidad": {
+      "files": {
+        "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
+        "tests/test_reproducibility.py": "1c6a6f35750b55876d7040471cc202e98fb85c6a28fd84fdb9125eb4d0e2333c"
+      }
+    },
+    "VI · Ciclo completo del agente A4": {
+      "files": {
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
+        "terrario/world/state.py": "9fdc7773f111f7c1a95bfa1cd8683e6a264875d7da65ed47fbccca9b043635ce"
+      }
+    },
+    "VII · Arquitectura de acciones": {
+      "files": {
+        "terrario/core/action_contract.py": "3e918e54115167cccb9461a1f412825223e5de8c67b5d6d8a0c59a7d49e4e927",
+        "terrario/core/types.py": "c2a61dd4694b02a2781ef6246e3d2e282bedd6ad31749511a0dfe91dee63e73e",
+        "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990"
+      }
+    },
+    "VIII · Modelo del mundo": {
+      "files": {
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
+        "terrario/agent/world_model.py": "a7dca349d233a569002373734dd6f4162cb6458fb1c71736584525626412414b"
+      }
+    },
+    "IX · Planner": {
+      "files": {
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf"
+      }
+    },
+    "X · Aprendizaje online": {
+      "files": {
+        "terrario/agent/learner.py": "5974181baee33880a645d03e5f93fcbf85d17be9c32ce2d11b7405d45ff7e059"
+      }
+    },
+    "XI · Memorias": {
+      "files": {
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6"
+      }
+    },
+    "XII · Estado temporal / SSM": {
+      "files": {
+        "terrario/agent/temporal.py": "a101ee19376a3cd0e31911d85872fe2761fbd8a09ca97dce1cbac83e12d1ad40"
+      }
+    },
+    "XIII · Incertidumbre y exploración": {
+      "files": {
+        "terrario/agent/uncertainty.py": "a156eeaa7757c2ff3f1d51971227d6fb8879f894f6a0230da6e0ee3a81a5697e"
+      }
+    },
+    "XIV · Homeostasis y viabilidad": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "d286ce1f2e3a2bb5d8b61e650f88062f58c1628146bb4d2d89c1f82f29702960",
+        "terrario/agent/homeostasis.py": "923f93c1be4cc088363d5b91bb5fdeecd215b262de4e8e4a472b83c203bc1d21",
+        "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
+      }
+    },
+    "XV · Percepción y features": {
+      "files": {
+        "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
+        "terrario/world/state.py": "9fdc7773f111f7c1a95bfa1cd8683e6a264875d7da65ed47fbccca9b043635ce"
+      }
+    },
+    "XVII · Qué significa realmente «seis ejemplos informativos»": {
+      "files": {
+        "scripts/experiment_learner_sample_efficiency.py": "b0d27bf47f50f9585b58a61b1ca40669aeb2e79b877b57fb249f9c097157ea56",
+        "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1"
+      }
+    },
+    "XVIII · Métricas e instrumentos científicos": {
+      "files": {
+        "scripts/reclassify_screening.py": "1bdab77dbcb7414a622c43bb6be071818b927f5139b1448c45b222068cf2a2e8",
+        "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
+        "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
+        "tests/test_measurement_status.py": "6e01a8f912e794ad937d99ce468f237686ddefe9212f670733f6c4e879333b2b"
+      }
+    },
+    "XIX · Traza, ScientificFrame y evidencia": {
+      "files": {
+        "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
+        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da"
+      }
+    },
+    "XX · Checkpoints y persistencia": {
+      "files": {
+        "terrario/observer/checkpoints.py": "ee917bfc74a818f449be970edcbed86d8db08f56242e8b38f89034af5139b40e",
+        "tests/test_checkpoint_reconstruction.py": "3776d71f154cf3c8d7ecf6bf7ec983e7eb15eda275716b3b4399a2ec9eece17d"
+      }
+    },
+    "XXII · Preregistro y evidencia": {
+      "files": {
+        "terrario/lab/preregistration/domain.py": "68559565ac702907fa03045ba6620b0d8adb899dfc6fba95d192d33acc9c23cd",
+        "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
+      }
+    },
+    "XXX · Las preguntas más importantes": {
+      "files": {
+        "scripts/experiment_learner_sample_efficiency.py": "b0d27bf47f50f9585b58a61b1ca40669aeb2e79b877b57fb249f9c097157ea56"
+      }
+    }
+  }
+}

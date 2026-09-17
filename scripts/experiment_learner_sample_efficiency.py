@@ -161,6 +161,10 @@ def main() -> int:
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--probes", type=int, default=200)
     ap.add_argument("--dilution", type=int, default=100)
+    ap.add_argument("--modes", default="pure,diluted",
+                    help="La curva diluida cuesta N x dilution pasos por semilla: "
+                         "a 1:100 son cinco horas. Se corre aparte, a proposito.")
+    ap.add_argument("--max-diluted", type=int, default=192)
     ap.add_argument("--out", default="artifacts/learner_sample_efficiency.json")
     args = ap.parse_args()
 
@@ -170,9 +174,9 @@ def main() -> int:
     held_out = build_probes(args.probes, random.Random(20260917), TEST_BANDS)
     rows = []
     for n in sizes:
-        for mode in ("pure", "diluted"):
-            if mode == "diluted" and n > 192:
-                continue                      # 192 x 100 = 19 200 pasos ya es caro
+        for mode in args.modes.split(","):
+            if mode == "diluted" and n > args.max_diluted:
+                continue
             scores = []
             for offset in range(args.seeds):
                 seed = 1000041 + offset

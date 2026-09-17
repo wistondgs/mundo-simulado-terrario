@@ -28,4 +28,4 @@ playwright-report/
 .obsidian/cache/
 
 # Runtime state from the screening bench; regenerable, never committed.
-.sandbox-screening/
+.sandbox-*/
