@@ -274,3 +274,18 @@ canal en Terrario. El bloqueo pasa de doble a simple.
 Detalle: nada de v0.4 está en el snapshot versionado. El repositorio y el corpus vivo están
 desincronizados por una generación entera. Análisis en
 [CORPUS_V04_ANALISIS_01.md](CORPUS_V04_ANALISIS_01.md).
+
+---
+
+## 9. Adenda 2026-09-16 (noche) · los diez criterios no son una compuerta fija
+
+La §3 lista el bloque 62 como «es la maquinaria misma». El mapa conceptual ampliado lo acota:
+los diez criterios **«no son diez pruebas obligatorias para cada palabra del mapa»** — se
+seleccionan según lo que se afirma y deben declararse antes de interpretar resultados. En la
+misma línea, `capability closure` (bloque 44) queda marcado como **término de trabajo del
+proyecto, no ley general aceptada**.
+
+Eso no relaja nada: exige declarar por adelantado *cuáles* criterios aplican a la afirmación
+concreta, en vez de invocar los diez como ritual o de omitirlos en silencio. Y añade lo que a la
+tabla le faltaba: tamaño del efecto, incertidumbre, distribución de resultados, condiciones de
+exposición y explicaciones alternativas. Una diferencia numérica sin eso no cierra nada.

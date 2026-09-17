@@ -48,7 +48,7 @@ en código, no inferido:
 |---|---|---|
 | `𝒱ₜ` variable | η = `viable_floor × max_energy`, evaluado por fila pero con `max_energy` fijado una vez por episodio | `viability_recovery_metric.py:161`, `world/state.py:33` |
 | `dV_R/dt` | `variety_ratio` mide la variedad de **E** (la variable regulada), no la del regulador. `Π` no tiene canal | `viability_recovery_metric.py:178-183` |
-| `P(Dₜ₊₁) ≠ P(Dₜ)` | `ChangeScheduler` toma una lista finita y ordenada de `(at_step, rules)`, cada una dispara una vez. No hay distribución sobre `D` | `world/scheduler.py:33-36` |
+| variedad temporal de `D` | `ChangeScheduler` toma una lista finita y ordenada de `(at_step, rules)`, cada una dispara una vez, y `d4_adaptation_scientific` declara **un solo** evento. No hay secuencia, ritmo, recurrencia ni acumulación que estudiar — **corregido: el problema no es el determinismo**, ver adenda | `world/scheduler.py:33-36` |
 | variedad endógena y relacional | el marcador de perturbación es `cambio de world_revision`; ninguna de las dos lo produce, así que el detector devuelve `NO_DISTURBANCE_OBSERVED` | `viability_recovery_metric.py:148-153` |
 | `τ` como unidad | **ya soportado**: `SCIENTIFIC_TRACE` sella la trayectoria completa por frame | — |
 | `W ↔ O` | **parcial**: `destroy_object: true` y `opportunity_lifecycle` dan un lazo mínimo organismo→mundo; no hay construcción de nicho | `scenarios/d4_adaptation_scientific.yaml` |
@@ -90,3 +90,32 @@ decisión registrada.
 Firmar `viability-recovery-profile` como detector de Caso 1 y Caso 2 **con la tercera causa de
 `None` declarada**, o no firmarlo todavía. Son las dos únicas opciones compatibles con este ADR;
 firmarlo sin declararla no lo es.
+
+
+---
+
+## Adenda 2026-09-16 (noche) · dos correcciones del mapa conceptual ampliado
+
+**1 · El determinismo no era el defecto.** La fila de variedad temporal decía originalmente
+`P(Dₜ₊₁) ≠ P(Dₜ)` y trataba la lista determinista de `ChangeScheduler` como carencia. El mapa
+ampliado lo corrige: «dinámico no significa necesariamente aleatorio ni no estacionario… la
+cibernética de Ashby incluye precisamente sistemas determinados mediante transiciones entre
+estados». Un calendario determinista está dentro del marco.
+
+Lo que sí falta es más preciso y más barato de nombrar: `d4_adaptation_scientific.yaml` declara
+**un único** evento de cambio (`at_step: 450`, `change_jitter: 25`). Con una sola perturbación no
+hay orden, ritmo, demora, recurrencia ni acumulación — que es lo que la variedad temporal
+significa. El jitter varía **cuándo**, no **qué** ni **cuántas veces**.
+
+**2 · Seis clases pasan a doce dimensiones.** La decisión enumeraba variedad exógena, endógena,
+de la región de viabilidad, relacional, temporal y generada. El mapa ampliado la descompone en
+doce: ambiental, de perturbaciones, interna, perceptual, representacional, conductual,
+estratégica, reguladora, relacional, temporal, social y generada. Las seis originales siguen
+siendo correctas; no son exhaustivas. Ninguna de las seis nuevas —perceptual, representacional,
+conductual, estratégica, reguladora, social— tiene hoy medición en Terrario.
+
+Y una advertencia del mapa que esta decisión no llevaba: **no se busca crecimiento permanente de
+toda variedad interna.** Una representación mejor puede comprimir diferencias irrelevantes y una
+estrategia mejor puede hacer innecesarias decenas de respuestas particulares. El criterio es
+capacidad funcional frente a la variedad relevante, no acumular opciones. Eso desactiva la
+lectura ingenua de `dV_R/dt > 0` como señal de desarrollo.

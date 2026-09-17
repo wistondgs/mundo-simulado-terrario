@@ -91,6 +91,29 @@ no queda reemplazado: uno fija que las variedades cambian, éste fija qué se bu
 
 ## Decisión pendiente para el humano
 
-Aceptar o rechazar. Si se acepta, la consecuencia inmediata no es construir: es **elegir cuál de
+Aceptar o rechazar. ~~Si se acepta, la consecuencia inmediata no es construir: es **elegir cuál de
 las tres fronteras de viabilidad es `𝒱`**, porque ninguna afirmación sobre reorganización es
-interpretable mientras haya tres.
+interpretable mientras haya tres.~~
+
+**Corregido el 2026-09-16 (noche) por el mapa conceptual ampliado, §46.** La pregunta estaba mal
+planteada: las tres no compiten por ser `𝒱`. Son **tres construcciones distintas**, y el mapa da
+el criterio para separarlas —«debe distinguirse una banda deseable de funcionamiento de una
+frontera irreversible: no podemos tratar cualquier salida de un rango como muerte y luego llamar
+recuperación a una restauración externa»:
+
+| en el código | qué es realmente | dueño |
+|---|---|---|
+| `energy <= 0` → `alive = False` | **frontera irreversible** | el mundo |
+| `homeostasis_threshold = 0.5` | **banda deseable de funcionamiento** | el organismo |
+| `viable_floor ≈ 0.23` | **umbral del detector** | el observador |
+
+La decisión pendiente deja de ser «elegir una» y pasa a ser **declarar cuál es cuál y no volver a
+confundirlas**. Ninguna de las tres sobra: lo que sobraba era tratarlas como candidatas al mismo
+puesto.
+
+Consecuencia operativa inmediata, de §62: «cambiar un umbral del detector estudia la sensibilidad
+de la medición; intervenir sobre el regulador estudia el mecanismo del ser». `viable_floor` y
+`homeostasis_threshold` se parecen —ambos son fracciones de energía barridas en rejilla— y
+responden preguntas distintas. `scripts/calibrate_viability_eta.py` barre el primero. Barrer el
+segundo con la misma forma de rejilla produciría una tabla idéntica en apariencia y un estudio
+completamente distinto.
