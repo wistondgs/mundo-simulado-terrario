@@ -35,7 +35,9 @@ from terrario.agent.temporal import GRUCore, SSMCore, TemporalCore
 from terrario.agent.uncertainty import UncertaintyEstimator
 from terrario.agent.world_model import WorldModel
 from terrario.core.contracts import Transition
-from terrario.core.types import TOTAL_ACTIONS, Action, Observation
+from terrario.core.types import (
+    NUM_ACTION_TYPES, NUM_DIRECTIONS, TOTAL_ACTIONS, Action, Observation,
+)
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "use_temporal": True,
@@ -45,6 +47,18 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "use_uncertainty": True,
     "use_planner": True,
     "use_online_learning": True,
+    # Action Contract v2, agent-side. The WORLD's action space is untouched --
+    # still 25, still type x direction -- so no world contract, no config_hash
+    # and no design already preregistered is affected. What changes is how the
+    # policy FACTORS the choice: one head for the operation, one for the
+    # selector, sampled independently, log-probabilities summed.
+    #
+    # The reason is credit assignment, not expressiveness. The channel could
+    # always express "eat the thing to my left"; the measured addressing rate
+    # was 2-4% for every agent including the random one, which is chance. A
+    # joint 25-way problem receiving seven informative samples per lifetime
+    # cannot be learned. Two 5-way problems receive the same samples each.
+    "use_factored_action": False,
     # OFF by default: turning it on changes what A4 does, and what A4 does is
     # pinned by the golden behavioural characterisation and the protected hash
     # manifest.  It arrives as a condition to be measured, not as a silent
@@ -160,6 +174,15 @@ class A4Advanced(AgentInterface):
         self._use_planner: bool = self.config["use_planner"]
         self.planner = Planner(generator=self._generator)
 
+        # ── Factored intention: operation x selector ─────────────────
+        # Built ONLY when enabled, so a default agent has the same modules,
+        # the same parameter count and the same initial-parameter hash it had
+        # before this existed.
+        self._use_factored_action: bool = self.config["use_factored_action"]
+        if self._use_factored_action:
+            self.operation_head = torch.nn.Linear(self._state_dim, NUM_ACTION_TYPES)
+            self.selector_head = torch.nn.Linear(self._state_dim, NUM_DIRECTIONS)
+
         # ── Entropy regularisation of the policy ─────────────────────
         self._use_entropy_regularization: bool = self.config["use_entropy_regularization"]
         self._entropy_coefficient: float = float(self.config["entropy_coefficient"])
@@ -188,6 +211,9 @@ class A4Advanced(AgentInterface):
             learnable_modules["world_model"] = self.world_model
         if self._use_uncertainty:
             learnable_modules["uncertainty_estimator"] = self.uncertainty_estimator
+        if self._use_factored_action:
+            learnable_modules["operation_head"] = self.operation_head
+            learnable_modules["selector_head"] = self.selector_head
 
         self.learner = OnlineLearner(
             modules=learnable_modules,
@@ -310,6 +336,32 @@ class A4Advanced(AgentInterface):
                 self._last_uncertainty = float(uncertainties.mean().item())
         else:
             self._last_uncertainty = None
+
+        # ── Factored sampling ────────────────────────────────────────
+        if self._use_factored_action:
+            op_logits = self.operation_head(state)
+            sel_logits = self.selector_head(state)
+            op_probs = F.softmax(op_logits / temperature, dim=-1)
+            sel_probs = F.softmax(sel_logits / temperature, dim=-1)
+            op = int(torch.multinomial(op_probs, 1, generator=self._generator).item())
+            sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
+            action_int = op * NUM_DIRECTIONS + sel
+            log_prob = (torch.log(op_probs[op] + 1e-8) + torch.log(sel_probs[sel] + 1e-8))
+            self._last_action, self._last_log_prob = action_int, log_prob
+            self._last_logits, self._last_probs = op_logits.detach(), op_probs.detach()
+            # The §1 invariant: what was INTENDED travels separately from what
+            # the world resolved, so "chose wrong" and "chose right and the
+            # actuator missed" never collapse into one failure again.
+            self._trace.append({
+                "op": "decide", "step": self._step, "action_int": action_int,
+                "intended_operation": op, "intended_selector": sel,
+                "log_prob": float(log_prob.item()), "temperature": temperature,
+                "factored": True,
+                "drive": self.homeostasis.drive,
+                "exploration_bias": self.homeostasis.exploration_bias,
+            })
+            self._step += 1
+            return Action.from_int(action_int)
 
         # ── Planner refinement ───────────────────────────────────────
         if self._use_planner and self._use_world_model:
@@ -446,9 +498,16 @@ class A4Advanced(AgentInterface):
                 advantage = consequence.energy_delta - self._energy_baseline
 
                 # Re-compute log_prob with fresh graph to avoid double-backward
-                fresh_logits = self.policy_head(self._last_state)
-                fresh_probs = F.softmax(fresh_logits, dim=-1)
-                fresh_log_prob = torch.log(fresh_probs[self._last_action] + 1e-8)
+                if self._use_factored_action:
+                    op, sel = divmod(int(self._last_action), NUM_DIRECTIONS)
+                    fresh_probs = F.softmax(self.operation_head(self._last_state), dim=-1)
+                    sel_probs = F.softmax(self.selector_head(self._last_state), dim=-1)
+                    fresh_log_prob = (torch.log(fresh_probs[op] + 1e-8)
+                                      + torch.log(sel_probs[sel] + 1e-8))
+                else:
+                    fresh_logits = self.policy_head(self._last_state)
+                    fresh_probs = F.softmax(fresh_logits, dim=-1)
+                    fresh_log_prob = torch.log(fresh_probs[self._last_action] + 1e-8)
                 policy_loss = -fresh_log_prob * advantage
 
                 # Entropy regularisation, off by default so A4 stays the agent
@@ -595,8 +654,16 @@ class A4Advanced(AgentInterface):
         self.homeostasis.reset()
         self.learner.reset()
 
-    def get_parameters(self) -> dict[str, torch.Tensor]:
-        params: dict[str, torch.Tensor] = {}
+    def _parameter_modules(self) -> list[tuple[str, torch.nn.Module]]:
+        """One list, so a module added later cannot be silently left out.
+
+        get_parameters, set_parameters and parameter_count each carried their
+        own hardcoded copy. A head added to the agent was invisible to all
+        three at once: the parameter count under-reported it, the identity hash
+        did not cover it, and a twin restored from parameters would have
+        dropped it without a word. The order is the original one, so a default
+        agent hashes exactly as it did before.
+        """
         modules = [
             ("encoder", self.encoder),
             ("temporal_core", self.temporal_core),
@@ -605,39 +672,30 @@ class A4Advanced(AgentInterface):
             ("uncertainty_estimator", self.uncertainty_estimator),
             ("policy_head", self.policy_head),
         ]
-        for prefix, module in modules:
+        for nombre in ("operation_head", "selector_head"):
+            modulo = getattr(self, nombre, None)
+            if isinstance(modulo, torch.nn.Module):
+                modules.append((nombre, modulo))
+        return modules
+
+    def get_parameters(self) -> dict[str, torch.Tensor]:
+        params: dict[str, torch.Tensor] = {}
+        for prefix, module in self._parameter_modules():
             for name, p in module.named_parameters():
                 params[f"{prefix}.{name}"] = p.detach().clone()
         return params
 
     def set_parameters(self, params: dict[str, torch.Tensor]) -> None:
         with torch.no_grad():
-            modules = [
-                ("encoder", self.encoder),
-                ("temporal_core", self.temporal_core),
-                ("longterm_memory", self.longterm_memory),
-                ("world_model", self.world_model),
-                ("uncertainty_estimator", self.uncertainty_estimator),
-                ("policy_head", self.policy_head),
-            ]
-            for prefix, module in modules:
+            for prefix, module in self._parameter_modules():
                 for name, p in module.named_parameters():
                     key = f"{prefix}.{name}"
                     if key in params:
                         p.copy_(params[key])
 
     def parameter_count(self) -> int:
-        total = 0
-        for module in [
-            self.encoder,
-            self.temporal_core,
-            self.longterm_memory,
-            self.world_model,
-            self.uncertainty_estimator,
-            self.policy_head,
-        ]:
-            total += sum(p.numel() for p in module.parameters() if p.requires_grad)
-        return total
+        return sum(p.numel() for _, module in self._parameter_modules()
+                   for p in module.parameters() if p.requires_grad)
 
     @staticmethod
     def _parameters_hash(params: dict[str, torch.Tensor]) -> str:

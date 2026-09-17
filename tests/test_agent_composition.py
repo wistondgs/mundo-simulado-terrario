@@ -59,7 +59,7 @@ def test_a_chosen_mix_reaches_the_running_organism(tmp_path):
     # A concept switched off from a default-on state and one never switched on
     # are the same fact for anyone reading the trace.
     assert default_timeline[0]["scientific_state"]["active_ablations"] == [
-        "use_entropy_regularization"]
+        "use_factored_action", "use_entropy_regularization"]
 
     mix = {"use_planner": False, "use_world_model": False, "use_homeostasis": False}
     _, mixed_timeline = _run(api, mix)

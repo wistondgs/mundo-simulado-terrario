@@ -132,7 +132,23 @@ def _eating(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
 
     deltas = [b - a for a, b in zip(levels, levels[1:])]
     idle = sorted(d for d, act in zip(deltas, actions[1:]) if act != "CONSUME")
-    baseline = idle[len(idle) // 2] if idle else 0.0
+    # The baseline is the energy change a step costs when nothing is eaten, and
+    # every consume is judged against it. Reading it as the median idle delta
+    # fails for exactly the organism we care about most: one whose policy has
+    # collapsed onto CONSUME has no idle steps at all, the median of an empty
+    # list used to default to 0.0, and then the whole metabolic drain was scored
+    # as hundreds of failed consumes -- a hit rate of 0.000 manufactured out of
+    # the step cost. So the declared cost wins when the world states one, the
+    # median is the fallback, and when neither exists the reading is refused
+    # rather than coerced.
+    declared = (rows[0].get("observer_world") or {}).get("step_energy_cost")
+    if isinstance(declared, (int, float)) and not isinstance(declared, bool) and declared > 0:
+        baseline = -float(declared)
+    elif idle:
+        baseline = idle[len(idle) // 2]
+    else:
+        return {"effective": 0, "hit_rate": None, "best_segment": None,
+                "baseline": None, "baseline_source": "NO_IDLE_STEPS_AND_NO_DECLARED_COST"}
 
     revisions = [(r.get("observer_world") or {}).get("rules_version") for r in rows]
     segment, per_segment = 0, {}
@@ -154,7 +170,9 @@ def _eating(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
     rates = [got / total for got, total in per_segment.values() if total >= 3]
     return {"effective": effective,
             "hit_rate": round(hits / effective, 3) if effective else None,
-            "best_segment": round(max(rates), 3) if rates else None}
+            "best_segment": round(max(rates), 3) if rates else None,
+            "baseline": baseline,
+            "baseline_source": "DECLARED" if declared else "MEDIAN_IDLE"}
 
 
 def _updates(step: Mapping[str, Any]) -> int:
