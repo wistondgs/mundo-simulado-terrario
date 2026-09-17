@@ -102,9 +102,9 @@ class StorageEstimate:
 class MetricRegistry:
     def __init__(self):
         self._metrics: dict[str, MetricDefinition] = {}
-        # D4S mirrors D4: every registered scenario carries its own energy-trajectory
+        # D4S and D4T mirror D4: every registered scenario carries its own energy-trajectory
         # binding, because the world adapter derives the binding id from the scenario id.
-        for did in ("D0", "D1", "D2", "D3", "D4", "D4S"):
+        for did in ("D0", "D1", "D2", "D3", "D4", "D4S", "D4T"):
             self.register(MetricDefinition(
                 f"{did}-energy-trajectory", METRIC_SCHEMA_VERSION,
                 "bounded behavioral performance", "energy trajectory",
@@ -157,7 +157,7 @@ class MetricRegistry:
             "depth in energy units; dwell and recovery in ticks; variety as a ratio",
             "mixed", Direction.LOWER_IS_BETTER, "nonnegative",
             ("world_truth.agents.energy", "world_truth.max_energy", "world_revision"),
-            "per disturbance", ("D4", "D4S"),
+            "per disturbance", ("D4", "D4S", "D4T"),
             ("does not establish that the organism reorganised its own parameters "
              "-- Ashby's ultrastability proper -- only that the essential variable returned",
              "no reward, task success or goal attainment",
@@ -165,6 +165,28 @@ class MetricRegistry:
             MetricImplementationStatus.IMPLEMENTED,
             ConstructValidationStatus.NOT_VALIDATED_FOR_CONSTRUCT,
             "detector validated on synthetic trajectories; construct promotion pending human review"))
+        # D4T declares three disturbances, and the single-disturbance reading
+        # above cannot report them: it takes the FIRST change of world_revision
+        # and pools every later excursion into one dwell.  This is a different
+        # instrument with its own hash, not a wider setting of the same one.
+        self.register(MetricDefinition(
+            "viability-recovery-profile-per-disturbance", METRIC_SCHEMA_VERSION,
+            "maintenance of essential variables within the viable set under a sequence of disturbances",
+            "one excursion/dwell/recovery/variety profile per disturbance, in order",
+            "terrario.lab.viability_recovery_metric.evaluate_scientific_trace_segments",
+            "depth in energy units; dwell and recovery in ticks; variety as a ratio; one tuple per disturbance",
+            "mixed", Direction.LOWER_IS_BETTER, "nonnegative",
+            ("world_truth.agents.energy", "world_truth.max_energy", "world_revision"),
+            "per disturbance, ordered", ("D4T",),
+            ("on a single-disturbance scenario it degenerates to the base instrument; "
+             "use the base one there rather than reporting a one-element sequence",
+             "reports each segment and does NOT test whether recovery got faster because "
+             "of the earlier disturbances -- that comparison is a design, not a reading",
+             "recovery_steps is None for three distinct reasons: never recovered, "
+             "right-censored at episode end, and interrupted by the next disturbance"),
+            MetricImplementationStatus.IMPLEMENTED,
+            ConstructValidationStatus.NOT_VALIDATED_FOR_CONSTRUCT,
+            "detector validated on synthetic schedules; construct promotion pending human review"))
 
     def register(self, metric: MetricDefinition) -> None:
         self._metrics[metric.metric_id] = metric

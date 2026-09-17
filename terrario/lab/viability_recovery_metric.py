@@ -30,7 +30,7 @@ answers are known by construction; it makes no claim about any agent.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Iterable, Mapping
 
 from terrario.lab.persistence.canonical import content_hash
@@ -81,6 +81,13 @@ class ViabilityRecovery:
     #: because OBSERVATION STOPPED, not because recovery failed.  Conflating
     #: right-censoring with failure biases any aggregate over None.
     censored: bool | None = None
+    #: only set by `evaluate_segments`: this segment ended because the NEXT
+    #: disturbance arrived while E was still outside eta.  A third cause of
+    #: `recovery_steps is None`, and not the same as either of the other two:
+    #: observation did not stop, and recovery was not refused -- it was cut
+    #: short.  Aggregating it as failure would make a dense schedule look like
+    #: a worse organism.
+    interrupted: bool | None = None
     reason: str | None = None
 
 
@@ -120,6 +127,51 @@ def specification(*, viable_floor: float, dwell_k: int, variety_bin: float) -> M
             "proper) -- only that the essential variable returned",
             "planning quality or any internal representation",
             "adaptation in any sense beyond the declared eta boundary",
+        ),
+        "forbidden_frame_fields": tuple(sorted(FORBIDDEN_FRAME_FIELDS)),
+    }
+    return dict(body) | {"metric_spec_hash": content_hash(body)}
+
+
+SEGMENT_METRIC_ID = "viability-recovery-profile-per-disturbance"
+SEGMENT_METRIC_VERSION = "terrario.lab.viability-recovery-segments/v1"
+SEGMENT_EVALUATOR_VERSION = "terrario.lab.viability-recovery-segment-evaluator/v1"
+
+
+def segment_specification(*, viable_floor: float, dwell_k: int,
+                          variety_bin: float) -> Mapping[str, Any]:
+    """The per-disturbance instrument, which is a DIFFERENT measurement.
+
+    `specification()` is left untouched on purpose: a single-disturbance
+    reading and a per-disturbance reading are not the same instrument, and
+    giving them one hash would let a design cite one and run the other.
+    """
+    _check_parameters(viable_floor, dwell_k, variety_bin)
+    body = {
+        "schema_version": "terrario.lab.metric-instrument/v1",
+        "metric_id": SEGMENT_METRIC_ID, "metric_version": SEGMENT_METRIC_VERSION,
+        "evaluator_version": SEGMENT_EVALUATOR_VERSION, "scope": VALIDATION_SCOPE,
+        "construct": ("maintenance of essential variables within the viable set under a "
+                      "SEQUENCE of disturbances, reported once per disturbance"),
+        "theoretical_source": "Ashby, An Introduction to Cybernetics, ch. 10 (corpus TI-0049)",
+        "operational_definition": (
+            "the trace is split at every change of world_revision; each segment runs from "
+            "one disturbance to the next (the last runs to the end of the episode) and is "
+            "evaluated by the single-disturbance projection over that window"),
+        "base_instrument": METRIC_VERSION,
+        "parameters": {"viable_floor": viable_floor, "dwell_k": dwell_k, "variety_bin": variety_bin},
+        "not_evaluable_policy": MISSINGNESS_POLICY,
+        "reading_rule": (
+            "recovery_steps is None for THREE distinct reasons, and they must not be "
+            "pooled: never recovered (censored False, interrupted False); observation "
+            "stopped with E outside eta (censored True); the next disturbance arrived "
+            "first (interrupted True). Only the last segment of an episode can be "
+            "censored, and only a non-last segment can be interrupted"),
+        "does_not_measure": (
+            "whether recovery got faster BECAUSE of the earlier disturbances -- the "
+            "instrument reports each segment, the comparison between them is a design",
+            "reorganisation of the organism's own parameters",
+            "reward, task success or goal attainment",
         ),
         "forbidden_frame_fields": tuple(sorted(FORBIDDEN_FRAME_FIELDS)),
     }
@@ -194,6 +246,20 @@ def evaluate(samples: Iterable[Mapping[str, Any]], *,
 def evaluate_scientific_trace(trace: Mapping[str, Any], *, viable_floor: float,
                               dwell_k: int, variety_bin: float) -> ViabilityRecovery:
     """Project a sealed SCIENTIFIC_TRACE, reading observer truth only."""
+    return evaluate(_trace_samples(trace), viable_floor=viable_floor,
+                    dwell_k=dwell_k, variety_bin=variety_bin)
+
+
+def evaluate_scientific_trace_segments(trace: Mapping[str, Any], *, viable_floor: float,
+                                       dwell_k: int,
+                                       variety_bin: float) -> tuple[ViabilityRecovery, ...]:
+    """Per-disturbance projection of a sealed SCIENTIFIC_TRACE."""
+    return evaluate_segments(_trace_samples(trace), viable_floor=viable_floor,
+                             dwell_k=dwell_k, variety_bin=variety_bin)
+
+
+def _trace_samples(trace: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    """Read observer truth out of sealed frames.  `agent_observation` is never read."""
     frames = trace.get("frames")
     if not isinstance(frames, list) or not frames:
         raise ViabilityRecoveryError("SCIENTIFIC_TRACE_FRAMES_REQUIRED")
@@ -221,7 +287,52 @@ def evaluate_scientific_trace(trace: Mapping[str, Any], *, viable_floor: float,
         # essential variable is, not once the average is.
         samples.append({"tick": int(frame.get("tick", 0)), "energy": min(energies),
                         "max_energy": float(max_energy), "revision": int(revision)})
-    return evaluate(samples, viable_floor=viable_floor, dwell_k=dwell_k, variety_bin=variety_bin)
+    return samples
+
+
+def evaluate_segments(samples: Iterable[Mapping[str, Any]], *, viable_floor: float,
+                      dwell_k: int, variety_bin: float) -> tuple[ViabilityRecovery, ...]:
+    """One `ViabilityRecovery` per disturbance, in order.
+
+    D4S declares one change event, so the single-disturbance reading is the
+    whole story there.  A scenario that declares several -- D4T -- breaks it:
+    `evaluate` takes the FIRST change of `world_revision` and treats everything
+    after as one excursion, so it reports the first recovery and silently pools
+    every later one into `dwell_outside`.  That is not a smaller answer, it is
+    a wrong one.
+
+    Each segment runs from its disturbance to the next, the last to the end of
+    the episode, and carries the preceding window so `variety_ratio` still has
+    a before.  Returns `()` when the trace holds no disturbance at all --
+    `evaluate` already reports that case as NO_DISTURBANCE_OBSERVED and this
+    function must not invent a segment for it.
+    """
+    _check_parameters(viable_floor, dwell_k, variety_bin)
+    rows = sorted(({"tick": int(s["tick"]), "energy": float(s["energy"]),
+                    "max_energy": float(s["max_energy"]), "revision": int(s["revision"])}
+                   for s in samples), key=lambda s: s["tick"])
+    boundaries = [i for i in range(1, len(rows)) if rows[i]["revision"] != rows[i - 1]["revision"]]
+    if not boundaries:
+        return ()
+
+    starts = [0] + boundaries
+    results: list[ViabilityRecovery] = []
+    for n, boundary in enumerate(boundaries):
+        last = n + 1 == len(boundaries)
+        end = len(rows) if last else boundaries[n + 1]
+        window = rows[starts[n]:end]
+        result = evaluate(window, viable_floor=viable_floor, dwell_k=dwell_k,
+                          variety_bin=variety_bin)
+        if result.evaluable:
+            # Only the final segment can be right-censored: for every other one
+            # observation continued, it was the next disturbance that cut the
+            # window.  Recording that as censoring would blame the episode's end
+            # for something the schedule did.
+            interrupted = bool(not last and result.recovery_steps is None)
+            result = replace(result, interrupted=interrupted,
+                             censored=result.censored if last else False)
+        results.append(result)
+    return tuple(results)
 
 
 def _trajectory(energies, *, revision_at: int | None, max_energy: float = 100.0):
@@ -278,6 +389,78 @@ def validate_construct() -> Mapping[str, Any]:
     report = {"schema_version": "terrario.lab.metric-construct-validation/v1",
               "metric_id": METRIC_ID, "metric_version": METRIC_VERSION,
               "evaluator_version": EVALUATOR_VERSION, "scope": VALIDATION_SCOPE,
+              "parameters": {"viable_floor": floor, "dwell_k": k, "variety_bin": bin_},
+              "cases": tuple(cases),
+              "all_passed": all(c["passed"] for c in cases)}
+    return dict(report) | {"calibration_report_hash": content_hash(report)}
+
+
+def validate_segment_construct() -> Mapping[str, Any]:
+    """Prove the per-disturbance detector on schedules whose answer is known.
+
+    Separate from `validate_construct` so the base instrument's calibration
+    report hash does not move.  Validates the INSTRUMENT; no agent output is
+    involved.
+    """
+    floor, k, bin_ = 0.5, 3, 1.0
+    cases: list[Mapping[str, Any]] = []
+
+    def rows(energies, revisions):
+        return [{"tick": i, "energy": float(e), "max_energy": 100.0, "revision": int(r)}
+                for i, (e, r) in enumerate(zip(energies, revisions))]
+
+    def case(name: str, samples, check) -> None:
+        got = evaluate_segments(samples, viable_floor=floor, dwell_k=k, variety_bin=bin_)
+        cases.append({"case": name, "passed": bool(check(got)),
+                      "observed": [{"D": x.perturbation_tick, "dwell": x.dwell_outside,
+                                    "recovery": x.recovery_steps, "interrupted": x.interrupted,
+                                    "censored": x.censored} for x in got]})
+
+    # An undisturbed trace has no segments.  Returning one would invent a
+    # disturbance that never happened.
+    case("undisturbed_yields_no_segments", rows([90] * 10, [1] * 10), lambda r: r == ())
+
+    # One disturbance must agree with the base instrument exactly, or the two
+    # readings would disagree about the same episode.
+    single = rows([90] * 5 + [40, 40, 40] + [80] * 5, [1] * 5 + [2] * 8)
+    base = evaluate(single, viable_floor=floor, dwell_k=k, variety_bin=bin_)
+    got = evaluate_segments(single, viable_floor=floor, dwell_k=k, variety_bin=bin_)
+    cases.append({"case": "single_disturbance_agrees_with_base_instrument",
+                  "passed": bool(len(got) == 1
+                                 and got[0].perturbation_tick == base.perturbation_tick
+                                 and got[0].recovery_steps == base.recovery_steps
+                                 and got[0].dwell_outside == base.dwell_outside),
+                  "observed": {"base": base.recovery_steps, "segment": got[0].recovery_steps}})
+
+    # Three disturbances, three recoveries.  The base instrument reports the
+    # first and pools the rest; this must report each.
+    three = rows([90] * 5 + [40, 40, 40] + [90] * 7 + [40, 40, 40] + [90] * 7 + [40, 40, 40] + [90] * 7,
+                 [1] * 5 + [2] * 10 + [3] * 10 + [4] * 10)
+    case("three_disturbances_yield_three_segments",
+         three, lambda r: len(r) == 3 and [x.recovery_steps for x in r] == [3, 3, 3])
+
+    # The design question: a shortening sequence must come out as different
+    # numbers, not as one pooled figure.
+    faster = rows([90] * 5 + [40] * 5 + [90] * 5 + [40] * 3 + [90] * 7 + [40] + [90] * 9,
+                  [1] * 5 + [2] * 10 + [3] * 10 + [4] * 10)
+    case("shortening_recoveries_are_separable",
+         faster, lambda r: len(r) == 3 and r[0].recovery_steps > r[1].recovery_steps > r[2].recovery_steps)
+
+    # Cut short by the next disturbance: not censoring, not failure.
+    cut = rows([90] * 5 + [40] * 10 + [90] * 10, [1] * 5 + [2] * 10 + [3] * 10)
+    case("segment_cut_by_next_disturbance_is_interrupted",
+         cut, lambda r: len(r) == 2 and r[0].recovery_steps is None
+              and r[0].interrupted is True and r[0].censored is False)
+
+    # Only the last segment can be right-censored.
+    censored = rows([90] * 5 + [40] * 5 + [90] * 5 + [40] * 5, [1] * 5 + [2] * 10 + [3] * 5)
+    case("only_the_last_segment_can_be_censored",
+         censored, lambda r: len(r) == 2 and r[0].censored is False
+              and r[1].censored is True and r[1].interrupted is False)
+
+    report = {"schema_version": "terrario.lab.metric-construct-validation/v1",
+              "metric_id": SEGMENT_METRIC_ID, "metric_version": SEGMENT_METRIC_VERSION,
+              "evaluator_version": SEGMENT_EVALUATOR_VERSION, "scope": VALIDATION_SCOPE,
               "parameters": {"viable_floor": floor, "dwell_k": k, "variety_bin": bin_},
               "cases": tuple(cases),
               "all_passed": all(c["passed"] for c in cases)}

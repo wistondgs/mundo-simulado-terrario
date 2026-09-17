@@ -1,0 +1,101 @@
+# D4T -- variedad temporal de la perturbación.
+#
+# D4S declara UN evento de cambio, así que mide una excursión y no puede
+# preguntar nada sobre secuencia, recurrencia ni acumulación.  Aquí la misma
+# clase de perturbación -- inversión completa del mapeo canal->signo -- se
+# repite tres veces a intervalos iguales.
+#
+# Lo que se mantiene constante es deliberado y es el control del diseño:
+#
+#   misma clase de perturbación   aísla recurrencia de variedad de TIPO (eso es D4V)
+#   intervalos iguales (300)      "la segunda recuperación fue más rápida" no puede
+#                                 explicarse por haber dispuesto de más tiempo
+#   change_jitter ausente (0)     el calendario es idéntico entre semillas, así que
+#                                 dos brazos pareados ven exactamente las mismas D
+#   ventana final = intervalo     la última recuperación se observa tanto como las otras
+#
+# Economía idéntica a d4_adaptation_scientific: max_energy 100, coste 0.06/paso,
+# inicio 60.  Con duración 1200 el decaimiento suma -72, así que el organismo
+# tiene que comer para llegar al final; la presión de viabilidad es real y no
+# decorativa.  Difiere de D4S en duración (1200 frente a 1000) porque tres
+# ventanas iguales más una fase de adquisición no caben en 1000.
+scenario:
+  name: "d4_temporal_variety"
+  observer_phases: ["ACQUISITION", "CAUSAL_CHANGE_1", "CAUSAL_CHANGE_2", "CAUSAL_CHANGE_3"]
+  grid_size: [14, 14]
+  duration: 1200
+  max_energy: 100.0
+  step_energy_cost: 0.06
+  expose_time_fraction: false
+  seed: 42
+  view_radius: 2
+  num_channels: 4
+  agent_start:
+    pos: [7, 7]
+    energy: 60.0
+  procedural_layout:
+    placement_margin: 1
+    class_templates:
+      A:
+        count: 16
+        channels: [0.82, 0.18, 0.35, 0.12]
+      B:
+        count: 16
+        channels: [0.18, 0.82, 0.12, 0.35]
+  opportunity_lifecycle:
+    cooldown_steps: [3, 8]
+    minimum_agent_distance: 2
+    placement_margin: 1
+    recent_position_exclusion: 2
+  rules:
+    rules:
+      - id: "causal_A_positive"
+        condition:
+          object_channel: {index: 0, min: 0.70}
+          action: "CONSUME"
+        effect: {energy_delta: 1.0, destroy_object: true}
+      - id: "causal_B_negative"
+        condition:
+          object_channel: {index: 0, max: 0.30}
+          action: "CONSUME"
+        effect: {energy_delta: -1.0, destroy_object: true}
+  changes:
+    - at_step: 300
+      rules:
+        rules:
+          - id: "causal_A_negative"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+          - id: "causal_B_positive"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}
+    - at_step: 600
+      rules:
+        rules:
+          - id: "causal_A_positive"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}
+          - id: "causal_B_negative"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+    - at_step: 900
+      rules:
+        rules:
+          - id: "causal_A_negative"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+          - id: "causal_B_positive"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}

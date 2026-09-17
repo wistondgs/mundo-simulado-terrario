@@ -25,7 +25,12 @@ class WorldScenarioRegistry:
         # and viability can never be threatened; `d4_adaptation_scientific.yaml`
         # declares step_energy_cost 0.06 and the ACQUISITION/CAUSAL_CHANGE/RECOVERY
         # phases, which is what an ultrastability measurement needs.
-        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml","D4S":"d4_adaptation_scientific.yaml"}; result=[]
+        #
+        # D4T is additive for the same reason and declares THREE change events at
+        # equal intervals.  It is the only scenario that exercises what
+        # ChangeScheduler.check has always supported -- firing every due entry --
+        # and the only one whose DifficultyProfile.rule_volatility is not 1.
+        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml","D4S":"d4_adaptation_scientific.yaml","D4T":"d4_temporal_variety.yaml"}; result=[]
         for did,name in files.items():
             path=self.root/"scenarios"/name
             if not path.is_file(): result.append(RegistryEntry(did,"NOT_STARTED",str(path),(),None,None)); continue
