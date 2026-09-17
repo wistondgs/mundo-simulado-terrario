@@ -101,14 +101,19 @@ def test_every_mesh_survives_the_emptiest_mix(tmp_path):
     # that concept, which is the whole requirement.
     incondicionales = {"pasos_vividos", "sigue_vivo", "energia_final", "balance_energia",
                        "acciones_distintas", "variedad_conductual", "indecision_media", "actualizaciones",
-                       "perturbaciones_vistas", "el_mundo_actua", "comidas_efectivas"}
+                       "perturbaciones_vistas", "el_mundo_actua", "comidas_efectivas",
+                       "tasa_oportunidad", "tasa_interaccion", "tasa_informativa"}
     assert incondicionales <= definidas
 
     # EVENT-CONDITIONAL: undefined when the event never happened, which is a
     # fact about the episode and not about the ablation. They report themselves
     # as not evaluable rather than as zero, and `effects()` drops the pair
     # instead of averaging a number nobody measured.
-    condicionales = {"aciertos_al_comer", "mejor_tramo_al_comer", "cambio_propio"}
+    # tasa_direccionamiento is conditional on there having been an opportunity
+    # at all, and conversion on there having been something to convert: with no
+    # denominator the honest answer is "not evaluable", never zero.
+    condicionales = {"aciertos_al_comer", "mejor_tramo_al_comer", "cambio_propio",
+                     "tasa_direccionamiento", "conversion_aprendizaje"}
     assert {m["key"] for m in medido["measures"]} == incondicionales | condicionales
 
 
@@ -157,3 +162,46 @@ def test_the_best_segment_is_reported_per_stable_rule_window():
     medido = measure_run(rows)
     assert _valor(medido, "aciertos_al_comer")["value"] == 0.5
     assert _valor(medido, "mejor_tramo_al_comer")["value"] == 1.0
+
+
+def test_the_five_rates_locate_the_broken_link_instead_of_naming_death():
+    """Each drop between consecutive rates accuses a different component."""
+    # Adjacent object every step, CONSUME every step, always aimed at it.
+    filas = []
+    for i in range(6):
+        filas.append({
+            "step": i, "agent_action": {"action_type": "CONSUME", "direction": "RIGHT"},
+            "observer_world": {"agents": [{"pos": {"x": 3, "y": 3}, "energy": 60.0 - i, "alive": True}],
+                               "objects": [{"pos": {"x": 3, "y": 4}}],
+                               "max_energy": 100.0, "rules_version": 1},
+            "scientific_state": {"policy_entropy": 1.0, "parameter_delta_norm": "NOT_APPLICABLE",
+                                 "learning_summary": {"update_count": 0}}})
+    medido = measure_run(filas)
+    assert _valor(medido, "tasa_oportunidad")["value"] == 1.0
+    assert _valor(medido, "tasa_direccionamiento")["value"] == 1.0
+
+    # Same opportunity, same desire, aimed the wrong way: the channel fails and
+    # the organism is not to blame. That distinction is the point.
+    for f in filas:
+        f["agent_action"]["direction"] = "LEFT"
+    mal = measure_run(filas)
+    assert _valor(mal, "tasa_oportunidad")["value"] == 1.0
+    assert _valor(mal, "tasa_interaccion")["value"] == 1.0
+    assert _valor(mal, "tasa_direccionamiento")["value"] == 0.0
+
+
+def test_addressing_is_measured_against_the_world_the_action_saw():
+    """A successful consume removes its target, so pairing a step's action with
+    its own recorded world scored every success as a miss."""
+    antes = {"step": 0, "agent_action": {"action_type": "NOOP", "direction": "NONE"},
+             "observer_world": {"agents": [{"pos": {"x": 2, "y": 2}, "energy": 60.0, "alive": True}],
+                                "objects": [{"pos": {"x": 2, "y": 3}}],
+                                "max_energy": 100.0, "rules_version": 1},
+             "scientific_state": {}}
+    despues = {"step": 1, "agent_action": {"action_type": "CONSUME", "direction": "RIGHT"},
+               "observer_world": {"agents": [{"pos": {"x": 2, "y": 2}, "energy": 61.0, "alive": True}],
+                                  "objects": [],          # comido: ya no está
+                                  "max_energy": 100.0, "rules_version": 1},
+               "scientific_state": {}}
+    medido = measure_run([antes, despues])
+    assert _valor(medido, "tasa_direccionamiento")["value"] == 1.0

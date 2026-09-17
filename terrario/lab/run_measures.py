@@ -58,6 +58,62 @@ def _entropy(counts: Sequence[int]) -> float:
     return -sum((n / total) * log(n / total, 2) for n in counts if n)
 
 
+def _cadena(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    """The five rates, so a failure can be LOCATED instead of narrated.
+
+    "It died" names no component.  These separate the links of the chain that
+    runs from an opportunity existing to a decision changing, and each drop
+    between consecutive rates accuses a different part of the system:
+
+        opportunity -> addressing   the action channel could not EXPRESS it
+        addressing  -> interaction  the policy chose not to
+        interaction -> informative  the world returned nothing to learn from
+        informative -> conversion   the learner did not use what it got
+
+    Measured entirely from sealed observer data.  `objects` and `agents` are
+    world truth, which the laboratory may read and the policy may not.
+    """
+    def entidades(x):
+        return list(x.values()) if isinstance(x, Mapping) else list(x or [])
+
+    def punto(p):
+        return (p["x"], p["y"]) if isinstance(p, Mapping) else tuple(p)
+
+    oportunidad = direccionable = interaccion = 0
+    # The world in a trace step is recorded AFTER that step's action, so an
+    # object successfully consumed is already gone from it. Pairing a step's
+    # action with its own recorded world scored every successful consume as
+    # "did not point at anything" -- the rate came out 0.0 even for the random
+    # agent that was demonstrably eating. The action at step i was chosen
+    # against the world left by step i-1, and that is the pairing below.
+    for anterior, row in zip(rows, rows[1:]):
+        mundo = anterior.get("observer_world") or {}
+        agentes = entidades(mundo.get("agents"))
+        if not agentes or not isinstance(agentes[0], Mapping) or "pos" not in agentes[0]:
+            # A trace without positions cannot say whether anything was
+            # adjacent.  Skipped rather than counted as "no opportunity",
+            # which would report a channel failure where there is only a
+            # missing field.
+            continue
+        ax, ay = punto(agentes[0]["pos"])
+        vecinos = [o for o in entidades(mundo.get("objects"))
+                   if abs(punto(o["pos"])[0] - ax) + abs(punto(o["pos"])[1] - ay) == 1]
+        accion = row.get("agent_action") or {}
+        consume = accion.get("action_type") == "CONSUME"
+        if vecinos:
+            oportunidad += 1
+            # Addressable: the action as encoded actually points at one of them.
+            # With 25 actions this is `direction`, and NONE points nowhere.
+            delta = {"UP": (-1, 0), "DOWN": (1, 0), "LEFT": (0, -1), "RIGHT": (0, 1)}
+            d = delta.get(accion.get("direction"))
+            if consume and d and any(punto(o["pos"]) == (ax + d[0], ay + d[1]) for o in vecinos):
+                direccionable += 1
+        if consume:
+            interaccion += 1
+    return {"oportunidad": oportunidad, "direccionable": direccionable,
+            "intentos": interaccion, "pasos": max(len(rows) - 1, 0)}
+
+
 def _eating(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
     """Did a CONSUME gain or lose energy, judged against the step's own cost.
 
@@ -145,6 +201,10 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
     energy = final_agent.get("energy")
     start = initial_agent.get("energy")
     eating = _eating(rows)
+    cadena = _cadena(rows)
+    n = len(rows)
+    tasa = lambda num, den: round(num / den, 4) if den else None
+    decisiones = cadena["pasos"]
     # Any movement at all, not just net movement: an organism that spent and ate
     # back to par is in a live world; one whose energy never changed is not.
     levels = {round(float(_agents(row)["energy"]), 6) for row in rows
@@ -220,6 +280,31 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
                 eating["best_segment"], "de 1",
                 "El mejor acierto dentro de un tramo con reglas estables. Si nunca sube de 0.5 "
                 "en NINGÚN tramo, no aprendió el mapeo en ninguna de sus versiones.",
+                evaluable=eating["best_segment"] is not None,
+                reason=None if eating["best_segment"] is not None else NOT_EVALUABLE),
+        # The five rates of §8. Read them in order: the first drop names the
+        # broken link, and every one of them is defined for every mix.
+        Measure("tasa_oportunidad", "Tuvo algo al lado", tasa(cadena["oportunidad"], decisiones), "de 1",
+                "Fracción de pasos con un objeto adyacente. Si es baja, el problema es el mundo."),
+        Measure("tasa_direccionamiento", "Pudo APUNTAR a lo que tenía al lado",
+                tasa(cadena["direccionable"], cadena["oportunidad"]), "de 1",
+                "De las oportunidades, cuántas la acción llegó a señalar. Una caída aquí acusa al "
+                "CANAL DE ACCIÓN, no al organismo: con 25 acciones hay que acertar 1 de 5 "
+                "direcciones y NONE no apunta a ninguna casilla.",
+                evaluable=cadena["oportunidad"] > 0,
+                reason=None if cadena["oportunidad"] else NOT_EVALUABLE),
+        Measure("tasa_interaccion", "Quiso interactuar", tasa(cadena["intentos"], decisiones), "de 1",
+                "Fracción de pasos en que eligió CONSUME, haya o no algo. Alta con "
+                "direccionamiento bajo es un organismo que quiere y no puede."),
+        Measure("tasa_informativa", "Recibió algo que enseñe",
+                tasa(eating["effective"], n), "de 1",
+                "Fracción de pasos que devolvieron consecuencia discriminativa. Es el eje X "
+                "real del aprendizaje: sin exposiciones no hay nada que aprender, por mucho "
+                "tiempo que pase."),
+        Measure("conversion_aprendizaje", "Convirtió evidencia en acierto",
+                eating["best_segment"], "de 1",
+                "Mejor acierto dentro de un tramo de reglas estables. Con exposiciones "
+                "suficientes y esto en 0.5, el fallo es del aprendizaje y no del canal.",
                 evaluable=eating["best_segment"] is not None,
                 reason=None if eating["best_segment"] is not None else NOT_EVALUABLE),
         Measure("el_mundo_actua", "La energía se movió alguna vez", bool(moved), "sí/no",
