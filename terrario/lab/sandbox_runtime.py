@@ -143,8 +143,16 @@ class SandboxService:
         return trace
     def _step_runtime(self,run,r):
         step=len(run.timeline); s=r["scenario"]; world=r["world"]; agent=r["agent"]
-        obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4)); agent.perceive(obs); action=agent.decide()
-        action,provenance=_apply_action_contract(world,obs,action,agent,step,run.spec.world_seed)
+        obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4)); agent.perceive(obs)
+        # The slot table is built BEFORE the decision and the same table resolves
+        # it. Building it afterwards meant the organism chose a slot against one
+        # view of the world and was judged against another -- and it also made
+        # behavioural parity impossible, because an agent cannot map a slot onto
+        # the direction that reaches it without knowing where the slots are.
+        targets=_perceived(world,obs,agent,step,run.spec.world_seed)
+        if targets is not None and hasattr(agent,"offer_targets"): agent.offer_targets(targets[0])
+        action=agent.decide()
+        action,provenance=_apply_action_contract(world,obs,action,agent,step,targets)
         changes=r["scheduler"].check(world,step); target=_find_target(world,action); physical=r["physics"].step(world,{0:action},RNGManager(run.spec.world_seed+step)); effects=r["rules"].evaluate(world,0,action,target); delta=r["rules"].apply_effects(world,0,target.object_id,effects) if target else 0.0; delta+=world.apply_step_energy_cost(0)
         consequence=physical.get(0,Consequence(delta,[]));consequence.energy_delta=delta; next_obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4));terminated=not world._mutable_state().agents[0].alive; consequence.new_observation=next_obs;consequence.done=terminated or step+1>=run.spec.step_limit
         transition=Transition(obs,str(agent.get_internal_state()),action,consequence,next_obs,terminated,step+1>=run.spec.step_limit,step,run.spec.agent_seed);agent.learn(transition)
@@ -205,7 +213,15 @@ def classify_error(exc):
 def _plain(x):
     from terrario.lab.models import thaw
     return thaw(x)
-def _apply_action_contract(world,obs,action,agent,step,world_seed):
+def _perceived(world,obs,agent,step,world_seed):
+    """The slot table, or None when this agent does not address entities."""
+    mode=getattr(agent,"_addressing_mode",None)
+    if mode is None or mode is AddressingMode.T0_DIRECTIONAL: return None
+    return perceive_targets(world._mutable_state(),0,obs.channels.shape[-1],
+                            salt=f"{world_seed}",step=step,mask=obs.mask)
+
+
+def _apply_action_contract(world,obs,action,agent,step,perceived):
     """Resolve the organism's intention against what it could actually perceive.
 
     Under T0 this is a no-op by construction: the directional contract needs no
@@ -222,11 +238,10 @@ def _apply_action_contract(world,obs,action,agent,step,world_seed):
     handed an entity the organism never perceived (AC2-2), because the only
     writer is a resolution that came out of the agent's own view window.
     """
-    mode=getattr(agent,"_addressing_mode",None)
-    if mode is None or mode is AddressingMode.T0_DIRECTIONAL: return action,{}
+    if perceived is None: return action,{}
+    mode=getattr(agent,"_addressing_mode",AddressingMode.T1_ENTITY)
     truth=world._mutable_state()
-    view=obs.channels.shape[-1]
-    targets,truncated=perceive_targets(truth,0,view,salt=f"{world_seed}",step=step,mask=obs.mask)
+    targets,truncated=perceived
     # An operation that addresses space rather than an entity -- MOVE, NOOP --
     # arrives in v1 shape even under T1, with the direction in `direction` and no
     # selector value. Normalising here keeps `Domain(s, O_t)` a property of the

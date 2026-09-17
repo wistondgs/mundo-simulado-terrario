@@ -47,6 +47,9 @@ from terrario.core.types import (
     NUM_ACTION_TYPES, NUM_DIRECTIONS, TOTAL_ACTIONS, Action, ActionType, Direction, Observation,
 )
 
+_DIRECTION_OF_OFFSET = {(-1, 0): Direction.UP, (1, 0): Direction.DOWN,
+                        (0, -1): Direction.LEFT, (0, 1): Direction.RIGHT}
+
 DEFAULT_CONFIG: dict[str, Any] = {
     "use_temporal": True,
     "use_episodic_memory": True,
@@ -208,6 +211,7 @@ class A4Advanced(AgentInterface):
         if self._use_factored_action:
             self.operation_head = torch.nn.Linear(self._state_dim, NUM_ACTION_TYPES)
             self.selector_head = torch.nn.Linear(self._state_dim, self._selector_dim)
+        self._offered_targets: list[Any] = []
         if entity:
             # The selector's DOMAIN depends on the operation: v in Domain(s, O_t).
             # MOVE and NOOP address space, not entities -- there is no such thing
@@ -220,6 +224,24 @@ class A4Advanced(AgentInterface):
             # denominator of 1. T must vary addressing and nothing else, and
             # locomotion is not addressing.
             self.direction_head = torch.nn.Linear(self._state_dim, NUM_DIRECTIONS)
+            # BEHAVIOURAL PARITY INITIALISATION.
+            #
+            # An independently initialised entity head makes T1 mean four things
+            # at once: a new selector, new parameters, a new initial policy
+            # distribution and a new collapse dynamic. Nothing is attributable.
+            #
+            # Instead the slot logit is the directional logit of the direction
+            # that REACHES that slot, plus a residual:
+            #
+            #     logit_T1(e) = logit_T0(d(e)) + r(e),     r(e) = 0 at t=0
+            #
+            # The residual head is zeroed, so at the first step T1 emits exactly
+            # the distribution T0 would have emitted. T1 therefore adds
+            # representational capacity WITHOUT introducing new random behaviour,
+            # and anything that diverges later diverged by learning.
+            self.selector_residual = torch.nn.Linear(self._state_dim, MAX_TARGET_SLOTS)
+            torch.nn.init.zeros_(self.selector_residual.weight)
+            torch.nn.init.zeros_(self.selector_residual.bias)
 
         # ── Entropy regularisation of the policy ─────────────────────
         self._use_entropy_regularization: bool = self.config["use_entropy_regularization"]
@@ -254,6 +276,7 @@ class A4Advanced(AgentInterface):
             learnable_modules["selector_head"] = self.selector_head
         if hasattr(self, "direction_head"):
             learnable_modules["direction_head"] = self.direction_head
+            learnable_modules["selector_residual"] = self.selector_residual
 
         self.learner = OnlineLearner(
             modules=learnable_modules,
@@ -329,6 +352,36 @@ class A4Advanced(AgentInterface):
             "latent_norm": self._last_latent.norm().item(),
             "agent_energy": observation.agent_energy,
         })
+
+    def offer_targets(self, targets: list[Any]) -> None:
+        """Receive the slot table for this step, before deciding.
+
+        The organism already perceives these entities through its channels; the
+        table is a derived view of its own observation, not new information. What
+        it adds is the mapping from slot to relative offset, which is what makes
+        parity with the directional contract expressible.
+        """
+        self._offered_targets = list(targets)
+
+    def _slot_logits(self, state: torch.Tensor, temperature: float) -> torch.Tensor:
+        """Directional prior over slots, plus a residual that starts at zero."""
+        directional = self.direction_head(state) / temperature
+        residual = self.selector_residual(state)
+        logits = torch.full((MAX_TARGET_SLOTS,), -1e9,
+                            device=state.device, dtype=state.dtype)
+        for target in self._offered_targets:
+            dx, dy = target.offset
+            # Only a slot in contact has a direction that reaches it; one further
+            # away inherits the NONE prior, which under T0 is the choice that
+            # reaches no cell. Same prior, same meaning.
+            direction = _DIRECTION_OF_OFFSET.get((dx, dy), Direction.NONE)
+            logits[target.slot] = directional[int(direction)] + residual[target.slot]
+        if not self._offered_targets:
+            # Nothing perceived: no slot can be preferred, and a uniform choice
+            # over an empty table is the honest distribution. Masking everything
+            # would make the softmax undefined.
+            logits = residual
+        return logits
 
     def decide(self) -> Action:
         if self._last_latent is None:
@@ -416,8 +469,10 @@ class A4Advanced(AgentInterface):
             addresses_entity = (self._selector_type is SelectorType.TARGET_ID
                                 and operation in TARGET_BEARING_OPERATIONS)
             if addresses_entity:
-                sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
-                sel_log = torch.log(sel_probs[sel] + 1e-8)
+                slot_logits = self._slot_logits(state, temperature)
+                slot_probs = F.softmax(slot_logits, dim=-1)
+                sel = int(torch.multinomial(slot_probs, 1, generator=self._generator).item())
+                sel_log = torch.log(slot_probs[sel] + 1e-8)
                 direction = Direction.NONE
             elif hasattr(self, "direction_head"):
                 dir_probs = F.softmax(self.direction_head(state) / temperature, dim=-1)

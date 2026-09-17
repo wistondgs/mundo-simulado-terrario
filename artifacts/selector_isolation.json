@@ -1,0 +1,2073 @@
+{
+  "schema_version": "terrario.lab.selector-isolation/v1",
+  "classification": "ENGINEERING_SANDBOX_NOT_EVIDENCE",
+  "world": "D4T",
+  "bank_size": 3000,
+  "exogenous_affordance_rate": {
+    "status": "OK",
+    "value": 0.4806666666666667,
+    "support": 3000,
+    "reason": null
+  },
+  "intention_representability": {
+    "T0_DIRECTIONAL": {
+      "mode": "T0_DIRECTIONAL",
+      "representability": {
+        "status": "OK",
+        "value": 1.0,
+        "support": 1894,
+        "reason": null
+      },
+      "intentions": 1894,
+      "realisable": 1894,
+      "unrepresentable_examples": []
+    },
+    "T1_ENTITY": {
+      "mode": "T1_ENTITY",
+      "representability": {
+        "status": "OK",
+        "value": 1.0,
+        "support": 1894,
+        "reason": null
+      },
+      "intentions": 1894,
+      "realisable": 1894,
+      "unrepresentable_examples": []
+    }
+  },
+  "intervention_isolation": {
+    "INTERVENTION_ISOLATION": "PASS",
+    "pairs": 3000,
+    "failures": 0,
+    "first_failures": [],
+    "rule": "the first permitted difference is selector_representation; a difference at any earlier link means T changed something other than addressing, and no rollout length repairs that"
+  },
+  "summary": {
+    "decisions": 3000,
+    "with_affordance": 1442,
+    "t0_resolvability": {
+      "status": "OK",
+      "value": 0.27184466019417475,
+      "support": 1442,
+      "reason": null
+    },
+    "t1_resolvability": {
+      "status": "OK",
+      "value": 0.3273231622746186,
+      "support": 1442,
+      "reason": null
+    },
+    "agreed_on_the_same_entity": 136,
+    "t0_status_counts": {
+      "NONEXISTENT": 2608,
+      "VALID": 392
+    },
+    "t1_status_counts": {
+      "OUT_OF_RANGE": 2378,
+      "VALID": 472,
+      "NONEXISTENT": 150
+    }
+  },
+  "rows": [
+    {
+      "snapshot": "seed42#0",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#1",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#2",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#3",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 23
+    },
+    {
+      "snapshot": "seed42#4",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#5",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#6",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#7",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 7,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#8",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 3
+    },
+    {
+      "snapshot": "seed42#9",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 26
+    },
+    {
+      "snapshot": "seed42#10",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 3
+    },
+    {
+      "snapshot": "seed42#11",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 14,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#12",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#13",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 23,
+      "t1_entity": 1
+    },
+    {
+      "snapshot": "seed42#14",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#15",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 27
+    },
+    {
+      "snapshot": "seed42#16",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed42#17",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#18",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 1
+    },
+    {
+      "snapshot": "seed42#19",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#20",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 17,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#21",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#22",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#23",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#24",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#25",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#26",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#27",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 14,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#28",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#29",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 27
+    },
+    {
+      "snapshot": "seed42#30",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#31",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#32",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 5,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#33",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#34",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#35",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#36",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 19
+    },
+    {
+      "snapshot": "seed42#37",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#38",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 23
+    },
+    {
+      "snapshot": "seed42#39",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#40",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#41",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed42#42",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#43",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 13
+    },
+    {
+      "snapshot": "seed42#44",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed42#45",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 27
+    },
+    {
+      "snapshot": "seed42#46",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 9
+    },
+    {
+      "snapshot": "seed42#47",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#48",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#49",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#50",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 8
+    },
+    {
+      "snapshot": "seed42#51",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#52",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#53",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed42#54",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#55",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 26,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#56",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 5,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#57",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#58",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 4,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#59",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#60",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 27,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed42#61",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 20
+    },
+    {
+      "snapshot": "seed42#62",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 8
+    },
+    {
+      "snapshot": "seed42#63",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#64",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#65",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 20
+    },
+    {
+      "snapshot": "seed42#66",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#67",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#68",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#69",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 23
+    },
+    {
+      "snapshot": "seed42#70",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 15
+    },
+    {
+      "snapshot": "seed42#71",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#72",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#73",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#74",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#75",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#76",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 23
+    },
+    {
+      "snapshot": "seed42#77",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#78",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#79",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed42#80",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#81",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 3,
+      "t1_entity": 3
+    },
+    {
+      "snapshot": "seed42#82",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#83",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#84",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#85",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#86",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#87",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#88",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 14,
+      "t1_entity": 26
+    },
+    {
+      "snapshot": "seed42#89",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed42#90",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed42#91",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 7,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#92",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 9,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#93",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#94",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#95",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 9
+    },
+    {
+      "snapshot": "seed42#96",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 9
+    },
+    {
+      "snapshot": "seed42#97",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#98",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed42#99",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#100",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#101",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed42#102",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed42#103",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 3
+    },
+    {
+      "snapshot": "seed42#104",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#105",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#106",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 29
+    },
+    {
+      "snapshot": "seed42#107",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#108",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#109",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#110",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#111",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#112",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#113",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#114",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#115",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#116",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#117",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 1
+    },
+    {
+      "snapshot": "seed42#118",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#119",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed42#120",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#121",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#122",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed42#123",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 13
+    },
+    {
+      "snapshot": "seed42#124",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#125",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#126",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#127",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 27
+    },
+    {
+      "snapshot": "seed42#128",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 16
+    },
+    {
+      "snapshot": "seed42#129",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed42#130",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed42#131",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 27
+    },
+    {
+      "snapshot": "seed42#132",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "NONEXISTENT",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": null
+    },
+    {
+      "snapshot": "seed42#133",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 29
+    },
+    {
+      "snapshot": "seed42#134",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 26,
+      "t1_entity": 26
+    },
+    {
+      "snapshot": "seed42#135",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 4
+    },
+    {
+      "snapshot": "seed42#136",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#137",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed42#138",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 1
+    },
+    {
+      "snapshot": "seed42#139",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 24,
+      "t1_entity": 19
+    },
+    {
+      "snapshot": "seed42#140",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 20
+    },
+    {
+      "snapshot": "seed42#141",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 13
+    },
+    {
+      "snapshot": "seed42#142",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#143",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed42#144",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#145",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 5
+    },
+    {
+      "snapshot": "seed42#146",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 6
+    },
+    {
+      "snapshot": "seed42#147",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed42#148",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 14
+    },
+    {
+      "snapshot": "seed42#149",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed43#0",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 12
+    },
+    {
+      "snapshot": "seed43#1",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 18,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed43#2",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed43#3",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 10
+    },
+    {
+      "snapshot": "seed43#4",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 15
+    },
+    {
+      "snapshot": "seed43#5",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 29
+    },
+    {
+      "snapshot": "seed43#6",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#7",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed43#8",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed43#9",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 19
+    },
+    {
+      "snapshot": "seed43#10",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 17
+    },
+    {
+      "snapshot": "seed43#11",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 13
+    },
+    {
+      "snapshot": "seed43#12",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 31
+    },
+    {
+      "snapshot": "seed43#13",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#14",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 0
+    },
+    {
+      "snapshot": "seed43#15",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed43#16",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 3
+    },
+    {
+      "snapshot": "seed43#17",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 21
+    },
+    {
+      "snapshot": "seed43#18",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 31
+    },
+    {
+      "snapshot": "seed43#19",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed43#20",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 2,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#21",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 29
+    },
+    {
+      "snapshot": "seed43#22",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed43#23",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#24",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 19
+    },
+    {
+      "snapshot": "seed43#25",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 9
+    },
+    {
+      "snapshot": "seed43#26",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#27",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 23
+    },
+    {
+      "snapshot": "seed43#28",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed43#29",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 31
+    },
+    {
+      "snapshot": "seed43#30",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed43#31",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed43#32",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed43#33",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 7
+    },
+    {
+      "snapshot": "seed43#34",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed43#35",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": true,
+      "t1_resolved": false,
+      "t0_entity": 15,
+      "t1_entity": 20
+    },
+    {
+      "snapshot": "seed43#36",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 30
+    },
+    {
+      "snapshot": "seed43#37",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 25
+    },
+    {
+      "snapshot": "seed43#38",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 28
+    },
+    {
+      "snapshot": "seed43#39",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 18
+    },
+    {
+      "snapshot": "seed43#40",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 15
+    },
+    {
+      "snapshot": "seed43#41",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 8
+    },
+    {
+      "snapshot": "seed43#42",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    },
+    {
+      "snapshot": "seed43#43",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "VALID",
+      "t0_resolved": false,
+      "t1_resolved": true,
+      "t0_entity": null,
+      "t1_entity": 24
+    },
+    {
+      "snapshot": "seed43#44",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 8
+    },
+    {
+      "snapshot": "seed43#45",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 2
+    },
+    {
+      "snapshot": "seed43#46",
+      "had_affordance": true,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 8
+    },
+    {
+      "snapshot": "seed43#47",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 11
+    },
+    {
+      "snapshot": "seed43#48",
+      "had_affordance": true,
+      "t0_status": "VALID",
+      "t1_status": "VALID",
+      "t0_resolved": true,
+      "t1_resolved": true,
+      "t0_entity": 17,
+      "t1_entity": 31
+    },
+    {
+      "snapshot": "seed43#49",
+      "had_affordance": false,
+      "t0_status": "NONEXISTENT",
+      "t1_status": "OUT_OF_RANGE",
+      "t0_resolved": false,
+      "t1_resolved": false,
+      "t0_entity": null,
+      "t1_entity": 22
+    }
+  ]
+}
