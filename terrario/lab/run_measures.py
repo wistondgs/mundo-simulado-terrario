@@ -128,6 +128,74 @@ def _cadena(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
             "intentos": interaccion, "pasos": max(len(rows) - 1, 0)}
 
 
+def _realizacion(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    """Deciding correctly and executing correctly are different failures.
+
+    Until now the chain ran opportunity -> addressing -> outcome, and everything
+    between "the organism named a real, reachable thing" and "the world did
+    something to that thing" was one undifferentiated gap. An intention that
+    resolves and then is not carried out looks identical, from the outside, to an
+    intention that never resolved.
+
+        P(executed target == intended target | the intention resolved)
+
+    Defined only where v2 provenance exists, because v1 records no intention to
+    compare against -- and NOT_EVALUABLE is the correct answer there, not 1.0.
+    """
+    validas = realizadas = 0
+    for row in rows:
+        contrato = (row.get("agent_action") or {}).get("action_contract")
+        if not contrato or contrato.get("target_status") != "VALID":
+            continue
+        validas += 1
+        if (contrato.get("executed_target") is not None
+                and contrato.get("executed_target") == contrato.get("intended_target")):
+            realizadas += 1
+    return {"validas": validas, "realizadas": realizadas}
+
+
+def _energy_ledger(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    """Every change in energy must be attributable to a declared flow.
+
+    The metabolic baseline used to be RECONSTRUCTED after the fact, as the median
+    idle delta, and a reconstruction is only as good as its assumption that the
+    declared flows are the only ones. If a scenario later adds a cost or a gain,
+    the median absorbs it silently and every downstream reading shifts without
+    anything failing.
+
+    So this checks the ledger directly: on a step where nothing was consumed, the
+    energy change must equal minus the declared step cost. A step that does not
+    reconcile is an undeclared flow, and it is reported rather than smoothed --
+    the source of truth should be the ledger of metabolic transitions, not a
+    later inference about what probably happened.
+    """
+    declarado = (rows[0].get("observer_world") or {}).get("step_energy_cost") if rows else None
+    if not isinstance(declarado, (int, float)) or isinstance(declarado, bool):
+        return {"checked": 0, "reconciled": 0, "unexplained": (),
+                "reason": "NO_DECLARED_STEP_COST"}
+    niveles = []
+    for row in rows:
+        agent = _agents(row)
+        if not isinstance(agent.get("energy"), (int, float)):
+            return {"checked": 0, "reconciled": 0, "unexplained": (),
+                    "reason": "NO_ENERGY_SERIES"}
+        niveles.append(float(agent["energy"]))
+    revisados = conciliados = 0
+    sin_explicar = []
+    for index, (antes, despues) in enumerate(zip(niveles, niveles[1:]), start=1):
+        eventos = list(rows[index].get("agent_events") or ())
+        if any("consume" in str(e) for e in eventos):
+            continue  # a declared interaction flow; judged by _eating, not here
+        revisados += 1
+        if abs((despues - antes) + float(declarado)) <= 1e-6:
+            conciliados += 1
+        elif len(sin_explicar) < 5:
+            sin_explicar.append({"step": index, "observed_delta": round(despues - antes, 6),
+                                 "predicted_delta": -float(declarado)})
+    return {"checked": revisados, "reconciled": conciliados,
+            "unexplained": tuple(sin_explicar), "reason": None}
+
+
 def _eating(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
     """Did a CONSUME gain or lose energy, judged against the step's own cost.
 
@@ -234,6 +302,8 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
     start = initial_agent.get("energy")
     eating = _eating(rows)
     cadena = _cadena(rows)
+    realizacion = _realizacion(rows)
+    ledger = _energy_ledger(rows)
     n = len(rows)
     tasa = lambda num, den: round(num / den, 4) if den else None
     decisiones = cadena["pasos"]
@@ -339,6 +409,22 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
                 "suficientes y esto en 0.5, el fallo es del aprendizaje y no del canal.",
                 evaluable=eating["best_segment"] is not None,
                 reason=None if eating["best_segment"] is not None else NOT_EVALUABLE),
+        Measure("tasa_realizacion", "Ejecutó lo que había resuelto",
+                tasa(realizacion["realizadas"], realizacion["validas"]), "de 1",
+                "De las intenciones que SÍ resolvieron a una entidad real y alcanzable, "
+                "cuántas el mundo ejecutó contra esa misma entidad. Separa decidir bien "
+                "de ejecutar bien. Sin contrato v2 en la traza no hay intención que "
+                "comparar, y eso es no evaluable, no un 1.0.",
+                evaluable=realizacion["validas"] > 0,
+                reason=None if realizacion["validas"] else NOT_EVALUABLE),
+        Measure("contabilidad_energetica", "La energía cuadra con lo declarado",
+                tasa(ledger["reconciled"], ledger["checked"]), "de 1",
+                "Fracción de pasos sin consumo cuyo cambio de energía es exactamente el "
+                "coste declarado. Por debajo de 1 hay un flujo que el escenario no "
+                "declara, y entonces cualquier línea base reconstruida está midiendo "
+                "ese flujo sin saberlo.",
+                evaluable=ledger["checked"] > 0,
+                reason=None if ledger["checked"] else NOT_EVALUABLE),
         Measure("el_mundo_actua", "La energía se movió alguna vez", bool(moved), "sí/no",
                 "Si es 'no', el mundo no le está haciendo NADA al organismo y ninguna "
                 "medida de viabilidad o adaptación significa nada. Mirá esto primero."),

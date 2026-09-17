@@ -159,11 +159,31 @@ register(MetricSpec(
     valid_domain="traces carrying Action Contract v2 provenance",
     undefined_conditions=("no step produced a VALID resolution",),
     expected_range=(0.0, 1.0),
-    instrument_controls=(),
-    version=1,
-    exploratory=True,
-    notes="Separates deciding correctly from executing correctly. Not yet "
-          "controlled, so it may steer work and may not enter evidence.",
+    instrument_controls=("realization_faithful", "realization_substituted",
+                         "realization_no_contract"),
+    notes="Separates deciding correctly from executing correctly. The "
+          "substitution control is the one that matters: an instrument that "
+          "cannot tell a substituted referent from a faithful one cannot police "
+          "AC2-5, which is the invariant keeping addressing measurable at all.",
+))
+
+register(MetricSpec(
+    metric_id="contabilidad_energetica",
+    semantic_definition="Fraction of non-consuming steps whose energy change equals "
+                        "exactly the declared step cost.",
+    conditional_form="P(dV_observed == dV_declared | no interaction this step)",
+    numerator="non-consuming steps reconciling to within 1e-6",
+    denominator="non-consuming steps",
+    conditioning_set=("no consume event on the step",),
+    valid_domain="traces with an energy series and a declared step cost",
+    undefined_conditions=("no declared step cost", "no energy series",
+                          "every step consumed something"),
+    expected_range=(0.0, 1.0),
+    instrument_controls=("ledger_balanced", "ledger_undeclared_flow"),
+    notes="Below 1.0 there is a flow the scenario does not declare, and any "
+          "baseline reconstructed after the fact is silently measuring it. The "
+          "ledger of metabolic transitions is meant to be the source of truth; "
+          "this is the check that it still is.",
 ))
 
 

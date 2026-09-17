@@ -39,6 +39,7 @@ from terrario.core.action_contract import (
     IMPLEMENTED_MODES,
     MAX_TARGET_SLOTS,
     SELECTOR_OF_MODE,
+    TARGET_BEARING_OPERATIONS,
     AddressingMode,
     SelectorType,
 )
@@ -207,6 +208,18 @@ class A4Advanced(AgentInterface):
         if self._use_factored_action:
             self.operation_head = torch.nn.Linear(self._state_dim, NUM_ACTION_TYPES)
             self.selector_head = torch.nn.Linear(self._state_dim, self._selector_dim)
+        if entity:
+            # The selector's DOMAIN depends on the operation: v in Domain(s, O_t).
+            # MOVE and NOOP address space, not entities -- there is no such thing
+            # as moving "at" an object -- so they keep a direction under every
+            # addressing mode. Pinning their direction to NONE, which is what the
+            # first version of this did, does not change how the organism refers:
+            # it paralyses it. That arm measured a stationary agent -- one
+            # opportunity in three hundred steps against dozens for the same
+            # agent under T0, and a random policy scoring 1.0 addressing off a
+            # denominator of 1. T must vary addressing and nothing else, and
+            # locomotion is not addressing.
+            self.direction_head = torch.nn.Linear(self._state_dim, NUM_DIRECTIONS)
 
         # ── Entropy regularisation of the policy ─────────────────────
         self._use_entropy_regularization: bool = self.config["use_entropy_regularization"]
@@ -239,6 +252,8 @@ class A4Advanced(AgentInterface):
         if self._use_factored_action:
             learnable_modules["operation_head"] = self.operation_head
             learnable_modules["selector_head"] = self.selector_head
+        if hasattr(self, "direction_head"):
+            learnable_modules["direction_head"] = self.direction_head
 
         self.learner = OnlineLearner(
             modules=learnable_modules,
@@ -368,10 +383,42 @@ class A4Advanced(AgentInterface):
             sel_logits = self.selector_head(state)
             op_probs = F.softmax(op_logits / temperature, dim=-1)
             sel_probs = F.softmax(sel_logits / temperature, dim=-1)
+            # The planner has to stay in the loop. The factored branch returns
+            # before the planner refinement below, so a factored arm was not
+            # "the same organism addressing differently" -- it was an organism
+            # with no planner, and the screening showed the planner is one of
+            # only two modules that move behaviour at all (+6.7 meals). Comparing
+            # T0 against a plannerless T1 would have measured the ablation, not
+            # the contract. The planner proposes in the flat 25-space, so its
+            # OPERATION is taken here and the selector heads keep choosing the
+            # referent: the planner says what to do, addressing says on what.
             op = int(torch.multinomial(op_probs, 1, generator=self._generator).item())
-            sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
+            if (self._use_planner and self._use_world_model
+                    and torch.rand(1, generator=self._generator).item() < 0.5):
+                planned_action, _ = self.planner.plan(
+                    state, self.world_model,
+                    horizon=self.config["planner_horizon"],
+                    num_candidates=self.config["planner_candidates"],
+                )
+                op = int(planned_action) // NUM_DIRECTIONS
+            operation = ActionType(op)
+            addresses_entity = (self._selector_type is SelectorType.TARGET_ID
+                                and operation in TARGET_BEARING_OPERATIONS)
+            if addresses_entity:
+                sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
+                sel_log = torch.log(sel_probs[sel] + 1e-8)
+                direction = Direction.NONE
+            elif hasattr(self, "direction_head"):
+                dir_probs = F.softmax(self.direction_head(state) / temperature, dim=-1)
+                sel = int(torch.multinomial(dir_probs, 1, generator=self._generator).item())
+                sel_log = torch.log(dir_probs[sel] + 1e-8)
+                direction = Direction(sel)
+            else:
+                sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
+                sel_log = torch.log(sel_probs[sel] + 1e-8)
+                direction = Direction(sel)
             action_int = op * NUM_DIRECTIONS + (sel if sel < NUM_DIRECTIONS else 0)
-            log_prob = (torch.log(op_probs[op] + 1e-8) + torch.log(sel_probs[sel] + 1e-8))
+            log_prob = torch.log(op_probs[op] + 1e-8) + sel_log
             self._last_action, self._last_log_prob = action_int, log_prob
             self._last_logits, self._last_probs = op_logits.detach(), op_probs.detach()
             # The §1 invariant: what was INTENDED travels separately from what
@@ -392,10 +439,9 @@ class A4Advanced(AgentInterface):
             # cannot resolve anything: entity addressing must stand on its own,
             # or AC2-5 is violated by the physics falling back to a neighbour.
             return Action(
-                action_type=ActionType(op),
-                direction=Direction(sel) if sel < NUM_DIRECTIONS
-                and self._selector_type is SelectorType.DIRECTION else Direction.NONE,
-                selector_type=int(self._selector_type),
+                action_type=operation, direction=direction,
+                selector_type=int(SelectorType.TARGET_ID if addresses_entity
+                                  else SelectorType.DIRECTION),
                 selector_value=sel,
             )
 

@@ -36,7 +36,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from terrario.lab.run_measures import _cadena, _eating
+from terrario.lab.run_measures import _cadena, _eating, _energy_ledger, _realizacion
 
 ADJACENT = ((-1, 0), (1, 0), (0, -1), (0, 1))
 DIRECTION_NAMES = ("UP", "DOWN", "LEFT", "RIGHT", "NONE")
@@ -78,10 +78,14 @@ def _act(action_type: str, direction: str = "NONE") -> dict[str, str]:
     return {"action_type": action_type, "direction": direction}
 
 
-def _act_t1(action_type: str, status: str) -> dict[str, Any]:
+def _act_t1(action_type: str, status: str, *, intended: str = "entity_aaaa",
+            executed: str | None = "entity_aaaa") -> dict[str, Any]:
     """A step under entity addressing: the direction says nothing, the resolver does."""
     return {"action_type": action_type, "direction": "NONE",
             "action_contract": {"addressing_mode": "T1_ENTITY", "target_status": status,
+                                "intended_target": intended,
+                                "resolved_target": intended if status == "VALID" else None,
+                                "executed_target": executed if status == "VALID" else None,
                                 "execution_status": "EXECUTED" if status == "VALID"
                                 else "FAILED_TARGET_RESOLUTION"}}
 
@@ -131,6 +135,16 @@ def _interaction(rows) -> float | None:
 
 def _conversion(rows) -> float | None:
     return _eating(rows)["best_segment"]
+
+
+def _realization(rows) -> float | None:
+    counts = _realizacion(rows)
+    return counts["realizadas"] / counts["validas"] if counts["validas"] else None
+
+
+def _accounting(rows) -> float | None:
+    ledger = _energy_ledger(rows)
+    return ledger["reconciled"] / ledger["checked"] if ledger["checked"] else None
 
 
 # A uniform agent draws one of 25 actions. Addressing needs CONSUME (1 of 5
@@ -192,6 +206,28 @@ CONTROLS: dict[str, tuple[Callable[[Any], float | None], tuple[Control, ...]]] =
                 "Issues CONSUME every step, so intent must read one — independently of "
                 "whether those consumes landed."),
     )),
+    "tasa_realizacion": (_realization, (
+        Control("realization_faithful", 1.0, 0.0,
+                "Every resolved intention executed against the entity named. The ceiling "
+                "must read 1.0 or every real value below it is uninterpretable."),
+        Control("realization_substituted", 0.0, 0.0,
+                "Every resolved intention executed against a DIFFERENT entity. This is "
+                "the silent-substitution failure AC2-5 forbids, and the instrument has "
+                "to be able to see it -- an instrument that cannot distinguish "
+                "substitution from fidelity cannot police the invariant."),
+        Control("realization_no_contract", None, 0.0,
+                "A v1 trace carries no intention to compare against. The answer is "
+                "NOT_EVALUABLE; reading it as 1.0 would report perfect execution for "
+                "every run made before the contract existed."),
+    )),
+    "contabilidad_energetica": (_accounting, (
+        Control("ledger_balanced", 1.0, 0.0,
+                "Energy falls by exactly the declared cost on every non-consuming step."),
+        Control("ledger_undeclared_flow", 0.0, 0.0,
+                "A second drain the scenario never declared. The instrument must fail it; "
+                "otherwise a reconstructed baseline absorbs the unknown flow and every "
+                "downstream reading shifts with nothing raising an objection."),
+    )),
     "conversion_aprendizaje": (_conversion, (
         Control("non_learning_agent", None, 0.0,
                 "Energy moves only by the fixed step cost: no consume ever lands. There "
@@ -220,6 +256,22 @@ def _case_trace(case: str) -> list[dict[str, Any]]:
         return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(200)])
     if case == "t1_never_resolving_agent":
         return trace([(((0, 1),), _act_t1("CONSUME", "NONEXISTENT")) for _ in range(200)])
+    if case == "realization_faithful":
+        return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(100)])
+    if case == "realization_substituted":
+        return trace([(((0, 1),), _act_t1("CONSUME", "VALID", executed="entity_bbbb"))
+                      for _ in range(100)])
+    if case == "realization_no_contract":
+        return _perfect_trace()
+    if case in ("ledger_balanced", "ledger_undeclared_flow"):
+        drain = 1.0 if case == "ledger_balanced" else 1.7
+        steps = 100
+        rows = trace([((), _act("MOVE", "UP")) for _ in range(steps)],
+                     energies=[100.0 - i * drain for i in range(steps + 1)])
+        for row in rows:
+            row["observer_world"]["step_energy_cost"] = 1.0
+            row["agent_events"] = ("move_success",)
+        return rows
     if case == "empty_world":
         return trace([((), _act("CONSUME", "RIGHT")) for _ in range(200)])
     if case == "adjacent_every_step":

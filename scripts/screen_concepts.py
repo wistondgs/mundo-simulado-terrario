@@ -110,13 +110,61 @@ def interactions(rows, meshes_effects):
             observado = sum(referencia) / len(referencia) - sum(conjunto) / len(conjunto)
             predicho = sum(p["effect"] for p in partes)
             dispersion = max(p["within_arm_spread"] for p in partes)
-            out.append({
+
+            # FLOOR / CEILING IDENTIFIABILITY GATE.
+            #
+            # The additive null model is a statement about an unbounded response.
+            # Meals are bounded below by zero, and both of these concepts already
+            # drive the arm to the floor on their own, so the additive prediction
+            # was 13.33 against an observed 6.33 -- a residual of -7 that reads as
+            # a large negative interaction and is nothing of the sort. The model
+            # was asked to predict minus seven meals. No cognitive or biological
+            # quantity is being estimated there; the geometry of the dependent
+            # variable is.
+            #
+            # The honest answer is neither zero nor negative. It is that the
+            # question is not identifiable from this design, and saying so keeps
+            # the finding available for a later analysis on a scale that respects
+            # the bound -- a count model, given enough mass -- instead of burying
+            # it under a number.
+            piso = [p for p in partes if _at_floor(p, rows, mesh)]
+            entrada = {
                 "conjunction": name, "mesh": mesh, "source": spec["source"],
                 "observed": round(observado, 4), "predicted_if_additive": round(predicho, 4),
-                "residual": round(observado - predicho, 4),
-                "larger_than_seed_spread": abs(observado - predicho) > dispersion,
-            })
+            }
+            if piso:
+                entrada.update({
+                    "interaction_identifiability": "FAILED_FLOOR",
+                    "residual": None,
+                    "larger_than_seed_spread": None,
+                    "saturated_components": [p["concept"] for p in piso],
+                    "reason": ("one or more single-concept arms already sit at the floor of "
+                               "this mesh, so the additive prediction runs past the bound and "
+                               "the residual measures the scale rather than the conjunction"),
+                })
+            else:
+                entrada.update({
+                    "interaction_identifiability": "IDENTIFIABLE",
+                    "residual": round(observado - predicho, 4),
+                    "larger_than_seed_spread": abs(observado - predicho) > dispersion,
+                })
+            out.append(entrada)
     return out
+
+
+#: A mesh reading is at the floor when the arm that removed the concept produced
+#: essentially nothing left to lose. Half a unit rather than exactly zero,
+#: because an arm that scored 0.33 meals out of a reference of 6.7 is saturated
+#: for every purpose the additive model has.
+FLOOR_TOLERANCE = 0.5
+
+
+def _at_floor(part, rows, mesh):
+    valores = [r["measures"].get(mesh) for r in rows if r["condition"] == part.get("arm")]
+    valores = [v for v in valores if isinstance(v, (int, float))]
+    if not valores:
+        return False
+    return abs(sum(valores) / len(valores)) <= FLOOR_TOLERANCE
 
 
 def conditions(keys):

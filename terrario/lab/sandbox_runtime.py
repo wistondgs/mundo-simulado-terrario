@@ -227,7 +227,13 @@ def _apply_action_contract(world,obs,action,agent,step,world_seed):
     truth=world._mutable_state()
     view=obs.channels.shape[-1]
     targets,truncated=perceive_targets(truth,0,view,salt=f"{world_seed}",step=step,mask=obs.mask)
-    intent=ActionIntent(action.action_type,SelectorType(action.selector_type),action.selector_value)
+    # An operation that addresses space rather than an entity -- MOVE, NOOP --
+    # arrives in v1 shape even under T1, with the direction in `direction` and no
+    # selector value. Normalising here keeps `Domain(s, O_t)` a property of the
+    # operation instead of forcing every caller to remember it.
+    selector=SelectorType(action.selector_type)
+    value=action.selector_value if action.selector_value>=0 else int(action.direction)
+    intent=ActionIntent(action.action_type,selector,value)
     res=resolve(intent,targets,truth,0)
     resolved=res.status is TargetStatus.VALID
     action.target_id=res.entity_id if resolved else -1

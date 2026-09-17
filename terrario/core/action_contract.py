@@ -146,7 +146,17 @@ class ExecutionStatus(enum.StrEnum):
 # dropping the tail in silence.
 MAX_TARGET_SLOTS = 16
 
-TARGET_BEARING_OPERATIONS = frozenset({ActionType.CONSUME, ActionType.INSPECT, ActionType.PUSH})
+#: Operations whose selector is an entity rather than a place.
+#:
+#: CONSUME and INSPECT are about a THING: "eat that", "look at that". PUSH is
+#: about a DIRECTION -- you push toward somewhere and whatever is there moves --
+#: and MOVE and NOOP plainly address space. Putting PUSH on the entity side cost
+#: the organism its main means of travel: under T0 it moved by pushing (158 of
+#: 300 steps, 12 cells visited), and under entity-addressed PUSH those pushes
+#: stopped resolving and it visited 2 cells with something adjacent at every
+#: single step. T is supposed to vary how an intention is addressed and nothing
+#: else; an arm that cannot walk is measuring a different organism.
+TARGET_BEARING_OPERATIONS = frozenset({ActionType.CONSUME, ActionType.INSPECT})
 
 
 @dataclass(frozen=True)

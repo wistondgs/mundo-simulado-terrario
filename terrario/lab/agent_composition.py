@@ -82,7 +82,15 @@ CONCEPTS: tuple[Concept, ...] = (
     Concept("use_factored_action", "Decir qué y decir a qué",
             "Separa la acción en dos decisiones: qué operación hacer y sobre qué dirección hacerla.",
             "Elige entre 25 acciones cerradas sin poder apuntar: acierta el objeto por casualidad.",
-            "intención dirigida", 9),
+            # Corpus block 0 -- meaning NONE. Every other concept here answers to
+            # a numbered block of the 64-block map; this one does not, and saying
+            # it did would be a fabricated citation. Addressing is not a faculty
+            # the corpus describes, it is the CHANNEL through which the others
+            # reach the world, and it was broken: the measured addressing rate
+            # was chance for every agent including the random one. Block 9 is
+            # prediction, not directed intention, and an earlier draft of this
+            # line claimed it.
+            "intención dirigida · reparación de canal, sin bloque de corpus", 0),
     Concept("use_homeostasis", "Presión de viabilidad",
             "Su energía interna modula cuánto explora: con poca energía se vuelve más urgente.",
             "Explora igual estando lleno que al borde de morir.",

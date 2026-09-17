@@ -12,7 +12,8 @@ import torch
 
 from terrario.agent.base import AgentInterface
 from terrario.core.contracts import Transition
-from terrario.core.action_contract import MAX_TARGET_SLOTS, AddressingMode, SelectorType
+from terrario.core.action_contract import (
+    MAX_TARGET_SLOTS, TARGET_BEARING_OPERATIONS, AddressingMode, SelectorType)
 from terrario.core.types import (
     NUM_DIRECTIONS, TOTAL_ACTIONS, Action, ActionType, Direction, Observation,
 )
@@ -50,9 +51,15 @@ class A0Random(AgentInterface):
         })
         if self._addressing_mode is AddressingMode.T0_DIRECTIONAL:
             return Action.from_int(action_int)
+        # v in Domain(s, O_t): only a target-bearing operation takes an entity.
+        # MOVE and NOOP address space under every mode, or the arm measures a
+        # paralysed organism instead of a differently-addressing one.
+        operation = ActionType(action_int // NUM_DIRECTIONS)
+        if operation not in TARGET_BEARING_OPERATIONS:
+            return Action.from_int(action_int)
         slot = int(torch.randint(0, MAX_TARGET_SLOTS, (1,), generator=self._generator).item())
         return Action(
-            action_type=ActionType(action_int // NUM_DIRECTIONS),
+            action_type=operation,
             direction=Direction.NONE,
             selector_type=int(SelectorType.TARGET_ID),
             selector_value=slot,
