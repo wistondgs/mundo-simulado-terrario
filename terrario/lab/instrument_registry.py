@@ -121,8 +121,11 @@ register(MetricSpec(
     undefined_conditions=("opportunity_count == 0",),
     expected_range=(0.0, 1.0),
     instrument_controls=("perfect_targeting_agent", "never_target_agent",
+                         "t1_perfect_targeting_agent", "t1_never_resolving_agent",
                          "uniform_random_agent"),
-    notes="Under T0 the analytic chance value is 1/25: CONSUME is one of five "
+    notes="Controlled under BOTH addressing contracts, because they answer the "
+          "question differently: T0 geometrically, T1 through the resolver. "
+          "Under T0 the analytic chance value is 1/25: CONSUME is one of five "
           "operations and the neighbour one of five directions. A reading near "
           "0.04 is therefore not a weak policy, it is no addressing at all.",
 ))

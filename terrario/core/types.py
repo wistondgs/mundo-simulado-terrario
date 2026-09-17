@@ -127,9 +127,30 @@ class WorldState:
 
 @dataclass
 class Action:
+    """One action, under either addressing contract.
+
+    Under v1 an action was `action_type * 5 + direction` and `target_id` was
+    dead: `to_int`/`from_int` dropped it, so nothing an agent could emit reached
+    it. The two fields below carry the v2 intention — see
+    `terrario.core.action_contract` — and keep it separate from its resolution:
+
+        selector_type / selector_value   what the ORGANISM meant (intended)
+        target_id                        what the WORLD resolved it to
+
+    `target_id` is therefore observer-side now, written by the runtime only
+    after a resolution that passed the observability gate. An agent that sets it
+    directly is reaching into world state it cannot perceive, which is the
+    omniscience v1 allowed.
+
+    Defaults keep every existing caller on the directional contract, and
+    `to_int`/`from_int` are unchanged, so no identity or behavioural hash moves.
+    """
+
     action_type: ActionType
     direction: Direction = Direction.NONE
-    target_id: int = -1  # -1 = no target
+    target_id: int = -1  # resolved world entity, or -1 for none
+    selector_type: int = 0  # SelectorType.DIRECTION
+    selector_value: int = -1  # direction ordinal under T0, perception slot under T1
 
     def to_int(self) -> int:
         """Flatten to a single integer for policy output."""

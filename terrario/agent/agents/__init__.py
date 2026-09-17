@@ -77,7 +77,8 @@ def create_agent(
 
     try:
         if architecture_id == "A0_RANDOM":
-            agent = A0Random(generator=generator)
+            agent = A0Random(generator=generator,
+                addressing_mode=str(agent_config.get("addressing_mode", "T0_DIRECTIONAL")))
         elif architecture_id == "A1_REACTIVE":
             agent = A1Reactive(**common)
         elif architecture_id == "A2_GRU":

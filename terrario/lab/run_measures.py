@@ -100,14 +100,28 @@ def _cadena(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
                    if abs(punto(o["pos"])[0] - ax) + abs(punto(o["pos"])[1] - ay) == 1]
         accion = row.get("agent_action") or {}
         consume = accion.get("action_type") == "CONSUME"
+        contrato = accion.get("action_contract")
         if vecinos:
             oportunidad += 1
-            # Addressable: the action as encoded actually points at one of them.
-            # With 25 actions this is `direction`, and NONE points nowhere.
-            delta = {"UP": (-1, 0), "DOWN": (1, 0), "LEFT": (0, -1), "RIGHT": (0, 1)}
-            d = delta.get(accion.get("direction"))
-            if consume and d and any(punto(o["pos"]) == (ax + d[0], ay + d[1]) for o in vecinos):
-                direccionable += 1
+            # Addressable: the action as emitted actually referred to one of them.
+            #
+            # How that is decided depends on the addressing contract, and the two
+            # must not be confused. Under T0 the referent IS the direction, so
+            # the check is geometric and NONE points nowhere. Under T1 the
+            # referent is an entity and the direction is pinned to NONE by
+            # construction -- reading `direction` there would have scored every
+            # T1 run at exactly 0.000, an instrument reporting the absence of the
+            # thing it was built to measure. When the step carries Action
+            # Contract v2 provenance, the resolver has already answered the
+            # question and its verdict is authoritative.
+            if contrato:
+                if consume and contrato.get("target_status") == "VALID":
+                    direccionable += 1
+            else:
+                delta = {"UP": (-1, 0), "DOWN": (1, 0), "LEFT": (0, -1), "RIGHT": (0, 1)}
+                d = delta.get(accion.get("direction"))
+                if consume and d and any(punto(o["pos"]) == (ax + d[0], ay + d[1]) for o in vecinos):
+                    direccionable += 1
         if consume:
             interaccion += 1
     return {"oportunidad": oportunidad, "direccionable": direccionable,

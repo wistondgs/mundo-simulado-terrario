@@ -12,14 +12,25 @@ import torch
 
 from terrario.agent.base import AgentInterface
 from terrario.core.contracts import Transition
-from terrario.core.types import TOTAL_ACTIONS, Action, Observation
+from terrario.core.action_contract import MAX_TARGET_SLOTS, AddressingMode, SelectorType
+from terrario.core.types import (
+    NUM_DIRECTIONS, TOTAL_ACTIONS, Action, ActionType, Direction, Observation,
+)
 
 
 class A0Random(AgentInterface):
     """Uniformly random action selection. No internal state."""
 
-    def __init__(self, generator: torch.Generator | None = None):
+    def __init__(self, generator: torch.Generator | None = None,
+                 addressing_mode: str = "T0_DIRECTIONAL"):
         self._generator = generator or torch.Generator()
+        # The chance baseline has to exist under BOTH contracts or the
+        # comparison is between an organism and a different question. Note that
+        # uniform choice is not equally lucky in the two: T0 draws a direction
+        # from 5, T1 a slot from 16 of which few are ever occupied, so random
+        # entity addressing is WORSE than random directional addressing. T1
+        # buys expressiveness, not accuracy -- a learner has to earn the rest.
+        self._addressing_mode = AddressingMode(addressing_mode)
         self._trace: list[dict[str, Any]] = []
         self._step: int = 0
 
@@ -37,7 +48,15 @@ class A0Random(AgentInterface):
             "step": self._step,
             "action_int": action_int,
         })
-        return Action.from_int(action_int)
+        if self._addressing_mode is AddressingMode.T0_DIRECTIONAL:
+            return Action.from_int(action_int)
+        slot = int(torch.randint(0, MAX_TARGET_SLOTS, (1,), generator=self._generator).item())
+        return Action(
+            action_type=ActionType(action_int // NUM_DIRECTIONS),
+            direction=Direction.NONE,
+            selector_type=int(SelectorType.TARGET_ID),
+            selector_value=slot,
+        )
 
     def learn(self, consequence: Transition) -> None:
         self._trace.append({

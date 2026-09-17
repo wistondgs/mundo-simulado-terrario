@@ -78,6 +78,14 @@ def _act(action_type: str, direction: str = "NONE") -> dict[str, str]:
     return {"action_type": action_type, "direction": direction}
 
 
+def _act_t1(action_type: str, status: str) -> dict[str, Any]:
+    """A step under entity addressing: the direction says nothing, the resolver does."""
+    return {"action_type": action_type, "direction": "NONE",
+            "action_contract": {"addressing_mode": "T1_ENTITY", "target_status": status,
+                                "execution_status": "EXECUTED" if status == "VALID"
+                                else "FAILED_TARGET_RESOLUTION"}}
+
+
 # ── The controls ───────────────────────────────────────────────────────
 
 @dataclass(frozen=True)
@@ -156,6 +164,14 @@ CONTROLS: dict[str, tuple[Callable[[Any], float | None], tuple[Control, ...]]] =
         Control("never_target_agent", 0.0, 0.0,
                 "Never issues CONSUME. Anything above 0.0 is the instrument crediting "
                 "an addressing that did not happen."),
+        Control("t1_perfect_targeting_agent", 1.0, 0.0,
+                "Entity addressing, every slot resolving VALID. Under T1 the direction "
+                "is pinned to NONE by the contract, so an instrument that reads "
+                "`direction` scores every T1 run at 0.000 -- the measurement would "
+                "report the absence of exactly the capability the experiment adds."),
+        Control("t1_never_resolving_agent", 0.0, 0.0,
+                "Entity addressing where every slot named is empty. Must read zero "
+                "through the resolver, not through a geometric fallback."),
         Control("uniform_random_agent", UNIFORM_ADDRESSING, 0.006,
                 "Analytic chance: CONSUME is 1 of 5 operations and the neighbour is 1 of "
                 "5 directions, so 1/25. Reading 0.000 here is the failure that actually "
@@ -200,6 +216,10 @@ def _case_trace(case: str) -> list[dict[str, Any]]:
         return _never_trace()
     if case == "uniform_random_agent":
         return _uniform_trace()
+    if case == "t1_perfect_targeting_agent":
+        return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(200)])
+    if case == "t1_never_resolving_agent":
+        return trace([(((0, 1),), _act_t1("CONSUME", "NONEXISTENT")) for _ in range(200)])
     if case == "empty_world":
         return trace([((), _act("CONSUME", "RIGHT")) for _ in range(200)])
     if case == "adjacent_every_step":

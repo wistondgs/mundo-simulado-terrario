@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG
+from terrario.core.action_contract import IMPLEMENTED_MODES
 
 CATALOGUE_SCHEMA = "terrario.lab.agent-composition/v1"
 
@@ -119,16 +120,32 @@ def catalogue() -> Mapping[str, Any]:
     }
 
 
+#: Choices that are not modules and not numbers: the organism's action contract.
+#: A concept can be on or off, a tuning has a range, and this has a domain -- so
+#: it is validated against an enumerated set rather than squeezed into either.
+#: Fail-closed like the rest: an unrecognised mode is refused, never defaulted,
+#: because a run that silently fell back to T0 would be reported as a T1 arm.
+CHOICES: dict[str, tuple[str, ...]] = {
+    "addressing_mode": tuple(m.value for m in IMPLEMENTED_MODES),
+}
+_CHOICE_KEYS = frozenset(CHOICES)
+
+
 def validate_selection(selection: Mapping[str, Any] | None) -> Mapping[str, Any]:
     """Refuse an unknown or ill-typed key instead of silently dropping it."""
     if not selection:
         return {}
-    unknown = sorted(set(selection) - _KEYS - _TUNING_KEYS)
+    unknown = sorted(set(selection) - _KEYS - _TUNING_KEYS - _CHOICE_KEYS)
     if unknown:
         raise CompositionError(f"unknown agent concept keys: {unknown}")
     clean: dict[str, Any] = {}
     for key, value in selection.items():
-        if key in _KEYS:
+        if key in _CHOICE_KEYS:
+            if value not in CHOICES[key]:
+                raise CompositionError(
+                    f"{key} must be one of {list(CHOICES[key])}; got {value!r}")
+            clean[key] = value
+        elif key in _KEYS:
             if not isinstance(value, bool):
                 raise CompositionError(f"{key} must be true or false")
             clean[key] = value

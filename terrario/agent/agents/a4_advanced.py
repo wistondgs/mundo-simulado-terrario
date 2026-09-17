@@ -35,8 +35,15 @@ from terrario.agent.temporal import GRUCore, SSMCore, TemporalCore
 from terrario.agent.uncertainty import UncertaintyEstimator
 from terrario.agent.world_model import WorldModel
 from terrario.core.contracts import Transition
+from terrario.core.action_contract import (
+    IMPLEMENTED_MODES,
+    MAX_TARGET_SLOTS,
+    SELECTOR_OF_MODE,
+    AddressingMode,
+    SelectorType,
+)
 from terrario.core.types import (
-    NUM_ACTION_TYPES, NUM_DIRECTIONS, TOTAL_ACTIONS, Action, Observation,
+    NUM_ACTION_TYPES, NUM_DIRECTIONS, TOTAL_ACTIONS, Action, ActionType, Direction, Observation,
 )
 
 DEFAULT_CONFIG: dict[str, Any] = {
@@ -59,6 +66,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
     # joint 25-way problem receiving seven informative samples per lifetime
     # cannot be learned. Two 5-way problems receive the same samples each.
     "use_factored_action": False,
+    # Which selector type the action carries. T0 addresses a direction (the v1
+    # channel, exactly); T1 addresses an entity the organism perceived. Only
+    # this differs between the two arms -- operation, reward, perception,
+    # metabolism, learner, planner and world model are untouched -- which is
+    # what makes T a clean causal intervention rather than a different organism.
+    "addressing_mode": "T0_DIRECTIONAL",
     # OFF by default: turning it on changes what A4 does, and what A4 does is
     # pinned by the golden behavioural characterisation and the protected hash
     # manifest.  It arrives as a condition to be measured, not as a silent
@@ -178,10 +191,22 @@ class A4Advanced(AgentInterface):
         # Built ONLY when enabled, so a default agent has the same modules,
         # the same parameter count and the same initial-parameter hash it had
         # before this existed.
-        self._use_factored_action: bool = self.config["use_factored_action"]
+        self._addressing_mode = AddressingMode(self.config["addressing_mode"])
+        if self._addressing_mode not in IMPLEMENTED_MODES:
+            raise ValueError(
+                f"{self._addressing_mode.value} is reserved and has no resolver. "
+                f"Implemented: {[m.value for m in IMPLEMENTED_MODES]}")
+        self._selector_type = SELECTOR_OF_MODE[self._addressing_mode]
+        # Entity addressing needs the factored heads; directional addressing may
+        # have them or not, and that third arm matters: T0-flat vs T0-factored
+        # isolates the architecture change, so a gain under T1 cannot be credited
+        # to "two heads instead of one".
+        entity = self._addressing_mode is AddressingMode.T1_ENTITY
+        self._use_factored_action: bool = bool(self.config["use_factored_action"]) or entity
+        self._selector_dim = MAX_TARGET_SLOTS if entity else NUM_DIRECTIONS
         if self._use_factored_action:
             self.operation_head = torch.nn.Linear(self._state_dim, NUM_ACTION_TYPES)
-            self.selector_head = torch.nn.Linear(self._state_dim, NUM_DIRECTIONS)
+            self.selector_head = torch.nn.Linear(self._state_dim, self._selector_dim)
 
         # ── Entropy regularisation of the policy ─────────────────────
         self._use_entropy_regularization: bool = self.config["use_entropy_regularization"]
@@ -345,7 +370,7 @@ class A4Advanced(AgentInterface):
             sel_probs = F.softmax(sel_logits / temperature, dim=-1)
             op = int(torch.multinomial(op_probs, 1, generator=self._generator).item())
             sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
-            action_int = op * NUM_DIRECTIONS + sel
+            action_int = op * NUM_DIRECTIONS + (sel if sel < NUM_DIRECTIONS else 0)
             log_prob = (torch.log(op_probs[op] + 1e-8) + torch.log(sel_probs[sel] + 1e-8))
             self._last_action, self._last_log_prob = action_int, log_prob
             self._last_logits, self._last_probs = op_logits.detach(), op_probs.detach()
@@ -355,13 +380,24 @@ class A4Advanced(AgentInterface):
             self._trace.append({
                 "op": "decide", "step": self._step, "action_int": action_int,
                 "intended_operation": op, "intended_selector": sel,
+                "addressing_mode": self._addressing_mode.value,
+                "selector_type": self._selector_type.name,
                 "log_prob": float(log_prob.item()), "temperature": temperature,
                 "factored": True,
                 "drive": self.homeostasis.drive,
                 "exploration_bias": self.homeostasis.exploration_bias,
             })
             self._step += 1
-            return Action.from_int(action_int)
+            # Under T1 the direction is pinned to NONE so the directional path
+            # cannot resolve anything: entity addressing must stand on its own,
+            # or AC2-5 is violated by the physics falling back to a neighbour.
+            return Action(
+                action_type=ActionType(op),
+                direction=Direction(sel) if sel < NUM_DIRECTIONS
+                and self._selector_type is SelectorType.DIRECTION else Direction.NONE,
+                selector_type=int(self._selector_type),
+                selector_value=sel,
+            )
 
         # ── Planner refinement ───────────────────────────────────────
         if self._use_planner and self._use_world_model:

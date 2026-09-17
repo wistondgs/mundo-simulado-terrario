@@ -11,6 +11,8 @@ from terrario.lab.agent_composition import validate_selection
 from terrario.agent.scientific import scientific_state
 from terrario.core.contracts import Transition
 from terrario.core.rng import RNGManager
+from terrario.core.action_contract import (ActionIntent,ActionProvenance,AddressingMode,
+    ExecutionStatus,SelectorType,TargetStatus,perceive_targets,resolve)
 from terrario.core.types import ActionType,Consequence,DIRECTION_DELTA
 from terrario.experiment.controller import build_world_state
 from terrario.lab.world_authoring import CompiledWorld,GeneratedWorldInstance,generate_instance
@@ -142,12 +144,13 @@ class SandboxService:
     def _step_runtime(self,run,r):
         step=len(run.timeline); s=r["scenario"]; world=r["world"]; agent=r["agent"]
         obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4)); agent.perceive(obs); action=agent.decide()
+        action,provenance=_apply_action_contract(world,obs,action,agent,step,run.spec.world_seed)
         changes=r["scheduler"].check(world,step); target=_find_target(world,action); physical=r["physics"].step(world,{0:action},RNGManager(run.spec.world_seed+step)); effects=r["rules"].evaluate(world,0,action,target); delta=r["rules"].apply_effects(world,0,target.object_id,effects) if target else 0.0; delta+=world.apply_step_energy_cost(0)
         consequence=physical.get(0,Consequence(delta,[]));consequence.energy_delta=delta; next_obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4));terminated=not world._mutable_state().agents[0].alive; consequence.new_observation=next_obs;consequence.done=terminated or step+1>=run.spec.step_limit
         transition=Transition(obs,str(agent.get_internal_state()),action,consequence,next_obs,terminated,step+1>=run.spec.step_limit,step,run.spec.agent_seed);agent.learn(transition)
         agent_obs={"channels":obs.channels.tolist(),"mask":obs.mask.tolist(),"agent_energy":obs.agent_energy,"time_fraction":obs.time_fraction}
         world_events=tuple(consequence.observer_events)+tuple(f"rule_change:{x.old_version}->{x.new_version}" for x in changes)
-        return SandboxTraceStep(run.run_id,"ENGINEERING_SANDBOX",run.spec.config_hash,run.spec.world_definition_hash,run.spec.world_instance_hash,run.spec.world_seed,run.spec.agent_seed,dict(agent.agent_identity),step,agent_obs,{"action_type":action.action_type.name,"direction":action.direction.name,"target_id":action.target_id},tuple(consequence.events),world.serialize(),world_events,scientific_state(agent),terminated)
+        return SandboxTraceStep(run.run_id,"ENGINEERING_SANDBOX",run.spec.config_hash,run.spec.world_definition_hash,run.spec.world_instance_hash,run.spec.world_seed,run.spec.agent_seed,dict(agent.agent_identity),step,agent_obs,{"action_type":action.action_type.name,"direction":action.direction.name,"target_id":action.target_id,**provenance},tuple(consequence.events),world.serialize(),world_events,scientific_state(agent),terminated)
     def run_bounded(self,run_id,steps=None):
         limit=min(steps or self.get(run_id).spec.step_limit,self.get(run_id).spec.step_limit)
         while self.get(run_id).state not in {RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED} and len(self.get(run_id).timeline)<limit: self.step(run_id)
@@ -202,6 +205,45 @@ def classify_error(exc):
 def _plain(x):
     from terrario.lab.models import thaw
     return thaw(x)
+def _apply_action_contract(world,obs,action,agent,step,world_seed):
+    """Resolve the organism's intention against what it could actually perceive.
+
+    Under T0 this is a no-op by construction: the directional contract needs no
+    resolution layer, and the returned action is the one the agent emitted, so a
+    T0 run is byte-identical to a run before Action Contract v2 existed. That
+    matters -- T0 is the control arm, and a control that quietly changed would
+    make the comparison meaningless.
+
+    Under T1 the slot the organism named is resolved here, and ONLY a VALID
+    resolution writes `target_id`. Everything else leaves it at -1 with the
+    direction already pinned to NONE by the agent, so an unresolvable target
+    consumes nothing rather than silently becoming a neighbour (AC2-5). The
+    physics is untouched: it still reads `target_id`, it simply can no longer be
+    handed an entity the organism never perceived (AC2-2), because the only
+    writer is a resolution that came out of the agent's own view window.
+    """
+    mode=getattr(agent,"_addressing_mode",None)
+    if mode is None or mode is AddressingMode.T0_DIRECTIONAL: return action,{}
+    truth=world._mutable_state()
+    view=obs.channels.shape[-1]
+    targets,truncated=perceive_targets(truth,0,view,salt=f"{world_seed}",step=step,mask=obs.mask)
+    intent=ActionIntent(action.action_type,SelectorType(action.selector_type),action.selector_value)
+    res=resolve(intent,targets,truth,0)
+    resolved=res.status is TargetStatus.VALID
+    action.target_id=res.entity_id if resolved else -1
+    prov=ActionProvenance(step=step,addressing_mode=mode.value,
+        perceived_targets=[t.handle for t in targets],perceived_truncated=truncated,
+        chosen_operation=action.action_type.name,chosen_selector_type=SelectorType(action.selector_type).name,
+        intended_selector_value=action.selector_value,
+        intended_target=next((t.handle for t in targets if t.slot==action.selector_value),None),
+        resolved_target=res.handle if resolved else None,target_status=res.status.value,
+        executed_target=res.handle if resolved else None,
+        execution_status=(ExecutionStatus.EXECUTED.value if resolved else
+            ExecutionStatus.NOT_APPLICABLE.value if res.status is TargetStatus.NOT_ADDRESSED
+            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value))
+    return action,{"action_contract":prov.as_record()}
+
+
 def _find_target(world,action):
     if action.action_type!=ActionType.CONSUME:return None
     truth=world._mutable_state();agent=truth.agents[0]
