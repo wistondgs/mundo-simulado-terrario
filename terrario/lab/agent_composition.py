@@ -74,6 +74,10 @@ CONCEPTS: tuple[Concept, ...] = (
             "Cambia sus parámetros durante la propia vida, no sólo entre corridas.",
             "Queda congelado: hará lo mismo al principio y al final.",
             "aprendizaje", 15),
+    Concept("use_entropy_regularization", "No cerrarse en una sola opción",
+            "Paga por mantener abiertas varias acciones, en vez de fijarse en la primera que pareció servir.",
+            "Se cierra pronto sobre una sola forma de actuar y deja de probar las demás — aunque sea mala.",
+            "plasticidad frente a estabilidad", 17),
     Concept("use_homeostasis", "Presión de viabilidad",
             "Su energía interna modula cuánto explora: con poca energía se vuelve más urgente.",
             "Explora igual estando lleno que al borde de morir.",
@@ -84,6 +88,11 @@ CONCEPTS: tuple[Concept, ...] = (
 #: module off, so a screen must present them apart or someone will read a
 #: different threshold as a different reading of the same organism.
 TUNINGS: tuple[Mapping[str, Any], ...] = (
+    {"key": "entropy_coefficient", "label": "Cuánto paga por no cerrarse",
+     "purpose": "El precio que le ponemos a mantenerse indeciso. Alto: prueba de todo y no se "
+                "compromete. Cero: equivale a apagar la casilla de arriba.",
+     "minimum": 0.0, "maximum": 1.0, "default": DEFAULT_CONFIG["entropy_coefficient"],
+     "warning": "No está calibrado. Es una elección científica sin preregistrar, no un valor conocido."},
     {"key": "homeostasis_threshold", "label": "Umbral de necesidad",
      "purpose": "Por debajo de qué nivel de energía el organismo empieza a sentir urgencia.",
      "minimum": 0.0, "maximum": 1.0, "default": DEFAULT_CONFIG["homeostasis_threshold"],

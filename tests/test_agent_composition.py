@@ -52,12 +52,24 @@ def test_the_catalogue_carries_what_a_person_needs_to_choose():
 def test_a_chosen_mix_reaches_the_running_organism(tmp_path):
     api = _api(tmp_path)
     _, default_timeline = _run(api, {})
-    assert default_timeline[0]["scientific_state"]["active_ablations"] == []
+    # `active_ablations` is derived generically as "every use_* key that is
+    # false", so a concept that SHIPS off appears there on a default organism.
+    # That reads oddly and it is accurate: the module really is absent, and the
+    # observer's job is to say what the organism is made of, not to flatter it.
+    # A concept switched off from a default-on state and one never switched on
+    # are the same fact for anyone reading the trace.
+    assert default_timeline[0]["scientific_state"]["active_ablations"] == [
+        "use_entropy_regularization"]
 
     mix = {"use_planner": False, "use_world_model": False, "use_homeostasis": False}
     _, mixed_timeline = _run(api, mix)
     assert sorted(mixed_timeline[0]["scientific_state"]["active_ablations"]) == [
-        "use_homeostasis", "use_planner", "use_world_model"]
+        "use_entropy_regularization", "use_homeostasis", "use_planner", "use_world_model"]
+
+    # And switching ON a default-off concept removes it from the list, which is
+    # the same rule read in the other direction.
+    _, con_entropia = _run(api, {"use_entropy_regularization": True})
+    assert con_entropia[0]["scientific_state"]["active_ablations"] == []
 
 
 def test_the_mix_is_part_of_the_run_identity(tmp_path):

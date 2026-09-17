@@ -41,6 +41,8 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from dataclasses import replace
 
+import torch
+
 from terrario.lab.agent_composition import CONCEPTS, validate_selection
 from terrario.lab.models import thaw
 from terrario.lab.run_measures import measure_run
@@ -54,11 +56,84 @@ SCHEMA = "terrario.lab.concept-screening/v1"
 CLASSIFICATION = "ENGINEERING_SANDBOX_NOT_EVIDENCE"
 
 
+#: Conjunctions the CORPUS declares, not combinations we picked.  2^9 = 512
+#: mixes per world is both unaffordable and unprincipled; choosing at random is
+#: no better.  HYPERCAND-08 (LeCun) states a joint architecture and the corpus
+#: records its own discriminating test as "component ablation with
+#: out-of-distribution control", with necessity explicitly NOT established.
+#: That turns "thousands of combinations" into a question with an author.
+CONJUNCTIONS = {
+    "sin:nucleo_lecun": {
+        "keys": ("use_world_model", "use_longterm_memory", "use_planner"),
+        "source": "HYPERCAND-08 · LeCun · roles: world model, memory, configurator",
+        "claim": "AUTHOR_ARCHITECTURE; joint architecture explicit, necessity not proven",
+    },
+    "sin:memoria_completa": {
+        "keys": ("use_episodic_memory", "use_longterm_memory"),
+        "source": "CON-0014/CON-0029 · James, Darwin · memory as a resource",
+        "claim": "two memory roles the corpus keeps separate; do they act as one?",
+    },
+    "sin:anticipacion": {
+        "keys": ("use_world_model", "use_planner"),
+        "source": "HYPERCAND-08 · predecir el futuro y proponer secuencias",
+        "claim": "prediction without planning, and planning without prediction",
+    },
+}
+
+
+def conjunction_conditions(names=()):
+    """Named multi-concept arms, each traceable to a claim in the corpus."""
+    for name in names:
+        spec = CONJUNCTIONS[name]
+        yield name, {key: False for key in spec["keys"]}
+
+
+def interactions(rows, meshes_effects):
+    """Is the conjunction more than the sum of its parts?
+
+    The residual is what the screening exists for.  If behaviour were a
+    weighted sum of concepts no combination would ever produce anything new,
+    and the whole programme would have no object.  So the sum is the NULL
+    model, and `observed - predicted` is where a conjunction earns its name.
+    """
+    by_key = {(e["concept"], e["mesh"]): e for e in meshes_effects if e.get("evaluable")}
+    out = []
+    for name, spec in CONJUNCTIONS.items():
+        for mesh in sorted({m for _, m in by_key}):
+            partes = [by_key.get((k, mesh)) for k in spec["keys"]]
+            conjunto = [r["measures"].get(mesh) for r in rows if r["condition"] == name]
+            referencia = [r["measures"].get(mesh) for r in rows if r["condition"] == "completo"]
+            conjunto = [v for v in conjunto if isinstance(v, (int, float))]
+            referencia = [v for v in referencia if isinstance(v, (int, float))]
+            if any(p is None for p in partes) or not conjunto or not referencia:
+                continue
+            observado = sum(referencia) / len(referencia) - sum(conjunto) / len(conjunto)
+            predicho = sum(p["effect"] for p in partes)
+            dispersion = max(p["within_arm_spread"] for p in partes)
+            out.append({
+                "conjunction": name, "mesh": mesh, "source": spec["source"],
+                "observed": round(observado, 4), "predicted_if_additive": round(predicho, 4),
+                "residual": round(observado - predicho, 4),
+                "larger_than_seed_spread": abs(observado - predicho) > dispersion,
+            })
+    return out
+
+
 def conditions(keys):
-    """The reference plus one ablation each: k+1 conditions, not 2^k."""
+    """The reference plus one changed concept each: k+1 conditions, not 2^k.
+
+    A condition is always "differs from the default organism in exactly one
+    concept". For a concept that ships ON that means switching it off; for one
+    that ships OFF -- entropy regularisation, say -- it means switching it on.
+    Ablating something already absent would be a condition identical to the
+    reference, which measures nothing and quietly wastes a third of a campaign.
+    """
+    from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG
     yield "completo", {}
     for key in keys:
-        yield f"sin:{key}", {key: False}
+        encendido = bool(DEFAULT_CONFIG[key])
+        prefijo = "sin" if encendido else "con"
+        yield f"{prefijo}:{key}", {key: not encendido}
 
 
 def already_done(path):
@@ -107,6 +182,20 @@ class Bench:
         config = replace(derive_sandbox(configuration_for(entry)), agent_reference="A4")
         spec = make_spec(config, compiled, 42, seed, steps + 1,
                          ExecutionClassification.ENGINEERING_SANDBOX, validate_selection(mix))
+        # The agent seed does NOT determine the agent.  create_agent seeds a
+        # torch.Generator that is used only for SAMPLING; module weights come
+        # from nn.Module constructors reading the GLOBAL torch RNG, which
+        # advances with every construction.  Three agents built from seed
+        # 1000045 in one process produced three different initial parameter
+        # hashes, so a condition's result depended on its position in the loop
+        # and an "ablation effect" was entangled with a different organism.
+        #
+        # Seeded here rather than in the factory: fixing create_agent would
+        # change the initial weights of every agent for a given seed, which
+        # moves the golden behavioural characterisation and the protected hash
+        # manifest -- both human gates.  The defect is reported, not patched
+        # around in the science path.
+        torch.manual_seed(seed)
         run = self.service.create(spec, config, compiled)
         self.service.run_bounded(run.run_id, steps)
         return measure_run([thaw(step) for step in run.timeline])
@@ -116,8 +205,10 @@ def run_one(bench, world, steps, seed, mix):
     return bench.run(world, steps, seed, mix)
 
 
-def effects(rows, keys):
-    """Contribution per concept per mesh: reference minus the ablated arm."""
+def effects(rows, keys, names=None):
+    """Contribution per concept per mesh: reference minus the changed arm."""
+    names = names or {key: f"sin:{key}" for key in keys}
+
     def sample(condition, mesh):
         return [r["measures"][mesh] for r in rows
                 if r["condition"] == condition and isinstance(r["measures"].get(mesh), (int, float))]
@@ -126,7 +217,7 @@ def effects(rows, keys):
     out = []
     for key in keys:
         for mesh in meshes:
-            con, sin = sample("completo", mesh), sample(f"sin:{key}", mesh)
+            con, sin = sample("completo", mesh), sample(names[key], mesh)
             if not con or not sin:
                 out.append({"concept": key, "mesh": mesh, "evaluable": False,
                             "reason": "NOT_EVALUABLE_IN_ONE_ARM"})
@@ -134,7 +225,7 @@ def effects(rows, keys):
             mean_con, mean_sin = sum(con) / len(con), sum(sin) / len(sin)
             spread = max(max(con) - min(con), max(sin) - min(sin))
             out.append({
-                "concept": key, "mesh": mesh, "evaluable": True,
+                "concept": key, "arm": names[key], "mesh": mesh, "evaluable": True,
                 "with": round(mean_con, 4), "without": round(mean_sin, 4),
                 "effect": round(mean_con - mean_sin, 4),
                 "within_arm_spread": round(spread, 4),
@@ -152,12 +243,22 @@ def main():
     parser.add_argument("--steps", type=int, default=120)
     parser.add_argument("--seeds", type=int, default=3)
     parser.add_argument("--out", default="runs/screening")
+    parser.add_argument("--conjunctions", default=None,
+                        help="coma-separado o 'todas': brazos de conjuncion declarados por el "
+                             "corpus, para medir el residuo frente a la suma de las partes")
     parser.add_argument("--only", default=None,
                         help="coma-separado: tamiza sólo estos conceptos, para una pasada corta "
                              "de validación antes de comprometer la campaña entera")
     args = parser.parse_args()
 
     keys = [c.key for c in CONCEPTS]
+    conjunciones = ()
+    if args.conjunctions:
+        conjunciones = tuple(CONJUNCTIONS) if args.conjunctions == "todas" else tuple(
+            x.strip() for x in args.conjunctions.split(",") if x.strip())
+        desconocidas = sorted(set(conjunciones) - set(CONJUNCTIONS))
+        if desconocidas:
+            parser.error(f"conjunciones desconocidas: {desconocidas}")
     if args.only:
         pedidos = [x.strip() for x in args.only.split(",") if x.strip()]
         desconocidos = sorted(set(pedidos) - set(keys))
@@ -171,7 +272,8 @@ def main():
     ledger = out_dir / f"{tag}.jsonl"
 
     done = already_done(ledger)
-    plan = [(name, mix, seed) for name, mix in conditions(keys) for seed in seeds]
+    arms = list(conditions(keys)) + list(conjunction_conditions(conjunciones))
+    plan = [(name, mix, seed) for name, mix in arms for seed in seeds]
     pending = [item for item in plan if (item[0], item[2]) not in done]
     print(f"{SCHEMA}  {CLASSIFICATION}")
     print(f"mundo {args.world} · {args.steps} pasos · {len(plan)} corridas · "
@@ -194,10 +296,13 @@ def main():
             print(f"  [{index}/{len(pending)}] {name:28} semilla {seed} "
                   f"{row['seconds']:>6.1f}s", flush=True)
 
+    nombres = {key: name for name, mix in conditions(keys) for key in mix}
     rows = list(already_done(ledger).values())
+    efectos = effects(rows, keys, nombres)
     report = {"schema_version": SCHEMA, "classification": CLASSIFICATION,
               "world": args.world, "steps": args.steps, "seeds": seeds,
-              "runs": len(rows), "effects": effects(rows, keys),
+              "runs": len(rows), "effects": efectos,
+              "interactions": interactions(rows, efectos) if conjunciones else [],
               "reading_rule": ("Un efecto menor que la dispersión entre semillas de un mismo "
                                "brazo no es un hallazgo: es la semilla. Mirá "
                                "larger_than_seed_spread antes que effect.")}

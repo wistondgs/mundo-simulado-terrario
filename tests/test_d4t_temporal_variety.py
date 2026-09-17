@@ -28,18 +28,22 @@ def _scenario():
 def test_d4t_is_registered_additively_without_remapping_anything():
     entries = _registry().entries()
     # Identity, not cardinality: a count would not catch a remapped id.
-    assert [x.world_id for x in entries] == ["D0", "D1", "D2", "D3", "D4", "D4S", "D4T"]
+    assert [x.world_id for x in entries] == ["D0", "D1", "D2", "D3", "D4", "D4S", "D4T", "D4T16", "D4T08", "D4T04"]
     registry = _registry()
     assert Path(registry.get("D4").source).name == "d4_change.yaml"
     assert Path(registry.get("D4S").source).name == "d4_adaptation_scientific.yaml"
     assert Path(registry.get("D4T").source).name == "d4_temporal_variety.yaml"
 
 
-def test_d4t_is_the_only_scenario_with_more_than_one_disturbance():
-    registry = _registry()
-    counts = {e.world_id: len(e.scenario.interventions) for e in registry.entries()}
-    assert counts["D4T"] == 3
-    assert all(v <= 1 for k, v in counts.items() if k != "D4T")
+def test_only_the_d4t_family_has_more_than_one_disturbance():
+    # The scarcity variants are D4T with fewer objects and nothing else, so they
+    # inherit its schedule. Everything outside the family still declares at most
+    # one: the property being pinned is that multi-disturbance is deliberate and
+    # confined, not that exactly one scenario has it.
+    counts = {e.world_id: len(e.scenario.interventions) for e in _registry().entries()}
+    familia = {k for k in counts if k.startswith("D4T")}
+    assert all(counts[k] == 3 for k in familia)
+    assert all(v <= 1 for k, v in counts.items() if k not in familia)
 
 
 def test_rule_volatility_stops_being_pinned_at_one():
@@ -100,7 +104,7 @@ def test_both_construct_validations_pass_and_the_base_report_is_untouched():
 
 def test_the_per_disturbance_metric_is_registered_and_not_promoted():
     metric = MetricRegistry().get("viability-recovery-profile-per-disturbance")
-    assert metric.applicability == ("D4T",)
+    assert metric.applicability == ("D4T", "D4T16", "D4T08", "D4T04")
     assert metric.construct_validation_status.value == "NOT_VALIDATED_FOR_CONSTRUCT"
     # The instrument must say out loud that it does not answer the design question.
     assert any("comparison is a design" in x for x in metric.limitations)
@@ -130,6 +134,11 @@ def test_the_engine_actually_fires_all_three_through_the_real_loading_path():
         fired = [(e.step, e.new_version)
                  for step in range(scenario["duration"]) for e in scheduler.check(world, step)]
         return fired, scheduler.pending_count
+
+    for variante in ("_16", "_08", "_04"):
+        # The scarcity worlds must fire the same schedule: if they did not, a
+        # comparison across the family would confound density with timing.
+        assert fire(f"scenarios/d4_temporal_variety{variante}.yaml")[0] == [(300, 2), (600, 3), (900, 4)]
 
     fired, pending = fire("scenarios/d4_temporal_variety.yaml")
     assert [step for step, _ in fired] == [300, 600, 900]

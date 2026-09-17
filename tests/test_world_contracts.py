@@ -59,7 +59,7 @@ def test_registry_d0_d4_is_behavior_verified_not_name_inferred():
     # ACQUISITION/CAUSAL_CHANGE/RECOVERY phases. D4 still resolves to its
     # original file -- remapping it would change the config_hash of every
     # design that already references it.
-    entries=registry().entries(); assert [x.world_id for x in entries]==["D0","D1","D2","D3","D4","D4S","D4T"]
+    entries=registry().entries(); assert [x.world_id for x in entries]==["D0","D1","D2","D3","D4","D4S","D4T","D4T16","D4T08","D4T04"]
     assert all(x.status=="IMPLEMENTED" and x.verified_by and x.definition for x in entries)
 
 def test_canonical_serialization_is_stable_and_lossless_semantically():

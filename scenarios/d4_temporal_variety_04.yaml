@@ -1,0 +1,91 @@
+# D4T04 -- escasez: el MISMO mundo que D4T con 4 objetos en vez de 32.
+#
+# Generado desde d4_temporal_variety.yaml cambiando una sola cosa: `count` por
+# clase. Todo lo demas -- rejilla, duracion, economia energetica, ciclo de
+# oportunidades, reglas y el calendario de tres inversiones -- es identico, para
+# que la comparacion entre D4T, D4T16, D4T08 y D4T04 aisle la densidad de
+# recurso y nada mas.
+#
+# El gradiente existe porque el organismo, con 32 objetos y comida adyacente en
+# el 55% de los pasos, comio 8 veces en 400 pasos. Si la escasez no cambia nada,
+# el problema nunca fue la disponibilidad.
+scenario:
+  name: "d4_temporal_variety_04"
+  observer_phases: ["ACQUISITION", "CAUSAL_CHANGE_1", "CAUSAL_CHANGE_2", "CAUSAL_CHANGE_3"]
+  grid_size: [14, 14]
+  duration: 1200
+  max_energy: 100.0
+  step_energy_cost: 0.06
+  expose_time_fraction: false
+  seed: 42
+  view_radius: 2
+  num_channels: 4
+  agent_start:
+    pos: [7, 7]
+    energy: 60.0
+  procedural_layout:
+    placement_margin: 1
+    class_templates:
+      A:
+        count: 2
+        channels: [0.82, 0.18, 0.35, 0.12]
+      B:
+        count: 2
+        channels: [0.18, 0.82, 0.12, 0.35]
+  opportunity_lifecycle:
+    cooldown_steps: [3, 8]
+    minimum_agent_distance: 2
+    placement_margin: 1
+    recent_position_exclusion: 2
+  rules:
+    rules:
+      - id: "causal_A_positive"
+        condition:
+          object_channel: {index: 0, min: 0.70}
+          action: "CONSUME"
+        effect: {energy_delta: 1.0, destroy_object: true}
+      - id: "causal_B_negative"
+        condition:
+          object_channel: {index: 0, max: 0.30}
+          action: "CONSUME"
+        effect: {energy_delta: -1.0, destroy_object: true}
+  changes:
+    - at_step: 300
+      rules:
+        rules:
+          - id: "causal_A_negative"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+          - id: "causal_B_positive"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}
+    - at_step: 600
+      rules:
+        rules:
+          - id: "causal_A_positive"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}
+          - id: "causal_B_negative"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+    - at_step: 900
+      rules:
+        rules:
+          - id: "causal_A_negative"
+            condition:
+              object_channel: {index: 0, min: 0.70}
+              action: "CONSUME"
+            effect: {energy_delta: -1.0, destroy_object: true}
+          - id: "causal_B_positive"
+            condition:
+              object_channel: {index: 0, max: 0.30}
+              action: "CONSUME"
+            effect: {energy_delta: 1.0, destroy_object: true}

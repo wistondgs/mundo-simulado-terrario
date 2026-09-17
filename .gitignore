@@ -26,3 +26,6 @@ playwright-report/
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/cache/
+
+# Runtime state from the screening bench; regenerable, never committed.
+.sandbox-screening/

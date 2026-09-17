@@ -45,6 +45,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "use_uncertainty": True,
     "use_planner": True,
     "use_online_learning": True,
+    # OFF by default: turning it on changes what A4 does, and what A4 does is
+    # pinned by the golden behavioural characterisation and the protected hash
+    # manifest.  It arrives as a condition to be measured, not as a silent
+    # improvement -- which is also better science than assuming the fix works.
+    "use_entropy_regularization": False,
+    #: The price paid for keeping the policy undecided.  Scientific content,
+    #: so it is declared here rather than written into a loss expression.
+    "entropy_coefficient": 0.01,
     # Ablatable at the CONSUMPTION site, not at construction: see __init__.
     "use_homeostasis": True,
     # The eta the ORGANISM regulates against, which is not the world's death
@@ -151,6 +159,10 @@ class A4Advanced(AgentInterface):
         # ── Planner ──────────────────────────────────────────────────
         self._use_planner: bool = self.config["use_planner"]
         self.planner = Planner(generator=self._generator)
+
+        # ── Entropy regularisation of the policy ─────────────────────
+        self._use_entropy_regularization: bool = self.config["use_entropy_regularization"]
+        self._entropy_coefficient: float = float(self.config["entropy_coefficient"])
 
         # ── Homeostasis ──────────────────────────────────────────────
         # The flag gates CONSUMPTION, not construction.  The homeostatic state
@@ -438,6 +450,29 @@ class A4Advanced(AgentInterface):
                 fresh_probs = F.softmax(fresh_logits, dim=-1)
                 fresh_log_prob = torch.log(fresh_probs[self._last_action] + 1e-8)
                 policy_loss = -fresh_log_prob * advantage
+
+                # Entropy regularisation, off by default so A4 stays the agent
+                # every existing baseline pins.  It exists because the measured
+                # failure is not about food: over 400 steps of D4T the organism
+                # chose CONSUME 173 times with an object adjacent 222 times, and
+                # aimed UP in 215 of 236 attempts.  Indecision collapsed to 0.05
+                # bits.  It cannot learn which channel feeds it, because it
+                # stopped varying the action that would sample the answer --
+                # and _find_target resolves CONSUME by direction, so aiming
+                # wrong is not eating.
+                #
+                # REINFORCE with a running-mean baseline on a reward that is the
+                # step cost almost every step gives a near-constant advantage,
+                # which piles probability onto whatever was done first.  The
+                # standard remedy is a term that pays for keeping the policy
+                # undecided, and it was simply absent.
+                #
+                # Declared and flagged rather than tuned in silence: the
+                # coefficient is the price of indecision, which is scientific
+                # content, not a constant.
+                if self._use_entropy_regularization:
+                    entropy = -(fresh_probs * torch.log(fresh_probs + 1e-8)).sum()
+                    policy_loss = policy_loss - self._entropy_coefficient * entropy
 
             # Uncertainty estimator loss: train ensemble to predict energy_delta
             if self._use_uncertainty and self._use_world_model:

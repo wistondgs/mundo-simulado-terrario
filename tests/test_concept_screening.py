@@ -22,12 +22,21 @@ def _row(condition, seed, **measures):
 
 
 def test_the_matrix_is_one_arm_per_concept_not_every_combination():
-    keys = ["a", "b", "c"]
+    keys = ["use_planner", "use_world_model"]
     names = [name for name, _ in screen.conditions(keys)]
     # k+1, not 2^k: main effects first, and only then the pairs worth paying for.
-    assert names == ["completo", "sin:a", "sin:b", "sin:c"]
+    assert names == ["completo", "sin:use_planner", "sin:use_world_model"]
     mixes = {name: mix for name, mix in screen.conditions(keys)}
-    assert mixes["completo"] == {} and mixes["sin:b"] == {"b": False}
+    assert mixes["completo"] == {} and mixes["sin:use_planner"] == {"use_planner": False}
+
+
+def test_a_concept_that_ships_off_is_switched_on_instead_of_off():
+    # Ablating something already absent produces a condition identical to the
+    # reference: it measures nothing and wastes a third of a campaign without
+    # saying so.
+    names = dict(screen.conditions(["use_entropy_regularization"]))
+    assert "con:use_entropy_regularization" in names
+    assert names["con:use_entropy_regularization"] == {"use_entropy_regularization": True}
 
 
 def test_finished_runs_are_never_repeated(tmp_path):
@@ -56,7 +65,7 @@ def test_an_effect_smaller_than_the_seed_spread_is_not_called_a_finding():
     # difference is the seed, not the concept.
     rows = [_row("completo", 1, m=10.0), _row("completo", 2, m=20.0),
             _row("sin:a", 1, m=14.0), _row("sin:a", 2, m=17.0)]
-    effect = next(e for e in screen.effects(rows, ["a"]) if e["mesh"] == "m")
+    effect = next(e for e in screen.effects(rows, ["a"], {"a": "sin:a"}) if e["mesh"] == "m")
     assert effect["evaluable"] is True
     assert effect["larger_than_seed_spread"] is False
 
@@ -64,7 +73,7 @@ def test_an_effect_smaller_than_the_seed_spread_is_not_called_a_finding():
 def test_an_effect_larger_than_the_seed_spread_is_reported_with_both_arms():
     rows = [_row("completo", 1, m=10.0), _row("completo", 2, m=10.0),
             _row("sin:a", 1, m=2.0), _row("sin:a", 2, m=2.0)]
-    effect = next(e for e in screen.effects(rows, ["a"]) if e["mesh"] == "m")
+    effect = next(e for e in screen.effects(rows, ["a"], {"a": "sin:a"}) if e["mesh"] == "m")
     assert effect["effect"] == 8.0 and effect["larger_than_seed_spread"] is True
     # Both arms travel with the difference: a lone delta hides whether the
     # concept added something or the ablated arm collapsed.
@@ -73,5 +82,5 @@ def test_an_effect_larger_than_the_seed_spread_is_reported_with_both_arms():
 
 def test_a_mesh_missing_from_one_arm_is_not_evaluable_rather_than_zero():
     rows = [_row("completo", 1, m=10.0), _row("sin:a", 1, m=None)]
-    effect = next(e for e in screen.effects(rows, ["a"]) if e["mesh"] == "m")
+    effect = next(e for e in screen.effects(rows, ["a"], {"a": "sin:a"}) if e["mesh"] == "m")
     assert effect["evaluable"] is False and effect["reason"] == "NOT_EVALUABLE_IN_ONE_ARM"

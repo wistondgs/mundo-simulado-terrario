@@ -104,7 +104,7 @@ class MetricRegistry:
         self._metrics: dict[str, MetricDefinition] = {}
         # D4S and D4T mirror D4: every registered scenario carries its own energy-trajectory
         # binding, because the world adapter derives the binding id from the scenario id.
-        for did in ("D0", "D1", "D2", "D3", "D4", "D4S", "D4T"):
+        for did in ("D0", "D1", "D2", "D3", "D4", "D4S", "D4T", "D4T16", "D4T08", "D4T04"):
             self.register(MetricDefinition(
                 f"{did}-energy-trajectory", METRIC_SCHEMA_VERSION,
                 "bounded behavioral performance", "energy trajectory",
@@ -157,7 +157,7 @@ class MetricRegistry:
             "depth in energy units; dwell and recovery in ticks; variety as a ratio",
             "mixed", Direction.LOWER_IS_BETTER, "nonnegative",
             ("world_truth.agents.energy", "world_truth.max_energy", "world_revision"),
-            "per disturbance", ("D4", "D4S", "D4T"),
+            "per disturbance", ("D4", "D4S", "D4T", "D4T16", "D4T08", "D4T04"),
             ("does not establish that the organism reorganised its own parameters "
              "-- Ashby's ultrastability proper -- only that the essential variable returned",
              "no reward, task success or goal attainment",
@@ -177,7 +177,7 @@ class MetricRegistry:
             "depth in energy units; dwell and recovery in ticks; variety as a ratio; one tuple per disturbance",
             "mixed", Direction.LOWER_IS_BETTER, "nonnegative",
             ("world_truth.agents.energy", "world_truth.max_energy", "world_revision"),
-            "per disturbance, ordered", ("D4T",),
+            "per disturbance, ordered", ("D4T", "D4T16", "D4T08", "D4T04"),
             ("on a single-disturbance scenario it degenerates to the base instrument; "
              "use the base one there rather than reporting a one-element sequence",
              "reports each segment and does NOT test whether recovery got faster because "

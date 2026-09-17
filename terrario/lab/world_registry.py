@@ -30,7 +30,12 @@ class WorldScenarioRegistry:
         # equal intervals.  It is the only scenario that exercises what
         # ChangeScheduler.check has always supported -- firing every due entry --
         # and the only one whose DifficultyProfile.rule_volatility is not 1.
-        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml","D4S":"d4_adaptation_scientific.yaml","D4T":"d4_temporal_variety.yaml"}; result=[]
+        #
+        # D4T16/08/04 are D4T with fewer objects and NOTHING else changed, so a
+        # comparison across the four isolates resource density. They exist because
+        # the organism ate 8 times in 400 steps with food adjacent 55% of the time:
+        # if scarcity moves nothing, availability was never the problem.
+        files={"D0":"d0_differences.yaml","D1":"d1_objects.yaml","D2":"d2_properties.yaml","D3":"d3_causality.yaml","D4":"d4_change.yaml","D4S":"d4_adaptation_scientific.yaml","D4T":"d4_temporal_variety.yaml","D4T16":"d4_temporal_variety_16.yaml","D4T08":"d4_temporal_variety_08.yaml","D4T04":"d4_temporal_variety_04.yaml"}; result=[]
         for did,name in files.items():
             path=self.root/"scenarios"/name
             if not path.is_file(): result.append(RegistryEntry(did,"NOT_STARTED",str(path),(),None,None)); continue
