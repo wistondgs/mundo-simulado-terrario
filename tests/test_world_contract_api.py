@@ -2,7 +2,9 @@ from terrario.lab.api import LabAPI
 
 def test_registry_and_d2_studio_api_are_narrow_and_serializable(tmp_path):
     api=LabAPI(".", data_root=tmp_path/".terrario"); status,worlds=api.dispatch("GET","/api/worlds")
-    assert status==200 and len(worlds)==6 and all(x["status"]=="IMPLEMENTED" for x in worlds)
+    assert status==200 and all(x["status"]=="IMPLEMENTED" for x in worlds)
+    # Identity, not cardinality: a count passes a remapped id and fails an
+    # additive one, which is backwards. The set below subsumes the length.
     assert {x["world_id"] for x in worlds} == {"D0","D1","D2","D3","D4","D4S","D4T"}
     status,d2=api.dispatch("GET","/api/studio/d2"); assert status==200 and d2["generalization"]["status"]=="GENERALIZES"
 
