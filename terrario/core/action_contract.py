@@ -146,6 +146,64 @@ class ExecutionStatus(enum.StrEnum):
 # dropping the tail in silence.
 MAX_TARGET_SLOTS = 16
 
+class ArgumentRole(enum.StrEnum):
+    """What KIND of argument an operation takes. Typed, per operation."""
+
+    SPATIAL_DIRECTION = "SPATIAL_DIRECTION"
+    OBSERVED_ENTITY = "OBSERVED_ENTITY"
+
+
+#: Typed action schema:  Action = Operation + TypedArguments(Operation).
+#:
+#: A selector applied globally is too generic, and PUSH proved it. The domain of
+#: a valid selector depends on the SEMANTICS of each operation, and those
+#: semantics are read off the physics, not off intuition:
+#:
+#:   MOVE     `_handle_move` uses DIRECTION_DELTA and nothing else.
+#:   PUSH     `_handle_push` pushes toward a direction and follows. Spatial.
+#:   CONSUME  `_handle_consume` accepts EITHER an explicit target or the object
+#:            in the faced direction. The only operation with two argument roles,
+#:            and therefore the only place T can vary anything.
+#:   INSPECT  `_handle_inspect` returns a constant event and reads NEITHER
+#:            direction nor target. It has no argument semantics at all today,
+#:            so giving it one would be inventing physics in the agent.
+#:   NOOP     no arguments.
+#:
+#: The consequence is that T stops being "the whole agent addresses directions"
+#: versus "the whole agent addresses entities", and becomes the narrow question
+#: it should always have been: for the operation that is semantically aimed at an
+#: entity, which representation realises the target? MOVE and PUSH are then
+#: byte-identical across conditions, which is what the first two versions of this
+#: contract destroyed.
+ALLOWED_SELECTORS: dict[ActionType, frozenset[ArgumentRole]] = {
+    ActionType.MOVE: frozenset({ArgumentRole.SPATIAL_DIRECTION}),
+    ActionType.PUSH: frozenset({ArgumentRole.SPATIAL_DIRECTION}),
+    ActionType.CONSUME: frozenset({ArgumentRole.SPATIAL_DIRECTION,
+                                   ArgumentRole.OBSERVED_ENTITY}),
+    ActionType.INSPECT: frozenset(),
+    ActionType.NOOP: frozenset(),
+}
+
+
+def allowed_selectors(operation: ActionType) -> frozenset[ArgumentRole]:
+    return ALLOWED_SELECTORS[operation]
+
+
+def selector_for(operation: ActionType, mode: AddressingMode) -> SelectorType | None:
+    """Which selector this operation uses under this addressing mode.
+
+    Returns None for an operation that takes no argument, so a caller cannot
+    accidentally hand one a direction the physics will ignore.
+    """
+    roles = ALLOWED_SELECTORS[operation]
+    if not roles:
+        return None
+    if (mode is AddressingMode.T1_ENTITY
+            and ArgumentRole.OBSERVED_ENTITY in roles):
+        return SelectorType.TARGET_ID
+    return SelectorType.DIRECTION
+
+
 #: Operations whose selector is an entity rather than a place.
 #:
 #: CONSUME and INSPECT are about a THING: "eat that", "look at that". PUSH is
@@ -156,7 +214,9 @@ MAX_TARGET_SLOTS = 16
 #: stopped resolving and it visited 2 cells with something adjacent at every
 #: single step. T is supposed to vary how an intention is addressed and nothing
 #: else; an arm that cannot walk is measuring a different organism.
-TARGET_BEARING_OPERATIONS = frozenset({ActionType.CONSUME, ActionType.INSPECT})
+TARGET_BEARING_OPERATIONS = frozenset(
+    op for op, roles in ALLOWED_SELECTORS.items()
+    if ArgumentRole.OBSERVED_ENTITY in roles)
 
 
 @dataclass(frozen=True)

@@ -168,6 +168,25 @@ register(MetricSpec(
 ))
 
 register(MetricSpec(
+    metric_id="representabilidad_intencion",
+    semantic_definition="Of the intentions the physics can realise, the fraction the "
+                        "action space can express at all.",
+    conditional_form="P(exists a in A_T : Execute(s,a) realises I | I is physically realisable)",
+    numerator="intentions for which some emittable action realises the target",
+    denominator="physically realisable intentions across the snapshot bank",
+    conditioning_set=("the entity is in contact, so consuming it is physically possible",),
+    valid_domain="a bank of exogenous snapshots no policy produced",
+    undefined_conditions=("no realisable intention exists in the bank",),
+    expected_range=(0.0, 1.0),
+    instrument_controls=("representability_t0_reachable", "representability_t1_reachable",
+                         "representability_t1_blind", "representability_no_intentions"),
+    notes="Separates 'the channel cannot say it' from 'the agent never learned to say "
+          "it'. A measured addressing rate at chance shows only the second. Measured on "
+          "exogenous states, because every rollout quantity is a function of what the "
+          "organism already did.",
+))
+
+register(MetricSpec(
     metric_id="contabilidad_energetica",
     semantic_definition="Fraction of non-consuming steps whose energy change equals "
                         "exactly the declared step cost.",

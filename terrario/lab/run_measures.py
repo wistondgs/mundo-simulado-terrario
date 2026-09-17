@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from math import log
 from typing import Any, Iterable, Mapping, Sequence
 
+from terrario.core.types import TOTAL_ACTIONS
+
 MEASURES_SCHEMA = "terrario.lab.run-measures/v1"
 NOT_EVALUABLE = "RECORD_NOT_EVALUABLE_DO_NOT_COERCE_TO_ZERO"
 
@@ -126,6 +128,85 @@ def _cadena(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
             interaccion += 1
     return {"oportunidad": oportunidad, "direccionable": direccionable,
             "intentos": interaccion, "pasos": max(len(rows) - 1, 0)}
+
+
+#: Thresholds for the collapse detector. Declared here because they are
+#: scientific content: they decide what counts as collapse, and burying them in
+#: an expression would make the verdict unarguable.
+COLAPSO_ENTROPIA = 0.5       #: normalised policy entropy, 1.0 = uniform
+COLAPSO_REPERTORIO = 0.5     #: fraction of the action space ever attempted
+COLAPSO_COMIDAS = 1.0        #: effective meals below this counts as no performance
+
+
+def eating_comidas(rows: Sequence[Mapping[str, Any]]) -> float | None:
+    """Effective consumes, as the collapse detector's performance condition."""
+    reading = _eating(rows)
+    return float(reading["effective"]) if reading.get("effective") is not None else None
+
+
+def _colapso(rows: Sequence[Mapping[str, Any]], comidas: float | None) -> Mapping[str, Any]:
+    """Policy collapse as a CONJUNCTION, because narrowing alone is not collapse.
+
+    An expert also has low entropy. A policy that has found the right thing to do
+    and does it is not broken, and a detector that fires on low entropy would
+    condemn exactly the outcome the programme is trying to produce. Collapse is
+    narrowing WITHOUT competence, on a space never explored, with the organism's
+    own uncertainty unresolved. All four, or it is not collapse:
+
+        LOW_ENTROPY  AND  UNCERTAINTY_NOT_FALLING
+                     AND  LOW_PERFORMANCE
+                     AND  UNEXPLORED_ALTERNATIVES
+
+    `UNCERTAINTY_NOT_FALLING` is deliberately scale-free. The uncertainty head
+    emits a variance in units nobody has calibrated, so "high" would be an
+    arbitrary line; whether it is coming DOWN over the episode is a fact about
+    the same quantity that needs no unit. An organism narrowing its policy while
+    resolving its uncertainty is learning. One narrowing while its uncertainty
+    stays put is collapsing.
+    """
+    entropias = _numbers(rows, "policy_entropy")
+    incertidumbres = _numbers(rows, "uncertainty")
+    acciones = [_scientific(row).get("selected_action") for row in rows]
+    acciones = [a for a in acciones if isinstance(a, int) and not isinstance(a, bool)]
+    if not entropias or not acciones:
+        return {"evaluable": False, "reason": "NO_POLICY_TELEMETRY"}
+
+    # Normalised against a uniform policy over the actions actually attempted,
+    # so a factored 5-way head and a flat 25-way head are on one scale.
+    probabilidades = _scientific(rows[-1]).get("policy_probabilities")
+    ancho = len(probabilidades) if isinstance(probabilidades, list) else TOTAL_ACTIONS
+    techo = log(ancho) if ancho > 1 else 1.0
+    cola = entropias[len(entropias) // 2:] or entropias
+    entropia = (sum(cola) / len(cola)) / techo
+
+    repertorio = len(set(acciones)) / ancho
+
+    if len(incertidumbres) >= 4:
+        mitad = len(incertidumbres) // 2
+        primera = sum(incertidumbres[:mitad]) / mitad
+        segunda = sum(incertidumbres[mitad:]) / (len(incertidumbres) - mitad)
+        incertidumbre_baja = segunda < primera * 0.9
+    else:
+        incertidumbre_baja = None  # the module is ablated; unknown, not false
+
+    condiciones = {
+        "LOW_ENTROPY": entropia < COLAPSO_ENTROPIA,
+        "UNCERTAINTY_NOT_FALLING": (not incertidumbre_baja) if incertidumbre_baja is not None else None,
+        "LOW_PERFORMANCE": (comidas is not None and comidas < COLAPSO_COMIDAS),
+        "UNEXPLORED_ALTERNATIVES": repertorio < COLAPSO_REPERTORIO,
+    }
+    conocidas = [v for v in condiciones.values() if v is not None]
+    return {
+        "evaluable": True,
+        "conditions": condiciones,
+        "normalised_entropy": round(entropia, 4),
+        "repertoire_fraction": round(repertorio, 4),
+        # An unknown condition cannot complete a conjunction: with the
+        # uncertainty module ablated the verdict is withheld rather than decided
+        # on three of four.
+        "collapsed": (all(conocidas) and len(conocidas) == len(condiciones)) or None
+        if None in condiciones.values() else all(conocidas),
+    }
 
 
 def _realizacion(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
@@ -303,6 +384,7 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
     eating = _eating(rows)
     cadena = _cadena(rows)
     realizacion = _realizacion(rows)
+    colapso = _colapso(rows, eating_comidas(rows))
     ledger = _energy_ledger(rows)
     n = len(rows)
     tasa = lambda num, den: round(num / den, 4) if den else None
@@ -409,6 +491,15 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
                 "suficientes y esto en 0.5, el fallo es del aprendizaje y no del canal.",
                 evaluable=eating["best_segment"] is not None,
                 reason=None if eating["best_segment"] is not None else NOT_EVALUABLE),
+        Measure("colapso_politica", "La política se cerró sin haber aprendido",
+                colapso.get("collapsed"), "sí/no",
+                "Conjunción de cuatro condiciones: entropía baja, incertidumbre que NO baja, "
+                "rendimiento en el suelo y alternativas nunca probadas. Las cuatro, o no es "
+                "colapso: un experto también tiene entropía baja, y condenarlo sería condenar "
+                "justo el resultado que se busca.",
+                evaluable=colapso.get("evaluable", False) and colapso.get("collapsed") is not None,
+                reason=None if colapso.get("evaluable") and colapso.get("collapsed") is not None
+                else NOT_EVALUABLE),
         Measure("tasa_realizacion", "Ejecutó lo que había resuelto",
                 tasa(realizacion["realizadas"], realizacion["validas"]), "de 1",
                 "De las intenciones que SÍ resolvieron a una entidad real y alcanzable, "

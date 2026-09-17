@@ -103,6 +103,18 @@ def verdict_for_interaction(inter: dict, effects: list[dict]) -> dict:
                 "saturated_components": saturated,
                 "reason": "a single-concept arm already sits at the floor of this mesh, "
                           "so `observed - predicted_if_additive` measures the bound"}
+    residual = inter.get("residual")
+    if isinstance(residual, (int, float)) and residual < 0:
+        # Sub-additive, and the mechanism is NOT read off the sign. Substitutes
+        # would cost little singly and a lot jointly, each covering for the
+        # other. Here removing both rescues the damage done by removing one,
+        # which is the opposite shape -- antagonism, compensatory
+        # reconfiguration, or an interaction between the flags themselves. The
+        # label records what was seen and withholds why.
+        return {"interaction_identifiability": "NEGATIVE_NONADDITIVE_INTERACTION",
+                "mechanism": "UNRESOLVED",
+                "reason": "removing both components together costs less than removing "
+                          "either alone; the shape is identifiable, the mechanism is not"}
     return {"interaction_identifiability": "IDENTIFIABLE",
             "reason": "no component arm is at the floor of this mesh"}
 

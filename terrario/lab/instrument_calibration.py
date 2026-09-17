@@ -36,7 +36,10 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from terrario.core.action_contract import AddressingMode
+from terrario.core.types import Position
 from terrario.lab.run_measures import _cadena, _eating, _energy_ledger, _realizacion
+from terrario.lab.snapshot_bank import Snapshot, intention_representability
 
 ADJACENT = ((-1, 0), (1, 0), (0, -1), (0, 1))
 DIRECTION_NAMES = ("UP", "DOWN", "LEFT", "RIGHT", "NONE")
@@ -142,6 +145,32 @@ def _realization(rows) -> float | None:
     return counts["realizadas"] / counts["validas"] if counts["validas"] else None
 
 
+class _Obj:
+    def __init__(self, pos): self.pos = pos
+
+
+class _Agent:
+    def __init__(self, pos): self.pos, self.alive = pos, True
+
+
+class _State:
+    def __init__(self, agent_pos, object_positions):
+        self.agents = {0: _Agent(agent_pos)}
+        self.objects = {i + 1: _Obj(p) for i, p in enumerate(object_positions)}
+
+
+def _bank(object_offsets) -> list[Snapshot]:
+    here = Position(5, 5)
+    return [Snapshot(_State(here, [Position(5 + dx, 5 + dy) for dx, dy in object_offsets]),
+                     here, f"synthetic#{i}") for i in range(20)]
+
+
+def _representability(rows) -> float | None:
+    """`rows` is (bank, mode, view_size) here: this metric reads states, not traces."""
+    bank, mode, view = rows
+    return intention_representability(bank, mode, view_size=view)["representability"]["value"]
+
+
 def _accounting(rows) -> float | None:
     ledger = _energy_ledger(rows)
     return ledger["reconciled"] / ledger["checked"] if ledger["checked"] else None
@@ -220,6 +249,22 @@ CONTROLS: dict[str, tuple[Callable[[Any], float | None], tuple[Control, ...]]] =
                 "NOT_EVALUABLE; reading it as 1.0 would report perfect execution for "
                 "every run made before the contract existed."),
     )),
+    "representabilidad_intencion": (_representability, (
+        Control("representability_t0_reachable", 1.0, 0.0,
+                "An entity in contact under directional addressing. CONSUME(direction) "
+                "already names it, so the ceiling must read 1.0."),
+        Control("representability_t1_reachable", 1.0, 0.0,
+                "The same entity under entity addressing."),
+        Control("representability_t1_blind", 0.0, 0.0,
+                "The entity is in contact but the view window cannot perceive it, so no "
+                "slot names it and no expressible action realises the intention. This is "
+                "the control that matters: without it the instrument could return 1.0 "
+                "unconditionally and nobody would know."),
+        Control("representability_no_intentions", None, 0.0,
+                "Nothing in contact anywhere. There are no realisable intentions to "
+                "score, and the answer is NOT_EVALUABLE -- not 1.0, which would claim "
+                "perfect expressivity on no evidence."),
+    )),
     "contabilidad_energetica": (_accounting, (
         Control("ledger_balanced", 1.0, 0.0,
                 "Energy falls by exactly the declared cost on every non-consuming step."),
@@ -256,6 +301,14 @@ def _case_trace(case: str) -> list[dict[str, Any]]:
         return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(200)])
     if case == "t1_never_resolving_agent":
         return trace([(((0, 1),), _act_t1("CONSUME", "NONEXISTENT")) for _ in range(200)])
+    if case == "representability_t0_reachable":
+        return (_bank([(0, 1)]), AddressingMode.T0_DIRECTIONAL, 5)
+    if case == "representability_t1_reachable":
+        return (_bank([(0, 1)]), AddressingMode.T1_ENTITY, 5)
+    if case == "representability_t1_blind":
+        return (_bank([(0, 1)]), AddressingMode.T1_ENTITY, 1)
+    if case == "representability_no_intentions":
+        return (_bank([(0, 4)]), AddressingMode.T1_ENTITY, 5)
     if case == "realization_faithful":
         return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(100)])
     if case == "realization_substituted":
