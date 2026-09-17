@@ -12,7 +12,8 @@ from terrario.agent.scientific import scientific_state
 from terrario.core.contracts import Transition
 from terrario.core.rng import RNGManager
 from terrario.core.action_contract import (ActionIntent,ActionProvenance,AddressingMode,
-    ExecutionStatus,SelectorType,TargetStatus,perceive_targets,resolve)
+    ExecutionStatus,SelectorType,TARGET_BEARING_OPERATIONS,TargetStatus,
+    perceive_targets,resolve)
 from terrario.core.types import ActionType,Consequence,DIRECTION_DELTA
 from terrario.experiment.controller import build_world_state
 from terrario.lab.world_authoring import CompiledWorld,GeneratedWorldInstance,generate_instance
@@ -221,6 +222,31 @@ def _perceived(world,obs,agent,step,world_seed):
                             salt=f"{world_seed}",step=step,mask=obs.mask)
 
 
+def _t0_provenance(world,action,step):
+    """Provenance for a directional consume, so the two arms are comparable.
+
+    Without this the waste decomposition exists only for T1 and the comparison
+    is between a measured arm and an unmeasured one. Resolution is READ here and
+    nothing is written back: T0 keeps the v1 physics path exactly, the faced-cell
+    lookup, so the control arm stays byte-identical to every run that came before
+    Action Contract v2.
+    """
+    if action.action_type not in TARGET_BEARING_OPERATIONS: return {}
+    truth=world._mutable_state()
+    res=resolve(ActionIntent(action.action_type,SelectorType.DIRECTION,int(action.direction)),
+                [],truth,0)
+    valid=res.status is TargetStatus.VALID
+    return {"action_contract":ActionProvenance(step=step,
+        addressing_mode=AddressingMode.T0_DIRECTIONAL.value,perceived_targets=[],
+        perceived_truncated=False,chosen_operation=action.action_type.name,
+        chosen_selector_type=SelectorType.DIRECTION.name,
+        intended_selector_value=int(action.direction),
+        intended_target=action.direction.name,resolved_target=str(res.entity_id) if valid else None,
+        target_status=res.status.value,executed_target=str(res.entity_id) if valid else None,
+        execution_status=(ExecutionStatus.EXECUTED.value if valid
+            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value)).as_record()}
+
+
 def _apply_action_contract(world,obs,action,agent,step,perceived):
     """Resolve the organism's intention against what it could actually perceive.
 
@@ -238,7 +264,7 @@ def _apply_action_contract(world,obs,action,agent,step,perceived):
     handed an entity the organism never perceived (AC2-2), because the only
     writer is a resolution that came out of the agent's own view window.
     """
-    if perceived is None: return action,{}
+    if perceived is None: return action,_t0_provenance(world,action,step)
     mode=getattr(agent,"_addressing_mode",AddressingMode.T1_ENTITY)
     truth=world._mutable_state()
     targets,truncated=perceived

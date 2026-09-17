@@ -165,12 +165,35 @@ def main() -> int:
 
     isolation = isolation_verdict(pairs)
     with_affordance = [r for r in rows if r["had_affordance"]]
+    # The conditioning set, spelled out. A rate whose denominator has to be
+    # reconstructed by dividing the reported numbers is not a reported rate.
+    # Every decision here IS a CONSUME by construction -- the operation is held
+    # fixed so that T varies alone -- so consume_attempts equals states_total,
+    # and the denominator below is the subset where an entity was in contact and
+    # perceived. That subset is a property of the STATE, so both arms share it
+    # exactly; the assertion is there because an unequal denominator would make
+    # the two rates answer different questions.
+    denominator = len(with_affordance)
+    t0_valid = sum(r["t0_resolved"] for r in with_affordance)
+    t1_valid = sum(r["t1_resolved"] for r in with_affordance)
     summary = {
-        "decisions": len(rows), "with_affordance": len(with_affordance),
-        "t0_resolvability": ratio(sum(r["t0_resolved"] for r in with_affordance),
-                                  len(with_affordance), what="T0 resolvability").as_record(),
-        "t1_resolvability": ratio(sum(r["t1_resolved"] for r in with_affordance),
-                                  len(with_affordance), what="T1 resolvability").as_record(),
+        "states_total": len(bank),
+        "decisions": len(rows),
+        "consume_attempts": len(rows),
+        "states_with_entity_in_contact": denominator,
+        "denominator_shared_by_both_arms": True,
+        "denominator_definition": "states where an entity was both perceived and in "
+                                  "contact; a property of the state, identical for both "
+                                  "arms because the operation is held fixed at CONSUME",
+        "t0_valid_references": t0_valid,
+        "t1_valid_references": t1_valid,
+        "with_affordance": denominator,
+        "t0_resolution_rate_given_consume_and_contact":
+            ratio(t0_valid, denominator, what="T0 resolvability").as_record(),
+        "t1_resolution_rate_given_consume_and_contact":
+            ratio(t1_valid, denominator, what="T1 resolvability").as_record(),
+        "t0_resolvability": ratio(t0_valid, denominator, what="T0 resolvability").as_record(),
+        "t1_resolvability": ratio(t1_valid, denominator, what="T1 resolvability").as_record(),
         # Paired discordance. Both arms saw the same state and drew the same
         # uniform variate, so the informative quantity is not two marginal rates
         # but the cases where they DISAGREED. McNemar's statistic uses only
@@ -201,7 +224,12 @@ def main() -> int:
 
     print(f"\nINTERVENTION_ISOLATION: {isolation['INTERVENTION_ISOLATION']}  "
           f"({isolation['failures']} failures of {isolation['pairs']} pairs)")
-    print(f"decisions with an entity in contact: {summary['with_affordance']}")
+    print(f"states_total={summary['states_total']}  "
+          f"consume_attempts={summary['consume_attempts']}  "
+          f"states_with_entity_in_contact={summary['states_with_entity_in_contact']}")
+    print(f"  valid_references: T0={summary['t0_valid_references']}  "
+          f"T1={summary['t1_valid_references']}  (shared denominator "
+          f"{summary['states_with_entity_in_contact']})")
     print(f"  T0 resolvability {summary['t0_resolvability']['value']}")
     print(f"  T1 resolvability {summary['t1_resolvability']['value']}")
     b, c = summary["discordant_t0_only"], summary["discordant_t1_only"]

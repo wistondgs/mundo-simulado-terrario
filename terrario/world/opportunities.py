@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import hashlib
+
 import numpy as np
 
 from terrario.core.types import ObjectSpec, Position
@@ -35,6 +37,30 @@ class OpportunityRecord:
     min_distance_during_lifetime: int | None = None
     interacted: bool = False
     respawn_parent: int | None = None
+
+
+def _stream(seed: int, kind: str, key: int) -> "np.random.Generator":
+    """A generator keyed on identity, never on how many calls came before.
+
+    The cooldown and the placement draw used to be seeded from
+    `len(self.events)` -- the number of opportunities consumed so far. That made
+    the world's exogenous schedule a function of the ORGANISM's behaviour: two
+    runs from the same world seed, differing only in how often the agent ate,
+    drew their respawn delays from different streams. The world registry
+    declares "world seed materializes layout; agent seed is independently
+    offset", and with a call-order key that was simply untrue.
+
+    It also breaks the paired design outright. Comparing two addressing
+    contracts on the same seed is only a comparison of T if the exogenous shocks
+    are held; otherwise T reaches the outcome twice, once as itself and once
+    through `T -> RNG order -> W_{t+1}`.
+
+    Keyed on (seed, kind, identity) the variate for opportunity 7 is the same
+    variate whether it was the first thing eaten or the fortieth. Trajectories
+    may diverge; the shocks attached to a given opportunity do not.
+    """
+    mixed = hashlib.blake2b(f"{seed}:{kind}:{key}".encode(), digest_size=8).digest()
+    return np.random.default_rng(int.from_bytes(mixed, "big"))
 
 
 class OpportunityLifecycle:
@@ -72,12 +98,13 @@ class OpportunityLifecycle:
         opportunity_id = int(obj.properties.get("opportunity_id", self._next_opportunity_id))
         self._next_opportunity_id = max(self._next_opportunity_id, opportunity_id + 1)
         event_index = len(self.events)
-        rng = np.random.default_rng(self._seed + 104_729 * (event_index + 1))
+        rng = _stream(self._seed, "cooldown", opportunity_id)
         low, high = self._config.get("cooldown_steps", [3, 8])
         due_step = step + int(rng.integers(int(low), int(high) + 1))
         self._pending.append({
             "due_step": due_step, "causal_class": causal_class, "channels": obj.channels.copy(),
             "opportunity_id": self._next_opportunity_id, "event_index": event_index,
+            "spawn_key": self._next_opportunity_id,
         })
         self._next_opportunity_id += 1
         event = OpportunityEvent("despawn", opportunity_id, causal_class, step, obj.pos.to_tuple())
@@ -95,7 +122,7 @@ class OpportunityLifecycle:
         emitted: list[OpportunityEvent] = []
         agent_pos = world._mutable_state().agents[agent_id].pos
         for pending in due:
-            position = self._spawn_position(world, agent_pos, pending["event_index"])
+            position = self._spawn_position(world, agent_pos, pending["spawn_key"])
             obj = ObjectSpec(
                 object_id=self._next_object_id, pos=Position(*position), channels=pending["channels"], movable=False,
                 properties={"causal_class": pending["causal_class"], "opportunity_id": pending["opportunity_id"]},
@@ -112,7 +139,19 @@ class OpportunityLifecycle:
             emitted.append(event)
         return emitted
 
-    def _spawn_position(self, world: WorldStateManager, agent_pos: Position, event_index: int) -> tuple[int, int]:
+    def _spawn_position(self, world: WorldStateManager, agent_pos: Position,
+                        spawn_key: int) -> tuple[int, int]:
+        """Where a respawn lands.
+
+        The DRAW is keyed on the opportunity's identity, so the same variate
+        comes up for the same opportunity in either arm. The candidate SET is
+        another matter: it excludes occupied cells, cells too close to the agent
+        and recently-consumed positions, so it depends on where the organism is
+        and on what it has eaten. That is a declared rule of this scenario --
+        the world places new opportunities relative to the organism -- and not a
+        bookkeeping leak. It means a paired comparison holds the shock SCHEDULE
+        fixed while placement still follows each arm's own trajectory, by design.
+        """
         state = world._mutable_state()
         margin = int(self._config.get("placement_margin", 1))
         minimum_distance = int(self._config.get("minimum_agent_distance", 2))
@@ -123,7 +162,7 @@ class OpportunityLifecycle:
         ]
         if not candidates:
             candidates = [(x, y) for x in range(margin, state.grid_height - margin) for y in range(margin, state.grid_width - margin) if state.occupancy[x, y] == 0]
-        rng = np.random.default_rng(self._seed + 1_000_003 + event_index)
+        rng = _stream(self._seed, "placement", spawn_key)
         return candidates[int(rng.integers(len(candidates)))]
 
     def geometry(self, world: WorldStateManager, agent_id: int = 0, view_radius: int = 2) -> dict[str, Any]:

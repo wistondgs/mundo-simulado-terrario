@@ -257,7 +257,69 @@ apuntan a **espacio vacío**. Bajo T1 el organismo **refiere con éxito a una en
 referí a algo que no alcanzo»; T1 las separa. Para una teoría de la inteligencia esa distinción
 vale más que los cinco puntos de resolubilidad.
 
-## 10. Lo que sigue abierto
+## 10. Los dos gates previos al rollout cerrado
+
+### Gate 1 · denominador explícito
+
+La resolubilidad no se reporta ya como una tasa cuyo conjunto de condicionamiento haya que
+reconstruir dividiendo. El instrumento emite `states_total`, `consume_attempts`,
+`valid_references`, `states_with_entity_in_contact` y la tasa condicionada, más la afirmación de
+que ambos brazos comparten denominador. En el banco de un paso la operación está fijada en
+CONSUME por construcción, así que `consume_attempts = states_total = 3000`, y el denominador de
+la tasa es el subconjunto con una entidad percibida y en contacto: **1442**, propiedad del
+estado e idéntica para los dos brazos.
+
+### Gate 2 · acoplamiento del azar exógeno — **FALLABA**
+
+`opportunities.py` sembraba el sorteo del cooldown y el de la colocación con
+`len(self.events)`, el número de oportunidades consumidas hasta ese momento:
+
+```python
+event_index = len(self.events)
+rng = np.random.default_rng(self._seed + 104_729 * (event_index + 1))
+```
+
+Es decir, el calendario exógeno del mundo era **función de la conducta del organismo**. Dos
+corridas desde la misma semilla de mundo, distintas sólo en cuántas veces comió el agente,
+sorteaban sus retardos de respawn de streams distintos. El registro de mundos declara *«world
+seed materializes layout; agent seed is independently offset»*, y con una clave por orden de
+llamada eso era sencillamente falso.
+
+Para el diseño pareado es peor que una imprecisión: T alcanzaba el resultado dos veces, una como
+sí misma y otra por `T → orden de RNG → W_{t+1}`, y eso no se separa después por mucho que se
+siembre arriba.
+
+**Reparado.** La clave es ahora `(seed, tipo, identidad_de_oportunidad)` vía blake2b, así que la
+variable que le toca a la oportunidad 7 es la misma tanto si fue lo primero que se comió como si
+fue lo cuadragésimo. Cinco pruebas lo fijan, incluida la que comprueba que colocación y cooldown
+no comparten stream.
+
+**Lo que NO se reparó, a propósito.** El *conjunto de candidatos* del respawn excluye casillas
+ocupadas, casillas demasiado próximas al agente y posiciones consumidas recientemente. Eso
+depende de dónde está el organismo, pero no es una fuga de contabilidad: es una **regla
+declarada del escenario** — el mundo coloca las oportunidades nuevas en relación al organismo. El
+pareado mantiene fijo el *calendario* de shocks mientras la colocación sigue la trayectoria de
+cada brazo, por diseño. Cambiar eso movería la definición del mundo y es decisión tuya, no mía.
+
+## 11. Estado del contrato
+
+```
+EXPRESSIVITY CLAIM             = REFUTED
+SELECTOR ISOLATION             = PASS
+INITIAL BEHAVIORAL PARITY      = PASS
+LOCAL RESOLUTION EFFECT        = DETECTED  (McNemar χ² 11.775, p<0.001,
+                                            cociente discordante 305/225 ≈ 1.36)
+MECHANISM                      = ACTION-SPACE FACTORIZATION /
+                                 REFERENTIAL INDUCTIVE BIAS
+CLOSED-LOOP TOTAL EFFECT       = EN CURSO
+E INTERVENTION                 = FROZEN
+C INTERVENTION                 = FROZEN
+```
+
+El efecto local es **reproducible y moderado, no milagroso**: p<0.001 dice que la asimetría es
+difícil de atribuir al azar bajo este diseño, no que el efecto sea grande.
+
+## 12. Lo que sigue abierto
 
 - T1 no es «mejor» por construcción: un agente uniforme direcciona **peor** bajo T1 (16 ranuras,
   casi todas vacías) que bajo T0 (5 direcciones). T1 compra expresividad, no puntería. Sólo un
