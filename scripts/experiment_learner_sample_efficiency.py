@@ -165,6 +165,9 @@ def main() -> int:
     args = ap.parse_args()
 
     sizes = [int(s) for s in args.sizes.split(",")]
+    # El banco se construye UNA vez. Reconstruirlo por semilla levantaba 200
+    # mundos en cada iteración, que era casi todo el coste de la corrida.
+    held_out = build_probes(args.probes, random.Random(20260917), TEST_BANDS)
     rows = []
     for n in sizes:
         for mode in ("pure", "diluted"):
@@ -183,9 +186,6 @@ def main() -> int:
                     if mode == "diluted":
                         stream.extend(metabolic_example(rng)
                                       for _ in range(args.dilution - 1))
-                rng_probe = random.Random(20260917)
-                held_out = build_probes(args.probes, rng_probe, TEST_BANDS)
-
                 before, _ = exam(agent, held_out)
                 feed(agent, stream)
                 after, support = exam(agent, held_out)

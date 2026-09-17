@@ -1502,3 +1502,1036 @@ pasos metabólicos, la densidad real de D4T). Separan «no puede aprenderlo» de
 suficientes» de «la dilución lo impide».
 
 *Resultado en `artifacts/learner_sample_efficiency.json`.*
+
+---
+
+# XVIII · Métricas e instrumentos científicos
+
+## 433-437 · El registro
+
+Vive en [lab/instrument_registry.py](terrario/lab/instrument_registry.py). Cada `MetricSpec`
+declara: `metric_id`, `semantic_definition`, **`conditional_form`** (la expresión `P(A|B,C)`
+escrita, no implícita), `numerator`, `denominator`, `conditioning_set`, `valid_domain`,
+`undefined_conditions`, `expected_range`, `instrument_controls`, `version`, `exploratory`, `notes`.
+
+**Ocho métricas registradas, las ocho `REPORTABLE`:**
+
+| Métrica | Forma condicional |
+|---|---|
+| `tasa_oportunidad` | `P(O_t)` |
+| `tasa_interaccion` | `P(C_t)` |
+| `tasa_direccionamiento` | `P(T_t \| C_t, O_t)` |
+| `conversion_aprendizaje` | `P(B_t \| T_t, C_t, O_t)` |
+| `tasa_realizacion` | `P(ejecutado == pretendido \| intención válida)` |
+| `contabilidad_energetica` | `P(ΔV_obs == ΔV_declarado \| sin interacción)` |
+| `representabilidad_intencion` | `P(∃a ∈ A_T : Execute(s,a) realiza I \| I realizable)` |
+| `examen_prediccion` | `P(E[ΔV\|fav] > E[ΔV\|desfav] \| ambas en contacto, canales nunca vistos)` |
+
+[436] Ninguna en `DEFINED` sin calibrar. [437] Ninguna en `FAILED_CONTROL`.
+
+## 438-440 · Métricas fuera del registro
+
+**La mayoría.** `run_measures` produce ~20 mallas y sólo cuatro están registradas. Fuera quedan:
+`pasos_vividos`, `sigue_vivo`, `energia_final`, `balance_energia`, `acciones_distintas`,
+`variedad_conductual`, `indecision_media`, `actualizaciones`, `perturbaciones_vistas`,
+`el_mundo_actua`, `comidas_efectivas`, `tasa_informativa`, `aciertos_al_comer`,
+`mejor_tramo_al_comer`, `cambio_propio`, `colapso_politica`.
+
+[439-440] **Sí, un script puede reportar una métrica no registrada.** `assert_reportable` existe y
+**ningún script la llama**. La puerta está construida y **no está cableada**.
+
+## 441-449 · Las cuatro semánticas
+
+Codificadas en [lab/measurement_status.py](terrario/lab/measurement_status.py): `Status.OK`,
+`NOT_EVALUABLE`, `MISSING`, `INVALID`, con `Reading` congelado y `ratio()` como constructor único.
+La defensa es **estructural**: `float(reading)` levanta `NotEvaluableError` salvo que sea `OK`, y
+no existe método que convierta una lectura no-OK en número.
+
+[442] **Sí pueden perderse al serializar** si alguien escribe `reading.value` en vez de
+`reading.as_record()`; `as_record()` conserva `status`, `value`, `support` y `reason`.
+[443-445] **Verificación pendiente**: no he comprobado su representación en CSV, SQLite ni UI.
+[446] Las conocen: `summarise`, `aggregate` en `experiment_t0_vs_t1` y `experiment_closed_loop_t`,
+y `analyze_closed_loop`.
+[447-448] **Sí, `mean()` las convertiría** si se le pasara `.value`; por eso los agregadores filtran
+por `.evaluable` antes de promediar y **cuentan aparte** los ausentes.
+[449] Cubierto por `tests/test_measurement_status.py` (10 pruebas), incluida
+`test_a_non_ok_reading_refuses_to_become_a_number`.
+
+## 450-456 · Numerador, denominador y procedencia
+
+[450] Declaran ambos explícitamente las ocho registradas.
+[451] **Reconstruyen el denominador implícitamente** las mallas no registradas de `run_measures`.
+[452-453] Los 21 controles de falsación, con oráculo, anti-oráculo y caso nulo:
+
+```
+tasa_direccionamiento   perfect_targeting · never_target · t1_perfect · t1_never · uniform_random
+tasa_oportunidad        empty_world · adjacent_every_step
+tasa_interaccion        never_target · perfect_targeting
+conversion_aprendizaje  non_learning · oracle_learner
+tasa_realizacion        faithful · substituted · no_contract
+contabilidad_energetica ledger_balanced · ledger_undeclared_flow
+representabilidad       t0_reachable · t1_reachable · t1_blind · no_intentions
+examen_prediccion       oracle · anti_oracle · tie
+```
+
+[454] **Dependen de reconstrucción de trazas**: todas las de `run_measures`.
+[455] **Se registran durante la transición**: `action_contract` (la procedencia v2) y
+`scientific_state`.
+[456] Las segundas son **más fiables**, y la diferencia ya se materializó: el defecto de
+emparejamiento pre/post-estado sólo pudo ocurrir en una métrica reconstruida.
+
+## 457-458 · Versionado
+
+`MetricSpec.version` existe (todas en 1) y `MEASURES_SCHEMA` versiona el conjunto.
+[458] El mecanismo para evidencia histórica es `scripts/reclassify_screening.py`, que marca
+`SUPERSEDED_BY_INSTRUMENT_CALIBRATION` sin borrar: **la medición se conserva, la interpretación se
+retira**.
+
+---
+
+# XIX · Traza, ScientificFrame y evidencia
+
+## 459-465 · Schema
+
+`SandboxTraceStep` ([sandbox_runtime.py:56](terrario/lab/sandbox_runtime.py:56)), dataclass
+congelado:
+
+| Campo | Parte |
+|---|---|
+| `sandbox_run_id`, `classification`, `config_hash`, `world_definition_hash`, `world_instance_hash`, `world_seed`, `agent_seed`, `agent_identity`, `trace_schema_version` | [465] procedencia |
+| `observer_world`, `world_events`, `terminated` | [461] mundo |
+| `agent_observation`, `agent_action`, `agent_events` | [462] agente |
+| `scientific_state` | [463] cognición |
+| `agent_action.action_contract` | [464] instrumento (AC2) |
+
+`scientific_state` ([agent/scientific.py:104](terrario/agent/scientific.py:104)) contiene
+`policy_logits`, `policy_probabilities`, `policy_entropy`, `selected_action`,
+`selected_action_probability`, `latent_state`, `temporal_state`, `memory_summary`, `prediction`,
+`prediction_error`, `uncertainty`, `current_loss`, `gradient_norm`, `parameter_delta_norm`,
+`learning_summary`, `active_ablations`.
+
+## 466-485 · Verificación pendiente
+
+[466-485] **No he verificado**: la identidad que une JSONL, SQLite y ScientificFrame, cuál es
+autoritativa, cuándo se materializa el frame, el truncado por transporte cognitivo, CAS,
+atomicidad, garantías de SSE, resync ni backpressure. Requiere leer
+`observer/trace.py` (418 líneas), `observer/storage.py` (363), `observer/logger.py` (430) y
+`lab/worldstream/service.py` (327). **Es la laguna más grande de esta cartografía.**
+
+Lo que sí consta: `observer/trace.py::_connect` es un `@contextmanager` desde una reparación
+previa (había conexiones SQLite filtradas), y existe una condición de carrera intermitente
+`UNIQUE constraint failed: records.sequence` **no reparada**, que se evita ejecutando los
+experimentos sobre el runtime directo en vez de la capa de streaming.
+
+---
+
+# XX · Checkpoints y persistencia
+
+## 486-499 · Qué contiene
+
+`CheckpointManager.save` ([observer/checkpoints.py:59](terrario/observer/checkpoints.py:59)):
+
+```
+params.safetensors     ← agent.get_parameters()
+optimizer.safetensors  ← agent.get_optimizer_state()  si existe
+metadata.json          ← step, saved_at, metadata
+runtime_state.pt       ← random.getstate() · np.random.get_state()
+                         torch.get_rng_state() · agent._generator.get_state()
+                         optimizer.state_dict()
+```
+
+| | ¿Incluido? |
+|---|---|
+| [487] parámetros neuronales | **sí**, los 6 módulos |
+| [488] optimizadores | **sí**, vía `runtime_state.pt` |
+| [489] estado recurrente `_hidden` | **NO** |
+| [490] memoria episódica | **NO** |
+| [491] memoria persistente `M` | **sí**, es `nn.Parameter` de `longterm_memory` |
+| [492] estado del world model | **sí**, son parámetros |
+| [493] estado del planner | no tiene estado persistente (sólo trace) |
+| [494] incertidumbre | **sí**, son parámetros |
+| [495] RNG | **sí**, los cuatro |
+| [496-497] lifecycle del mundo y generaciones | **NO** |
+| [498] métricas acumuladas | **NO** |
+
+**Medido**: A4 **no tiene `get_optimizer_state`**, así que `optimizer.safetensors` nunca se
+escribe para A4; el estado del Adam llega sólo por `runtime_state.pt`.
+
+[499] Quedan deliberadamente fuera los tensores no portables; queda fuera **por omisión**
+`_hidden`, `_energy_baseline`, `_baseline_count`, `_step`, el buffer episódico y el estado del
+mundo.
+
+## 500-505 · Reproducción
+
+[500] **No.** Restaurar un checkpoint de A4 **no** reproduce el siguiente timestep exactamente,
+porque `_hidden` y el buffer episódico no se guardan y ambos entran en `s_t`.
+[501] Las pruebas son `tests/test_checkpoint_reconstruction.py`, tres:
+`restores_agent_rng_trajectory`, `restores_worldtruth_for_identical_replay` y
+`reconstructs_a1_learning_trajectory_with_adam_state`. **La tercera usa A1, no A4.**
+[502-503] La frontera atómica es el directorio `step_XXXXXXXX/`; no hay protección contra
+checkpointar a mitad de una actualización.
+[504-505] **Verificación pendiente**: versionado del formato y carga de checkpoints antiguos.
+
+---
+
+# XXI · Sandbox frente a ejecución científica
+
+## 506-508 · Los dos call graphs y dónde divergen
+
+```
+SandboxService.run_bounded → .step → ._step_runtime
+ExperimentController.run   → .run_episode
+```
+
+[508] **Divergen en la primera función**: no comparten ningún bucle. Ambos reconstruyen la
+secuencia por su cuenta a partir de los mismos servicios.
+
+## 509-517 · Qué comparte y qué no cada uno
+
+| | Controller | Sandbox |
+|---|---|---|
+| [509] servicios comunes | `WorldStateManager`, `Physics`, `RuleEngine`, `ChangeScheduler`, `create_agent` | ídem |
+| [510] física exclusiva | **`OpportunityLifecycle`** (respawn/cooldown) | — |
+| [511] instrumentación exclusiva | anotaciones causales, `geometry`, ventana forense, fases | **Contrato de Acción v2** |
+| [512] máquina de estados | fases del escenario | `RunState` (CREATED/RUNNING/COMPLETED/TERMINATED/FAILED) |
+| [513] terminación | `alive` al inicio → `break` | `terminated` al final |
+| [514] observadores | `build_scientific_state` + anotaciones | `scientific_state` |
+| [515] semillas | `RNGManager.set_global_determinism(agent_seed)` | **no lo llama** |
+| [516] trace writer | `step_traces[]` en memoria + observer | `SandboxTraceStep` + `storage.write` cada 50 |
+| [517] checkpoints | `CheckpointManager` | ninguno |
+
+## 518-522 · Autoridad científica
+
+[518] Sólo desde el controller, vía `lab/execution/runtime.py` y el servicio de preregistro, puede
+sellarse evidencia.
+[519] `screen_concepts` → **Sandbox**. [520] P0 y P1 → **Sandbox**.
+[521] World2D Live → **Sandbox**.
+[522] **La ruta considerada autoritativa es la del `ExperimentController`. Ninguno de los
+experimentos de esta noche corrió por ella.**
+
+## 523-525 · Conformidad y drift
+
+[523] **No existe ninguna prueba de conformidad entre ambos loops.** Es el hueco que P0.5 debe
+cerrar.
+[524] Comparten los servicios pero **no la secuencia**; el porcentaje de comportamiento
+compartido exactamente hoy no está medido y no puede estarlo sin esa prueba.
+[525] Fuentes potenciales de drift: `_find_target` duplicado, el orden physics/target, la base de
+la semilla de física, el gate de aprendizaje y la ausencia de lifecycle.
+
+---
+
+# XXII · Preregistro y evidencia
+
+## 526-534 · Estructura y estados
+
+[lab/preregistration/domain.py](terrario/lab/preregistration/domain.py), 648 líneas, todo en
+dataclasses congelados con `frozen_mapping`.
+
+**Máquina de estados del preregistro:**
+
+```
+DRAFT → READY_FOR_REVIEW → REVIEW_IN_PROGRESS → REVIEWED → PREREGISTERED_LOCKED
+                                                        ↘ SUPERSEDED / WITHDRAWN
+```
+
+**Decisiones de revisión**: `APPROVE_PREREGISTRATION`, `APPROVE_FOR_EXPERIMENT_DESIGN`,
+`REQUEST_CHANGES`, `REJECT`.
+
+[534] **La distinción exploratorio/confirmatorio es de primera clase**: `StudyIntent` ∈
+{`EXPLORATORY`, `CONFIRMATORY`, `REPLICATION`, `ABLATION`, `STRESS_TEST`, `METHOD_VALIDATION`},
+`CausalMode` ∈ {`CAUSAL`, `DESCRIPTIVE_ONLY`}, `EndpointRole` ∈ {`PRIMARY`, `SECONDARY`,
+`DIAGNOSTIC`, `EXPLORATORY`}, y `Partition` ∈ {`TRAIN`, `DEVELOPMENT`, `EXPLORATORY_TEST`,
+`CONFIRMATORY_TEST`, `TRANSFER`, `HOLDOUT`}.
+
+[528-529] Se congela al pasar a `PREREGISTERED_LOCKED`. Después sólo cabe enmienda o desviación.
+
+## 530-532 · Enmiendas y desviaciones
+
+`DeviationType` ∈ {`PROTOCOL_DEVIATION`, `SEED_DEVIATION`, `METRIC_DEVIATION`,
+`OBSERVER_DEVIATION`, `ANALYSIS_DEVIATION`, `ENVIRONMENT_DEVIATION`, `EXCLUSION_DEVIATION`}.
+
+[532] La diferencia: una **enmienda** cambia el protocolo **antes** de ejecutar y se somete a
+revisión; una **desviación** registra que la ejecución **no siguió** el protocolo bloqueado.
+
+Existe además un sistema de **exposición** que no había visto en ningún otro laboratorio de este
+tamaño: `ExposureKind` ∈ {`PREVIEWED`, `SANDBOXED`, `INSPECTED`, `ANALYZED`,
+`MANUAL_DECLARATION`} y `ExposureStatus` ∈ {`UNEXPOSED`, `PREEXPOSED`, `POSTLOCK_EXPOSED`,
+`CONTAMINATION_REVIEW_REQUIRED`}. Registra si alguien **miró los datos** antes de bloquear.
+
+`FindingSeverity` ∈ {`STRUCTURAL_ERROR`, `SCHEMA_ERROR`, `INTEGRITY_ERROR`, `REFERENCE_ERROR`,
+`SCIENTIFIC_WARNING`, `EXPOSURE_WARNING`, `RESOURCE_WARNING`}.
+
+## 535-544 · Sellado y hashes
+
+[541] El gate humano que bloquea hoy: `tests/test_system_baseline_characterization.py::
+test_protected_source_and_historical_artifact_hashes_match_baseline`, contra
+`tests/fixtures/system_baseline_02/`.
+[542] Exige regeneración **cualquier cambio a una fuente protegida** — y `a4_advanced.py` lo es,
+por eso ese test lleva fallando toda la noche, deliberadamente.
+[543] **No deberían exigirla** los cambios a instrumentos de laboratorio, scripts y documentación.
+[544] La procedencia de evidencia reinterpretada se preserva con `reclassify_screening.py`, que
+escribe `.reclassified.json` junto al original y estampa `rng_mechanism` y `batch_note`.
+
+[536-540] **Verificación pendiente**: qué cubren exactamente los hashes (código, configuración,
+métricas, tests) requiere leer `lab/evidence_publication.py` y las fixtures de baseline.
+
+---
+
+# XXIII · Ablaciones y composición
+
+## 545-551 · Cómo se construye un agente con flags
+
+`lab/agent_composition.py::validate_selection` es **fail-closed**: rechaza una clave desconocida en
+vez de descartarla en silencio. Tres familias de clave:
+
+```
+_KEYS          los 10 use_*      deben ser bool
+_TUNING_KEYS   numéricos         validados contra [minimum, maximum]
+_CHOICE_KEYS   addressing_mode   validado contra dominio enumerado
+```
+
+[546] **Las ablaciones NO eliminan módulos: los dejan construidos y cortan su ruta.**
+[547] Los downstream reciben **ceros** de la misma dimensión.
+[548] **No cambian dimensiones**: `_build_state` siempre devuelve 640.
+[549-550] **Sí cambia el número de parámetros entrenables**, porque `parameter_count` cuenta sólo
+`requires_grad`, y **sí cambia qué módulos entran al optimizador**: `learnable_modules` se
+construye condicionalmente. Un agente sin memoria de largo plazo tiene un Adam distinto.
+[551] Cambian rutas de control: las ramas `if self._use_*`.
+
+## 552-554 · Ablaciones que no son intervenciones locales
+
+[552] **Sí, hay una, y es grave**: `use_world_model=False` **también desactiva el planificador**,
+porque la rama exige ambos flags. Medido: 0 de 40 llamadas a `planner.plan`.
+[553] Activan fallback: `use_temporal` → ceros, `use_episodic_memory` → ceros,
+`use_longterm_memory` → ceros, `use_homeostasis` → temperatura 1.0, `use_planner` /
+`use_world_model` → `policy_head.sample`.
+[554] **Interacciones implícitas**: `use_planner × use_world_model` (la misma rama);
+`use_uncertainty × use_world_model` (la loss de incertidumbre exige ambos).
+
+## 555-559 · Baseline y compartición
+
+[555-556] La baseline es la configuración por defecto; la misma inicialización se garantiza con
+`torch.manual_seed(seed)` antes de `create_agent`, y en P1 además **verificando el hash**.
+[557] **Comparten parámetros**: las tres cabezas del world model comparten backbone.
+[558] **Comparten optimizador**: un único Adam sobre todo.
+[559] **Sí, una ablación puede modificar gradientes de un módulo supuestamente intacto**, por dos
+vías: el Adam es global —quitar parámetros cambia el estado del optimizador— y las losses se suman
+sin pesos, así que eliminar `unc_loss` cambia la magnitud total que retropropaga al backbone
+compartido, al encoder y al temporal core.
+
+## 560-565 · Los efectos fuertes, explicados
+
+[560-562] **Son el mismo efecto.** Ambas ablaciones eliminan la misma ruta: la inyección de la
+acción del planner en el 50 % de los pasos. Y como `energy_head` es constante (§VIII), esa acción
+es **casi uniforme**: el planner no planifica, **explora**. Quitarlo deja sola a una política
+colapsada, y una política colapsada no come.
+
+[563-564] Las conjunciones del corpus, con sus flags exactos:
+
+```
+sin:nucleo_lecun      (use_world_model, use_longterm_memory, use_planner)
+sin:memoria_completa  (use_episodic_memory, use_longterm_memory)
+sin:anticipacion      (use_world_model, use_planner)
+```
+
+[565] **Modificación indirecta**: `anticipacion` elimina **exactamente la misma ruta** que
+cualquiera de sus dos componentes por separado, lo que explica su residuo −6.67 sin necesidad de
+invocar interacción alguna. `nucleo_lecun` hereda lo mismo más la memoria.
+
+---
+
+# XXIV · Tests
+
+## 566-575 · Distribución
+
+**152 ficheros, 711 pruebas, 1 omitida, 1 fallando** (el gate de hashes protegidos).
+
+| Subsistema | Ficheros |
+|---|---|
+| lab | 10 |
+| api | 6 · experiment 6 · world 6 |
+| observer 5 · metric 5 | |
+| agent 4 | |
+| sandbox 3 · preregistration 3 · opportunities 3 | |
+| a4 2 · trace 2 · measure 2 · reproducibility 2 | |
+| storage · checkpoint · instrument · calibration · action_contract · selector · baseline · composition · screening | 1 c/u |
+
+[567-570] **Verificación pendiente**: el desglose unitaria / integración / end-to-end exige
+clasificar las 711 una a una. Los **controles científicos** sí están contados: **21** de
+falsación de instrumento, más 22 de contrato de acción y 12 de paridad de selector.
+
+[573-575] Ejercitan `SandboxService` 3 ficheros; `ExperimentController`, los de `experiment`.
+**Ninguno ejercita ambos sobre el mismo escenario** — [523] de nuevo.
+
+## 576-586 · Qué falta
+
+[576] **Sin test**: el examen de P1 como sólo lectura [406]; la conformidad entre loops [523];
+que una predicción del world model cambie la elección del planner [212]; el round-trip de
+checkpoint para **A4** [501].
+[579] Dependen de hashes exactos: `test_system_baseline_characterization.py`.
+[580-581] La omitida es `test_agent_factory.py:35`, con
+`@pytest.mark.skipif(not torch.cuda.is_available())` — **no hay CUDA en esta máquina**.
+[582] Contra el riesgo de que un test verde replique la implementación defectuosa, la respuesta
+del repositorio son los **controles con respuesta analítica conocida**: [583] el más fuerte es
+`uniform_random_agent` → **0.0400 teórico contra 0.0404 medido**.
+[584] Usan oráculo: `oracle_learner`, `exam_oracle`, `perfect_targeting_agent`,
+`t1_perfect_targeting_agent`, `realization_faithful`, `ledger_balanced`.
+[585] **Faltan controles negativos** para las ~16 mallas de `run_measures` fuera del registro.
+[586] **No hay tests metamórficos** de ningún tipo.
+
+---
+
+# XXV · Rendimiento
+
+## 587-593 · Dónde se van los segundos
+
+**Coste por decisión**, medido aislando módulos (5 semillas, 100 decisiones):
+
+```
+A4 completo            39.04 ms
+sin planner            22.21 ms     → el planner cuesta 16.8 ms  (43 %)
+sin incertidumbre      22.42 ms     → incertidumbre cuesta 16.6 ms (43 %)
+sin ambos               3.15 ms     → todo el resto del agente: 8 %
+```
+
+La razón es aritmética y está en el código:
+- **planner**: 10 candidatos × 5 pasos de horizonte = **50 pasadas del world model por decisión**.
+- **incertidumbre**: 25 acciones × 5 cabezas del ensemble = **125 pasadas por decisión**.
+
+**Reparto por fase del timestep** (proporciones firmes; los absolutos estaban contaminados por
+carga en paralelo):
+
+```
+learn (backward + Adam)    ~72 %
+decide (forward)           ~27 %
+perceive (encoder)         ~1 %
+physics.step               ~0.03 %
+get_observation            ~0.01 %
+serialize (traza)          ~0.002 %
+```
+
+[589-593] **El mundo, el logging, las métricas, la serialización y el observador juntos no llegan
+al 0.1 %.** El coste es **enteramente la red neuronal**. Un perfilado previo ya había eliminado el
+coste cuadrático de la traza (`storage.write` por paso, 18 min → 2.4 min) con la cadencia de
+snapshot cada 50 pasos.
+
+## 594-596 · Vectorización y coste cuadrático
+
+[594] Vectorizables por lotes: las 25 evaluaciones de incertidumbre y los 10 rollouts del planner
+—hoy son **bucles Python**—.
+[595] Estrictamente serial por dependencia causal: la recurrencia del temporal core y la secuencia
+percibir→decidir→actuar.
+
+[596] **Sí, hay un O(n²) inadvertido**, y no es con objetos sino con memoria:
+
+```python
+stored = torch.stack([e["embedding"] for e in self._buffer])   # memory.py:98
+similarities = (query_norm @ stored_norm.T)
+```
+
+`EpisodicMemory.read` **apila el buffer entero en cada lectura**, y se lee una vez por decisión.
+Con capacidad 1000 y 1200 pasos, el coste acumulado crece cuadráticamente hasta el tope.
+
+## 597-605 · Escalar semillas
+
+[601] `torch.get_num_threads() = 6` — **no es single-thread**, así que varias semillas en paralelo
+compiten entre sí. Lo observé directamente esta noche: seis suites acumuladas hicieron que una
+corrida de 1200 pasos pasara de 95 s a más de 110 s.
+[602] **Sí pueden ejecutarse en procesos separados**: cada corrida construye su propio agente,
+mundo y RNG. Lo que **impide paralelizar con seguridad** [603] son las **rutas globales de
+escritura**: cada `Bench` escribe en un directorio `.sandbox-<nombre>` fijo, compartido entre
+semillas del mismo script.
+[604-605] **Verificación pendiente**: no he buscado locks ni temporales compartidos.
+
+**Defecto encontrado durante esta cartografía:** esos directorios `.sandbox-*` **no están en
+`.gitignore`**, que sólo cubre `.sandbox/`. Cuatro commits de esta noche versionaron **~1.2 GB**
+de datos regenerables; `.git` pesa 339 MB. El arreglo no destructivo es añadir `.sandbox-*/` y
+`git rm -r --cached`; los blobs quedan en la historia hasta una reescritura.
+
+---
+
+# XXVI · Qué es A4, sin los nombres
+
+## 606 · El algoritmo, despojado
+
+> **A4 es un actor-crítico sin crítico.**
+>
+> Un encoder convolucional produce un latente de 128. Una recurrencia lineal diagonal produce un
+> hidden de 256. Dos memorias —una búsqueda por coseno sobre un buffer circular y una matriz con
+> atención— producen 128 + 128. Los cuatro se concatenan en un vector de 640.
+>
+> Sobre ese vector, un `Linear(640→25)` produce logits. Un ensemble de cinco MLP los sesga en 0.1
+> por su varianza. La temperatura es `1 + (1 − energía normalizada)`.
+>
+> En paralelo, un MLP de dos capas predice el siguiente estado, el delta energético y la
+> terminación. Un buscador aleatorio sortea diez secuencias de cinco acciones, las puntúa con ese
+> MLP y devuelve la primera de la mejor. **Una moneda decide si manda el buscador o la política.**
+>
+> Cada paso, un único Adam minimiza la suma **sin pesos** de: MSE de estado (640 dims), MSE de
+> energía (1 dim), BCE de terminación, MSE del ensemble, y REINFORCE con baseline de media móvil.
+>
+> No hay buffer de repetición, ni descuento, ni retorno a n pasos, ni trazas de elegibilidad, ni
+> propagación a través del tiempo.
+
+## 607-614 · Qué es cada componente
+
+| | Componentes |
+|---|---|
+| [607] neuronales | encoder, temporal core, world model, ensemble de incertidumbre, policy head, proyecciones de la memoria de largo plazo |
+| [608] simbólicos | ninguno |
+| [609] reglas manuales | `plan_prob = 0.5`, `−10.0·done`, `+0.1·varianza`, `temperature = 1 + bias`, umbral homeostático 0.5 |
+| [610] heurísticas | random shooting, top-k por coseno, escritura con puerta sigmoide |
+| [611] **aprenden** (gradiente) | encoder, temporal core, world model, incertidumbre, policy head, proyecciones de LT memory |
+| [612] **sólo acumulan estado** | buffer episódico, matriz `M`, `_hidden`, homeostasis, `_energy_baseline` |
+| [613] planifican | `Planner`, y sólo por sorteo |
+| [614] seleccionan | `policy_head.sample`, `torch.multinomial`, y la moneda del planner |
+
+## 615-622 · Creencias, hipótesis y lo que ya no está
+
+[615-616] **No existe ninguna creencia con confianza asociada.** Lo más cercano es la varianza del
+ensemble, que no está calibrada y cuyo «alto» no tiene significado numérico declarado.
+[617] **No existe ninguna hipótesis** en el agente. Las hipótesis viven en el laboratorio.
+[618] `prediction_error = |energy_pred − energy_delta|`, calculado en `learn` bajo `no_grad` y
+**registrado, nunca consumido**.
+[619] **No hay actualización bayesiana** de ningún tipo.
+[620] **No hay MDL** en `terrario/agent/`.
+[621] **No hay EIG.** La exploración es la varianza del ensemble sumada a los logits con
+coeficiente 0.1 — no es ganancia de información esperada.
+[622] Por tanto: **de Bayes, MDL y EIG no queda nada en A4.** Si la descripción histórica los
+menciona, describe algo que el código no hace.
+
+## 623-628 · Emergente, programado, y qué puede adquirir
+
+[623] **Programado explícitamente**: todo lo enumerado arriba.
+**Emergente**: el colapso de la política, el uso de PUSH como medio principal de locomoción
+(158 de 300 pasos), y el papel del planner como fuente de exploración.
+
+[624] **Qué puede decidir A4 que A0 no puede representar**: condicionar la acción al contenido
+perceptivo. A0 sortea uniformemente; A4 tiene una distribución que **depende del estado**. Es una
+diferencia real de expresividad, y el tamizado la confirma: A4 completo come ~6.7 y sin planner
+~0, mientras A0 come ~10 de 16 en las mismas condiciones. **A4 puede representar más que A0 y
+rinde peor que A0.**
+
+[625] **Qué conocimiento puede adquirir**: en principio, la relación canal→consecuencia, vía
+`energy_head`. **Medido: no la adquiere.** Desviación 0.0037 tras entrenar, contra 0.0035 al
+nacer, sobre una cantidad que varía 2.0.
+
+[626] **Evidencia en código y tests de que lo adquirido persiste**: sólo
+`test_checkpoint_reconstruction`, y sobre A1.
+[627] **Evidencia de transferencia**: ninguna. El banco `decorrelated` de P1 existe para medirla y
+dio `G ≈ 0`.
+[628] **Evidencia de metaaprendizaje**: ninguna; P6 no está construido.
+
+## 629-630 · Nombres que mienten
+
+**Sobrestiman lo que hacen:**
+
+| Nombre | Lo que hace realmente |
+|---|---|
+| `Planner` | sortea 10 secuencias al azar y las puntúa con un modelo que no predice nada |
+| `UncertaintyEstimator` | varianza de 5 cabezas entrenadas con la misma loss sobre el mismo target |
+| `WorldModel` | tres cabezas sobre un MLP; la de energía es constante |
+| `LongTermMemory` | matriz con atención cuyo contenido no recibe gradiente |
+| `HomeostaticState.update()` | se sobrescribe antes de leerse; sólo alimenta el trace |
+| `_handle_inspect` | devuelve una cadena constante; su docstring promete un sistema que no existe |
+| `use_temporal` | recurrencia real, pero ninguna tarea actual exige historia |
+
+**Subestiman lo que son:**
+
+| Nombre | Lo que es realmente |
+|---|---|
+| `validate_selection` | una puerta fail-closed con tres dominios de tipo distintos |
+| `world_contracts.py` | el sellado de la superficie de observación, con excepción tipada |
+| `measurement_status.py` | imposibilita estructuralmente coaccionar ausencia a cero |
+| `_stream` en `opportunities` | desacopla el azar exógeno de la conducta del organismo |
+| `preregistration/domain.py` | registro de exposición que detecta si alguien miró los datos antes de bloquear |
+
+---
+
+# XXVII · Causalidad del comportamiento actual
+
+## 631-635 · Las cinco trayectorias, función a función
+
+**[631] Comida beneficiosa**
+
+```
+get_observation → perceive → encoder → temporal_core → episodic.read → longterm.read
+→ _build_state(640) → policy_head → +0.1·incertidumbre → /temperatura
+→ [moneda] planner.plan(50 pasadas) ó policy_head.sample
+→ Action(CONSUME, dir)
+→ [banco] perceive_targets → resolve → VALID → target_id
+→ physics._handle_consume → "consume_pending_obj_N"
+→ rules.evaluate → canal0 ≥ 0.7 → apply_effects: +1.0, remove_object
+→ apply_step_energy_cost: −0.06  ⇒  delta = +0.94
+→ homeostasis.update(+0.94) [sólo trace]
+→ episodic.write(latente, acción, +0.94, error)
+→ longterm.write(h, h) bajo no_grad
+→ world_model.loss(estado, energía=+0.94, done)
+→ advantage = 0.94 − baseline ≈ +1.0  ⇒  policy_loss = −log π(a)·1.0
+→ unc_loss: 5 cabezas hacia +0.94
+→ Adam.step sobre los 6 módulos
+```
+
+**[632] Comida perjudicial**: idéntico salvo `canal0 ≤ 0.3 → −1.0`, delta −1.06, advantage ≈ −1.0,
+y el signo de `policy_loss` invertido.
+
+**[633] `NONEXISTENT`** y **[634] `OUT_OF_RANGE`**: `rules.evaluate` devuelve `[]`
+—no hay objeto, o no es adyacente—, `apply_effects` no se llama, delta = **−0.06**.
+Todo lo demás ocurre igual: memoria, losses, Adam.
+
+**[635] NOOP**: `physics` emite `"noop"`, delta = **−0.06**. Igual que los dos anteriores.
+
+> **Los tres últimos son idénticos para el organismo.** El mundo no devuelve ninguna señal que
+> separe «apunté a nada» de «apunté a algo inalcanzable» de «no hice nada». La descomposición de
+> desperdicio de §P0 existe **en el instrumento**, no en la experiencia.
+
+## 636-640 · Qué experiencia altera más qué
+
+[636] **Parámetros**: una comida —favorable o perjudicial—, porque el advantage se aparta del
+baseline en ~1.0 en vez de ~0.
+[637] **Memoria**: todas por igual; el buffer episódico escribe en cada paso sin filtro.
+[638] **World model**: una comida, por el mismo motivo (`energy_target` ±1 en vez de −0.06).
+[639] **Política**: una comida.
+[640] **Estado del planner**: ninguna — **el planner no tiene estado persistente**.
+
+## 641-645 · El primer cambio interno
+
+[641] El primer cambio que podría explicar una decisión futura distinta es la **escritura en el
+buffer episódico**, que ocurre antes que cualquier paso del optimizador y **sin depender de él**.
+[642] Sobrevive el timestep. [643] Sobrevive el episodio (capacidad 1000 > 1200 pasos con
+sobrescritura mínima). [644] **NO sobrevive al checkpoint** [490].
+[645] Lo lee `_build_state` en la decisión siguiente, vía `episodic_memory.read(latent, k=5)`.
+
+## 646 · La cadena `write → storage → read → efecto`
+
+| Tipo | write | storage | read | ¿efecto conductual? |
+|---|---|---|---|---|
+| episódico | `learn` | `_buffer` | `_build_state` | **sí**, vía `s_t` |
+| largo plazo | `learn` | `M` | `_build_state` | **sí**, vía `s_t` |
+| paramétrico | `Adam.step` | pesos | todo forward | **sí**, en principio |
+| recurrente | `decide` | `_hidden` | `_build_state` | **sí** |
+| homeostático | `perceive` | `_energy` | temperatura | **sí** |
+| `prediction_error` | `learn` | `last_prediction_error` | **nadie** | **no** |
+| `energy_delta` y `prediction_error` en el episodio | `episodic.write` | buffer | **nadie los lee** | **no** |
+
+## 647-649 · Lo escrito y nunca leído
+
+[647] **Estado escrito que nunca se lee:**
+- `action`, `energy_delta`, `prediction_error` y `timestamp` en cada entrada episódica: se
+  almacenan y la recuperación es **puramente por coseno del embedding**. Cuatro de los cinco
+  campos son inertes.
+- `HomeostaticState._energy` acumulado por `update()`: lo sobrescribe `perceive`.
+- `last_prediction_error` y `_last_prediction`: sólo trace.
+- `Planner` `all_rollouts` y `best_score`: sólo trace.
+
+[648] **Salidas calculadas que nunca influyen en acciones**: `next_state_head` fuera del rollout
+interno, `done_head` fuera de la puntuación del planner, `prediction_error`, y **la varianza del
+ensemble cuando `use_uncertainty=False`** —se sigue construyendo el módulo—.
+
+[649] **Módulos conectados nominalmente y sin efecto causal efectivo hoy**:
+- `energy_head` **sobre la conducta**: su salida entra al planner, pero su dispersión (0.0035) es
+  2.4 veces menor que la del `done_head` ponderado, y ambas son ruido.
+- `SSMCore`: ocupa 256 de 640 dimensiones y ninguna tarea exige historia.
+- `INSPECT`: 53 de 300 pasos gastados en una operación sin efecto alguno.
+
+---
+
+# XXVIII · Deuda y contradicciones
+
+## 650-653 · Documentación que ya no describe el código
+
+- `_handle_inspect`: *«The observation system handles the increased detail separately»* —
+  **no existe tal sistema**.
+- `Physics.step`: el parámetro `rng` se documenta como *«currently unused but available for future
+  stochastic physics»* — correcto, pero ambos loops construyen un `RNGManager` completo por paso
+  para nada.
+- `HomeostaticState`: *«Energy is normalized to [0,1]»* y `update()` suma deltas absolutos; en la
+  práctica `perceive` lo sobrescribe con el valor normalizado, así que el contrato se cumple **por
+  accidente**.
+- `sit_exam`: afirmaba no mutar al agente y mutaba siete variables. Corregido hoy.
+- [652] `opportunity_lifecycle` en D4T: **declarado e ignorado** por el runtime que ejecuta todos
+  los experimentos.
+- [653] `use_temporal`: cambia comportamiento, pero **ninguna tarea actual lo requiere**.
+
+## 654-656 · Código muerto e inalcanzable
+
+- `policy_head.greedy`: existe, A4 no lo llama.
+- `EpisodicMemory.reset`, `LongTermMemory.reset_memory`, `HomeostaticState.reset`,
+  `OnlineLearner.reset`: **ningún loop los llama**.
+- `SelectorType.RELATION`: reservado, levanta `NotImplementedError` — inalcanzable **a propósito**.
+- La rama omnisciente `truth.objects.get(action.target_id)` en `controller._find_target`:
+  **inalcanzable**, porque nada escribe `target_id` en esa ruta.
+
+## 657-666 · Fallos que se convierten en números plausibles
+
+[657-658] `try/except` alrededor de lógica científica:
+- `OnlineLearner.step`: captura loss o gradiente no finitos y **devuelve `None` en silencio**,
+  registrando `learning_skipped_nonfinite` en el trace. Un paso sin actualizar es indistinguible
+  de uno actualizado salvo que alguien lea ese trace.
+- `LongTermMemory.write`: `nan_to_num` y `clamp(±10)` **antes** de escribir, y descarta la
+  escritura si el resultado no es finito, con `write_accepted: False` en el trace.
+- `action_contract._visible`: `except (IndexError, TypeError): return True` — **una máscara
+  malformada hace visible todo**.
+
+[659-663] **Fallos que terminan como cero, lista vacía o NOOP:**
+- `RuleEngine.evaluate` con `target_object is None` → `[]` → delta 0.0. Un CONSUME que no alcanzó
+  nada y un NOOP son el mismo número.
+- `Action` con `direction=NONE` → `DIRECTION_DELTA[NONE] = (0,0)` → **MOVE se vuelve NOOP en
+  silencio**.
+- `_find_target` devuelve `None` en cinco caminos distintos, todos indistinguibles aguas abajo.
+- `_agents(step)` devuelve `{}` si no hay agentes; `entidades(x)` devuelve `[]`.
+
+[664] **`or 0`, `or []`, `get(..., default)` en rutas científicas**: abundantes en `run_measures`
+—`(step.get("observer_world") or {})`, `.get("agents") or {}`, `tuple(step.get("agent_events") or ())`—
+y en `sandbox_runtime`. Son defensivos y **ocultan la diferencia entre ausencia y vacío**.
+
+[665] **Dónde puede `None` adquirir semántica numérica**: en `run_measures`, un `Measure` con
+`evaluable=False` lleva `value=None` y `reason=NOT_EVALUABLE`; cualquier consumidor que lea
+`m["value"]` sin mirar `evaluable` obtiene `None`, y `sum`/`mean` sobre eso falla o —si alguien lo
+filtra con `or 0`— **se convierte en cero**.
+
+[666-667] **Rutas que todavía pueden violar la semántica nueva**: las ~16 mallas de
+`run_measures` fuera del registro, que usan el par `(value, evaluable, reason)` en vez de
+`Reading`, y toda la capa de persistencia y UI, **no verificada** [443-445].
+
+---
+
+# XXIX · Arquitectura futura
+
+## 668-669 · Contratos estables y contratos atados a D4T
+
+**Suficientemente estables para Genesis**: `AgentInterface` (`perceive`/`decide`/`learn`),
+`Transition`, `Observation`, `TemporalCore`, `WorldDefinition` como representación hasheable,
+`Reading` y la máquina de estados del instrumento, `ActionIntent`/`Resolution`/`ActionProvenance`.
+
+**Atados a D4T**: `TOTAL_ACTIONS = 25` incrustado en `policy_head`, `world_model`,
+`uncertainty_estimator` y `Planner`; `num_channels=4`; `view_size=5`; el umbral 0.7/0.3 de las
+reglas; los valores 0.82/0.18 de las plantillas.
+
+## 670-679 · Supuestos incrustados
+
+| Supuesto | Dónde |
+|---|---|
+| [670] rejilla 2D | `Position(x,y)`, `occupancy` como `ndarray` 2D, `DIRECTION_DELTA`, `get_observation` |
+| [671] cinco direcciones | `NUM_DIRECTIONS`, `to_int`/`from_int`, `direction_head`, `DIRECTION_DELTA` |
+| [672] objetos discretos | `ObjectSpec`, `objects: dict[int, ...]`, `perceive_targets` |
+| [673] recompensa escalar | `energy_delta: float` en todo `Consequence`, `energy_head` de 1 dim, el baseline de REINFORCE |
+| [674] episodios finitos | `max_duration`, `truncated`, `done_head` |
+| [675] **un solo agente** | `agent_id=0` **literal** en `_step_runtime`, `_find_target`, `perceive_targets`, `sit_exam`, `_cadena`, `run_measures._agents` |
+| [676] soportarían varios sin cambios | `Physics.step` (itera `sorted(actions.keys())`), `WorldState.agents` (es un dict), `RuleEngine` |
+| [677] memoria atada a ranuras | **no**: las memorias indexan por embedding y por atención, no por ranura perceptiva |
+| [678] planner atado al espacio de acción | **sí**: `torch.randint(0, TOTAL_ACTIONS, ...)` |
+| [679] world model atado a dimensiones | **sí**: `action_dim = TOTAL_ACTIONS`, `state_dim = 640` |
+
+## 680-687 · Fronteras
+
+[680] **Cambiar mundo sin cambiar agente**: hoy es posible mientras el nuevo mundo produzca
+`Observation(channels, mask, agent_energy, time_fraction)` con la misma forma y acepte `Action`.
+El cuello es `TOTAL_ACTIONS`.
+[681] **Cambiar agente sin cambiar laboratorio**: casi. El obstáculo concreto es
+`agent_composition` importando `DEFAULT_CONFIG` de `a4_advanced`, que hace que el catálogo de
+conceptos **sea** el de A4.
+[682] **Añadir capacidades sin crear otro runtime**: hoy no hay mecanismo; cada capacidad nueva de
+esta noche —AC2, bancos exógenos, gemelos de un paso— **añadió código al banco**.
+
+[683] **El límite entre «ser» y «mundo»** es nítido y está en `Observation` / `Action`, sellado por
+`AGENT_FIELDS` y `OBSERVER_ONLY_FIELDS` con excepción tipada.
+[684] **El límite entre «ser» e «instrumentación»** es nítido **en una dirección**: el agente no
+importa nada del laboratorio [685: **no, ningún sitio**]. En la otra **no lo es** [686: **sí**]:
+`agent_composition → a4_advanced.DEFAULT_CONFIG`, `agent_inspector → agent.agents`,
+`sandbox_runtime → agent.scientific` y `agent.agents`, `execution.runtime → agent.scientific`.
+
+[687] **El acoplamiento que impediría probar otra arquitectura bajo los mismos experimentos** es
+ése: el catálogo de conceptos, la validación de composición y por tanto todo el tamizado están
+escritos contra la configuración concreta de A4.
+
+---
+
+# XXX · Las preguntas más importantes
+
+## 688 · El único call graph real de un timestep de A4, de mundo a mundo
+
+```
+┌─ MUNDO ────────────────────────────────────────────────────────────────┐
+│ WorldStateManager.get_observation(0, view_radius=2, num_channels=4)     │
+│   obs[0]=occupancy · obs[1..3]=canales 0..2 del objeto · mask · energía │
+└────────────────────────────────────────────────────────────────────────┘
+                                   ↓ Observation (127 valores)
+┌─ SER ──────────────────────────────────────────────────────────────────┐
+│ perceive: encoder(obs.channels) → latente(128)                          │
+│           homeostasis._energy = obs.agent_energy      [asignación]      │
+│ decide:   temporal_core(latente, h) → h(256)                            │
+│           episodic.read(latente, k=5) → 128    [O(n) sobre el buffer]   │
+│           longterm.read(h)           → 128                              │
+│           s_t = concat(128, 256, 128, 128) = 640                        │
+│           logits = policy_head(s_t)                          (25)       │
+│           logits += 0.1 · var(ensemble)          [125 pasadas]          │
+│           T = 1 + (1 − energía)                                         │
+│           moneda 0.5 → planner.plan  [50 pasadas]  ó  policy.sample     │
+│           → Action(operación, dirección)                                │
+└────────────────────────────────────────────────────────────────────────┘
+                                   ↓ Action
+┌─ SÓLO EN EL BANCO ─────────────────────────────────────────────────────┐
+│ perceive_targets → resolve → target_id sólo si VALID → ActionProvenance │
+└────────────────────────────────────────────────────────────────────────┘
+                                   ↓
+┌─ MUNDO ────────────────────────────────────────────────────────────────┐
+│ scheduler.check(step)                    [puede invertir las reglas]    │
+│ lifecycle.advance(step)                  [SÓLO ExperimentController]    │
+│ physics.step → _handle_* → move_agent/move_object → advance_time()      │
+│ _find_target → rules.evaluate → apply_effects → ±1.0, remove_object     │
+│ lifecycle.consume(...)                   [SÓLO ExperimentController]    │
+│ apply_step_energy_cost(0) → −0.06                                       │
+│ get_observation → obs_{t+1}                                             │
+└────────────────────────────────────────────────────────────────────────┘
+                                   ↓ Transition
+┌─ SER ──────────────────────────────────────────────────────────────────┐
+│ learn: homeostasis.update(delta)           [sobrescrito antes de leerse]│
+│        episodic.write(latente, acción, delta, error)                    │
+│        longterm.write(h, h)                [no_grad]                    │
+│        world_model.loss(estado 640, energía, done)                      │
+│        advantage = delta − baseline; policy_loss = −log π(a)·advantage  │
+│        unc_loss = media de 5 MSE                                        │
+│        Adam.step sobre los 6 módulos       [CADA PASO, sin excepción]   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+## 689 · Autoridad por estado
+
+| Estado | Autoridad | Escape |
+|---|---|---|
+| mundo | `WorldStateManager` (12 métodos) | `_mutable_state()` en **38 sitios** |
+| reglas | `RuleEngine` (`_version`) | `ChangeScheduler` las reemplaza |
+| oportunidades | `OpportunityLifecycle` | existe sólo en una de las dos rutas |
+| parámetros | `OnlineLearner` (un Adam) | `M` se escribe fuera, bajo `no_grad` |
+| recurrente | `A4._hidden` | — |
+| memoria episódica | `EpisodicMemory._buffer` | — |
+| azar del mundo | clave `(seed, kind, root, generation)` | — |
+| azar del agente | `torch.Generator` + **RNG global** para pesos | el global no está controlado por el banco |
+| traza | `SandboxTraceStep` / `step_traces` | dos formatos distintos |
+
+## 690 · Todos los lugares donde se muta estado en un timestep
+
+**Mundo** (7): `scheduler.check` → `set_rules_version`; `lifecycle.advance` → `add_object`;
+`physics._handle_move/_handle_push` → `move_agent`/`move_object`; `physics.step` →
+`advance_time`; `rules.apply_effects` → `remove_object`/`set_object_channels`/`set_agent_energy`/
+`set_agent_alive`; `lifecycle.consume` → `_pending`, `_lineage`, `_recent_positions`;
+`apply_step_energy_cost` → energía.
+
+**Agente** (9): `_last_latent`, `homeostasis._energy`, `_hidden`, `_last_state/_action/_log_prob/
+_logits/_probs/_uncertainty`, `_step`, `episodic._buffer`, `longterm.M`, `_energy_baseline`,
+parámetros vía Adam.
+
+## 691 · Qué ve A4 y qué no ve nunca
+
+**Ve** (127 valores): 4×5×5 canales —occupancy y los canales 0..2 del objeto, promediados por
+celda—, la máscara 5×5, su energía normalizada, y `time_fraction` (**0.0 en D4T**, porque
+`expose_time_fraction: false`).
+
+**No ve nunca**: posiciones absolutas, identificadores de objeto, `opportunity_id`, linaje,
+generación, las reglas, `rules_version`, `energy_value`, `causal_property`, el canal 3 del objeto
+(truncado), nada fuera de la ventana 5×5, ni ninguna señal que distinga `NONEXISTENT` de
+`OUT_OF_RANGE` de NOOP.
+
+## 692 · Qué aprende `_use_online_learning`, y con qué gradiente
+
+Un único `Adam(lr=3e-4, grad_clip=1.0)` sobre los seis módulos, minimizando **cada paso**:
+
+```
+MSE(next_state, 640 dims) + MSE(energy, 1 dim) + BCE(done) + media de 5 MSE + (−log π(a)·A)
+```
+
+El gradiente llega al encoder y al temporal core porque `_last_state` conserva el grafo. **Se
+corta en `_hidden`**, que se detach — no hay propagación a través del tiempo. `advantage =
+delta − media_móvil(delta)`, y con el 99 % de los deltas en −0.06, el advantage de esos pasos
+tiende a cero **sin ser cero**, 1194 veces contra 6.
+
+## 693 · Dónde queda cada tipo de conocimiento
+
+```
+perceptivo      → pesos del encoder            gradiente
+temporal        → pesos del SSM + _hidden      gradiente + estado
+episódico       → _buffer (1000)               SIN gradiente
+asociativo      → matriz M (64×128)            SIN gradiente, escrita bajo no_grad
+predictivo      → world_model                  gradiente
+de acción       → policy_head                  gradiente
+de incertidumbre→ 5 cabezas                    gradiente
+metabólico      → _energy_baseline             SIN gradiente
+```
+
+**Cuatro de los ocho no dependen del optimizador**, y los cuatro siguen vivos en el gemelo
+congelado de P1. Por eso `G` aísla específicamente la contribución paramétrica.
+
+## 694 · Quién usa después ese conocimiento
+
+Todo converge en `_build_state` → `s_t`(640) → `policy_head` y `world_model`. **`s_t` es el único
+cuello de botella cognitivo del organismo.** Nada influye en la acción sin pasar por él, salvo la
+temperatura homeostática y la moneda del planner.
+
+## 695 · Predicciones con efecto conductual y predicciones decorativas
+
+| Predicción | Consumidor | ¿Efecto? |
+|---|---|---|
+| `energy_head` | planner | **nominal** — su dispersión es 0.0035, y ponderada pesa 2.4× menos que `done` |
+| `done_head` | planner | **sí**, y es la que más pesa en la puntuación |
+| `next_state_head` | rollout interno del planner | indirecto |
+| varianza del ensemble | logits, ×0.1 | **sí**, si `use_uncertainty` |
+| `prediction_error` | **nadie** | **decorativa** |
+
+## 696 · Cómo el planner convierte predicción en elección
+
+Sortea 10 secuencias de 5 acciones al azar. Para cada una acumula `Σ energy_pred` y
+`Σ sigmoid(done_pred)`, y puntúa `score = Σ energía − 10·Σ done`. Devuelve `actions[0]` de la
+mejor. Con ambas cabezas produciendo ruido de magnitud ~0.01, **la elección la decide el ruido
+numérico**. En la práctica es un muestreador casi uniforme del espacio de 25 acciones, activo en
+el 50 % de los pasos.
+
+## 697-698 · Por qué colapsa la política, y cuándo
+
+[697] El mecanismo está escrito en el propio código: REINFORCE con baseline de media móvil sobre
+una recompensa que es el coste por paso casi siempre da un advantage casi constante, «que apila
+probabilidad sobre lo que se hizo primero». Sin término de entropía —apagado por defecto— nada lo
+contrarresta. Medido: `modal_action_share` mediana **0.58** en el rollout cerrado.
+
+[698] **No lo sé, y es medible.** No he registrado los logits antes y después de los primeros
+eventos informativos. **Es la medición pendiente más informativa de toda la cartografía**, porque
+separa «colapsa por la geometría de la loss aun sin evidencia» de «colapsa al recibir las primeras
+señales».
+
+## 699 · Por qué seis eventos no producen aprendizaje detectable
+
+Cinco razones medidas, que se suman:
+
+1. **1 : 200.** 1200 actualizaciones por ~6 ejemplos informativos.
+2. **La loss de energía compite con un MSE de 640 dimensiones**, sin ponderación.
+3. **El 99 % de los targets de energía es −0.06 constante**, así que la cabeza converge a una
+   constante: desviación 0.0037 tras entrenar contra 0.0035 al nacer.
+4. **El fallo no informa**: `NONEXISTENT`, `OUT_OF_RANGE` y NOOP entregan el mismo −0.06. El
+   organismo no puede aprender a apuntar porque fallar no se distingue de no intentarlo.
+5. **El examen de P1 usaba un formato de observación distinto del entrenado** —canal causal en el
+   índice 0 en vez del 1, sin occupancy—, así que la medida de la capacidad está comprometida
+   aunque la diferencia de diferencias se sostenga.
+
+## 700-702 · ¿Puede aprenderlo con experiencia suficiente?
+
+`scripts/experiment_learner_sample_efficiency.py` responde esto **midiéndolo**, no infiriéndolo:
+entrega al mismo A4 un stream controlado fuera del mundo, con observaciones construidas por
+`WorldStateManager.get_observation` —formato real—, en dos curvas: **pura** (N ejemplos seguidos)
+y **diluida** (los mismos N a 1 de cada 100, la densidad de D4T).
+
+[702] La hipótesis mecánica sobre qué limita primero la eficiencia muestral, a contrastar con esa
+curva: **la ponderación de la loss**, no la capacidad. `energy_head` recibe 1 de las 642
+dimensiones de error que retropropagan al backbone compartido.
+
+*Resultado en `artifacts/learner_sample_efficiency.json`.*
+
+## 703-705 · Divergencias entre mundos, y qué física ejecutó cada evidencia
+
+[703]
+
+```
+D4T_DECLARED       ≠  D4T_SANDBOX_EJECUTADO   (sin ciclo de oportunidades)
+D4T_SANDBOX        ≠  D4T_CONTROLLER          (orden, semilla, terminación, determinismo global)
+replay                                        NO VERIFICADO
+```
+
+[704-705] **Toda la evidencia de esta noche —tamizado de 39 corridas, P0 con 16 parejas, gemelos
+de un paso con 3000 estados, P1 con 8 semillas— corrió sobre `SandboxService`.** Ninguna sobre la
+ruta autoritativa. Por tanto ninguna es «efecto en el D4T declarado»: son **efecto en D4T bajo el
+runtime Sandbox**, en un mundo estrictamente agotable.
+
+## 706 · Módulos llamados «inteligencia» sin capacidad demostrada
+
+| Módulo | Estado causal |
+|---|---|
+| `use_temporal` | efecto nulo en D4T; ninguna tarea exige historia |
+| `use_episodic_memory` | +2.67 comidas, **por debajo de la dispersión entre semillas** |
+| `use_longterm_memory` | +0.33, por debajo de la dispersión |
+| `use_uncertainty` | +1.67, por debajo de la dispersión; sin calibración |
+| `use_online_learning` | **0.00** — quitarlo no cambia nada medible |
+| `use_entropy_regularization` | −0.67 bajo T0 |
+| `use_world_model` / `use_planner` | +6.33 / +6.67, **y son el mismo efecto**, que es exploración, no planificación |
+
+**Ningún módulo de A4 ha demostrado causalmente una capacidad cognitiva.** El único efecto
+grande y reproducible es una inyección de acción casi uniforme.
+
+## 707 · Capacidades sí demostradas por código y experimento
+
+1. **El contrato de acción v1 era expresivamente suficiente**: `R = 1.0` bajo ambos contratos
+   sobre 1894 intenciones realizables en 3000 estados exógenos, con el control ciego a 0.0.
+2. **T1 separa referencia de alcance**: 16 de 16 parejas, `Δ = +0.598`, p = 3.1e−05. Bajo T0 el
+   98.5 % de los consumos apunta a espacio vacío; bajo T1 el 95 % refiere a una entidad real.
+3. **El selector tiene un efecto local aislable**: `INTERVENTION_ISOLATION = PASS` en 3000 de 3000
+   pares, McNemar χ² = 11.775, p < 0.001.
+4. **A4 condiciona su acción al contenido perceptivo**, cosa que A0 no puede representar — aunque
+   rinda peor que A0.
+
+## 708-709 · El circuito mínimo, y dónde se rompe
+
+```
+regularidad externa        canal 0 del objeto, umbral 0.7 / 0.3        ✓ existe
+      ↓
+exposición                 ~6 ejemplos por vida                        ✗ HAMBRUNA
+      ↓
+percepción                 encoder ve el canal en obs[1]               ✓ llega
+      ↓
+representación             s_t (640)                                   ✓ existe
+      ↓
+predicción                 energy_head                                 ✗ CONSTANTE
+      ↓
+valoración                 planner: score = Σe − 10·Σd                 ✗ dominada por ruido
+      ↓
+decisión                   policy_head, moneda 0.5                     ✗ COLAPSADA
+      ↓
+realización                98.5 % apunta a vacío bajo T0               ✗ CANAL
+      ↓
+conservación               memorias sin gradiente, no checkpointeadas  ? sin medir
+      ↓
+revisión                   sin instrumento de reversión               — no construido
+```
+
+[709] **Se rompe en cuatro sitios a la vez**, y los cuatro están medidos. El primero en el orden
+causal es la exposición, y sus dos fuentes también están medidas: el canal de acción y el mundo
+agotable.
+
+## 710 · Qué del código contradice nuestra interpretación conceptual
+
+**Siete contradicciones, en orden de gravedad:**
+
+1. **«El modelo del mundo y el planificador producen efectos conductuales detectables» eran dos
+   hallazgos. Son uno.** `use_world_model=False` desactiva el planner: 0 de 40 llamadas. Y ese
+   efecto único no es cognición, es exploración por ruido.
+2. **El `energy_head` no predice.** Desviación 0.0037 sobre una cantidad que varía 2.0. Todo lo
+   que se ha dicho sobre «el modelo del mundo aprende algo del mundo» carece de soporte.
+3. **`OpportunityLifecycle` no se ejecuta donde corren los experimentos.** Toda la evidencia
+   histórica es sobre un mundo más pobre que el declarado.
+4. **El fallo de acción no informa al organismo.** La descomposición referencia / alcance /
+   discriminación existe en el instrumento y **no en la experiencia**. El organismo no puede
+   aprender a apuntar porque el mundo le cobra lo mismo por fallar que por no intentar.
+5. **De Bayes, MDL y EIG no queda nada en A4.** Si la teoría los menciona, describe otro sistema.
+6. **`HomeostaticState.update()` es estado escrito y nunca leído**, y cuatro de los cinco campos
+   de cada entrada episódica también.
+7. **El banco de examen de P1 usa un formato de observación que el agente nunca vio.** Encontrado
+   en esta cartografía; obliga a matizar el alcance del resultado negativo de P1.
+
+---
+
+# Apéndice · Lagunas declaradas
+
+No verificado en esta pasada, y por qué:
+
+| Sección | Preguntas | Qué falta leer |
+|---|---|---|
+| XIX traza y evidencia | 466-485 | `observer/trace.py` (418), `storage.py` (363), `logger.py` (430), `worldstream/service.py` (327) |
+| XVIII serialización | 443-445 | representación de las cuatro semánticas en CSV, SQLite y UI |
+| XXII hashes | 536-540 | `lab/evidence_publication.py` y las fixtures de baseline |
+| XX versionado | 504-505 | formato de checkpoint y carga de versiones antiguas |
+| XII H-Net / Mamba2 | 287-288 | barrido fuera de `terrario/` |
+| XIII fuera de distribución | 302-303 | medición del comportamiento del ensemble |
+| XXIV clasificación | 567-570 | clasificar 711 pruebas una a una |
+| XXV concurrencia | 604-605 | búsqueda de locks y temporales compartidos |
+| XI hipótesis de memoria | 266 | probar la explicación del residuo −3.0 |
+| XIII colapso | 312-314 | **registrar logits antes y después de los primeros eventos informativos** |
+
+La última es la más valiosa de todas: separa «colapsa por la geometría de la loss» de «colapsa al
+recibir evidencia».
