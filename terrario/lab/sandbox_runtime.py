@@ -7,6 +7,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any,Mapping
 from terrario.agent.agents import create_agent
+from terrario.lab.agent_composition import validate_selection
 from terrario.agent.scientific import scientific_state
 from terrario.core.contracts import Transition
 from terrario.core.rng import RNGManager
@@ -32,8 +33,14 @@ class SandboxExecutionSpec:
     scenario_id:str; scenario_hash:str; world_definition_hash:str; world_seed:int; world_instance_hash:str
     difficulty_fingerprint:str; agent_reference:str; agent_seed:int; observer_mode:str; step_limit:int
     trace_level:str; device:str; classification:ExecutionClassification; config_hash:str; provenance:Mapping[str,Any]
+    #: Which concepts the organism is built from.  Empty means A4's defaults,
+    #: so an existing spec keeps the agent it always had.  It is part of the
+    #: spec -- and therefore of its hash -- because a different mix is a
+    #: different organism, not a different view of one.
+    agent_configuration:Mapping[str,Any]=MappingProxyType({})
     def __post_init__(self):
         if self.classification!=ExecutionClassification.ENGINEERING_SANDBOX: raise SandboxBoundaryError("sandbox accepts ENGINEERING_SANDBOX only")
+        object.__setattr__(self,"agent_configuration",MappingProxyType(validate_selection(self.agent_configuration)))
         if self.device!="cpu": raise SandboxValidationError("LAB-UI-02B sandbox is CPU-only")
         if not 1<=self.step_limit<=MAX_STEPS: raise SandboxValidationError(f"step_limit must be 1..{MAX_STEPS}")
         object.__setattr__(self,"provenance",MappingProxyType(dict(self.provenance)))
@@ -89,7 +96,8 @@ class SandboxService:
         self._runs[run.run_id]=run; self._runtime[run.run_id]=self._build_runtime(run); self._runtime[run.run_id].update({"compiled":compiled,"config":config}); self.storage.write(run); return run
     def _build_runtime(self,run):
         s=dict(run.instance.structure); manager=WorldStateManager(build_world_state(s),s.get("duration",run.spec.step_limit),s.get("max_energy",100),s.get("step_energy_cost",0),s.get("expose_time_fraction",True)); rules=RuleEngine();rules.load_rules(s.get("rules",{}));manager.set_rules_version(rules.version)
-        agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1},run.spec.agent_seed,device="cpu")
+        # The world fixes the sensory shape; the spec fixes which concepts exist.
+        agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1,**dict(run.spec.agent_configuration)},run.spec.agent_seed,device="cpu")
         return {"scenario":s,"world":manager,"rules":rules,"scheduler":ChangeScheduler(s.get("changes",[]),rules),"physics":Physics(),"agent":agent}
     def step(self,run_id):
         run=self.get(run_id)
@@ -136,11 +144,16 @@ class SandboxService:
     def get(self,run_id):
         if run_id not in self._runs: raise KeyError(run_id)
         return self._runs[run_id]
+    def active(self):
+        """Runs still holding a session slot, so a caller can free them by name."""
+        closed={RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED}
+        return tuple({"sandbox_run_id":r.run_id,"state":r.state.value,"world_id":r.spec.scenario_id}
+                     for r in self._runs.values() if r.state not in closed)
 
-def make_spec(config:LabConfiguration,compiled:CompiledWorld,world_seed:int,agent_seed:int,step_limit:int=100,classification=ExecutionClassification.ENGINEERING_SANDBOX):
+def make_spec(config:LabConfiguration,compiled:CompiledWorld,world_seed:int,agent_seed:int,step_limit:int=100,classification=ExecutionClassification.ENGINEERING_SANDBOX,agent_configuration:Mapping[str,Any]|None=None):
     if config.state!=ConfigurationState.SANDBOX: raise SandboxValidationError("derive an explicit SANDBOX configuration before execution")
     instance=generate_instance(compiled,world_seed)
-    return SandboxExecutionSpec(config.scenario.scenario_id,config.scenario.content_hash,compiled.definition.content_hash,world_seed,instance.instance_hash,config.difficulty.fingerprint,config.agent_reference,agent_seed,str(config.observer_configuration.get("mode","scientific_standard")),step_limit,"STANDARD","cpu",classification,config.content_hash,{"config_id":config.config_id,"parent_id":config.provenance.parent_id,"scientific_evidence":False})
+    return SandboxExecutionSpec(config.scenario.scenario_id,config.scenario.content_hash,compiled.definition.content_hash,world_seed,instance.instance_hash,config.difficulty.fingerprint,config.agent_reference,agent_seed,str(config.observer_configuration.get("mode","scientific_standard")),step_limit,"STANDARD","cpu",classification,config.content_hash,{"config_id":config.config_id,"parent_id":config.provenance.parent_id,"scientific_evidence":False},agent_configuration or {})
 
 def derive_sandbox(config:LabConfiguration,reason="derived engineering sandbox"):
     if config.state in {ConfigurationState.DRAFT}: return config.transition(ConfigurationState.SANDBOX,reason)

@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Componer un organismo · Terrario</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="componer.css">
+
+<header>
+  <h1>Componer un organismo</h1>
+  <p class="lead">Elegís de qué está hecho, dónde vive, y lo mirás correr.</p>
+  <p class="aviso" role="note">
+    <strong>Esto es un banco de pruebas.</strong> Nada de lo que salga de aquí es evidencia
+    científica: sirve para explorar y decidir qué vale la pena medir en serio después.
+  </p>
+</header>
+
+<main>
+  <section id="paso1" class="paso">
+    <h2><span class="num">1</span> ¿De qué está hecho?</h2>
+    <p class="ayuda">Cada casilla enciende o apaga una parte del organismo. Debajo de cada una dice
+      para qué sirve y qué se pierde si la apagás.</p>
+    <div id="conceptos" class="tarjetas" aria-live="polite">Cargando…</div>
+    <div id="ajustes" class="ajustes"></div>
+    <p class="resumen" id="resumen"></p>
+  </section>
+
+  <section id="paso2" class="paso">
+    <h2><span class="num">2</span> ¿Dónde vive?</h2>
+    <p class="ayuda">Los mundos van de más simple a más exigente. Un organismo puede bastarse en
+      uno y fracasar en el siguiente: eso es justamente lo que queremos ver.</p>
+    <div id="mundos" class="tarjetas">Cargando…</div>
+  </section>
+
+  <section id="paso3" class="paso">
+    <h2><span class="num">3</span> Verlo correr</h2>
+    <p class="ayuda">Corre en tu máquina, sin tocar nada de lo ya registrado.</p>
+    <label class="campo">Cuántos pasos vive
+      <input id="pasos" type="number" min="1" max="500" value="30">
+      <small>Empezá corto para ver si la mezcla arranca. Subilo cuando quieras ver una vida
+        entera: en D4T las reglas se invierten en el paso 300, así que hace falta llegar allí
+        para ver una perturbación.</small>
+    </label>
+    <button id="correr" class="principal">Correr esta mezcla — todavía no elegiste mundo</button>
+    <p class="estado" id="estado"></p>
+    <div id="salida" class="salida"></div>
+  </section>
+
+  <section id="paso4" class="paso">
+    <h2><span class="num">4</span> Comparar dos mezclas</h2>
+    <p class="ayuda">Guardá una corrida, cambiá una sola cosa, corré otra vez. Comparar dos mezclas
+      que difieren en <em>una</em> pieza es lo que dice qué hace esa pieza.</p>
+    <button id="guardar" class="secundaria" disabled>Guardar esta corrida para comparar</button>
+    <button id="limpiar" class="secundaria" disabled>Borrar lo guardado y empezar de nuevo</button>
+    <div id="comparacion" class="comparacion"></div>
+  </section>
+</main>
+
+<script src="componer.js"></script>

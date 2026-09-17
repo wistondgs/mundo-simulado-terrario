@@ -25,6 +25,8 @@ from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for
 from terrario.lab.world_contracts import config_diff, validate_configuration
 from terrario.lab.world_authoring import SeedBrowser,compile_draft,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
 from terrario.lab.sandbox_runtime import ExecutionClassification,derive_sandbox,make_spec,serialize_run
+from terrario.lab.worldstream.service import MAX_ACTIVE_SESSIONS
+from terrario.lab.agent_composition import catalogue as agent_catalogue,validate_selection
 from terrario.lab.worldstream.service import LiveSandboxService
 from terrario.lab.worldstream.api import WorldStreamAPI
 from terrario.lab.capabilities import CapabilityRegistry,assess_compatibility,audited_agent_assessments,scenario_requirements
@@ -116,6 +118,7 @@ class LabAPI:
             if method == "GET" and len(parts)==4 and parts[:2]==["api","agents"] and parts[3]=="runtime":
                 return 200,thaw(self.agent_inspector.runtime(self.sandbox,query.get("run_id",[None])[0]))
             if method == "GET" and parts == ["api","metrics"]: return 200,thaw(self.metrics.definitions())
+            if method == "GET" and parts == ["api","agent-concepts"]: return 200,thaw(agent_catalogue())
             if method == "GET" and parts == ["api","observer","profiles"]: return 200,{"profiles":thaw(self.observers.profiles()),"channels":thaw(self.observers.channels())}
             if method == "GET" and len(parts)==3 and parts[:2]==["api","experiment-drafts"]:
                 return 200,self.artifacts.current(parts[2],"ExperimentDraft").payload
@@ -181,6 +184,8 @@ class LabAPI:
                 wid=parts[2].upper(); values=query.get("values",["42"])[0]; seeds=[int(x) for x in values.split(",") if x]; compiled=self.compiled_worlds[wid]
                 for seed in seeds: self.preregistrations.record_exposure(wid,compiled.definition.content_hash,seed,"INSPECTED","local-user","LEGACY_SEED_BROWSER",f"{wid}:{seed}")
                 return 200,thaw(SeedBrowser(compiled).analyze(seeds))
+            if method == "GET" and parts == ["api","sandbox"]:
+                return 200,{"schema_version":"terrario.lab.sandbox-sessions/v1","limit":MAX_ACTIVE_SESSIONS,"active":list(self.sandbox.active())}
             if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
                 run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
             if method == "GET" and len(parts)==4 and parts[:3]==["api","worlds","drafts"]:
@@ -413,7 +418,9 @@ class LabAPI:
         base=configuration_for(entry); config=derive_sandbox(base)
         if payload.get("agent_reference"): config=replace(config,agent_reference=str(payload["agent_reference"]))
         classification=ExecutionClassification(payload.get("classification","ENGINEERING_SANDBOX"))
-        spec=make_spec(config,compiled,int(payload.get("world_seed",42)),int(payload.get("agent_seed",1000045)),int(payload.get("step_limit",100)),classification)
+        # The chosen mix of concepts. Absent means A4's defaults, so every existing
+        # caller keeps the organism it was already running.
+        spec=make_spec(config,compiled,int(payload.get("world_seed",42)),int(payload.get("agent_seed",1000045)),int(payload.get("step_limit",100)),classification,validate_selection(payload.get("agent_configuration")))
         return spec,config,compiled
 
     def _draft_input(self,payload):
