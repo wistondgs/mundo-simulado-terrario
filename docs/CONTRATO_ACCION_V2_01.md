@@ -289,37 +289,96 @@ Para el diseño pareado es peor que una imprecisión: T alcanzaba el resultado d
 sí misma y otra por `T → orden de RNG → W_{t+1}`, y eso no se separa después por mucho que se
 siembre arriba.
 
-**Reparado.** La clave es ahora `(seed, tipo, identidad_de_oportunidad)` vía blake2b, así que la
-variable que le toca a la oportunidad 7 es la misma tanto si fue lo primero que se comió como si
-fue lo cuadragésimo. Cinco pruebas lo fijan, incluida la que comprueba que colocación y cooldown
-no comparten stream.
+**Reparado, en dos pasos.** El primer intento — clavar la clave en
+`(seed, tipo, identidad_de_oportunidad)` — no bastaba, y el residuo era el mismo defecto un nivel
+más abajo: el `spawn_key` era `self._next_opportunity_id`, un **contador global**, y un objeto
+que reaparecía heredaba su id de ese mismo contador. Una dependencia de orden disfrazada de
+identidad.
 
-**Lo que NO se reparó, a propósito.** El *conjunto de candidatos* del respawn excluye casillas
-ocupadas, casillas demasiado próximas al agente y posiciones consumidas recientemente. Eso
-depende de dónde está el organismo, pero no es una fuga de contabilidad: es una **regla
-declarada del escenario** — el mundo coloca las oportunidades nuevas en relación al organismo. El
-pareado mantiene fijo el *calendario* de shocks mientras la colocación sigue la trayectoria de
-cada brazo, por diseño. Cambiar eso movería la definición del mundo y es decisión tuya, no mía.
-
-## 11. Estado del contrato
+La clave definitiva tiene cuatro coordenadas:
 
 ```
-EXPRESSIVITY CLAIM             = REFUTED
-SELECTOR ISOLATION             = PASS
-INITIAL BEHAVIORAL PARITY      = PASS
-LOCAL RESOLUTION EFFECT        = DETECTED  (McNemar χ² 11.775, p<0.001,
+U_{i,k} ~ RNG(world_seed, stream_kind, lineage_root, generation)
+```
+
+con la generación contada **dentro** del linaje, nunca globalmente. `U(7,3)` es la misma variable
+tanto si antes se consumieron dos oportunidades como cuarenta, y cada reaparición de un linaje
+sortea la suya — con identidad sola, toda reaparición de la oportunidad 7 habría heredado el
+mismo cooldown y la misma colocación durante toda la corrida: un latido determinista disfrazado
+de azar. Nueve pruebas lo fijan.
+
+**Lo que NO se reparó, por decisión explícita.** Conviene separar tres cantidades:
+
+```
+U        ~ RNG(seed, stream, lineage_root, generation)    EXÓGENA
+C_t      = f(World_t, Agent_t, recent_positions)          ENDÓGENA
+Spawn_t  = g(C_t, U)
+```
+
+La **variable latente está acoplada** entre brazos. Su **realización física puede diferir**,
+porque el conjunto factible es parte del estado endógeno del mundo: con el mismo `u = 0.63`,
+candidatos `[A,B,C,D]` seleccionan C y candidatos `[A,D]` seleccionan D. Eso no es fuga de RNG:
+es la trayectoria. Y el camino
+
+```
+T → trayectoria → C_t → posición de respawn → experiencia futura
+```
+
+**forma parte del efecto total de T**. Eliminarlo convertiría D4T en otro mundo.
+
+## 11. La descomposición del intento
+
+```
+N_consume = N_nonexistent + N_out_of_range + N_valid + N_other
+N_valid   = N_beneficial  + N_harmful      + N_neutral
+```
+
+Ambas identidades se comprueban por corrida y `N_other` sale cero. Eso separa tres preguntas que
+vivían dentro de una sola tasa de fracaso, y deja una cuarta por fin formulable:
+
+| | Pregunta |
+|---|---|
+| REFERENCIA | ¿señaló algo que existe? |
+| AFFORDANCE | ¿podía actuar sobre ello? |
+| DISCRIMINACIÓN | ¿era correcto elegirlo? |
+| APRENDIZAJE | ¿mejoró esa discriminación con la experiencia? |
+
+## 12. Estado del contrato
+
+```
+EXPRESSIVITY_T0                = SUFFICIENT
+EXPRESSIVITY_HYPOTHESIS        = REFUTED
+
+TYPED_ACTION_SCHEMA            = PASS
+SELECTOR_ISOLATION             = PASS
+INITIAL_BEHAVIORAL_PARITY      = PASS
+FIRST_DIVERGENCE_GATE          = PASS
+
+EXOGENOUS_RNG_COUPLING         = PASS   (lineage + generation, 9 pruebas)
+RESPAWN_CANDIDATE_DEPENDENCE   = KEEP   (endogenous world dynamics, por decisión)
+
+LOCAL_RESOLUTION_EFFECT        = DETECTED  (McNemar χ² 11.775, p<0.001,
                                             cociente discordante 305/225 ≈ 1.36)
 MECHANISM                      = ACTION-SPACE FACTORIZATION /
                                  REFERENTIAL INDUCTIVE BIAS
-CLOSED-LOOP TOTAL EFFECT       = EN CURSO
-E INTERVENTION                 = FROZEN
-C INTERVENTION                 = FROZEN
+
+E                              = FROZEN
+COST                           = FROZEN
+CLOSED_LOOP_T0_VS_T1           = ACTIVE EXPERIMENT
 ```
 
 El efecto local es **reproducible y moderado, no milagroso**: p<0.001 dice que la asimetría es
 difícil de atribuir al azar bajo este diseño, no que el efecto sea grande.
 
-## 12. Lo que sigue abierto
+Lo que se ha ganado conceptualmente es mayor que el efecto medido: el error inicial no era falta
+de expresividad del organismo, sino que habíamos confundido **expresividad, referencia, alcance y
+discriminación dentro de una sola tasa de fracaso**. Terrario empieza a poder decir *dónde* falla
+el organismo, no solamente *que* falla.
+
+El efecto local es **reproducible y moderado, no milagroso**: p<0.001 dice que la asimetría es
+difícil de atribuir al azar bajo este diseño, no que el efecto sea grande.
+
+## 13. Lo que sigue abierto
 
 - T1 no es «mejor» por construcción: un agente uniforme direcciona **peor** bajo T1 (16 ranuras,
   casi todas vacías) que bajo T0 (5 direcciones). T1 compra expresividad, no puntería. Sólo un
