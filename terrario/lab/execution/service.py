@@ -261,8 +261,38 @@ class ScientificExecutionService:
             for row in rows:
                 target = ExecutionState.RECOVERY_REQUIRED if row["state"] in {"RUNNING", "PAUSING"} else ExecutionState.ABORTED
                 self._transition(con, row, target, "LEASE_EXPIRED", {"previous_owner": row["lease_owner"]}, actor_id, lease_owner=None, lease_expires_at=None, **({"completed_at": self.artifacts.now()} if target is ExecutionState.ABORTED else {}))
+                self._release_orphaned_jobs(con, str(row["execution_id"]), actor_id)
                 recovered.append(str(row["execution_id"]))
         return tuple(self.get(item) for item in recovered)
+
+    def _release_orphaned_jobs(self, con, execution_id: str, actor_id: str) -> None:
+        """Return the in-flight trial to the queue, or the campaign cannot finish.
+
+        Marking the EXECUTION as interrupted was never enough. The dispatcher
+        claims by `projected_state='READY'`, so a trial that was CLAIMED when
+        the power went out stays CLAIMED forever: the run resumes, works through
+        everything else, and can never reach "all COMPLETED". A twenty-hour
+        campaign would survive the cut and still be impossible to close.
+
+        The interrupted attempt is FAILED rather than reused, so the re-claim
+        creates a new one and the record still shows that a trial was cut short.
+        That is what keeps this from being the silent replay the recovery model
+        forbids: the replay happens, and it is visible.
+        """
+        now = self.artifacts.now()
+        jobs = con.execute("""SELECT jobs.job_id, jobs.trial_intent_id FROM execution_jobs jobs
+            JOIN execution_batches batches ON batches.batch_id=jobs.batch_id
+            WHERE batches.idempotency_key=? AND jobs.projected_state='CLAIMED'""", (execution_id,)).fetchall()
+        for job in jobs:
+            attempts = [str(x["attempt_id"]) for x in con.execute(
+                "SELECT attempt_id FROM run_attempts WHERE trial_intent_id=? AND projected_state='RUNNING'",
+                (job["trial_intent_id"],)).fetchall()]
+            for attempt_id in attempts:
+                con.execute("UPDATE run_attempts SET projected_state='FAILED',finished_at=? WHERE attempt_id=?", (now, attempt_id))
+            con.execute("UPDATE execution_jobs SET projected_state='READY',lease_owner=NULL,lease_expires_at=NULL WHERE job_id=?", (job["job_id"],))
+            self._event(con, execution_id, "TRIAL_RELEASED_AFTER_LEASE_LOSS",
+                        {"job_id": str(job["job_id"]), "trial_intent_id": str(job["trial_intent_id"]),
+                         "abandoned_attempts": attempts}, actor_id, now)
 
     def export_bundle(self, execution_id: str) -> Mapping[str, Any]:
         """Produce a portable ZIP without reclassifying raw data as evidence."""
