@@ -378,7 +378,70 @@ el organismo, no solamente *que* falla.
 El efecto local es **reproducible y moderado, no milagroso**: p<0.001 dice que la asimetría es
 difícil de atribuir al azar bajo este diseño, no que el efecto sea grande.
 
-## 13. Lo que sigue abierto
+## 13. Registro de decisiones · 2026-09-17
+
+### 13.1 El lote anterior queda separado, no combinado
+
+Las corridas interrumpidas bajo el acoplamiento defectuoso sirven como **diagnóstico de ese
+defecto**. No completan parejas ni alimentan intervalos del lote corregido. En la práctica no hay
+riesgo de mezcla: el experimento escribe su JSON sólo al terminar, y ambos lotes abortados
+murieron antes, así que `artifacts/` no contiene nada de ellos. El análisis posterior estampa
+`rng_mechanism` para que la separación quede en el registro y no en la memoria de nadie.
+
+Precisión sobre lo demostrado: el problema era **incumplimiento del acoplamiento entre brazos**,
+no necesariamente falta de reproducibilidad de cada corrida por separado. Son propiedades
+distintas y conviene no confundirlas al citar el hallazgo.
+
+`selector_isolation.json` (los gemelos de un paso) **no** queda afectado: el banco de instantáneas
+llama a `materialize_scenario` y `build_world_state` y nunca construye `OpportunityLifecycle`.
+
+### 13.2 `p_beneficial_given_valid` separa resultados; no identifica discriminación aprendida
+
+La magnitud
+
+```
+q_i(T) = N_beneficial,i(T) / N_valid,i(T)
+```
+
+describe qué proporción de las interacciones **válidas de ese brazo** resultó beneficiosa. Se
+conserva, y se conserva su límite: **T también cambia qué entidades llegan a consumirse**, así
+que una diferencia entre `q(T1)` y `q(T0)` puede reflejar mejor selección, distinta exposición o
+ambas. Es condicionamiento sobre una variable **posterior a la intervención**, y no equivale a
+comparar capacidad discriminativa sobre los mismos objetos y oportunidades.
+
+En el ejemplo del humo, `q(T0) = 0/1 = 0` y `q(T1) = 2/4 = 0.5`: ambos cocientes están definidos,
+y el cero de T0 es **legítimo** — hubo una interacción válida — no el cero artificial que se
+corrigió en §4. Pero una interacción frente a cuatro no demuestra que T1 haya aprendido nada.
+
+| Resultado observado | Afirmación que permite |
+|---|---|
+| Más resoluciones válidas | Mejor **ejecución realizada** bajo ese selector |
+| Más consumos beneficiosos | Mejor **resultado conductual total** en esas corridas |
+| Mayor proporción beneficiosa entre consumos válidos | Mejor **composición** de los consumos realizados |
+| Mejora atribuible a la actualización del agente, sobre oportunidades comparables | Evidencia específica de **aprendizaje** — *no se deduce de las tres anteriores, y este lote no la mide* |
+
+### 13.3 Sin soporte se excluye de esa métrica, no del experimento
+
+Una semilla sin consumos válidos **sigue siendo evaluable** para número de consumos, éxitos,
+supervivencia y todo resultado no condicionado. No desaparece del análisis.
+
+Para cada cociente condicionado se declaran cuatro cubetas: parejas con soporte en **ambos**
+brazos, sólo T0, sólo T1, o ninguno. La comparación entre parejas con soporte en ambos responde a
+una pregunta **restringida a ese subconjunto**: el propio tratamiento puede determinar si aparece
+soporte, y eso cambia la población evaluada aunque el cálculo del cociente sea correcto.
+
+### 13.4 Verificaciones de la inferencia
+
+Comprobadas, no supuestas:
+
+- **`median_delta` es la mediana de las diferencias pareadas**, no la resta de las dos medianas.
+  Caso construido: Δ = `[1.0, 0.5, 0.0, 5.0, −95.0]` → mediana de las Δ = **0.5**, mientras que la
+  resta de medianas da **0.0**. El script reporta 0.5.
+- **El bootstrap conserva la pareja completa.** `paired_test` recibe únicamente la lista de
+  diferencias y nunca ve los brazos por separado, así que partir una pareja es estructuralmente
+  imposible. Contraste: IC95 pareado `[1.0, 5.125]` frente al no pareado `[−1.125, 6.75]`.
+
+## 14. Lo que sigue abierto
 
 - T1 no es «mejor» por construcción: un agente uniforme direcciona **peor** bajo T1 (16 ranuras,
   casi todas vacías) que bajo T0 (5 direcciones). T1 compra expresividad, no puntería. Sólo un
