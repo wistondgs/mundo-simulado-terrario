@@ -25,6 +25,10 @@ class ExecutionClassification(StrEnum): PREVIEW_ONLY="PREVIEW_ONLY"; ENGINEERING
 class RunState(StrEnum): CREATED="CREATED"; VALIDATED="VALIDATED"; READY="READY"; RUNNING="RUNNING"; PAUSED="PAUSED"; STOPPING="STOPPING"; COMPLETED="COMPLETED"; TERMINATED="TERMINATED"; FAILED="FAILED"; INVALIDATED="INVALIDATED"
 _TRANS={RunState.CREATED:{RunState.VALIDATED,RunState.INVALIDATED},RunState.VALIDATED:{RunState.READY,RunState.INVALIDATED},RunState.READY:{RunState.RUNNING,RunState.STOPPING},RunState.RUNNING:{RunState.PAUSED,RunState.COMPLETED,RunState.STOPPING,RunState.FAILED},RunState.PAUSED:{RunState.RUNNING,RunState.STOPPING},RunState.STOPPING:{RunState.TERMINATED,RunState.FAILED},RunState.COMPLETED:set(),RunState.TERMINATED:set(),RunState.FAILED:set(),RunState.INVALIDATED:set()}
 
+#: Steps between full snapshots of a running sandbox trace.  See `step`.
+SNAPSHOT_EVERY=50
+_TERMINAL=frozenset({RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED})
+
 class SandboxBoundaryError(ValueError): code="PROTOCOL_BOUNDARY_ERROR"
 class SandboxValidationError(ValueError): code="CONFIG_ERROR"
 
@@ -95,7 +99,15 @@ class SandboxService:
         run=SandboxRun("sandbox-"+uuid.uuid4().hex,spec,RunState.CREATED,instance); run.transition(RunState.VALIDATED); run.transition(RunState.READY)
         self._runs[run.run_id]=run; self._runtime[run.run_id]=self._build_runtime(run); self._runtime[run.run_id].update({"compiled":compiled,"config":config}); self.storage.write(run); return run
     def _build_runtime(self,run):
-        s=dict(run.instance.structure); manager=WorldStateManager(build_world_state(s),s.get("duration",run.spec.step_limit),s.get("max_energy",100),s.get("step_energy_cost",0),s.get("expose_time_fraction",True)); rules=RuleEngine();rules.load_rules(s.get("rules",{}));manager.set_rules_version(rules.version)
+        s=dict(run.instance.structure)
+        # Required, not defaulted: a world whose physics is missing is a world
+        # nobody declared, and substituting zero here is how an organism ended
+        # up running 1200 steps with no energy cost and no reward. The defaults
+        # belong at the YAML boundary (`_runtime_economy`), where a person can
+        # see what they are choosing.
+        missing=[k for k in ("duration","max_energy","step_energy_cost","expose_time_fraction") if k not in s]
+        if missing: raise SandboxValidationError(f"WORLD_PHYSICS_NOT_DECLARED: {sorted(missing)}")
+        manager=WorldStateManager(build_world_state(s),s["duration"],s["max_energy"],s["step_energy_cost"],s["expose_time_fraction"]); rules=RuleEngine();rules.load_rules(s.get("rules",{}));manager.set_rules_version(rules.version)
         # The world fixes the sensory shape; the spec fixes which concepts exist.
         agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1,**dict(run.spec.agent_configuration)},run.spec.agent_seed,device="cpu")
         return {"scenario":s,"world":manager,"rules":rules,"scheduler":ChangeScheduler(s.get("changes",[]),rules),"physics":Physics(),"agent":agent}
@@ -110,7 +122,23 @@ class SandboxService:
         if trace.terminated or len(run.timeline)>=run.spec.step_limit:
             run.termination_reason="AGENT_TERMINATED" if trace.terminated else "STEP_LIMIT"; run.transition(RunState.COMPLETED)
         else: run.transition(RunState.PAUSED)
-        self.storage.write(run); return trace
+        # Snapshotting on a cadence rather than on every step. `write` serializes
+        # the WHOLE run, timeline included, plus an fsync and an atomic replace,
+        # so writing at step N wrote N steps: the total was quadratic and it
+        # dominated everything else. Measured on D4T, cost per step climbed from
+        # 0.42 s to 1.19 s over 600 steps, identically with and without the
+        # episodic memory and with and without the planner -- because it was
+        # never the organism.
+        #
+        # Nothing is traded away that anyone reads. The file's only consumer is
+        # `_discover_lost_sessions`, which asks whether a run existed, whether it
+        # completed, and how far it got -- for a session the runtime declares
+        # PROCESS_RESTART_RUNTIME_NOT_RESTORABLE either way. A terminal state is
+        # always written immediately, so a finished run is never stale; an
+        # interrupted one may under-report its step count by less than the
+        # cadence, on a trace that could not have been resumed regardless.
+        if run.state in _TERMINAL or len(run.timeline)%SNAPSHOT_EVERY==0: self.storage.write(run)
+        return trace
     def _step_runtime(self,run,r):
         step=len(run.timeline); s=r["scenario"]; world=r["world"]; agent=r["agent"]
         obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4)); agent.perceive(obs); action=agent.decide()

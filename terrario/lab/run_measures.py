@@ -101,6 +101,11 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
 
     energy = final_agent.get("energy")
     start = initial_agent.get("energy")
+    # Any movement at all, not just net movement: an organism that spent and ate
+    # back to par is in a live world; one whose energy never changed is not.
+    levels = {round(float(_agents(row)["energy"]), 6) for row in rows
+              if isinstance(_agents(row).get("energy"), (int, float))}
+    moved = len(levels) > 1
 
     measures = [
         Measure("pasos_vividos", "Pasos vividos", len(rows), "pasos",
@@ -148,6 +153,15 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
                 "cuenta los cambios, no su tamaño. Cero con el aprendizaje apagado."),
         Measure("perturbaciones_vistas", "Perturbaciones que alcanzó a vivir", disturbances, "cambios de regla",
                 "Si es 0 en un mundo que las tiene, el episodio terminó antes de la primera."),
+        # Sentinel. It exists because a six-step smoke run passed clean while the
+        # sandbox was building D4T as an empty grid with no energy cost: the
+        # organism could not eat, could not decay, and -- since energy_delta is
+        # also its reward -- trained for 1200 steps with no reinforcement at
+        # all. Every other mesh reported plausible numbers throughout. This one
+        # would have said no in seconds.
+        Measure("el_mundo_actua", "La energía se movió alguna vez", bool(moved), "sí/no",
+                "Si es 'no', el mundo no le está haciendo NADA al organismo y ninguna "
+                "medida de viabilidad o adaptación significa nada. Mirá esto primero."),
     ]
     return {"schema_version": MEASURES_SCHEMA, "evaluable": True,
             "measures": tuple(m.__dict__ for m in measures)}

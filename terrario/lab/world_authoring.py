@@ -54,7 +54,24 @@ class WorldPreview:
 
 def draft_from_legacy(identifier:str,path:str|Path)->WorldDraft:
     raw=yaml.safe_load(Path(path).read_text()).get("scenario",{}); prov=WorldProvenance("LEGACY_ADAPTER","editable draft projection","RUNTIME",str(path))
-    return WorldDraft(f"draft-{identifier.lower()}",SCHEMA_VERSION,raw.get("description",""),"bounded rectangular grid",tuple(raw["grid_size"]),tuple(raw.get("objects",[])),tuple([raw["procedural_layout"]] if raw.get("procedural_layout") else []),raw.get("agent_start",{}),tuple(raw.get("rules",{}).get("rules",[])),tuple(),("channels","mask","agent_energy","time_fraction"),("MOVE","PUSH","CONSUME","INSPECT","NOOP"),(f"duration:{raw.get('duration',500)}","agent death"),("world rules",),tuple(raw.get("changes",[])),{"max_energy":raw.get("max_energy",100),"step_energy_cost":raw.get("step_energy_cost",0)},"world_seed controls layout/schedule only",prov)
+    return WorldDraft(f"draft-{identifier.lower()}",SCHEMA_VERSION,raw.get("description",""),"bounded rectangular grid",tuple(raw["grid_size"]),tuple(raw.get("objects",[])),tuple([raw["procedural_layout"]] if raw.get("procedural_layout") else []),raw.get("agent_start",{}),tuple(raw.get("rules",{}).get("rules",[])),tuple(),("channels","mask","agent_energy","time_fraction"),("MOVE","PUSH","CONSUME","INSPECT","NOOP"),(f"duration:{raw.get('duration',500)}","agent death"),("world rules",),tuple(raw.get("changes",[])),_runtime_economy(raw),"world_seed controls layout/schedule only",prov)
+
+def _runtime_economy(raw:Mapping[str,Any])->dict[str,Any]:
+    """Every knob that decides what the world DOES, defaulted exactly once.
+
+    The defaults live here, at the boundary where the YAML is in front of you,
+    and nowhere downstream. A runtime that substitutes its own turns a missing
+    field into different physics without saying so: the sandbox read
+    `step_energy_cost` as 0 for D4S and D4T, so an organism that should have
+    been spending energy every step could not die, could not leave the viable
+    region, and -- because energy_delta is also its reward -- ran with no
+    reinforcement signal at all.
+    """
+    economy={"max_energy":float(raw.get("max_energy",100)),
+             "step_energy_cost":float(raw.get("step_energy_cost",0)),
+             "expose_time_fraction":bool(raw.get("expose_time_fraction",True))}
+    if raw.get("opportunity_lifecycle"): economy["opportunity_lifecycle"]=dict(raw["opportunity_lifecycle"])
+    return economy
 
 def validate_draft(d:WorldDraft)->tuple[DraftFinding,...]:
     out=[]
@@ -75,7 +92,18 @@ def validate_draft(d:WorldDraft)->tuple[DraftFinding,...]:
 def compile_draft(d:WorldDraft)->CompiledWorld:
     findings=validate_draft(d); blocking=[x for x in findings if x.blocking]
     if blocking: raise ValueError("; ".join(f"{x.code}:{x.path}" for x in blocking))
-    operational={"grid_size":list(d.dimensions),"duration":_duration(d),"view_radius":2,"num_channels":max([len(x.get("channels",[])) for x in d.entities] or [4]),"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[dict(x) for x in d.scheduled_events]}
+    # The procedural layout and the economy travel INTO the runtime template.
+    # Dropping them here is what emptied the sandbox: D4S and D4T declare their
+    # objects through `procedural_layout` rather than as an explicit list, so a
+    # template built from `entities` alone produced a bare grid with nothing to
+    # eat and no decay. `materialize_scenario` -- the same resolver the
+    # scientific path uses, imported above -- then returned early because there
+    # was no layout to resolve, and both paths silently disagreed about what
+    # the world was.
+    layout=dict(d.object_distributions[0]) if d.object_distributions else None
+    channels=[len(x.get("channels",[])) for x in d.entities]
+    if layout: channels+= [len(t.get("channels",[])) for t in layout.get("class_templates",{}).values()]
+    operational={"grid_size":list(d.dimensions),"duration":_duration(d),"view_radius":2,"num_channels":max(channels or [4]),"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[dict(x) for x in d.scheduled_events],**({"procedural_layout":layout} if layout else {}),**dict(d.resource_structure)}
     stable_id="world-"+scientific_hash(operational)[:16]
     runtime={"name":stable_id,"description":"compiled explicit world","seed":0,**operational}
     definition,_=adapt_legacy_scenario(stable_id,runtime,d.provenance.source or d.draft_id)

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import sqlite3
+from contextlib import contextmanager
 import threading
 from pathlib import Path
 from typing import Any, Iterable
@@ -56,14 +57,29 @@ class TraceArchive:
                     previous, sequence = row["hash"], int(row["sequence"])
         return previous, sequence
 
+    @contextmanager
     def _connect(self):
+        """Open the index, commit, and CLOSE.
+
+        `with sqlite3.connect(...) as db` commits a transaction; it does not
+        close the connection. Every `append` opened one and left it open, so a
+        1200-step run leaked some 3600 connections in WAL mode and the SECOND
+        run in the same process died -- once with `disk I/O error` while
+        creating the table, once with a UNIQUE violation on a sequence the
+        archive's own counter had never issued. The campaign could not get past
+        its first trial for a reason that had nothing to do with the science.
+        """
         db = sqlite3.connect(self.index_path)
         db.execute("PRAGMA journal_mode=WAL")
         db.execute("CREATE TABLE IF NOT EXISTS records(sequence INTEGER PRIMARY KEY,tick INTEGER NOT NULL,event_type TEXT,entity_id TEXT,checkpoint INTEGER NOT NULL,offset INTEGER NOT NULL,length INTEGER NOT NULL,hash TEXT NOT NULL)")
         db.execute("CREATE INDEX IF NOT EXISTS records_tick ON records(tick,sequence)")
         db.execute("CREATE INDEX IF NOT EXISTS records_event ON records(event_type,sequence)")
         db.execute("CREATE INDEX IF NOT EXISTS records_entity ON records(entity_id,sequence)")
-        return db
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def _checkpoint_sequences(self) -> set[int]:
         """Return checkpoint source sequences; invalid derived files are ignored."""
