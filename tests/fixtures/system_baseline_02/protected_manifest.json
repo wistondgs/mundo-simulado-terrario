@@ -1,5 +1,5 @@
 {
-  "baseline_head": "410b2693b40b1462180bff8bcbb64bb1f378688e",
+  "baseline_head": "551b219b56e402be3fe5527876fc83e14dfa9f67",
   "classification": "CHARACTERIZATION_ONLY",
   "files": {
     "configs/h_adapt_001.yaml": "1a9c9423a2899e14dcbd525d7d90609cfea1f154cffb797296722a36e0b42292",
@@ -13,7 +13,7 @@
     "terrario/agent/agents/a1_reactive.py": "05ce0db2438fe3c0722c79842e1f28d0d4fda3dcb68cc722bec929a24c55aaa4",
     "terrario/agent/agents/a2_gru.py": "b05db7c836344f9a4b45aa81142073ba4a216658c495552259ca26c05e57d7ba",
     "terrario/agent/agents/a3_worldmodel.py": "d70ce83742590406adc7ea3c9e7a7ccc8ccf7bb033dcf7875c0d8ce01d29f081",
-    "terrario/agent/agents/a4_advanced.py": "a2fcdaf03c6b0e05caf0c4788ed5dcd6e3b9925bb680a72cde8bd587c08c2f55",
+    "terrario/agent/agents/a4_advanced.py": "0c89397960a23284de89e874d3bec897dfa0dae8ebb7a5a0608a8b0dba454b80",
     "terrario/agent/base.py": "bffeef9fccc866b85a0fabb9d3fb4da3a2638760afd18aeb0b2fd07938b0638e",
     "terrario/agent/device.py": "68dfdf6fb49bf3493838a215da8031185c27b480bd26fd08f25a352f289fdecd",
     "terrario/agent/encoder.py": "20066afd2d0e4e087146ddbd4b935db88847072c844593a92a430505658ef66e",
@@ -21,7 +21,7 @@
     "terrario/agent/learner.py": "5974181baee33880a645d03e5f93fcbf85d17be9c32ce2d11b7405d45ff7e059",
     "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
     "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
-    "terrario/agent/scientific.py": "734aa34e247de339d901d82672aac4a14c15902bf87686b1c879f68420dfe0ac",
+    "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
     "terrario/agent/temporal.py": "a101ee19376a3cd0e31911d85872fe2761fbd8a09ca97dce1cbac83e12d1ad40",
     "terrario/agent/uncertainty.py": "a156eeaa7757c2ff3f1d51971227d6fb8879f894f6a0230da6e0ee3a81a5697e",
     "terrario/agent/world_model.py": "a7dca349d233a569002373734dd6f4162cb6458fb1c71736584525626412414b",
@@ -34,7 +34,7 @@
     "terrario/experiment/adaptation.py": "3740049bb9a7f4062d56d0744f1fe1e2a42c47f8f0d0193b0c1a44a6723c8111",
     "terrario/experiment/campaign.py": "fd7a735b6ebb901175fff212e3a8197ac141a610f355f6ff4068f35798b14e1d",
     "terrario/experiment/config.py": "a67c21205b73dd88836b9873c89ad45d74aecf53f3b4655e96b3080904a675ca",
-    "terrario/experiment/controller.py": "6845940974e1823f31e2acdb3e8b108eee79ef828dafe2d2d95fbb23ed348c20",
+    "terrario/experiment/controller.py": "1707841a393bce3373c797f28f0b928f92cb7cad2d88538eadc631ae8f233402",
     "terrario/experiment/hypothesis.py": "ac01d4bdc0da8c5387c89a41051af84c2a668268d02294c282b2eb6860e13c9b",
     "terrario/experiment/metrics.py": "953441c629a986672f00874fbc6cc1ecef2ed54fbe17edfcd3e117f115884a7d",
     "terrario/experiment/runner.py": "651d17ba87ac03d980999e66283d78aa47b4c7387a7c5f088795139be9d5ed3f",
@@ -74,6 +74,6 @@
     "theory_snapshots/theory-f59dbb6d6ee3850c/theory_graph.json": "69e1a8a2ef3fbf2eac51a3fca20e90bc9ffae5f8870793c5ff3d0e9bc3a08911"
   },
   "protected_file_count": 70,
-  "protected_root_hash": "08d88eb8b319c146bd45ac8199ffdece6273bbe022797fa4d24a28c2780fd30a",
+  "protected_root_hash": "82dfcd1602a13a2a173fcc9254800b973302f793b04c50a3f54790702a708277",
   "schema_version": "terrario.system-baseline/v1"
 }
