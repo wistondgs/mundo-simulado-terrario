@@ -393,6 +393,7 @@ class A4Advanced(AgentInterface):
             # OPERATION is taken here and the selector heads keep choosing the
             # referent: the planner says what to do, addressing says on what.
             op = int(torch.multinomial(op_probs, 1, generator=self._generator).item())
+            planned_direction: int | None = None
             if (self._use_planner and self._use_world_model
                     and torch.rand(1, generator=self._generator).item() < 0.5):
                 planned_action, _ = self.planner.plan(
@@ -401,6 +402,16 @@ class A4Advanced(AgentInterface):
                     num_candidates=self.config["planner_candidates"],
                 )
                 op = int(planned_action) // NUM_DIRECTIONS
+                # The planner proposes a WHOLE action, operation and direction.
+                # Taking only the operation and letting a freshly initialised
+                # direction head supply the rest is not the same organism: under
+                # T0 movement was planned, under T1 it was drawn from a head that
+                # collapses within a few hundred steps. The agent then wedged
+                # against an object -- MOVE on 61% of steps and two cells
+                # visited, with something adjacent at every single step. The
+                # planner keeps its direction here; what T1 changes is only how
+                # an operation that acts ON something names its referent.
+                planned_direction = int(planned_action) % NUM_DIRECTIONS
             operation = ActionType(op)
             addresses_entity = (self._selector_type is SelectorType.TARGET_ID
                                 and operation in TARGET_BEARING_OPERATIONS)
@@ -410,11 +421,13 @@ class A4Advanced(AgentInterface):
                 direction = Direction.NONE
             elif hasattr(self, "direction_head"):
                 dir_probs = F.softmax(self.direction_head(state) / temperature, dim=-1)
-                sel = int(torch.multinomial(dir_probs, 1, generator=self._generator).item())
+                sel = (planned_direction if planned_direction is not None
+                       else int(torch.multinomial(dir_probs, 1, generator=self._generator).item()))
                 sel_log = torch.log(dir_probs[sel] + 1e-8)
                 direction = Direction(sel)
             else:
-                sel = int(torch.multinomial(sel_probs, 1, generator=self._generator).item())
+                sel = (planned_direction if planned_direction is not None
+                       else int(torch.multinomial(sel_probs, 1, generator=self._generator).item()))
                 sel_log = torch.log(sel_probs[sel] + 1e-8)
                 direction = Direction(sel)
             action_int = op * NUM_DIRECTIONS + (sel if sel < NUM_DIRECTIONS else 0)

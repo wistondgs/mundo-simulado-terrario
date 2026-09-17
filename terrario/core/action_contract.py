@@ -222,7 +222,22 @@ def perceive_targets(
             continue
         found.append(((dx, dy), entity_id))
 
-    found.sort()  # row-major by (dx, dy); AC2-3
+    # Ordered by distance first, then row-major to break ties. AC2-3.
+    #
+    # Both orderings are pure geometry -- neither says anything about WHAT an
+    # entity is, only where it sits, which the organism already receives through
+    # its channels. The reason to prefer distance is that row-major over
+    # OCCUPIED cells is non-stationary: the same physical neighbour wears a
+    # different slot depending on what else happens to be in view, so there is no
+    # stable thing for a selector head to learn in the seven informative steps a
+    # lifetime affords. Under distance ordering the thing in contact is slot 0
+    # nearly always.
+    #
+    # This is a design choice that favours T1, and it is recorded as one. It does
+    # not hand the organism the answer: slot 0 is the nearest entity whether that
+    # entity is food or poison, and choosing to act on it is still a decision
+    # about what, not merely where.
+    found.sort(key=lambda item: (abs(item[0][0]) + abs(item[0][1]), item[0]))
     truncated = len(found) > MAX_TARGET_SLOTS
     targets = [
         PerceivedTarget(
