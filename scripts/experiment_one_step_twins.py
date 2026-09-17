@@ -171,6 +171,18 @@ def main() -> int:
                                   len(with_affordance), what="T0 resolvability").as_record(),
         "t1_resolvability": ratio(sum(r["t1_resolved"] for r in with_affordance),
                                   len(with_affordance), what="T1 resolvability").as_record(),
+        # Paired discordance. Both arms saw the same state and drew the same
+        # uniform variate, so the informative quantity is not two marginal rates
+        # but the cases where they DISAGREED. McNemar's statistic uses only
+        # those, which is exactly what common random numbers were for.
+        "discordant_t0_only": sum(1 for r in with_affordance
+                                  if r["t0_resolved"] and not r["t1_resolved"]),
+        "discordant_t1_only": sum(1 for r in with_affordance
+                                  if r["t1_resolved"] and not r["t0_resolved"]),
+        "concordant_both": sum(1 for r in with_affordance
+                               if r["t0_resolved"] and r["t1_resolved"]),
+        "concordant_neither": sum(1 for r in with_affordance
+                                  if not r["t0_resolved"] and not r["t1_resolved"]),
         "agreed_on_the_same_entity": sum(
             1 for r in with_affordance
             if r["t0_entity"] is not None and r["t0_entity"] == r["t1_entity"]),
@@ -192,6 +204,17 @@ def main() -> int:
     print(f"decisions with an entity in contact: {summary['with_affordance']}")
     print(f"  T0 resolvability {summary['t0_resolvability']['value']}")
     print(f"  T1 resolvability {summary['t1_resolvability']['value']}")
+    b, c = summary["discordant_t0_only"], summary["discordant_t1_only"]
+    if b + c:
+        statistic = (abs(b - c) - 1) ** 2 / (b + c)   # McNemar, continuity-corrected
+        summary["mcnemar_chi2"] = round(statistic, 3)
+        # chi2 with 1 df: 3.84 at 0.05, 6.63 at 0.01, 10.83 at 0.001
+        summary["mcnemar_verdict"] = ("DIFFERENT_p<0.001" if statistic > 10.83 else
+                                      "DIFFERENT_p<0.01" if statistic > 6.63 else
+                                      "DIFFERENT_p<0.05" if statistic > 3.84 else
+                                      "NOT_DISTINGUISHABLE")
+        print(f"  discordant: T0 only {b}, T1 only {c}  "
+              f"chi2={summary['mcnemar_chi2']}  {summary['mcnemar_verdict']}")
     print(f"  same entity chosen: {summary['agreed_on_the_same_entity']}")
     print(f"\nwrote {path}")
     return 0

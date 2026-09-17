@@ -57,6 +57,10 @@
       "support": 1442,
       "reason": null
     },
+    "discordant_t0_only": 225,
+    "discordant_t1_only": 305,
+    "concordant_both": 167,
+    "concordant_neither": 745,
     "agreed_on_the_same_entity": 136,
     "t0_status_counts": {
       "NONEXISTENT": 2608,

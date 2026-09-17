@@ -170,7 +170,94 @@ memorias juntas cuesta 0 comidas; quitarlas por separado cuesta 2.67 y 0.33. Son
 no complementarias**. Lo tapaba un fallo propio: la puerta de suelo miraba toda la malla en vez
 de los componentes de cada conjunción, y disparaba en las tres.
 
-## 7. Lo que sigue abierto
+## 7. Esquema tipado: el selector no es global
+
+PUSH demostró que `(operación, tipo_selector, valor)` sigue siendo demasiado genérico si el
+selector se aplica globalmente. El dominio válido depende de la **semántica de cada operación**,
+leída de la física y no de la intuición:
+
+```
+MOVE     → {SPATIAL_DIRECTION}      _handle_move usa DIRECTION_DELTA y nada más
+PUSH     → {SPATIAL_DIRECTION}      empuja hacia una dirección y sigue al objeto
+CONSUME  → {SPATIAL_DIRECTION, OBSERVED_ENTITY}
+INSPECT  → {}                       _handle_inspect NO lee dirección ni target_id
+NOOP     → {}
+```
+
+T deja entonces de ser «todo el agente direcciona direcciones» frente a «todo el agente
+direcciona entidades» y pasa a ser la pregunta estrecha que siempre debió ser: **para la
+operación semánticamente dirigida a entidad, ¿qué representación realiza el objetivo?** MOVE y
+PUSH quedan idénticas entre condiciones.
+
+## 8. La prueba que faltaba: ¿v1 podía expresar la intención?
+
+Que el direccionamiento medido esté en azar demuestra que el agente **no aprendió** a usar el
+canal. No demuestra que el canal **no pudiera** expresar el objetivo. Si hay exactamente un
+objeto arriba, `CONSUME(UP)` ya dice «consume ese objeto».
+
+```
+R_T(I, s) = 1  ⟺  ∃ a ∈ A_T : Execute(s, a) realiza I
+```
+
+Medido sobre un banco de **3000 estados exógenos** — posiciones muestreadas sobre mundos recién
+instanciados, ninguna trayectoria involucrada, affordance exógena 0.481:
+
+| Contrato | Intenciones realizables | R |
+|---|---|---|
+| T0 direccional | 1894 | **1.0** |
+| T1 entidad | 1894 | **1.0** |
+
+Control: con la ventana perceptiva reducida a 1, T1 cae a **0.0** y T0 se mantiene en 1.0. El
+instrumento sí ve una intención inexpresable; no encuentra ninguna porque no la hay.
+
+**Action Contract v1 era expresivamente suficiente.** El defecto no es expresividad. Vive en
+aprendizaje, asignación de crédito o estabilidad de política.
+
+## 9. Paridad conductual e aislamiento de un paso
+
+Una cabeza de entidad inicializada de forma independiente hacía que T1 significara cuatro cosas
+a la vez: selector nuevo, parámetros nuevos, distribución inicial nueva y dinámica de colapso
+nueva. Ahora:
+
+```
+logit_T1(e) = logit_T0(d(e)) + r(e),     r(e) = 0 en t=0
+```
+
+La paridad se afirma sobre **log-odds**, no sobre probabilidades, porque los soportes difieren
+de verdad: T0 reparte masa sobre cinco direcciones incluidas las que no alcanzan ninguna casilla,
+T1 sobre las entidades realmente percibidas. Esa diferencia es el contenido representacional de
+T1, no un confusor.
+
+La comparación sale del bucle cerrado: **un** agente con ambas cabezas decide dos veces sobre el
+**mismo** estado, ambos brazos consumen la **misma** variable uniforme, y el mundo no avanza
+entre ellos. `first_divergence` recorre la cadena y falla si difieren antes de
+`selector_representation`.
+
+### Resultado
+
+```
+INTERVENTION_ISOLATION: PASS   (0 fallos de 3000 pares)
+
+                       resolubilidad    NONEXISTENT   OUT_OF_RANGE   VALID
+T0 direccional             0.272            2608            —         392
+T1 entidad                 0.327             150          2378        472
+
+discordantes: sólo T0 225 · sólo T1 305 · McNemar χ² = 11.775 · p < 0.001
+```
+
+Dos cosas distintas, y la segunda importa más que la primera.
+
+**Primera**: con paridad exacta en el inicio, T1 resuelve más que T0 sobre estados idénticos, y
+la diferencia es estadísticamente distinguible. No es un efecto de aprendizaje — es del paso
+cero.
+
+**Segunda**: los modos de fallo son cualitativamente distintos. Bajo T0 el 87 % de los consumos
+apuntan a **espacio vacío**. Bajo T1 el organismo **refiere con éxito a una entidad real en el
+95 % de los casos** y lo que falla es el alcance. T0 confunde «no me referí a nada» con «me
+referí a algo que no alcanzo»; T1 las separa. Para una teoría de la inteligencia esa distinción
+vale más que los cinco puntos de resolubilidad.
+
+## 10. Lo que sigue abierto
 
 - T1 no es «mejor» por construcción: un agente uniforme direcciona **peor** bajo T1 (16 ranuras,
   casi todas vacías) que bajo T0 (5 direcciones). T1 compra expresividad, no puntería. Sólo un
