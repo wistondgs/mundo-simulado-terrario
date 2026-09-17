@@ -441,7 +441,44 @@ Comprobadas, no supuestas:
   diferencias y nunca ve los brazos por separado, así que partir una pareja es estructuralmente
   imposible. Contraste: IC95 pareado `[1.0, 5.125]` frente al no pareado `[−1.125, 6.75]`.
 
-## 14. Lo que sigue abierto
+## 14. Hallazgo · el banco no ejecuta el ciclo de oportunidades que el escenario declara
+
+Al verificar el alcance real del Gate 2 apareció algo mayor que el propio Gate 2.
+
+`OpportunityLifecycle` lo construye **únicamente** `ExperimentController`
+(`controller.py:193`). El `SandboxService` — el banco donde corren el tamizado, los gemelos, el
+rollout cerrado y todo lo demás — **nunca lo instancia**. Medido en D4T sobre 250 pasos: 32
+objetos al inicio, **29 al final**, decreciendo monótonamente. No hay una sola reaparición.
+
+El escenario, en cambio, declara:
+
+```yaml
+opportunity_lifecycle:
+  cooldown_steps: [3, 8]
+  minimum_agent_distance: 2
+  placement_margin: 1
+  recent_position_exclusion: 2
+```
+
+Es la misma clase de defecto que «el sandbox inventaba la física»: **el mundo ejecutado difiere
+del mundo declarado**. Consecuencias:
+
+- El mundo del banco es **estrictamente agotable**. En horizontes largos, un organismo que come
+  bien se queda sin comida, y eso confunde cualquier comparación distal.
+- La **validez interna** del rollout pareado se mantiene: ambos brazos corren en el mismo mundo
+  ejecutado, y el pareo por semilla es válido. Lo comprometido es la **validez externa** — el
+  mundo del banco no es el D4T declarado.
+- No se repara en caliente. Cambiarlo a mitad de lote modificaría el mundo bajo los pies del
+  experimento y anularía la comparación. Queda para decisión posterior al cierre de P0.
+
+### Corrección de una afirmación previa
+
+Dije que el Gate 2 era «el último bloqueo antes del rollout». **No lo era para este rollout.** El
+defecto de acoplamiento por orden de llamada es real y su reparación es correcta para la vía de
+`ExperimentController`, pero ese mecanismo no está en el camino del banco, así que no podía
+contaminar la comparación T0/T1. El lote se detuvo y relanzó por una precaución inaplicable.
+
+## 15. Lo que sigue abierto
 
 - T1 no es «mejor» por construcción: un agente uniforme direcciona **peor** bajo T1 (16 ranuras,
   casi todas vacías) que bajo T0 (5 direcciones). T1 compra expresividad, no puntería. Sólo un
