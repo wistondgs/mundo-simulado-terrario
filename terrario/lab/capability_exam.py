@@ -136,6 +136,25 @@ def sit_exam(agent: Any, probes: Sequence[Probe], *, view_size: int = 5,
     transition is constructed, and the world never steps. Sitting an exam must
     not be an opportunity to study for it.
     """
+    # Sitting an exam must not be an opportunity to study for it. Perceiving a
+    # probe advances the recurrent state, the latent and the step counter, so
+    # three exam banks sat in sequence would each contaminate the next and the
+    # ORDER of the banks would become part of the result. The volatile state is
+    # saved and put back; parameters are never touched because `learn` is never
+    # called.
+    volatile = {name: getattr(agent, name, None) for name in
+                ("_hidden", "_last_latent", "_last_state", "_last_action",
+                 "_last_log_prob", "_step", "_offered_targets")}
+    try:
+        return _sit(agent, probes, view_size=view_size, channels=channels)
+    finally:
+        for name, value in volatile.items():
+            if value is not None or hasattr(agent, name):
+                setattr(agent, name, value)
+
+
+def _sit(agent: Any, probes: Sequence[Probe], *, view_size: int,
+         channels: int) -> dict[str, Any]:
     predictions = selections = realisations = 0
     predictable = selectable = realisable = 0
     mode = getattr(agent, "_addressing_mode", AddressingMode.T0_DIRECTIONAL)

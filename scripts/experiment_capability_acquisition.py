@@ -128,13 +128,13 @@ def replay(agent, stream, *, shuffle_credit: bool = False, seed: int = 7) -> Non
         agent.decide()                      # advances internal state as it did
         force_action(agent, record["action_int"])
         agent.learn(Transition(
-            observation=record["observation"],
-            internal_state="",
-            action=Action.from_int(record["action_int"]),
-            consequence=Consequence(energy_delta=energy, events=list(record["events"]),
-                                    new_observation=record["next_observation"],
-                                    done=record["done"]),
-            next_observation=record["next_observation"],
+            observation_t=record["observation"],
+            internal_state_ref=None,
+            action_t=Action.from_int(record["action_int"]),
+            consequence_t1=Consequence(energy_delta=energy, events=list(record["events"]),
+                                       new_observation=record["next_observation"],
+                                       done=record["done"]),
+            observation_t1=record["next_observation"],
             terminated=record["done"], truncated=False,
             step=record["step"], seed=record["seed"],
         ))
@@ -205,6 +205,13 @@ def _energy(step):
     return None
 
 
+def _fresh(seed: int, config: dict):
+    """One A0, built the same way every time."""
+    torch.manual_seed(seed)
+    return create_agent({"agent_id": "A4", "config": config},
+                        {"num_channels": 4, "view_size": 5}, seed=seed)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--world", default="D4T")
@@ -226,19 +233,24 @@ def main() -> int:
         seed = 1000041 + offset
         started = time.time()
         config = {"addressing_mode": args.addressing}
-        torch.manual_seed(seed)
-        a0 = create_agent({"agent_id": "A4", "config": config},
-                          {"num_channels": 4, "view_size": 5}, seed=seed)
-
-        before = {name: sit_exam(copy.deepcopy(a0), bank)
+        # Twins are BUILT identically rather than copied. An A4 holds tensors that
+        # are graph nodes, which deepcopy refuses -- and building afresh under the
+        # same global seed is the stronger option anyway, because the identity is
+        # then verified rather than assumed.
+        a0 = _fresh(seed, config)
+        before = {name: sit_exam(a0, bank)
                   for name, bank in (("held_out", held_out),
                                      ("decorrelated", decorrelated),
                                      ("seen_values", seen_values))}
 
-        learner = copy.deepcopy(a0)
-        frozen = copy.deepcopy(a0)
+        learner, frozen, shuffled = (_fresh(seed, config) for _ in range(3))
         frozen._use_online_learning = False
-        shuffled = copy.deepcopy(a0)
+        hashes = {a.agent_identity["initial_parameters_hash"]
+                  for a in (a0, learner, frozen, shuffled)}
+        if len(hashes) != 1:
+            raise RuntimeError(
+                f"the three twins are not the same organism: {len(hashes)} distinct "
+                f"initial parameter hashes. Every comparison below assumes one A0.")
 
         trace, _ = bench.experience(args.world, args.steps, seed, config, learner)
         stream = stream_from(trace, 5, 4)
@@ -250,7 +262,7 @@ def main() -> int:
 
         after = {}
         for arm, twin in (("L", learner), ("F", frozen), ("S", shuffled)):
-            after[arm] = {name: sit_exam(copy.deepcopy(twin), bank)
+            after[arm] = {name: sit_exam(twin, bank)
                           for name, bank in (("held_out", held_out),
                                              ("decorrelated", decorrelated),
                                              ("seen_values", seen_values))}
