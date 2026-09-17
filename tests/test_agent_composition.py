@@ -68,9 +68,15 @@ def test_a_chosen_mix_reaches_the_running_organism(tmp_path):
         "use_planner", "use_world_model"]
 
     # And switching ON a default-off concept removes it from the list, which is
-    # the same rule read in the other direction.
+    # the same rule read in the other direction. The OTHER default-off concept
+    # stays listed, which is the point: the observer reports what the organism is
+    # made of, one concept at a time, not a global verdict.
     _, con_entropia = _run(api, {"use_entropy_regularization": True})
-    assert con_entropia[0]["scientific_state"]["active_ablations"] == []
+    assert con_entropia[0]["scientific_state"]["active_ablations"] == ["use_factored_action"]
+
+    _, con_ambos = _run(api, {"use_entropy_regularization": True,
+                              "use_factored_action": True})
+    assert con_ambos[0]["scientific_state"]["active_ablations"] == []
 
 
 def test_the_mix_is_part_of_the_run_identity(tmp_path):
