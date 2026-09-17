@@ -22,6 +22,7 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
+from terrario.world.transition import find_target
 
 TRACE_SCHEMA="terrario.sandbox.trace/v1"; MAX_STEPS=2000
 class ExecutionClassification(StrEnum): PREVIEW_ONLY="PREVIEW_ONLY"; ENGINEERING_SANDBOX="ENGINEERING_SANDBOX"; SCIENTIFIC="SCIENTIFIC"
@@ -292,8 +293,5 @@ def _apply_action_contract(world,obs,action,agent,step,perceived):
 
 
 def _find_target(world,action):
-    if action.action_type!=ActionType.CONSUME:return None
-    truth=world._mutable_state();agent=truth.agents[0]
-    if action.target_id>=0:
-        t=truth.objects.get(action.target_id);return t if t and abs(t.pos.x-agent.pos.x)+abs(t.pos.y-agent.pos.y)==1 else None
-    pos=agent.pos+DIRECTION_DELTA[action.direction];return next((x for x in truth.objects.values() if x.pos==pos),None)
+    """Delegates to the shared semantics; agent 0 is the sandbox's only agent."""
+    return find_target(world,0,action)

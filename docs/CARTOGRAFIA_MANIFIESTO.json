@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-17",
-  "head": "1e3fbb1",
+  "head": "71dfb56",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -111,7 +111,7 @@
     },
     "XVII · Qué significa realmente «seis ejemplos informativos»": {
       "files": {
-        "scripts/experiment_learner_sample_efficiency.py": "b0d27bf47f50f9585b58a61b1ca40669aeb2e79b877b57fb249f9c097157ea56",
+        "scripts/experiment_learner_sample_efficiency.py": "b9d35e35c200ff8c26c826fe6204683487db5e0f2f80e1a84cfce199152197a7",
         "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1"
       }
     },
@@ -143,7 +143,7 @@
     },
     "XXX · Las preguntas más importantes": {
       "files": {
-        "scripts/experiment_learner_sample_efficiency.py": "b0d27bf47f50f9585b58a61b1ca40669aeb2e79b877b57fb249f9c097157ea56"
+        "scripts/experiment_learner_sample_efficiency.py": "b9d35e35c200ff8c26c826fe6204683487db5e0f2f80e1a84cfce199152197a7"
       }
     }
   }

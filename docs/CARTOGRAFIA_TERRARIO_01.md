@@ -1501,7 +1501,33 @@ Dos curvas: **pura** (N ejemplos seguidos) y **diluida** (los mismos N repartido
 pasos metabólicos, la densidad real de D4T). Separan «no puede aprenderlo» de «no recibe
 suficientes» de «la dilución lo impide».
 
-*Resultado en `artifacts/learner_sample_efficiency.json`.*
+### Resultado de la curva pura
+
+`artifacts/learner_sample_efficiency_pure.json` — 5 semillas, 150 sondas, azar 0.5:
+
+```
+n=6    0.492      n=96    0.507      n=768   0.483
+n=12   0.493      n=192   0.561      n=1536  0.532
+n=24   0.500      n=384   0.547
+rango entre semillas: 0.307 – 0.693
+```
+
+**No es monótona y no se separa del azar ni con 1536 ejemplos informativos puros** — 256 veces la
+exposición de una vida en D4T, sin un solo paso metabólico de por medio. La dilución queda
+descartada como explicación única: el cuadrante es «ninguna aprende».
+
+Eso desplaza la pregunta de «¿recibe bastante señal?» a «¿qué en la ruta de la señal impide que
+1536 ejemplos limpios muevan la cabeza de energía?», que es lo que mide `LEARNING-SIGNAL-PATHWAY`.
+
+*La curva diluida no llegó a correr.*
+
+### Pasividad del examen de este script
+
+Su `exam()` era una reimplementación local sin guardián de estado, y el `before` corría
+inmediatamente antes del entrenamiento que debía medir. Medido: **puntuaciones idénticas hasta el
+último dígito con y sin examen previo, en tres semillas**, porque `feed` percibe antes de decidir
+y el examen nunca decide — no consume el generador ni lee la temperatura que estaba corrompiendo.
+Defecto real, efecto nulo, y ahora usa el mismo guardián derivado que `sit_exam`.
 
 ---
 
@@ -2423,7 +2449,19 @@ y **diluida** (los mismos N a 1 de cada 100, la densidad de D4T).
 curva: **la ponderación de la loss**, no la capacidad. `energy_head` recibe 1 de las 642
 dimensiones de error que retropropagan al backbone compartido.
 
-*Resultado en `artifacts/learner_sample_efficiency.json`.*
+**Medido (curva pura, `artifacts/learner_sample_efficiency_pure.json`, 5 semillas, azar 0.5):**
+
+```
+n=6 0.492 · n=12 0.493 · n=24 0.500 · n=48 0.487 · n=96 0.507
+n=192 0.561 · n=384 0.547 · n=768 0.483 · n=1536 0.532
+```
+
+[700] **No.** No se separa del azar con 1536 ejemplos informativos puros, y la curva no es
+monótona. [701] No hay eficiencia muestral que medir: no hay curva ascendente.
+[702] La hipótesis de la ponderación sigue en pie y **sin contrastar** — la curva dice que algo en
+la ruta de la señal lo impide, no cuál de los eslabones. Eso es `LEARNING-SIGNAL-PATHWAY`.
+
+*La curva diluida no llegó a correr; con la pura plana, ya no discrimina nada.*
 
 ## 703-705 · Divergencias entre mundos, y qué física ejecutó cada evidencia
 

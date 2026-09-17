@@ -22,6 +22,7 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
+from terrario.world.transition import find_target
 from terrario.world.opportunities import OpportunityLifecycle
 from terrario.agent.scientific import scientific_state as build_scientific_state, scientific_transport_projection
 
@@ -315,18 +316,12 @@ class ExperimentController:
         }
 
     def _find_target(self, world_mgr: WorldStateManager, agent_id: int, action: Action) -> ObjectSpec | None:
-        if action.action_type != ActionType.CONSUME:
-            return None
-        truth = world_mgr._mutable_state()
-        agent = truth.agents[agent_id]
-        if action.target_id >= 0:
-            target = truth.objects.get(action.target_id)
-            if target is None or abs(target.pos.x - agent.pos.x) + abs(target.pos.y - agent.pos.y) != 1:
-                return None
-            return target
-        from terrario.core.types import DIRECTION_DELTA
-        position = agent.pos + DIRECTION_DELTA[action.direction]
-        return next((obj for obj in truth.objects.values() if obj.pos == position), None)
+        """Delegates to the shared semantics.
+
+        Kept as a method because `CausalRuntime.step` calls it across packages
+        to avoid writing a fourth copy of the same resolution.
+        """
+        return find_target(world_mgr, agent_id, action)
 
     def _create_agent(self, agent_type: str, seed: int, scenario: dict[str, Any] | None = None) -> Any:
         from terrario.agent.agents import create_agent
