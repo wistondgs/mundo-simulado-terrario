@@ -142,7 +142,8 @@ async function correr() {
     estado.corridaId = run.sandbox_run_id;
     await api("POST", `/api/sandbox/${run.sandbox_run_id}/run`, { steps: pasos });
     const linea = await api("GET", `/api/sandbox/${run.sandbox_run_id}/trace`);
-    estado.ultima = resumirCorrida(run, linea);
+    const medido = await api("GET", `/api/sandbox/${run.sandbox_run_id}/measures`);
+    estado.ultima = resumirCorrida(run, linea, medido);
     pintarSalida();
     // Si ya hay una corrida guardada, la comparación es lo que el usuario vino
     // a ver: no debe haber que volver a pulsar nada para que aparezca.
@@ -155,32 +156,40 @@ async function correr() {
   actualizarBotonCorrer();
 }
 
-function resumirCorrida(run, linea) {
+// Un experimento con una sola medida sólo puede encontrar lo que esa medida
+// fue construida para ver. Así que cada corrida reporta todas las mallas.
+function resumirCorrida(run, linea, medido) {
   const ultimo = linea[linea.length - 1] || {};
-  const agentes = ((ultimo.observer_world || {}).agents) || {};
-  const primero = Object.values(agentes)[0] || {};
   const quitados = (ultimo.scientific_state || {}).active_ablations || [];
   const nombre = (k) => (estado.conceptos.find((c) => c.key === k) || {}).label || k;
-  return {
-    mundo: estado.mundo,
-    pasos: linea.length,
-    energia: typeof primero.energy === "number" ? primero.energy.toFixed(1) : "—",
-    vivo: primero.alive === undefined ? "—" : primero.alive ? "sí" : "no",
-    quitados: quitados.length ? quitados.map(nombre).join(", ") : "nada — organismo completo",
-  };
+  const filas = [{
+    clave: "quitados", etiqueta: "Piezas quitadas",
+    valor: quitados.length ? quitados.map(nombre).join(", ") : "nada — organismo completo",
+    explica: "Qué conceptos estaban apagados en esta mezcla.",
+  }, {
+    clave: "mundo", etiqueta: "Mundo", valor: estado.mundo,
+    explica: "Dónde vivió.",
+  }];
+  for (const m of (medido.measures || [])) {
+    filas.push({
+      clave: m.key, etiqueta: m.label,
+      valor: m.evaluable ? String(m.value) : `no evaluable — ${m.reason}`,
+      explica: m.means + (m.unit ? ` (${m.unit})` : ""),
+    });
+  }
+  return { filas };
 }
-
-const FILAS = [["mundo", "Mundo"], ["pasos", "Pasos vividos"], ["energia", "Energía al final"],
-               ["vivo", "Seguía vivo"], ["quitados", "Piezas quitadas"]];
 
 function tabla(columnas) {
   const t = document.createElement("table");
-  t.innerHTML = "<tr><th></th>" + columnas.map((c) => `<th>${c.titulo}</th>`).join("") + "</tr>" +
-    FILAS.map(([clave, etiqueta]) => {
-      const valores = columnas.map((c) => c.datos[clave]);
+  const claves = columnas[0].datos.filas;
+  t.innerHTML = `<tr><th>Medida</th>${columnas.map((c) => `<th>${c.titulo}</th>`).join("")}<th>Qué significa</th></tr>` +
+    claves.map((fila, i) => {
+      const valores = columnas.map((c) => (c.datos.filas[i] || {}).valor);
       const difiere = columnas.length > 1 && new Set(valores).size > 1;
-      return `<tr><th>${etiqueta}</th>` +
-        valores.map((v) => `<td class="${difiere ? "dif" : ""}">${v}</td>`).join("") + "</tr>";
+      return `<tr><th>${fila.etiqueta}</th>` +
+        valores.map((v) => `<td class="${difiere ? "dif" : ""}">${v}</td>`).join("") +
+        `<td class="explica">${fila.explica}</td></tr>`;
     }).join("");
   return t;
 }

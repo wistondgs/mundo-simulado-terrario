@@ -44,3 +44,4 @@ table{border-collapse:collapse;width:100%;font-size:.9rem;background:#fff}
 th,td{border:1px solid var(--linea);padding:.45rem .6rem;text-align:left;vertical-align:top}
 th{background:var(--apagado);font-weight:600}
 .dif{background:#fff6e0}
+.explica{color:var(--suave);font-size:.83rem;max-width:22rem}

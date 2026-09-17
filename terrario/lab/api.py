@@ -26,6 +26,7 @@ from terrario.lab.world_contracts import config_diff, validate_configuration
 from terrario.lab.world_authoring import SeedBrowser,compile_draft,compile_registry_world,draft_from_legacy,generate_instance,preview,validate_draft
 from terrario.lab.sandbox_runtime import ExecutionClassification,derive_sandbox,make_spec,serialize_run
 from terrario.lab.worldstream.service import MAX_ACTIVE_SESSIONS
+from terrario.lab.run_measures import measure_run
 from terrario.lab.agent_composition import catalogue as agent_catalogue,validate_selection
 from terrario.lab.worldstream.service import LiveSandboxService
 from terrario.lab.worldstream.api import WorldStreamAPI
@@ -186,6 +187,10 @@ class LabAPI:
                 return 200,thaw(SeedBrowser(compiled).analyze(seeds))
             if method == "GET" and parts == ["api","sandbox"]:
                 return 200,{"schema_version":"terrario.lab.sandbox-sessions/v1","limit":MAX_ACTIVE_SESSIONS,"active":list(self.sandbox.active())}
+            if method == "GET" and len(parts)==4 and parts[:2]==["api","sandbox"] and parts[3]=="measures":
+                # Computed here, not in the page: the screening harness must read
+                # the same meshes the screen shows, or they would drift apart.
+                return 200,thaw(measure_run(thaw(self.sandbox.get(parts[2]).timeline)))
             if method == "GET" and len(parts)>=3 and parts[:2]==["api","sandbox"]:
                 run=self.sandbox.get(parts[2]); return 200,(thaw(run.timeline) if len(parts)==4 and parts[3]=="trace" else serialize_run(run))
             if method == "GET" and len(parts)==4 and parts[:3]==["api","worlds","drafts"]:
