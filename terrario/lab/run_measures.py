@@ -58,6 +58,49 @@ def _entropy(counts: Sequence[int]) -> float:
     return -sum((n / total) * log(n / total, 2) for n in counts if n)
 
 
+def _eating(rows: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    """Did a CONSUME gain or lose energy, judged against the step's own cost.
+
+    The per-step cost is not assumed: it is read as the median change over the
+    steps where the organism did NOT consume, so the same code works in a world
+    that declares no decay at all.  An effect smaller than half an energy unit
+    is a consume that reached nothing, which is a third outcome and not a miss.
+    """
+    levels, actions = [], []
+    for row in rows:
+        agent = _agents(row)
+        if not isinstance(agent.get("energy"), (int, float)):
+            return {"effective": 0, "hit_rate": None, "best_segment": None}
+        levels.append(float(agent["energy"]))
+        actions.append((row.get("agent_action") or {}).get("action_type"))
+
+    deltas = [b - a for a, b in zip(levels, levels[1:])]
+    idle = sorted(d for d, act in zip(deltas, actions[1:]) if act != "CONSUME")
+    baseline = idle[len(idle) // 2] if idle else 0.0
+
+    revisions = [(r.get("observer_world") or {}).get("rules_version") for r in rows]
+    segment, per_segment = 0, {}
+    hits = effective = 0
+    for index, (delta, action) in enumerate(zip(deltas, actions[1:]), start=1):
+        if revisions[index] != revisions[index - 1]:
+            segment += 1
+        if action != "CONSUME":
+            continue
+        effect = delta - baseline
+        if abs(effect) <= 0.5:
+            continue          # reached nothing: neither hit nor miss
+        effective += 1
+        hit = effect > 0
+        hits += hit
+        got, total = per_segment.get(segment, (0, 0))
+        per_segment[segment] = (got + hit, total + 1)
+
+    rates = [got / total for got, total in per_segment.values() if total >= 3]
+    return {"effective": effective,
+            "hit_rate": round(hits / effective, 3) if effective else None,
+            "best_segment": round(max(rates), 3) if rates else None}
+
+
 def _updates(step: Mapping[str, Any]) -> int:
     summary = _scientific(step).get("learning_summary") or {}
     count = summary.get("update_count")
@@ -101,6 +144,7 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
 
     energy = final_agent.get("energy")
     start = initial_agent.get("energy")
+    eating = _eating(rows)
     # Any movement at all, not just net movement: an organism that spent and ate
     # back to par is in a live world; one whose energy never changed is not.
     levels = {round(float(_agents(row)["energy"]), 6) for row in rows
@@ -159,6 +203,25 @@ def measure_run(steps: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]:
         # also its reward -- trained for 1200 steps with no reinforcement at
         # all. Every other mesh reported plausible numbers throughout. This one
         # would have said no in seconds.
+        # Whether the organism ever learns the channel->sign mapping at all.
+        # Nine meshes reported plausible numbers for 1200 steps while net intake
+        # was zero, and none of them could say whether that was "eats a lot,
+        # badly" or "eats almost nothing" -- different organisms.
+        Measure("comidas_efectivas", "Veces que comió algo", eating["effective"], "consumos",
+                "Acciones CONSUME que de verdad tocaron un objeto. Intentar y no alcanzar nada no cuenta."),
+        Measure("aciertos_al_comer", "Proporción de aciertos al comer",
+                eating["hit_rate"], "de 1",
+                "Fracción de lo que comió que le sumó energía. 0.5 sostenido es la firma de no "
+                "distinguir las clases: en D4T el mapeo se invierte tres veces, así que aprender "
+                "se vería como tramos claramente por encima de 0.5, no como un promedio alto.",
+                evaluable=eating["hit_rate"] is not None,
+                reason=None if eating["hit_rate"] is not None else NOT_EVALUABLE),
+        Measure("mejor_tramo_al_comer", "Mejor tramo de aciertos",
+                eating["best_segment"], "de 1",
+                "El mejor acierto dentro de un tramo con reglas estables. Si nunca sube de 0.5 "
+                "en NINGÚN tramo, no aprendió el mapeo en ninguna de sus versiones.",
+                evaluable=eating["best_segment"] is not None,
+                reason=None if eating["best_segment"] is not None else NOT_EVALUABLE),
         Measure("el_mundo_actua", "La energía se movió alguna vez", bool(moved), "sí/no",
                 "Si es 'no', el mundo no le está haciendo NADA al organismo y ninguna "
                 "medida de viabilidad o adaptación significa nada. Mirá esto primero."),

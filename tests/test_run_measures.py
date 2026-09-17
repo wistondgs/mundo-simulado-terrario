@@ -92,7 +92,68 @@ def test_every_mesh_survives_the_emptiest_mix(tmp_path):
     api.dispatch("POST", f"/api/sandbox/{run['sandbox_run_id']}/run", {"steps": 4})
     status, medido = api.dispatch("GET", f"/api/sandbox/{run['sandbox_run_id']}/measures")
     assert status == 200
-    definidas = [m["key"] for m in medido["measures"] if m["evaluable"]]
-    # Only the mesh the agent never exposes is missing; the rest hold up with
-    # every concept switched off.
-    assert set(m["key"] for m in medido["measures"]) - set(definidas) == {"cambio_propio"}
+    definidas = {m["key"] for m in medido["measures"] if m["evaluable"]}
+
+    # Two categories, and the difference matters for screening.
+    #
+    # UNCONDITIONAL: defined for every mix, so they can carry a main effect.
+    # A mesh that vanished when a concept was switched off could not measure
+    # that concept, which is the whole requirement.
+    incondicionales = {"pasos_vividos", "sigue_vivo", "energia_final", "balance_energia",
+                       "acciones_distintas", "variedad_conductual", "indecision_media", "actualizaciones",
+                       "perturbaciones_vistas", "el_mundo_actua", "comidas_efectivas"}
+    assert incondicionales <= definidas
+
+    # EVENT-CONDITIONAL: undefined when the event never happened, which is a
+    # fact about the episode and not about the ablation. They report themselves
+    # as not evaluable rather than as zero, and `effects()` drops the pair
+    # instead of averaging a number nobody measured.
+    condicionales = {"aciertos_al_comer", "mejor_tramo_al_comer", "cambio_propio"}
+    assert {m["key"] for m in medido["measures"]} == incondicionales | condicionales
+
+
+def _paso(step, energy, action="MOVE", revision=1):
+    return {"step": step, "agent_action": {"action_type": action},
+            "observer_world": {"agents": {"0": {"energy": energy, "alive": True}},
+                               "max_energy": 100.0, "rules_version": revision},
+            "scientific_state": {"policy_entropy": 1.0, "parameter_delta_norm": "NOT_APPLICABLE",
+                                 "learning_summary": {"update_count": 0}}}
+
+
+def test_a_consume_that_reached_nothing_is_neither_a_hit_nor_a_miss():
+    # Aiming at an empty cell is the commonest outcome and it is not a wrong
+    # choice of food: counting it as a miss would hide an aiming problem behind
+    # what looks like a discrimination problem.
+    rows = [_paso(0, 60.0), _paso(1, 59.94, "CONSUME"), _paso(2, 59.88, "CONSUME")]
+    medido = measure_run(rows)
+    assert _valor(medido, "comidas_efectivas")["value"] == 0
+    assert _valor(medido, "aciertos_al_comer")["evaluable"] is False
+
+
+def test_the_step_cost_is_read_from_the_trace_not_assumed():
+    # Same episode, different declared decay: the mesh must work in a world
+    # that declares none, so the baseline is the median idle change.
+    for cost in (0.0, 0.06, 0.5):
+        rows = [_paso(0, 60.0), _paso(1, 60.0 - cost), _paso(2, 60.0 - 2 * cost),
+                _paso(3, 60.0 - 3 * cost + 1.0, "CONSUME"),
+                _paso(4, 60.0 - 4 * cost + 1.0 - 1.0, "CONSUME")]
+        medido = measure_run(rows)
+        assert _valor(medido, "comidas_efectivas")["value"] == 2, cost
+        assert _valor(medido, "aciertos_al_comer")["value"] == 0.5, cost
+
+
+def test_the_best_segment_is_reported_per_stable_rule_window():
+    # D4T inverts the mapping three times, so an organism that learns it shows
+    # up as a good SEGMENT, never as a good average: the average of learning
+    # each inverted mapping in turn is 0.5, the same number as never learning.
+    rows = [_paso(0, 60.0), _paso(1, 59.94)]
+    energy = 59.94
+    for i in range(6):                      # segment 1: always right
+        energy += 1.0 - 0.06
+        rows.append(_paso(len(rows), energy, "CONSUME", revision=1))
+    for i in range(6):                      # segment 2 after inversion: always wrong
+        energy += -1.0 - 0.06
+        rows.append(_paso(len(rows), energy, "CONSUME", revision=2))
+    medido = measure_run(rows)
+    assert _valor(medido, "aciertos_al_comer")["value"] == 0.5
+    assert _valor(medido, "mejor_tramo_al_comer")["value"] == 1.0
