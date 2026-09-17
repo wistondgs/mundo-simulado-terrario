@@ -32,6 +32,8 @@ the metrics that may not be reported without passing controls, and
 from __future__ import annotations
 
 import random
+
+import torch
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -40,6 +42,7 @@ from terrario.core.action_contract import AddressingMode
 from terrario.core.types import Position
 from terrario.lab.run_measures import _cadena, _eating, _energy_ledger, _realizacion
 from terrario.lab.snapshot_bank import Snapshot, intention_representability
+from terrario.lab.capability_exam import build_probes, sit_exam
 
 ADJACENT = ((-1, 0), (1, 0), (0, -1), (0, 1))
 DIRECTION_NAMES = ("UP", "DOWN", "LEFT", "RIGHT", "NONE")
@@ -171,6 +174,60 @@ def _representability(rows) -> float | None:
     return intention_representability(bank, mode, view_size=view)["representability"]["value"]
 
 
+class _ExamStub:
+    """A minimal organism whose competence is known by construction.
+
+    The exam reaches into a real agent -- encoder, world model, policy head --
+    so a control needs something with that shape and a fixed answer. `skill`
+    selects it: ORACLE ranks by the true rule, ANTI ranks against it, TIE says
+    nothing at all, and CHANCE is a fixed coin that prefers neither.
+    """
+
+    def __init__(self, skill: str):
+        self.skill = skill
+        self.config = {"hidden_dim": 4, "latent_dim": 4}
+        self._use_world_model = True
+        self._last_latent = None
+        self._observation = None
+        self._addressing_mode = None
+
+    def perceive(self, observation):
+        self._observation = observation
+        self._last_latent = torch.zeros(4)
+
+    def _build_state(self, latent, hidden):
+        return latent
+
+    def offer_targets(self, targets):
+        self._targets = targets
+
+    def _action_to_onehot(self, action_int):
+        return torch.tensor([float(action_int)])
+
+    def world_model(self, state, action_onehot):
+        """Energy for the cell this action's direction points at."""
+        from terrario.core.types import DIRECTION_DELTA, Direction
+        action_int = int(action_onehot.item())
+        direction = Direction(action_int % 5)
+        dx, dy = DIRECTION_DELTA[direction]
+        centre = self._observation.channels.shape[-1] // 2
+        channel0 = float(self._observation.channels[0, centre + dx, centre + dy])
+        truth = 1.0 if channel0 >= 0.7 else (-1.0 if channel0 <= 0.3 else 0.0)
+        value = {"ORACLE": truth, "ANTI": -truth, "TIE": 0.0,
+                 "CHANCE": 0.5}[self.skill]
+        return None, torch.tensor(value), torch.tensor(0.0)
+
+    def policy_head(self, state):
+        return torch.zeros(25)
+
+
+def _exam(rows) -> float | None:
+    """`rows` is (skill, exam_name) here: this metric reads an organism, not a trace."""
+    skill, exam = rows
+    probes = build_probes(60, seed=4242)
+    return sit_exam(_ExamStub(skill), probes)[exam].value
+
+
 def _accounting(rows) -> float | None:
     ledger = _energy_ledger(rows)
     return ledger["reconciled"] / ledger["checked"] if ledger["checked"] else None
@@ -265,6 +322,18 @@ CONTROLS: dict[str, tuple[Callable[[Any], float | None], tuple[Control, ...]]] =
                 "score, and the answer is NOT_EVALUABLE -- not 1.0, which would claim "
                 "perfect expressivity on no evidence."),
     )),
+    "examen_prediccion": (_exam, (
+        Control("exam_oracle", 1.0, 0.0,
+                "An organism that ranks by the true rule must score 1.0, or the ceiling "
+                "of the scale is wrong and every reading below it is uninterpretable."),
+        Control("exam_anti_oracle", 0.0, 0.0,
+                "One that ranks exactly against the rule must score 0.0. Without this "
+                "the exam could be returning a constant and nobody would know."),
+        Control("exam_tie", None, 0.0,
+                "One that predicts the same for both alternatives expresses no "
+                "preference. The honest answer is NOT_EVALUABLE; scoring ties as wrong "
+                "would report a degenerate constant predictor as confidently backwards."),
+    )),
     "contabilidad_energetica": (_accounting, (
         Control("ledger_balanced", 1.0, 0.0,
                 "Energy falls by exactly the declared cost on every non-consuming step."),
@@ -301,6 +370,12 @@ def _case_trace(case: str) -> list[dict[str, Any]]:
         return trace([(((0, 1),), _act_t1("CONSUME", "VALID")) for _ in range(200)])
     if case == "t1_never_resolving_agent":
         return trace([(((0, 1),), _act_t1("CONSUME", "NONEXISTENT")) for _ in range(200)])
+    if case == "exam_oracle":
+        return ("ORACLE", "prediction")
+    if case == "exam_anti_oracle":
+        return ("ANTI", "prediction")
+    if case == "exam_tie":
+        return ("TIE", "prediction")
     if case == "representability_t0_reachable":
         return (_bank([(0, 1)]), AddressingMode.T0_DIRECTIONAL, 5)
     if case == "representability_t1_reachable":

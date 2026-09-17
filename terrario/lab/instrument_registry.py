@@ -187,6 +187,27 @@ register(MetricSpec(
 ))
 
 register(MetricSpec(
+    metric_id="examen_prediccion",
+    semantic_definition="Of held-out probes offering a favourable and an unfavourable "
+                        "entity in contact, the fraction where the world model expects "
+                        "more from the favourable one.",
+    conditional_form="P(E[dV | favourable] > E[dV | unfavourable] | both in contact, "
+                     "channel values never experienced)",
+    numerator="probes ranked correctly",
+    denominator="probes where the model expressed a preference",
+    conditioning_set=("both entities in contact", "channel values disjoint from training",
+                      "no learning during the exam"),
+    valid_domain="an agent carrying a world model, sat on a probe bank",
+    undefined_conditions=("the model predicts identically for both, so it expresses no "
+                          "preference", "the agent has no world model"),
+    expected_range=(0.0, 1.0),
+    instrument_controls=("exam_oracle", "exam_anti_oracle", "exam_tie"),
+    notes="Chance is 0.5, which is what makes a reading interpretable rather than "
+          "merely reportable. Ties leave the denominator: a constant predictor says "
+          "nothing, and scoring it 0.0 would call it confidently backwards.",
+))
+
+register(MetricSpec(
     metric_id="contabilidad_energetica",
     semantic_definition="Fraction of non-consuming steps whose energy change equals "
                         "exactly the declared step cost.",
