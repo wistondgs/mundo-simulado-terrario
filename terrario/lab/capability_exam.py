@@ -31,6 +31,7 @@ readings interpretable instead of merely reportable.
 from __future__ import annotations
 
 import random
+from contextlib import contextmanager
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -139,18 +140,49 @@ def sit_exam(agent: Any, probes: Sequence[Probe], *, view_size: int = 5,
     # Sitting an exam must not be an opportunity to study for it. Perceiving a
     # probe advances the recurrent state, the latent and the step counter, so
     # three exam banks sat in sequence would each contaminate the next and the
-    # ORDER of the banks would become part of the result. The volatile state is
-    # saved and put back; parameters are never touched because `learn` is never
-    # called.
-    volatile = {name: getattr(agent, name, None) for name in
-                ("_hidden", "_last_latent", "_last_state", "_last_action",
-                 "_last_log_prob", "_step", "_offered_targets")}
-    try:
+    # ORDER of the banks would become part of the result.
+    #
+    # The list of what to restore is DERIVED, not written by hand. A hand-kept
+    # list drifts from the code it guards: the first version of this function
+    # named seven attributes and missed two -- `homeostasis._energy`, which
+    # `perceive` assigns directly and which reaches the sampling temperature
+    # through `exploration_bias`, and `_trace`, which grew by one event per
+    # probe. Neither moved a number here, because `_sit` never calls `decide`
+    # and so never consumes the generator or reads the temperature. Both would
+    # have, the moment an exam asked the organism to choose.
+    with _state_held(agent):
         return _sit(agent, probes, view_size=view_size, channels=channels)
+
+
+@contextmanager
+def _state_held(agent: Any):
+    """Put back everything the agent carried in, without naming it in advance."""
+    import copy
+
+    def snapshot(holder: Any) -> dict[str, Any]:
+        return {name: (value, len(value) if isinstance(value, list) else None)
+                for name, value in vars(holder).items()
+                if not isinstance(value, torch.nn.Module)}
+
+    def restore(holder: Any, saved: dict[str, Any]) -> None:
+        for name, (value, length) in saved.items():
+            if length is not None and getattr(holder, name, None) is value:
+                # Same list object: the exam appended to it in place, so putting
+                # the reference back restores nothing. Cut it to what it was.
+                del value[length:]
+            else:
+                setattr(holder, name, value)
+
+    held = [(agent, snapshot(agent))]
+    for name in ("homeostasis", "episodic_memory"):
+        holder = getattr(agent, name, None)
+        if holder is not None and not isinstance(holder, torch.nn.Module):
+            held.append((holder, snapshot(holder)))
+    try:
+        yield
     finally:
-        for name, value in volatile.items():
-            if value is not None or hasattr(agent, name):
-                setattr(agent, name, value)
+        for holder, saved in held:
+            restore(holder, saved)
 
 
 def _sit(agent: Any, probes: Sequence[Probe], *, view_size: int,

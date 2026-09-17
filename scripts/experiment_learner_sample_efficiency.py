@@ -43,6 +43,7 @@ import numpy as np
 import torch
 
 from terrario.agent.agents import create_agent
+from terrario.lab.capability_exam import _state_held
 from terrario.core.contracts import Transition
 from terrario.core.types import (
     NUM_DIRECTIONS, Action, ActionType, Consequence, Direction,
@@ -119,7 +120,21 @@ def feed(agent, stream):
 
 
 def exam(agent, probes):
-    """Does the energy head rank the favourable entity above the unfavourable one?"""
+    """Does the energy head rank the favourable entity above the unfavourable one?
+
+    Wrapped in the same state guard the registered exam uses. This one reads the
+    agent BEFORE it is trained, so anything it left behind would be carried into
+    the training it is supposed to measure against. Measured: identical scores to
+    the last digit with and without the prior exam, across three seeds, because
+    `feed` perceives before it decides and this exam never decides. Inert, and
+    guarded anyway -- the version of that argument which was true yesterday is
+    not the one that has to stay true.
+    """
+    with _state_held(agent):
+        return _exam(agent, probes)
+
+
+def _exam(agent, probes):
     correct = evaluated = 0
     for good_dir, bad_dir, world in probes:
         observation = world.get_observation(0, VIEW_RADIUS, CHANNELS)
