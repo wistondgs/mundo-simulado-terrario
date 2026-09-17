@@ -1283,3 +1283,222 @@ tras softmax es nula: **una ranura vacía no puede producir elección**. Si no s
 usa el residual sin máscara, porque enmascarar todo dejaría el softmax indefinido.
 [360] **Distancia**: el agente la recibe implícitamente por la posición en la ventana, y bajo T1
 adicionalmente por el orden de las ranuras.
+
+---
+
+# XVI · P1 · CAPABILITY-ACQUISITION-01
+
+## 361 · Call graph
+
+```
+_fresh(seed, config) ×4          torch.manual_seed(seed) → create_agent("A4")
+  └─ verifica que los 4 comparten initial_parameters_hash, o aborta
+sit_exam(a0, banco) ×3           held_out · decorrelated · seen_values
+Bench.experience(D4T, 1200, seed) → SandboxService → traza
+stream_from(traza)               reconstruye (obs, acción, delta, eventos)
+replay(learner,  stream)
+replay(frozen,   stream)         _use_online_learning = False
+replay(shuffled, stream, shuffle_credit=True)
+sit_exam(cada gemelo, cada banco) ×9
+causal_gain(...)                 G = (L_post − L_pre) − (F_post − F_pre)
+```
+
+## 362-364 · Estado compartido y estado que puede diferir
+
+[363] La igualdad paramétrica se **demuestra**, no se asume: los cuatro agentes se construyen bajo
+la misma semilla global y la corrida compara sus `initial_parameters_hash`, abortando si difieren.
+[364] Estado **no paramétrico** que arranca idéntico por construcción: `_hidden` en ceros, buffer
+episódico vacío, `M` inicializada con la misma semilla, `_energy_baseline = 0`.
+
+## 365-367 · El stream
+
+Lo genera **el learner corriendo en el banco**, y `stream_from` lo reconstruye desde la traza
+sellada. Cada registro: `observation`, `next_observation`, `action_int`, `energy_delta`
+(**reconstruido restando energías consecutivas**), `events`, `done`, `step`, `seed`.
+[367] La relación es `(obs_t, acción_t) → delta_{t→t+1}`, con el emparejamiento explícito en el
+bucle de `stream_from`.
+
+## 368-372 · Forzar la acción
+
+`force_action(agent, action_int)` fija `_last_action` y **recalcula la log-probabilidad bajo la
+política de ESE gemelo**. [370] Se usa para el término REINFORCE `−log π(a)·advantage`.
+[371-372] **Sí, la recalcula sobre una política cuyo estado recurrente ya diverge** — y eso es
+deliberado: la alternativa, dejar que cada gemelo actúe por su cuenta, daría tres experiencias
+distintas y devolvería la comparación a dos trayectorias. El efecto es que el gradiente de
+política de F y S se evalúa en un punto que su propia historia recurrente produjo, con la acción
+de L. Es la definición operativa de «misma experiencia».
+
+## 373-377 · ¿Reciben lo mismo?
+
+[373] **Sí**, el mismo objeto `Observation`. [374] **Sí**, el mismo `energy_delta` —salvo S, que
+recibe la permutación—. [375] Mismo `step`. [376] El estado homeostático es idéntico porque
+`perceive` lo asigna desde la misma observación. [377] **Sí, las memorias reciben las mismas
+escrituras**: F escribe en el buffer episódico y en `M` exactamente igual que L.
+
+## 378-382 · Qué está bloqueado en F
+
+[378] **Únicamente el bloque `if self._use_online_learning:`**, es decir, `learner.step()` y por
+tanto `zero_grad/backward/step` del Adam.
+[379] Fuera del bloque pueden cambiar en F: `_hidden`, el buffer episódico, `M` (escrita bajo
+`no_grad`), `_step`, `homeostasis._energy`. **Parámetros con gradiente, no.**
+[380] **No hay BatchNorm ni running stats** en A4: el encoder usa `LayerNorm`, que no mantiene
+estadísticas. Verificado en el inventario de módulos.
+[381-382] **No hay Dropout** en ningún módulo de A4.
+
+## 383-386 · El control S
+
+[383] Se baraja **la lista de `energy_delta`**, nada más: observaciones, acciones, longitud y
+timesteps quedan intactos.
+[384] **Sí preserva los marginales**: es una permutación, así que la multiplicidad es exacta.
+[385] **Medido** sobre un stream realista de 1000 pasos con 7 eventos informativos:
+
+```
+¿misma multiplicidad?  True        ¿misma longitud?  True
+posiciones que conservan VALOR:   986 / 1000   ← el coste metabólico repetido
+eventos informativos que NO se movieron:  0 / 7
+```
+
+Las 986 posiciones que «conservan valor» son el coste metabólico: ahí no hay correspondencia que
+romper. **La correspondencia que importa quedó rota por completo.**
+[386] Con un **derangement por corrida** el riesgo residual desaparece. Hoy es ~0.7 %: la
+probabilidad de que alguno de los ~7 eventos caiga en su propio índice entre ~1000 huecos.
+
+## 387-396 · Los exámenes
+
+[387-390] **Predicción**: se puntúa `energy_head(s_t, onehot(CONSUME·5+dir))` para la dirección
+favorable frente a la desfavorable; acierta si la primera es mayor. [389] Los **empates salen del
+denominador** —un predictor constante no expresa preferencia, y puntuarlo 0.0 sería llamarlo
+«seguro y al revés»—. [390] Soporte: 400 sondas por banco, con 400/400 evaluadas en las corridas
+reales.
+[391-395] **Selección**: `softmax` sobre el par de logits de las dos alternativas, renormalizado.
+Bajo T1 usa `_slot_logits`; bajo T0, `direction_head` si existe y `policy_head` si no.
+[394] **El planner NO participa** en el examen. [395] La política sí, vía sus logits.
+
+## 396-397 · Realización, y por qué `G_R` es cero estructural
+
+[396] Hoy construye un `ActionIntent(CONSUME, DIRECTION, dirección_favorable)` y lo resuelve.
+[397] **Ese intent no consulta al organismo en ningún punto.** Bajo T0 la dirección favorable
+siempre resuelve, así que el examen devuelve **1.0 para cualquier agente, antes y después**, y
+`G_R ≡ 0` por construcción. Mide una propiedad del contrato, no del ser. **Debe reconstruirse
+sobre la elección propia del organismo.**
+
+## 398-406 · Efectos secundarios del examen
+
+[398-399] Sentar el examen **mutaba** `_hidden`, `_last_latent`, `_last_state`, `_last_action`,
+`_last_log_prob`, `_step` y `_offered_targets` — de modo que tres bancos en secuencia se
+contaminaban entre sí y **el orden de los bancos habría formado parte del resultado**. Ahora
+`sit_exam` guarda y restaura esas siete variables en un `try/finally`.
+[400-405] Lo que **podría** seguir mutando: [401] las memorias **no**, porque `sit_exam` nunca
+llama a `learn` y `_build_state` sólo **lee**; [402] los contadores están restaurados;
+[403] el RNG del agente **sí avanza** si `decide` se llegara a llamar — no se llama;
+[404] no hay running statistics; [405] no hay caches.
+[406] **No existe una prueba que garantice que el examen es de sólo lectura.** Es una omisión
+concreta.
+
+## Defecto del banco de examen — encontrado durante esta cartografía
+
+`capability_exam._observation` y `experiment_one_step_twins._observation` construyen la ventana
+perceptiva **a mano**, escribiendo los canales del objeto desde el índice 0. El formato real,
+medido lado a lado:
+
+```
+OBSERVACIÓN REAL (WorldStateManager.get_observation)
+  canal 0: 1.0000   ← occupancy
+  canal 1: 0.8200   ← canal 0 del objeto, EL CAUSAL
+  canal 2: 0.1800
+  canal 3: 0.3500
+
+MI BANCO DE EXAMEN
+  canal 0: 0.8742   ← canal 0 del objeto
+  canal 1: 0.1258
+  canal 2: 0.3283
+  canal 3: 0.2417
+  (sin canal de occupancy)
+```
+
+**El examen presenta observaciones en un formato que el agente nunca vio durante el
+entrenamiento.** Consecuencias, separadas con cuidado:
+
+- La comparación **L / F / S sigue siendo internamente válida**: los tres brazos recibieron el
+  mismo formato, así que `G_P ≈ 0` se sostiene como diferencia de diferencias.
+- La **validez del examen como medida de la capacidad queda comprometida**: un organismo que
+  hubiera aprendido la relación podría fallar este examen por formato.
+- `intention_representability` **no está afectada** — opera sobre el estado del mundo y nunca
+  construye observaciones.
+- El aislamiento del selector (`INTERVENTION_ISOLATION = PASS`, McNemar) **tampoco**, porque es
+  pareado sobre la misma cognición.
+
+---
+
+# XVII · Qué significa realmente «seis ejemplos informativos»
+
+## 407-409 · Definición formal
+
+Un paso es **informativo** cuando `|energy_delta − baseline| > 0.5`, con `baseline` el coste
+declarado por paso ([run_measures._eating](terrario/lab/run_measures.py)). No es el número de
+actualizaciones ni el de desenlaces no nulos: es **el número de consumos que alcanzaron algo**.
+
+## 410-413 · Distribución medida
+
+D4T, 300 pasos, semilla 1000042: **3 eventos** — dos perjudiciales (−1.06) y uno favorable
+(+0.94). Extrapolado a 1200 pasos: ~12. El rollout cerrado dio `comidas_efectivas` con **mediana
+6.0** sobre 16 semillas. [412-413] **Verificación pendiente**: no he extraído el mínimo y el
+máximo por semilla del artefacto.
+
+## 414-415 · ¿Seis ejemplos son seis actualizaciones?
+
+**No. Seis ejemplos conviven con 1200 actualizaciones.** Medido: `update_count = 300` tras 300
+pasos. `update_frequency = 1`, así que **cada paso produce un `optimizer.step()`**, informativo o
+no.
+
+## 416-422 · Pesos, tasa y regularización
+
+```
+learning_rate 3e-4 · optimizer Adam · grad_clip 1.0 (norma global)
+update_frequency 1 · weight_decay: NINGUNO · regularización: sólo entropía, apagada
+```
+
+[416] Cada ejemplo pesa igual: no hay ponderación por informatividad.
+[419] La norma de gradiente se registra por módulo en `grad_norms`; **verificación pendiente**: no
+he extraído su magnitud típica.
+
+## 423 · Qué señal domina la loss total
+
+```
+loss_total = loss_state (MSE sobre 640 dims)
+           + loss_energy (MSE sobre 1 dim)
+           + loss_done (BCE)
+           + unc_loss (media de 5 MSE)
+           + policy_loss
+```
+
+**`loss_state` domina por dimensionalidad** y `loss_energy` recibe una fracción. Y dentro de
+`loss_energy`, el 99 % de los targets es **−0.06 constante**.
+
+### Medición: lo que `energy_head` acaba siendo
+
+Tras 600 pasos de D4T, sobre 400 sondas: **media 0.0047, desviación 0.0037**. Al nacer:
+desviación 0.0035. **No se movió.** Y la cantidad que debe representar varía 2.0.
+
+[424] **No: la señal perceptiva asociada al canal causal no recibe gradiente suficiente.** Recibe
+seis muestras contra 1194 de ruido constante, en una loss donde además compite con un MSE de 640
+dimensiones.
+
+[425-426] El gradiente **sí puede trazarse** desde `energy_head` hasta el encoder: `_last_state`
+conserva el grafo a través de `_build_state` → `temporal_core` → `encoder`. **Dónde se corta**:
+en `_hidden`, que se detach tras el temporal core, de modo que no hay propagación a través del
+tiempo.
+
+## 427-432 · ¿Seis muestras son insuficientes para ESTA implementación?
+
+**Hasta ahora era una inferencia, no una demostración.** Por eso existe
+`scripts/experiment_learner_sample_efficiency.py`: entrega al mismo A4 un stream controlado
+**fuera del mundo**, con N ejemplos informativos, construyendo las observaciones con
+`WorldStateManager.get_observation` para que el formato sea el real, y mide si la cabeza de
+energía discrimina sobre un banco reservado con valores de canal disjuntos.
+
+Dos curvas: **pura** (N ejemplos seguidos) y **diluida** (los mismos N repartidos 1 de cada 100
+pasos metabólicos, la densidad real de D4T). Separan «no puede aprenderlo» de «no recibe
+suficientes» de «la dilución lo impide».
+
+*Resultado en `artifacts/learner_sample_efficiency.json`.*
