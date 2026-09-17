@@ -96,6 +96,33 @@ SELECTOR_OF_MODE: dict[AddressingMode, SelectorType] = {
 IMPLEMENTED_MODES = (AddressingMode.T0_DIRECTIONAL, AddressingMode.T1_ENTITY)
 
 
+class IdentityPersistence(enum.StrEnum):
+    """How long an ObservationHandle means the same thing. A cognitive choice.
+
+    A handle belongs to the PERCEPTUAL space, not to the world:
+
+        WorldEntityID  ->  ObservationHandle_t
+
+    The organism sees `entity_6f21`; Terrario privately knows it names world
+    entity 219. That indirection is what keeps the world's own identifiers out of
+    the action channel, and it is also where object permanence gets decided.
+
+    EPHEMERAL is the default, and deliberately the harsher one. The handle is
+    re-minted every frame, so an organism cannot tell that the thing it sees now
+    is the thing it saw before — it must establish that itself, from perception.
+    A handle stable across frames would hand it object identity over time for
+    free, and recognising "same object" is precisely a capability we mean to
+    measure rather than to grant. Genesis will need that distinction to stay a
+    finding rather than an artefact of the interface.
+
+    TRACKED_IDENTITY exists for the case where a perceptual capability is meant
+    to supply persistence. It must be requested, never inherited.
+    """
+
+    EPHEMERAL = "EPHEMERAL"
+    TRACKED_IDENTITY = "TRACKED_IDENTITY"
+
+
 class TargetStatus(enum.StrEnum):
     """Why a selector did or did not resolve. AC2-4."""
 
@@ -138,15 +165,17 @@ class PerceivedTarget:
     adjacent: bool
 
 
-def _handle(salt: str, entity_id: int) -> str:
-    """An opaque, episode-scoped name for an entity. AC2-1.
+def _handle(salt: str, entity_id: int, step: int,
+            persistence: IdentityPersistence) -> str:
+    """Mint an ObservationHandle for one entity. AC2-1.
 
-    Salted so that a handle carries no information across episodes: an organism
-    that saw `entity_6f21` poison yesterday learns nothing about today's
-    `entity_6f21`, because it is a different entity. Within an episode the handle
-    is stable, which is what makes STALE distinguishable from NONEXISTENT.
+    Under EPHEMERAL the step enters the digest, so the same world entity wears a
+    different handle on every frame and no amount of handle-watching yields
+    object permanence. Under TRACKED_IDENTITY it does not, and the handle is
+    stable for the episode.
     """
-    digest = hashlib.sha256(f"{salt}:{entity_id}".encode()).hexdigest()
+    scope = salt if persistence is IdentityPersistence.TRACKED_IDENTITY else f"{salt}:{step}"
+    digest = hashlib.sha256(f"{scope}:{entity_id}".encode()).hexdigest()
     return f"entity_{digest[:8]}"
 
 
@@ -156,6 +185,8 @@ def perceive_targets(
     view_size: int,
     *,
     salt: str,
+    step: int = 0,
+    persistence: IdentityPersistence = IdentityPersistence.EPHEMERAL,
     mask: Any = None,
 ) -> tuple[list[PerceivedTarget], bool]:
     """Build the slot table from what this agent can actually see. AC2-2, AC2-3.
@@ -186,7 +217,7 @@ def perceive_targets(
     targets = [
         PerceivedTarget(
             slot=slot,
-            handle=_handle(salt, entity_id),
+            handle=_handle(salt, entity_id, step, persistence),
             entity_id=entity_id,
             offset=offset,
             adjacent=abs(offset[0]) + abs(offset[1]) == 1,

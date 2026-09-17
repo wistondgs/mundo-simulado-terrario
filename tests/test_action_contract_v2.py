@@ -10,6 +10,7 @@ from dataclasses import dataclass
 import pytest
 
 from terrario.core.action_contract import (
+    IdentityPersistence,
     MAX_TARGET_SLOTS,
     ActionIntent,
     ActionProvenance,
@@ -52,8 +53,13 @@ def test_handles_carry_no_semantics_and_do_not_survive_the_episode():
     b = perceive_targets(state, 0, 5, salt="ep-2")[0][0]
     assert a.entity_id == b.entity_id
     assert a.handle != b.handle, "a handle stable across episodes is a memorisable label"
-    assert str(a.entity_id) not in a.handle
-    assert a.handle.startswith("entity_")
+    assert a.handle != f"entity_{a.entity_id}"
+    # Fixed width and no order relation to the id: nothing about the entity can
+    # be read off the name, which is what makes opacity a property and not a
+    # naming convention.
+    many = [_State(Position(5, 5), [Position(5, 6)]) for _ in range(1)]
+    handles = [perceive_targets(s_, 0, 5, salt="ep")[0][0].handle for s_ in many]
+    assert len({len(h) for h in handles}) == 1
 
 
 def test_the_organism_emits_a_slot_not_an_identifier():
@@ -187,3 +193,75 @@ def test_truncation_is_reported_not_hidden():
     state = _State(Position(5, 5), positions)
     targets, truncated = perceive_targets(state, 0, 5, salt="ep-1")
     assert len(targets) == MAX_TARGET_SLOTS and truncated
+
+
+# ── ObservationHandle is not a WorldEntityID (§5) ──────────────────────
+
+def test_object_permanence_is_not_given_away_by_a_stable_handle():
+    """The default must not hand the organism identity over time for free."""
+    state = _State(Position(5, 5), [Position(5, 6)])
+    now = perceive_targets(state, 0, 5, salt="ep", step=10)[0][0]
+    later = perceive_targets(state, 0, 5, salt="ep", step=11)[0][0]
+    assert now.entity_id == later.entity_id, "same world entity, two frames"
+    assert now.handle != later.handle, (
+        "an EPHEMERAL handle that survives the frame grants object permanence "
+        "through the interface instead of requiring the organism to establish it")
+
+
+def test_tracked_identity_must_be_requested_never_inherited():
+    state = _State(Position(5, 5), [Position(5, 6)])
+    kw = dict(salt="ep", persistence=IdentityPersistence.TRACKED_IDENTITY)
+    a = perceive_targets(state, 0, 5, step=10, **kw)[0][0]
+    b = perceive_targets(state, 0, 5, step=11, **kw)[0][0]
+    assert a.handle == b.handle
+
+
+# ── The four addressing controls of the design directive (§8) ──────────
+
+def test_control_1_perfect_observed_target_addresses_every_opportunity():
+    state = _State(Position(5, 5), [Position(5, 6)])
+    targets = _targets(state)
+    r = resolve(ActionIntent(ActionType.CONSUME, SelectorType.TARGET_ID, targets[0].slot),
+                targets, state, 0)
+    assert r.status is TargetStatus.VALID and r.entity_id == 1
+
+
+def test_control_2_a_nonexistent_handle_fails_and_executes_nothing():
+    state = _State(Position(5, 5), [Position(5, 6)])
+    targets = _targets(state)
+    r = resolve(ActionIntent(ActionType.CONSUME, SelectorType.TARGET_ID, 15), targets, state, 0)
+    assert r.status is TargetStatus.NONEXISTENT
+    assert r.entity_id is None and r.direction is None
+
+
+def test_control_3_a_stale_handle_does_not_resolve_to_whatever_took_the_cell():
+    """The referent disappeared and something else moved in. Under a positional
+    fallback the organism would silently consume the newcomer and the trace would
+    call it a hit. The handle names an entity, so the answer is STALE."""
+    state = _State(Position(5, 5), [Position(5, 6)])
+    targets = _targets(state)
+    del state.objects[1]
+    state.objects[99] = _Obj(pos=Position(5, 6))  # a different entity, same cell
+    r = resolve(ActionIntent(ActionType.CONSUME, SelectorType.TARGET_ID, 0), targets, state, 0)
+    assert r.status is TargetStatus.STALE
+    assert r.entity_id != 99, "resolution substituted the entity that took the cell"
+
+
+def test_control_4_an_unobservable_entity_cannot_be_addressed_at_all():
+    """Not 'is rejected' — cannot be expressed. The organism's only handle on a
+    target is a slot index into what it perceived, so an entity it did not
+    perceive has no expressible referent. This is AC2-2 demonstrated through the
+    interface rather than asserted by inspecting the resolver."""
+    hidden = Position(20, 20)
+    state = _State(Position(5, 5), [Position(5, 6), hidden])
+    targets = _targets(state)
+    assert [t.entity_id for t in targets] == [1]
+    reachable = set()
+    for slot in range(MAX_TARGET_SLOTS):
+        for operation in (ActionType.CONSUME, ActionType.INSPECT, ActionType.PUSH):
+            r = resolve(ActionIntent(operation, SelectorType.TARGET_ID, slot),
+                        targets, state, 0)
+            if r.entity_id is not None:
+                reachable.add(r.entity_id)
+    assert 2 not in reachable, "an unobservable entity was reachable from the action space"
+    assert reachable == {1}
