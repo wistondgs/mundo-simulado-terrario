@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-17",
-  "head": "71dfb56",
+  "head": "1661d52",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -10,12 +10,12 @@
         "scripts/screen_concepts.py": "a50ab9ce2ede7d2ea0cec2fdd63cb46df68ccd18b3c2e863d7fd6c8c5c85e26f",
         "scripts/simulate_d4_signal.py": "537b73811863658abc824d06d73c74b5c7aaf5a76a5e9376cbd53e01b4da0a15",
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
-        "terrario/experiment/controller.py": "1707841a393bce3373c797f28f0b928f92cb7cad2d88538eadc631ae8f233402",
+        "terrario/experiment/controller.py": "2b56376305df3e8e5dc6094d04f511bf9cd29fc2fdc74d5eedab102c22281db2",
         "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
         "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
         "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
         "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
-        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da",
+        "terrario/lab/sandbox_runtime.py": "3408bea86df33e1e8aeaac3d546ebf17aedb0ad8e9ffd186a1eb813c660b28b7",
         "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990"
       }
     },
@@ -34,8 +34,8 @@
     "III · WorldDefinition y física declarada": {
       "files": {
         "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
-        "terrario/experiment/controller.py": "1707841a393bce3373c797f28f0b928f92cb7cad2d88538eadc631ae8f233402",
-        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da",
+        "terrario/experiment/controller.py": "2b56376305df3e8e5dc6094d04f511bf9cd29fc2fdc74d5eedab102c22281db2",
+        "terrario/lab/sandbox_runtime.py": "3408bea86df33e1e8aeaac3d546ebf17aedb0ad8e9ffd186a1eb813c660b28b7",
         "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
       }
@@ -126,7 +126,7 @@
     "XIX · Traza, ScientificFrame y evidencia": {
       "files": {
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/lab/sandbox_runtime.py": "54958b019bfa08bc0cce9e69ee9c21dc509bcbbaf23ef8018fe7c0e7b83145da"
+        "terrario/lab/sandbox_runtime.py": "3408bea86df33e1e8aeaac3d546ebf17aedb0ad8e9ffd186a1eb813c660b28b7"
       }
     },
     "XX · Checkpoints y persistencia": {
