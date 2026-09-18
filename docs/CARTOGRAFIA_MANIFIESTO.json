@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "3e205a5",
+  "head": "fb60dfc",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -80,7 +80,7 @@
     },
     "X · Aprendizaje online": {
       "files": {
-        "terrario/agent/learner.py": "743bc9b73199a0dcab6f1437e09facb8ef72a86f274a98e464401a4abf39f7cf"
+        "terrario/agent/learner.py": "a8c0fce26096ce5ca0f4e1e64d14171ae393320574db6664855d6f1a99921d63"
       }
     },
     "XI · Memorias": {
@@ -163,7 +163,7 @@
         "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
         "terrario/lab/preregistration/repository.py": "39e136e1d653e92d8c343e6b0be334ef284c756b0308baf85cf69d1278fb79ff",
         "terrario/lab/preregistration/service.py": "1ebea5a8a6be0554ab2df6ba510d2f1b3ee09a879226bfa1ea6d9e38492fed52",
-        "terrario/lab/preregistration/validation.py": "a2af5e11a1405b59940cace561e002b5f5f1593fbb956a4dad8d2142e2dbb8d2"
+        "terrario/lab/preregistration/validation.py": "8e2c871ba09bcf14321adcd0ce768727012a14aba84303499b3e11d1def342f8"
       }
     },
     "XXXII · La capa de conocimiento": {
@@ -207,6 +207,11 @@
       "files": {
         "scripts/passport_check.py": "3236d4d3a16132e660ab292baae53e9599a87de690d58a3167f43189db40e511",
         "terrario/experiment/specs.py": "ec7141042d0b42593cdfee03bf9e404c3473856b0166a81ca20d865331b91eb2"
+      }
+    },
+    "XXXVI · La frontera del estado aprendido, y la regla que G8 no había registrado": {
+      "files": {
+        "scripts/learned_state_audit.py": "17085d1e47602b7cb5be868eafb9d0dc78c421f57b85b4ef73b488ada2fba0e7"
       }
     }
   }

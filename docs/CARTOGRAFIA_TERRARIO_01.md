@@ -3155,3 +3155,56 @@ sesión. Las otras ocho siguen sin procedencia al corpus (8/9) y siete sin instr
   antigua no se puede resolver; la política implementada es **fallar cerrado y exigir enmienda**.
 - Las 15 métricas del observador siguen sin binding canónico. No se inventó ninguno: `None` es el
   estado honesto y es lo que las vuelve inutilizables como endpoint confirmatorio.
+
+# XXXVI · La frontera del estado aprendido, y la regla que G8 no había registrado
+
+**2026-09-18.** Dos trabajos pequeños, uno de ellos reparando un defecto propio.
+
+## 36.1 · `PR-INSTRUMENT-001` se emitía sin estar registrada
+
+G8 añadió a `preregistration/validation.py` la regla que exige instrumento canónico en un endpoint
+primario, y la emitía desde cuatro sitios — pero nunca la añadió a `RULES`. `_finding` hace
+`RULE_BY_ID[rule_id]`, así que cada una de esas rutas lanzaba `KeyError` en vez de devolver un
+hallazgo bloqueante, y por la API salía como un 400 opaco en lugar de algo que un revisor pudiera
+leer.
+
+Falla ruidoso, no permisivo, así que nada inseguro pasó. Pero la regla dispara exactamente cuando
+un endpoint primario no tiene instrumento — lo primero que hará cualquier preregistro confirmatorio
+—, de modo que el gate que G8 creía haber puesto era inalcanzable en la práctica.
+
+Sobrevivió porque los 28 tests de G8 ejercitan la autoridad y la frontera de admisión
+directamente, y ninguno recorre la ruta de validación de preregistro. Los cinco tests nuevos cubren
+esa grieta: las tres formas en que un binding puede fallar, un instrumento registrado pero no
+certificado, y una autoridad que no se puede importar — esto último porque un gate que degrada a
+permisivo bajo `ImportError` no es un gate.
+
+## 36.2 · `learning_commit_enabled` no es toda la frontera
+
+`scripts/learned_state_audit.py` + `docs/FRONTERA_ESTADO_APRENDIDO_01.md`.
+
+La intervención certificada en G4 congela **perfectamente** lo que gobierna el optimizador:
+`‖Δ parámetros‖ = 0` exacto, en tres semillas. Pero `learn()` escribe cinco piezas más de estado
+dependiente de experiencia, fuera del optimizador, y la mayor se mueve muchísimo:
+
+```
+                         FULL        ABL
+‖Δ parámetros‖          1.714          0        ← la intervención es perfecta aquí
+‖Δ M‖                   41.09      25.02        ← y no llega hasta aquí
+‖Δ M‖ / ‖M inicial‖     76.9×      46.8×
+saturación de M          100 %      100 %
+```
+
+`longterm_memory.M` es un `nn.Parameter` escrito directamente en `memory.py:239`, bajo `no_grad`,
+en cada paso y en los dos brazos. También quedan fuera el buffer episódico y `_energy_baseline`.
+
+Consecuencia: **el brazo suprimido no es un control de cero aprendizaje**, así que el contraste
+FULL−ABL no mide «aprender frente a no aprender». El primer piloto de LEARN-A1 queda bloqueado
+hasta que se elija entre las cuatro opciones que el documento nombra sin elegir.
+
+## 36.3 · Hallazgo secundario: M satura
+
+M alcanza el recorte de ±10 al 100 % en los dos brazos, en 68 pasos, en las tres semillas. La regla
+`M ← M·(1−g) + outer(w,v)·g` no tiene decaimiento ni normalización, así que el punto fijo está en el
+clamp. Una memoria saturada es una constante con forma de matriz.
+
+No es asunto de LEARN-A1 y no se tocó, pero condiciona lo que LTMEM-A1 pueda afirmar alguna vez.
