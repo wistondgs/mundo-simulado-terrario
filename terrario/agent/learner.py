@@ -81,8 +81,9 @@ class OnlineLearner:
         Args:
             commit: apply the proposed update.  ``False`` deliberately runs the
                 same loss and backward pass but suppresses *only* optimizer
-                mutation.  Both paths clear gradients after capture, so a
-                suppressed proposal cannot contaminate a later update.
+                mutation.  Both paths leave the gradient observable afterwards
+                and both discard it at the next step, so a suppressed proposal
+                is neither hidden from the observer nor carried forward.
 
         Returns:
             LearningEvent if an update proposal was computed, None otherwise.
@@ -173,11 +174,18 @@ class OnlineLearner:
             learning_rate=self.lr,
         )
 
-        # `.grad` is transient observer state, not an accumulated proposal for
-        # the next experience.  Clear it in both arms after diagnostics have
-        # been captured; otherwise a commit-suppressed replay would have a
-        # hidden state difference before its next causal boundary.
-        self._optimizer.zero_grad(set_to_none=True)
+        # `.grad` is NOT cleared here, deliberately.  It belongs to the
+        # post-learning scientific state of this tick and stays observable
+        # until the next update proposal begins: `forensic_full` reads
+        # `parameter.grad` after `learn()` returns, and clearing it here made
+        # the observer record no gradients at all.
+        #
+        # Nothing accumulates as a result.  There is exactly one `backward()`
+        # in this method and `zero_grad()` runs unconditionally on the line
+        # before it, over the same parameter set the optimizer was built from,
+        # so a suppressed proposal is discarded at the next step rather than
+        # added to it.  `tests/test_learn_a1_intervention_purity.py` proves
+        # that over two consecutive steps instead of asserting it here.
 
         trace = {
             "op": "learning_step",

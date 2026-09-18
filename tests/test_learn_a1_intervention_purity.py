@@ -12,6 +12,7 @@ import numpy as np
 import torch
 
 from terrario.agent.agents import create_agent
+from terrario.agent.learner import OnlineLearner
 from terrario.core.contracts import Transition
 from terrario.core.rng import RNGManager
 from terrario.core.types import Consequence, Observation
@@ -130,6 +131,14 @@ def test_manifest_round_trip_and_binding_are_explicit():
     assert InterventionManifest.from_payload(manifest.payload()) == manifest
 
 
+def _named_gradients(agent):
+    """Every live gradient the forensic observer would find after `learn()`."""
+    for module_name, module in agent.learner._modules.items():
+        for parameter_name, parameter in module.named_parameters():
+            if parameter.grad is not None:
+                yield f"{module_name}.{parameter_name}", parameter.grad
+
+
 def test_replay_intervention_purity_has_its_first_difference_at_commit():
     full, amputated = _agent(commit=True), _agent(commit=False)
     assert _parameter_hash(full) == _parameter_hash(amputated)
@@ -155,10 +164,15 @@ def test_replay_intervention_purity_has_its_first_difference_at_commit():
     assert _non_target_snapshot(full) == _non_target_snapshot(amputated)
     assert full_learning["commit_applied"] is True
     assert ablated_learning["commit_applied"] is False
-    assert all(parameter.grad is None for module in full.learner._modules.values()
-               for parameter in module.parameters())
-    assert all(parameter.grad is None for module in amputated.learner._modules.values()
-               for parameter in module.parameters())
+    # The gradient survives the step in both arms, and it is the SAME gradient:
+    # the proposal was identical and only its application diverged.  This is a
+    # stronger statement than the emptiness this once asserted, which said
+    # nothing about whether the two arms had proposed the same update.
+    full_grads = dict(_named_gradients(full))
+    ablated_grads = dict(_named_gradients(amputated))
+    assert full_grads and set(full_grads) == set(ablated_grads)
+    for name, gradient in full_grads.items():
+        assert torch.equal(gradient, ablated_grads[name]), name
 
 
 def test_replay_first_divergence_is_reproducible():
@@ -175,9 +189,18 @@ def test_replay_first_divergence_is_reproducible():
 
 
 def test_suppressed_commit_cannot_leak_stale_gradients_into_the_next_update():
+    """A suppressed proposal is discarded at the next step, not added to it.
+
+    The gradient is deliberately left live after `learn()` -- it is part of the
+    tick's post-learning scientific state and `forensic_full` reads it there --
+    so the guarantee cannot come from clearing it on the way out.  It comes
+    from the unconditional `zero_grad()` before the single `backward()`, and
+    this pins that over two consecutive steps rather than trusting it.
+    """
     agent = _agent(commit=False)
     _learn_once(_agent(commit=True), agent)
-    assert all(parameter.grad is None for module in agent.learner._modules.values()
+    # Observable, not erased: the property the forensic observer depends on.
+    assert any(parameter.grad is not None for module in agent.learner._modules.values()
                for parameter in module.parameters())
     before = _parameter_hash(agent)
     agent._learning_commit_enabled = True
@@ -188,8 +211,53 @@ def test_suppressed_commit_cannot_leak_stale_gradients_into_the_next_update():
                            False, False, 1, SEED))
     assert _parameter_hash(agent) != before
     assert agent.learner.step_count == 2
-    assert all(parameter.grad is None for module in agent.learner._modules.values()
+    assert any(parameter.grad is not None for module in agent.learner._modules.values()
                for parameter in module.parameters())
+
+
+def test_a_second_step_computes_its_own_gradient_and_not_the_sum_of_two():
+    """The gate that replaces the terminal cleanup, proven rather than argued.
+
+    Two consecutive steps on one learner are compared against a twin that
+    performs only the second.  Identical gradients mean the first proposal was
+    discarded; a sum would show up as a different number here.
+    """
+    torch.manual_seed(SEED)
+    layer = torch.nn.Linear(4, 3)
+    twin = torch.nn.Linear(4, 3)
+    twin.load_state_dict(layer.state_dict())
+
+    first = torch.ones(1, 4)
+    second = torch.full((1, 4), 0.5)
+
+    learner = OnlineLearner({"m": layer}, lr=0.0)      # lr 0: parameters cannot move,
+    control = OnlineLearner({"m": twin}, lr=0.0)       # so only accumulation could differ
+
+    learner.step(policy_loss=(layer(first) ** 2).sum(), commit=False)
+    after_first = {name: parameter.grad.clone()
+                   for name, parameter in layer.named_parameters()}
+    assert all(grad.abs().sum() > 0 for grad in after_first.values())
+
+    learner.step(policy_loss=(layer(second) ** 2).sum())
+    control.step(policy_loss=(twin(second) ** 2).sum())
+
+    for (name, parameter), (_, reference) in zip(layer.named_parameters(),
+                                                 twin.named_parameters()):
+        assert torch.allclose(parameter.grad, reference.grad, atol=1e-7), name
+        # And it really is a different proposal from the first one, so the
+        # comparison above is not passing by coincidence.
+        assert not torch.allclose(parameter.grad, after_first[name], atol=1e-7), name
+
+
+def test_the_gradient_is_observable_in_both_arms_of_the_intervention():
+    """`forensic_full` must be able to see the proposal whether or not it lands."""
+    for commit in (True, False):
+        agent = _agent(commit=commit)
+        _learn_once(_agent(commit=True), agent)
+        grads = [parameter.grad for module in agent.learner._modules.values()
+                 for parameter in module.parameters() if parameter.grad is not None]
+        assert grads, f"commit={commit} left nothing for the observer to record"
+        assert all(torch.isfinite(grad).all() for grad in grads)
 
 
 def test_live_causal_twin_has_equal_world_observation_action_before_commit():
