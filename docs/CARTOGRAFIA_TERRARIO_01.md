@@ -3051,3 +3051,107 @@ y no la declarará mientras su intervención sea impura).
 - **`primary_endpoint`** de 7 pasaportes sigue `PENDIENTE`: `score()` produce `accuracy`,
   `modulation`, `accuracy_after`, pero no están registrados como instrumentos calibrados.
 - **Procedencia al corpus**, 9 de 9.
+
+# XXXV · G8 · Autoridad instrumental única y frontera de admisión de evidencia
+
+**2026-09-18.** Decisión humana: `instrument_registry` es la autoridad científica canónica.
+
+## 35.1 · El diagnóstico: cuatro autoridades, no dos
+
+El informe de partida decía que había dos nociones de «métrica registrada». Medido, hay cuatro, y
+las dos principales **no se solapan en absoluto**:
+
+```
+15 métricas en MetricRegistry (lo que consume el preregistro)  →  0 en instrument_registry
+ 8 instrumentos en instrument_registry (los 8 REPORTABLE)      →  0 con binding de observador
+                                             intersección  =  ∅
+```
+
+1. `instrument_registry.MetricSpec` + `state_of` — sabe qué significa científicamente un
+   instrumento. **Cero llamadores de producción** para `assert_reportable`.
+2. `metrics_observer.MetricRegistry` — sabe cómo el runtime obtiene el número. De sus 15 métricas
+   **exactamente una** es `VALIDATED_FOR_CONSTRUCT`, y es la única que podía preregistrarse.
+3. Módulos `specification()` por métrica (`planning_trace_metric`, `viability_recovery_metric`),
+   cada uno con su propio `metric_spec_hash`. El preregistro congelaba ese hash para **un solo
+   metric_id, cableado por nombre** en `service.py`.
+4. `EvidenceRecord(metrics: dict[str, float])` en `terrario/experiment/specs.py`.
+
+Y el dato que permitió cerrar en modo estricto: **el libro mayor tiene 0 `scientific_results`, 0
+`empirical_evidence` y 0 artefactos `METRIC_RESULT`** sobre 238 trazas selladas. Nunca se publicó
+evidencia científica, así que no había carril en producción que romper ni nada que certificar
+retroactivamente.
+
+## 35.2 · Lo que se construyó
+
+**No un tercer registro** — era la prohibición central. Se añadió resolución **dentro** de la
+autoridad y una frontera.
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| `InstrumentRef` + `resolve` + `assert_admissible` | `instrument_registry` | Referencia con `instrument_id`, `version` y `spec_hash`. Falla cerrado con tres códigos distintos: `UNKNOWN_INSTRUMENT`, `INSTRUMENT_VERSION_DRIFT`, `INSTRUMENT_SPEC_DRIFT` |
+| `scientific_instrument` | `metrics_observer.MetricDefinition` | Una **declaración**, no una autorización. Es un id, no una referencia resuelta, para que un módulo de contratos no dependa de la maquinaria de calibración |
+| `instrument_ref` | `preregistration.MetricCommitment` | La identidad congelada al cerrar el protocolo |
+| `_instrument_findings` | `preregistration.validation` | Un endpoint PRIMARY debe resolver a un instrumento canónico REPORTABLE. Falla cerrado incluso si la autoridad no se puede importar |
+| `evidence_admission.admit_evidence` | módulo nuevo | La frontera. Resuelve, exige reportabilidad, compara contra el protocolo y transporta el `Reading` |
+| `RESULT_SCHEMA` v2 | `evidence_publication` | Lleva `instrument` y `reading`. Un payload v1 se rechaza para publicación NUEVA, no se actualiza |
+
+La versión se generalizó a partir del patrón que **ya existía** para CL-7 —congelar un
+`metric_spec_hash` y verificarlo— en vez de construir uno paralelo. Por eso `MetricCommitment` no
+necesitó cambiar su modelo científico: `specification_hash`, `implementation_identity` y
+`calibration_report_hash` ya estaban ahí.
+
+## 35.3 · Los cuatro estados de la lectura, ahora transportados
+
+`Reading` existía y era correcto —`float(reading)` lanza si no es OK— pero **nunca llegaba a la
+admisión de evidencia**: el sellado exigía `value/numerator/denominator` numéricos y el sobre
+exigía `denominator > 0`. Es decir, un `NOT_EVALUABLE` era estructuralmente impublicable y solo
+podía colarse como un cero falso. Ahora:
+
+```
+OK(0.0, support=12)   → ADMITIDO, numeric_claim=True    el cero sobrevive como hallazgo
+NOT_EVALUABLE         → ADMITIDO, numeric_claim=False   existe en provenance, fuera del análisis
+MISSING               → ADMITIDO, numeric_claim=False
+INVALID               → ADMITIDO, numeric_claim=False
+0.99 (float pelado)   → RECHAZADO  READING_IS_BARE_NUMERIC
+```
+
+`numeric_claim` separa dos cosas que un booleano confundía: que la lectura sea admisible como
+resultado científico, y que afirme una cantidad.
+
+## 35.4 · Vinculación en runtime
+
+El sellado copia el instrumento **del protocolo**, así que protocolo y registro coinciden por
+construcción y la comparación en publicación sería vacía. Por eso el evaluador debe declarar
+`instrument_id` —qué instrumento acaba de ejecutar— y `seal_metric_result` compara ahí, que es el
+único momento en que el instrumento prometido y el ejecutado son visibles a la vez.
+
+## 35.5 · Ruta legacy: preservada, no modificada
+
+`EvidenceRecord(metrics: dict[str, float])` vive entero en `terrario/experiment/`, y el único
+escritor de artefactos del despachador produce `SCIENTIFIC_TRACE` y `TRIAL_RESULT` — nunca
+`METRIC_RESULT`. El único escritor de `METRIC_RESULT` es `seal_metric_result`, que ahora rechaza
+cualquier cosa sin instrumento canónico y sin `Reading`.
+
+Es decir: **la ruta legacy ya era estructuralmente disjunta de la canónica.** Se probó con un test
+en vez de editar el tipo histórico, lo que además evita mover un hash protegido sin necesidad.
+
+## 35.6 · Consecuencia: LEARN-A1 queda lista para certificar
+
+```
+CLM-0127 ─→ LEARN-A1 ─→ SUPPRESS-COMMIT ─→ mundo diagnóstico ─→ conversion_aprendizaje ─→ evidencia
+   G0        operacion.        G4               paridad              instrumento canónico
+```
+
+`scripts/passport_check.py`: **1 de 9 listas para certificar**, frente a 0 de 9 al empezar la
+sesión. Las otras ocho siguen sin procedencia al corpus (8/9) y siete sin instrumento calibrado.
+
+## 35.7 · Deuda declarada
+
+- La docstring de `capability_passport.py` afirma que `assert_reportable` «no lo llama nada en
+  producción». **Ya es falsa** —hay tres llamadores— pero ese fichero está en la lista de
+  prohibidos de esta tarea y no se tocó.
+- `REGISTRY` de instrumentos sigue indexado solo por `metric_id`: dos versiones del mismo
+  instrumento no pueden coexistir. La deriva se detecta, pero un snapshot ejecutable de una versión
+  antigua no se puede resolver; la política implementada es **fallar cerrado y exigir enmienda**.
+- Las 15 métricas del observador siguen sin binding canónico. No se inventó ninguno: `None` es el
+  estado honesto y es lo que las vuelve inutilizables como endpoint confirmatorio.

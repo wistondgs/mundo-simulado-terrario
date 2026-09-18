@@ -193,6 +193,11 @@ class MetricCommitment:
     implementation_status: str
     validation_status: str
     specification_hash: str | None = None
+    #: The canonical instrument this metric is frozen to, as an
+    #: `instrument_registry.InstrumentRef` record.  A name is not enough: the
+    #: whole point of freezing is that the ruler cannot be revised after the
+    #: protocol locks without the change being visible as drift.
+    instrument_ref: Mapping[str, Any] | None = None
     calibration_report_id: str | None = None
     calibration_report_hash: str | None = None
     calibration_seed_set: Mapping[str, tuple[int, ...]] = field(default_factory=dict)

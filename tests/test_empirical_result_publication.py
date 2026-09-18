@@ -11,6 +11,12 @@ from pathlib import Path
 import pytest
 
 from terrario.lab.api import LabAPI
+from terrario.lab.instrument_registry import ref_for
+from terrario.lab.measurement_status import Reading
+
+#: Any REPORTABLE instrument serves; the test is about the binding, not the ruler.
+INSTRUMENT_ID = "tasa_oportunidad"
+
 from terrario.lab.evidence_publication import EmpiricalResultPublicationService, ResultIneligible, RESULT_SCHEMA
 from terrario.lab.hypothesis_reconciliation import HypothesisReconciler, HypothesisReconciliationError
 from terrario.lab.metrics_observer import ConstructValidationStatus
@@ -22,7 +28,11 @@ from tests.test_scientific_execution_gate import _execution
 def _test_api(tmp_path):
     api = LabAPI(Path("."), data_root=tmp_path / ".terrario")
     metric = api.metrics.get("D2-energy-trajectory")
-    api.metrics._metrics[metric.metric_id] = replace(metric, construct_validation_status=ConstructValidationStatus.VALIDATED_FOR_CONSTRUCT)
+    # Bound to a canonical instrument as well as construct-validated: after G8
+    # the second is no longer sufficient on its own for a primary endpoint.
+    api.metrics._metrics[metric.metric_id] = replace(
+        metric, construct_validation_status=ConstructValidationStatus.VALIDATED_FOR_CONSTRUCT,
+        scientific_instrument=INSTRUMENT_ID)
     locked_flow(api)
     execution, _ = _execution(api)
     status, started = api.dispatch("POST", f"/api/v1/scientific-executions/{execution['execution_id']}/commands", {
@@ -46,6 +56,7 @@ def _seal_metric(api, execution, attempt, trace, draft, metric, endpoint, **chan
         "execution_plan_hash": execution["plan_hash"], "preregistration_root_hash": execution["preregistration_root_hash"],
         "hypothesis_id": draft["scientific_question"]["hypothesis_id"], "hypothesis_revision": draft["scientific_question"]["hypothesis_hash"],
         "metric_id": metric["metric_id"], "metric_version": metric["definition_version"],
+        "instrument": ref_for(INSTRUMENT_ID).as_record(), "reading": Reading.ok(0.5, support=2).as_record(),
         "value": 0.5, "numerator": 1, "denominator": 2, "excluded_count": 0, "missing_count": 0,
         "epistemic_classification": "EVIDENCE_FOR", "analysis_rule": endpoint["decision_rule"],
         "trace_blob_hash": trace["blob_hash"], "scope": "AUTHORIZED_SCIENTIFIC_RESULT",

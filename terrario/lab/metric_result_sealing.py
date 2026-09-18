@@ -15,7 +15,9 @@ the tool rather than by the experiment.
 
 Two arguments are the caller's and cannot be defaulted:
 
-    evaluator        the instrument, already validated for its construct
+    evaluator        the instrument, already validated for its construct.  It
+                     must report a `Reading`, not a float: a bare number cannot
+                     say whether its zero was measured or merely absent
     classification   the application of the PREREGISTERED decision rule to the
                      number that came out
 
@@ -31,6 +33,8 @@ import json
 from typing import Any, Callable, Mapping
 
 from terrario.lab.evidence_publication import RESULT_SCHEMA, _RELATIONS
+from terrario.lab import instrument_registry as authority
+from terrario.lab.measurement_status import Status
 from terrario.lab.persistence.canonical import canonical_json
 
 #: The scope that marks a measurement as a scientific result.  The publication
@@ -97,9 +101,44 @@ def seal_metric_result(api, *, execution_id: str, attempt_id: str, metric_id: st
         raise MetricResultSealingError("PREREGISTRATION_PAYLOAD_UNREADABLE") from exc
 
     measurement = evaluator(json.loads(api.artifacts.blobs.read(trace["blob_hash"])))
-    for key in ("value", "numerator", "denominator"):
+    for key in ("instrument_id", "reading", "numerator", "denominator"):
         if key not in measurement:
             raise MetricResultSealingError(f"EVALUATOR_DID_NOT_REPORT_{key.upper()}")
+
+    # The Reading is transported, never flattened.  `value` exists only when the
+    # reading is OK; for the other three statuses it is None, because the whole
+    # reason those statuses exist is that there is no number to carry.
+    reading = measurement["reading"]
+    reading = reading.as_record() if hasattr(reading, "as_record") else dict(reading)
+    if "status" not in reading:
+        raise MetricResultSealingError("READING_MALFORMED")
+    evaluable = reading["status"] == Status.OK.value
+    if evaluable and reading.get("value") is None:
+        raise MetricResultSealingError("READING_OK_WITHOUT_VALUE")
+    if not evaluable and reading.get("value") is not None:
+        raise MetricResultSealingError("READING_NON_OK_CARRIES_VALUE")
+
+    # The instrument is copied from the sealed protocol, not chosen here.  A
+    # module that picked its own ruler would be measuring something the
+    # experiment never promised.
+    instrument = metric.get("instrument_ref")
+    if instrument is None:
+        raise MetricResultSealingError("METRIC_NOT_BOUND_TO_CANONICAL_INSTRUMENT")
+    # Runtime binding.  Copying the protocol's instrument into the record makes
+    # the two agree by construction, which would make the later comparison at
+    # publication vacuous.  So the evaluator must say which instrument it just
+    # executed, and the mismatch is caught here -- at the only place that can
+    # still see the instrument and the protocol at the same time.
+    if str(measurement["instrument_id"]) != str(dict(instrument)["instrument_id"]):
+        raise MetricResultSealingError(
+            f"INSTRUMENT_MISMATCH: protocol promised {dict(instrument)['instrument_id']!r}, "
+            f"runtime executed {measurement['instrument_id']!r}")
+    try:
+        authority.assert_admissible(authority.InstrumentRef.from_record(dict(instrument)))
+    except authority.InstrumentResolutionError as exc:
+        raise MetricResultSealingError(exc.code) from None
+    except RuntimeError:
+        raise MetricResultSealingError("INSTRUMENT_NOT_REPORTABLE") from None
 
     # Lineage is copied, never reconstructed: these five fields are what ties a
     # number to the exact run and the exact sealed design that authorised it.
@@ -114,7 +153,9 @@ def seal_metric_result(api, *, execution_id: str, attempt_id: str, metric_id: st
         "hypothesis_revision": question["hypothesis_hash"],
         "metric_id": metric["metric_id"],
         "metric_version": metric["definition_version"],
-        "value": measurement["value"],
+        "instrument": dict(instrument),
+        "reading": reading,
+        "value": reading.get("value") if evaluable else None,
         "numerator": measurement["numerator"],
         "denominator": measurement["denominator"],
         "excluded_count": int(measurement.get("excluded_count", excluded_count)),

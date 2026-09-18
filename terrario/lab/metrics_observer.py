@@ -1,4 +1,12 @@
-"""Metric and observer registries with signal and leakage safety."""
+"""Metric and observer registries with signal and leakage safety.
+
+Operational, not epistemological.  A metric registered here is one the runtime
+knows how to observe; it is NOT thereby a metric that may produce scientific
+evidence.  That question has exactly one answer-holder,
+`terrario.lab.instrument_registry`, and this module deliberately exposes no
+function that could answer it -- a binding declares `scientific_instrument` and
+the authority decides whether the claim resolves.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -58,6 +66,19 @@ class MetricDefinition:
     implementation_status: MetricImplementationStatus
     construct_validation_status: ConstructValidationStatus
     provenance: str
+    #: The canonical instrument this binding CLAIMS to execute, by id.
+    #:
+    #: A claim, never an authorization.  This registry says how the runtime
+    #: obtains a number; whether that number may become evidence is answered by
+    #: `terrario.lab.instrument_registry` and by nothing here.  The field is an
+    #: id rather than a resolved reference on purpose: resolution belongs to
+    #: the authority, and importing it here would make a contracts module
+    #: depend on the calibration machinery it is meant to stay beneath.
+    #:
+    #: ``None`` means unbound, which is the honest state for a metric nobody
+    #: has registered scientifically -- and it is what makes such a metric
+    #: unusable as a confirmatory endpoint instead of usable by default.
+    scientific_instrument: str | None = None
 
 
 @dataclass(frozen=True)

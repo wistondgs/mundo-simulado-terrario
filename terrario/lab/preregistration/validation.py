@@ -62,6 +62,39 @@ def policy_snapshot_hash() -> str:
     return content_hash(policy_snapshot())
 
 
+def _instrument_findings(metric, endpoint) -> list:
+    """Resolve a primary endpoint against the canonical instrument authority.
+
+    Fails closed in every branch, including the one where the authority itself
+    cannot be imported: an enforcement gate that degrades to permissive under
+    an ImportError is not an enforcement gate.
+    """
+    where = f"metrics.{metric.metric_id}"
+    if metric.instrument_ref is None:
+        return [_finding("PR-INSTRUMENT-001", where,
+                         "Primary endpoint is not bound to a canonical scientific instrument.",
+                         endpoint_id=endpoint.endpoint_id, instrument_ref=None)]
+    try:
+        from terrario.lab import instrument_registry as authority
+    except Exception:
+        return [_finding("PR-INSTRUMENT-001", where,
+                         "Canonical instrument authority is unavailable; a primary endpoint "
+                         "cannot be validated and is refused rather than assumed.",
+                         endpoint_id=endpoint.endpoint_id)]
+    try:
+        ref = authority.InstrumentRef.from_record(dict(metric.instrument_ref))
+        authority.assert_admissible(ref)
+    except authority.InstrumentResolutionError as exc:
+        return [_finding("PR-INSTRUMENT-001", where,
+                         "Primary endpoint instrument does not resolve in the canonical registry.",
+                         endpoint_id=endpoint.endpoint_id, code=exc.code)]
+    except RuntimeError as exc:
+        return [_finding("PR-INSTRUMENT-001", where,
+                         "Primary endpoint instrument is registered but not reportable.",
+                         endpoint_id=endpoint.endpoint_id, detail=str(exc))]
+    return []
+
+
 def _finding(rule_id: str, path: str, description: str, **details: Any) -> ValidationFinding:
     rule = RULE_BY_ID[rule_id]
     return ValidationFinding(rule.rule_id, rule.rule_version, rule.severity, path,
@@ -123,6 +156,12 @@ def validate_preregistration(
             findings.append(_finding("PR-METRIC-001", f"endpoints.{endpoint.endpoint_id}", "Endpoint metric is absent."))
         elif endpoint.role is EndpointRole.PRIMARY and metric.implementation_status != "IMPLEMENTED":
             findings.append(_finding("PR-METRIC-001", f"metrics.{metric.metric_id}", "Primary metric implementation is not available.", status=metric.implementation_status))
+        elif endpoint.role is EndpointRole.PRIMARY:
+            # G8.  A confirmatory endpoint must resolve to an instrument the
+            # scientific authority has certified.  Being known to the runtime
+            # metric registry is not the same claim and never stands in for it:
+            # that substitution is how an uncalibrated proxy becomes a finding.
+            findings.extend(_instrument_findings(metric, endpoint))
     observer_signals = {channel.channel_id for channel in draft.observer.channels if channel.separation_class != "DEBUG_ONLY"}
     for metric in draft.metrics:
         missing = sorted(set(metric.required_signals) - observer_signals)

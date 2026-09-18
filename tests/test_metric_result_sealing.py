@@ -7,15 +7,23 @@ that it refuses rather than inventing anything the preregistration did not say.
 import pytest
 
 from terrario.lab.evidence_publication import EmpiricalResultPublicationService
+from terrario.lab.measurement_status import Reading
 from terrario.lab.metric_result_sealing import MetricResultSealingError, seal_metric_result
-from tests.test_empirical_result_publication import _test_api
+from tests.test_empirical_result_publication import INSTRUMENT_ID, _test_api
 
 
-def _evaluator(value=0.5, numerator=1, denominator=2):
-    """Stands in for a construct-validated instrument; reads the trace it is given."""
+def _evaluator(value=0.5, numerator=1, denominator=2, reading=None, instrument_id=INSTRUMENT_ID):
+    """Stands in for a construct-validated instrument; reads the trace it is given.
+
+    It reports a `Reading`, not a float: after G8 the sealing step refuses a
+    bare number, because a number cannot say whether its zero was measured or
+    merely had nothing to measure.
+    """
     def run(trace):
         assert isinstance(trace, dict)          # it really receives the sealed trace
-        return {"value": value, "numerator": numerator, "denominator": denominator}
+        return {"instrument_id": instrument_id,
+                "reading": reading if reading is not None else Reading.ok(value, support=denominator),
+                "numerator": numerator, "denominator": denominator}
     return run
 
 
@@ -88,7 +96,8 @@ def test_it_refuses_a_classification_outside_the_declared_relations(tmp_path):
 def test_it_refuses_an_instrument_that_reports_no_denominator(tmp_path):
     api, execution, attempt, trace, draft, metric, endpoint = _test_api(tmp_path)
     with pytest.raises(MetricResultSealingError) as exc:
-        _seal(api, execution, attempt, metric, evaluator=lambda t: {"value": 1.0, "numerator": 1})
+        _seal(api, execution, attempt, metric,
+              evaluator=lambda t: {"instrument_id": INSTRUMENT_ID, "reading": Reading.ok(1.0), "numerator": 1})
     assert exc.value.reason == "EVALUATOR_DID_NOT_REPORT_DENOMINATOR"
 
 
@@ -111,3 +120,35 @@ def test_the_scope_is_never_the_self_audit_scope(tmp_path):
     api, execution, attempt, trace, draft, metric, endpoint = _test_api(tmp_path)
     sealed = _seal(api, execution, attempt, metric)
     assert sealed["measured"]["scope"] == "AUTHORIZED_SCIENTIFIC_RESULT"
+
+
+def test_a_runtime_that_executes_another_instrument_is_refused(tmp_path):
+    """The substitution the publication comparison alone could never catch.
+
+    Sealing copies the protocol's instrument into the record, so by the time a
+    result reaches publication the two always agree.  The only moment the
+    promised ruler and the executed one are both visible is here.
+    """
+    api, execution, attempt, trace, draft, metric, endpoint = _test_api(tmp_path)
+    with pytest.raises(MetricResultSealingError) as exc:
+        _seal(api, execution, attempt, metric,
+              evaluator=_evaluator(instrument_id="conversion_aprendizaje"))
+    assert "INSTRUMENT_MISMATCH" in exc.value.reason
+
+
+def test_an_evaluator_that_declares_no_instrument_is_refused(tmp_path):
+    api, execution, attempt, trace, draft, metric, endpoint = _test_api(tmp_path)
+    with pytest.raises(MetricResultSealingError) as exc:
+        _seal(api, execution, attempt, metric,
+              evaluator=lambda t: {"reading": Reading.ok(0.5), "numerator": 1, "denominator": 2})
+    assert exc.value.reason == "EVALUATOR_DID_NOT_REPORT_INSTRUMENT_ID"
+
+
+def test_a_not_evaluable_reading_seals_without_a_number(tmp_path):
+    """The empty denominator survives as itself instead of becoming a zero."""
+    api, execution, attempt, trace, draft, metric, endpoint = _test_api(tmp_path)
+    sealed = _seal(api, execution, attempt, metric,
+                   evaluator=_evaluator(reading=Reading.not_evaluable("no support", support=0),
+                                        numerator=0, denominator=0))
+    assert sealed["measured"]["value"] is None
+    assert sealed["measured"]["reading"]["status"] == "NOT_EVALUABLE"

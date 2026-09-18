@@ -1,8 +1,8 @@
 {
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
-  "written_at": "2026-09-17",
-  "head": "d1c7e4f",
+  "written_at": "2026-09-18",
+  "head": "3e205a5",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -10,12 +10,12 @@
         "scripts/screen_concepts.py": "a50ab9ce2ede7d2ea0cec2fdd63cb46df68ccd18b3c2e863d7fd6c8c5c85e26f",
         "scripts/simulate_d4_signal.py": "537b73811863658abc824d06d73c74b5c7aaf5a76a5e9376cbd53e01b4da0a15",
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
-        "terrario/experiment/controller.py": "cc1c0ab8a1f61572157e7c68956694d67c173631793488824591e294f149b6b1",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
         "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
-        "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
-        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8",
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
         "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
@@ -35,8 +35,8 @@
     "III · WorldDefinition y física declarada": {
       "files": {
         "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
-        "terrario/experiment/controller.py": "cc1c0ab8a1f61572157e7c68956694d67c173631793488824591e294f149b6b1",
-        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
         "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
@@ -80,7 +80,7 @@
     },
     "X · Aprendizaje online": {
       "files": {
-        "terrario/agent/learner.py": "5974181baee33880a645d03e5f93fcbf85d17be9c32ce2d11b7405d45ff7e059"
+        "terrario/agent/learner.py": "743bc9b73199a0dcab6f1437e09facb8ef72a86f274a98e464401a4abf39f7cf"
       }
     },
     "XI · Memorias": {
@@ -100,7 +100,7 @@
     },
     "XIV · Homeostasis y viabilidad": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "d286ce1f2e3a2bb5d8b61e650f88062f58c1628146bb4d2d89c1f82f29702960",
+        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
         "terrario/agent/homeostasis.py": "923f93c1be4cc088363d5b91bb5fdeecd215b262de4e8e4a472b83c203bc1d21",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
       }
@@ -120,7 +120,7 @@
     "XVIII · Métricas e instrumentos científicos": {
       "files": {
         "scripts/reclassify_screening.py": "1bdab77dbcb7414a622c43bb6be071818b927f5139b1448c45b222068cf2a2e8",
-        "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
         "tests/test_measurement_status.py": "6e01a8f912e794ad937d99ce468f237686ddefe9212f670733f6c4e879333b2b"
       }
@@ -128,7 +128,7 @@
     "XIX · Traza, ScientificFrame y evidencia": {
       "files": {
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8"
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40"
       }
     },
     "XX · Checkpoints y persistencia": {
@@ -139,7 +139,7 @@
     },
     "XXII · Preregistro y evidencia": {
       "files": {
-        "terrario/lab/preregistration/domain.py": "68559565ac702907fa03045ba6620b0d8adb899dfc6fba95d192d33acc9c23cd",
+        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
         "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
       }
     },
@@ -151,24 +151,24 @@
     "XXXI · La cadena científica de evidencia": {
       "files": {
         "terrario/lab/causal.py": "703005f09b03b7eb9d327aac2d1c620b8e3901277847f1778a3ca43c64cbef8d",
-        "terrario/lab/evidence_publication.py": "2a1ffb95cde18c2eb4a07e1188c991597204caf92524c32f029958e67793e7fc",
+        "terrario/lab/evidence_publication.py": "115bb1d166b4ddb1cb0b8bba6014abcbf9ed84d3d1595f1ca99c40e02cf06a3c",
         "terrario/lab/execution/dispatcher.py": "ea109e8e997f8e04fad625c96bfd7d6c3b38e70631c893ccfeab1f287bd1d1ca",
         "terrario/lab/execution/service.py": "a1ab82c38037cb2695ca8a2e738b253d153c9d492f9562727279204f45afc951",
-        "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
-        "terrario/lab/metric_result_sealing.py": "f82050a1d3df453288328eb0b8dafdb92c3c52ea65305328d558977b985ebd3c",
+        "terrario/lab/metric_result_sealing.py": "68cedcc5c6708b2f63b3892c62723db9202a8d8d0c17f10f22687701097c7d0f",
         "terrario/lab/persistence/migrations.py": "e4163a995919195a4d11374b80bd91103f2f044f50bfa819a9fef61f1dee120a",
         "terrario/lab/persistence/store.py": "a74d6689b89090cdf1ee2de2d8d77f3ad437201bcfe23177cf951720540d59e3",
         "terrario/lab/preregistration/commitments.py": "fb7f0d404d80c2a08bf9ce8656eb65736f17c672b65f64e8858f654ea0b7f6cd",
-        "terrario/lab/preregistration/domain.py": "68559565ac702907fa03045ba6620b0d8adb899dfc6fba95d192d33acc9c23cd",
+        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
         "terrario/lab/preregistration/repository.py": "39e136e1d653e92d8c343e6b0be334ef284c756b0308baf85cf69d1278fb79ff",
-        "terrario/lab/preregistration/service.py": "b559339d43af59f28802fa5f69217cab4b3dbca6f151e2e1b7ec27d97f0dde61",
-        "terrario/lab/preregistration/validation.py": "21cb33400cd9d039f09e9a257e5686cfa22e38c65f499456ac7e7013bd77b50d"
+        "terrario/lab/preregistration/service.py": "1ebea5a8a6be0554ab2df6ba510d2f1b3ee09a879226bfa1ea6d9e38492fed52",
+        "terrario/lab/preregistration/validation.py": "a2af5e11a1405b59940cace561e002b5f5f1593fbb956a4dad8d2142e2dbb8d2"
       }
     },
     "XXXII · La capa de conocimiento": {
       "files": {
-        "terrario/experiment/controller.py": "cc1c0ab8a1f61572157e7c68956694d67c173631793488824591e294f149b6b1",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/agent_composition.py": "802ea30ee0bf3d18d5365c9e02773f99243c9bcb17a051a0cb2e5796e51c83bb",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/models.py": "7dd354ab73d2b18351d431dc775a8628b0d1d79622cfdee5a53eccab3f570429",
@@ -181,12 +181,12 @@
     },
     "XXXIII · Observación, traza e interfaz": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "d286ce1f2e3a2bb5d8b61e650f88062f58c1628146bb4d2d89c1f82f29702960",
+        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/experiment/controller.py": "cc1c0ab8a1f61572157e7c68956694d67c173631793488824591e294f149b6b1",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
         "terrario/lab/execution/observation.py": "de15907c0ba57b66b58dc326024fdca4b4a6e2e628f24035a579c7e327da11e2",
-        "terrario/lab/metrics_observer.py": "c07042f397dff23b124f10b7548260953a0a0eb14747e058e334cbe4751b93f7",
+        "terrario/lab/metrics_observer.py": "31c97d2904e6f83d5b9b4ea4722d5bf4c39010721fa96e6cae46b0fd548d3a57",
         "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",
         "terrario/lab/worldstream/service.py": "a22eefa6a5144a55f4e75181b53c97abda3b4a7661a35f989553a4e25a70a9a1",
         "terrario/lab/worldstream/trace.py": "b34db5c08ea0ee0dfb4b9d8d5c64a8efefa71f5a83ca048be124c05e30ac5723",
@@ -198,9 +198,15 @@
     "XXXIV · Generador de mundos diagnósticos y oráculos amputados": {
       "files": {
         "scripts/world_demand_check.py": "3d8f8e0bc0107027757c879a847d00bc68fcb073fd40352c3e97d24c400c7b6e",
-        "terrario/lab/world_generator.py": "982597df9fca9e87967c6653ee958900405eeb3ef2a8f1b3d0c2044e0dc3e67d",
-        "terrario/lab/world_oracles.py": "d6ea12c98b4a58697f4e2f8aadfed8e991ac5757505021716fba9f611f6ecbf0",
+        "terrario/lab/world_generator.py": "38db408810728f65004389f87d22d22c7db4544e825b480c04b77b81e0f6cddc",
+        "terrario/lab/world_oracles.py": "5cbb8122a2b3a93ddbfc89d1d8984fb5b0306be5bcccdc7fdbb080d7450cfadd",
         "tests/test_world_generator.py": "53b4f5e66423869b50545de1d1c1e0b9349f441def68746e094f8997cfd2e56c"
+      }
+    },
+    "XXXV · G8 · Autoridad instrumental única y frontera de admisión de evidencia": {
+      "files": {
+        "scripts/passport_check.py": "3236d4d3a16132e660ab292baae53e9599a87de690d58a3167f43189db40e511",
+        "terrario/experiment/specs.py": "ec7141042d0b42593cdfee03bf9e404c3473856b0166a81ca20d865331b91eb2"
       }
     }
   }

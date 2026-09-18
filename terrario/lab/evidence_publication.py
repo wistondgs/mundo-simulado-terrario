@@ -13,10 +13,16 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from terrario.lab.execution.domain import ExecutionState, VerificationClass
+from terrario.lab.evidence_admission import admit_evidence
 from terrario.lab.persistence.canonical import canonical_json, content_hash
 
 
-RESULT_SCHEMA = "terrario.scientific-metric-result/v1"
+# v2 carries the canonical instrument identity and the full Reading.  v1 could
+# express neither, so a v1 payload is refused for NEW publication rather than
+# upgraded: inferring an instrument for an artifact sealed before instruments
+# were enforced would be exactly the retroactive certification G8 forbids.
+RESULT_SCHEMA = "terrario.scientific-metric-result/v2"
+LEGACY_RESULT_SCHEMAS = frozenset({"terrario.scientific-metric-result/v1"})
 ENVELOPE_SCHEMA = "terrario.scientific-result-envelope/v1"
 EVIDENCE_SCHEMA = "terrario.empirical-evidence/v1"
 _RELATIONS = frozenset({"EVIDENCE_FOR", "EVIDENCE_AGAINST", "UNRESOLVED"})
@@ -226,11 +232,15 @@ class EmpiricalResultPublicationService:
         """A narrow test seam for proving transaction rollback; production is a no-op."""
 
     def _envelope(self, con, execution, attempt, metric_artifact, trace_artifact, measured, blockers, warnings):
+        admission = None
         required = {"schema_version", "execution_id", "trial_intent_id", "attempt_id", "execution_plan_hash",
                     "preregistration_root_hash", "hypothesis_id", "hypothesis_revision", "metric_id", "metric_version",
+                    "instrument", "reading",
                     "value", "numerator", "denominator", "excluded_count", "missing_count", "epistemic_classification",
                     "analysis_rule", "trace_blob_hash", "scope"}
         if not isinstance(measured, Mapping) or set(measured) != required:
+            if isinstance(measured, Mapping) and measured.get("schema_version") in LEGACY_RESULT_SCHEMAS:
+                blockers.append("METRIC_RESULT_PRECEDES_INSTRUMENT_ENFORCEMENT")
             blockers.append("METRIC_RESULT_SCHEMA_INVALID"); return None
         if measured["schema_version"] != RESULT_SCHEMA:
             blockers.append("METRIC_RESULT_SCHEMA_VERSION_INVALID")
@@ -271,11 +281,31 @@ class EmpiricalResultPublicationService:
             endpoint = declared_endpoints[0]
             if measured["analysis_rule"] != endpoint["decision_rule"]:
                 blockers.append("ANALYSIS_RULE_NOT_PREREGISTERED")
+            # NO TRUST TRANSITIVELY.  Preregistration checked the instrument and
+            # the runtime checked it again; publication is the last place a
+            # wrong ruler can still be stopped, so it asks a third time.
+            verdict = admit_evidence(
+                endpoint_role=str(endpoint.get("role", "PRIMARY")),
+                instrument_ref=measured["instrument"], reading=measured["reading"],
+                preregistered_instrument_ref=metric.get("instrument_ref"),
+                protocol_locked=bool(prereg.sealed))
+            if not verdict.admitted:
+                blockers.extend(f"EVIDENCE_ADMISSION_{code}" for code in verdict.blockers)
+            admission = verdict
         if measured["epistemic_classification"] not in _RELATIONS:
             blockers.append("EPISTEMIC_CLASSIFICATION_INVALID")
-        if not all(isinstance(measured[key], (int, float)) and not isinstance(measured[key], bool) for key in ("value", "numerator", "denominator", "excluded_count", "missing_count")):
+        # A non-OK reading has no number, and demanding one is how an empty
+        # denominator used to be published as a zero.  The counts stay required
+        # in both cases: how much support there was is itself the finding.
+        numeric = admission is not None and admission.numeric_claim
+        counted = ("value", "numerator", "denominator", "excluded_count", "missing_count") if numeric \
+            else ("numerator", "denominator", "excluded_count", "missing_count")
+        if not all(isinstance(measured[key], (int, float)) and not isinstance(measured[key], bool) for key in counted):
             blockers.append("METRIC_VALUE_TYPE_INVALID")
-        elif measured["denominator"] <= 0 or measured["numerator"] < 0 or measured["excluded_count"] < 0 or measured["missing_count"] < 0:
+        elif not numeric and measured["value"] is not None:
+            blockers.append("METRIC_VALUE_WITHOUT_NUMERIC_CLAIM")
+        elif numeric and (measured["denominator"] <= 0 or measured["numerator"] < 0
+                          or measured["excluded_count"] < 0 or measured["missing_count"] < 0):
             blockers.append("METRIC_DENOMINATOR_INVALID")
 
         deviations = con.execute("SELECT payload_json FROM scientific_execution_deviations WHERE execution_id=?", (execution["execution_id"],)).fetchall()
@@ -293,7 +323,10 @@ class EmpiricalResultPublicationService:
             "hypothesis_id": measured["hypothesis_id"], "hypothesis_revision": measured["hypothesis_revision"],
             "agent_id": identity["agent_id"], "scenario_id": json.loads(execution["plan_json"])["protocol"]["scenario_id"],
             "world_seed": identity["world_seed"], "agent_seed": identity["agent_seed"], "metric_id": measured["metric_id"],
-            "metric_version": measured["metric_version"], "value": measured["value"], "numerator": measured["numerator"],
+            "metric_version": measured["metric_version"], "instrument": measured["instrument"],
+            "reading": measured["reading"], "admission": admission.as_record() if admission else None,
+            "numeric_claim": bool(admission and admission.numeric_claim),
+            "value": measured["value"], "numerator": measured["numerator"],
             "denominator": measured["denominator"], "excluded_count": measured["excluded_count"], "missing_count": measured["missing_count"],
             "missingness_policy": metric["missing_data_behavior"] if metric else "UNKNOWN", "analysis_rule": measured["analysis_rule"],
             "epistemic_classification": relation, "qualification": qualification,

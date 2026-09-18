@@ -677,6 +677,19 @@ class PreregistrationService:
             metric.construct, metric.proxy, metric.required_signals, metric.unit, metric.direction.value,
             metric.aggregation, metric.applicability, "ERROR", metric.limitations,
             metric.implementation_status.value, metric.construct_validation_status.value)
+        # G8.  A binding that names its canonical instrument gets that identity
+        # frozen into the protocol here, at lock time, so a later edit to the
+        # instrument is visible as drift instead of being applied silently to a
+        # result that was promised under the old definition.  A binding that
+        # names none stays unbound, and validation refuses it as a primary
+        # endpoint rather than letting the omission pass for an approval.
+        claimed = getattr(metric, "scientific_instrument", None)
+        if claimed:
+            from terrario.lab import instrument_registry as authority
+            try:
+                base = replace(base, instrument_ref=authority.ref_for(claimed).as_record())
+            except authority.InstrumentResolutionError:
+                base = replace(base, instrument_ref=None)
         if metric_id != "planned-action-evaluation-pathway":
             return base
         # Calibration is deliberately disjoint from the current confirmatory

@@ -27,10 +27,11 @@ level down, to the ruler instead of the experiment.
 from __future__ import annotations
 
 import enum
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from terrario.lab import instrument_calibration as cal
+from terrario.lab.persistence.canonical import content_hash
 
 
 class InstrumentState(enum.StrEnum):
@@ -257,6 +258,101 @@ def assert_reportable(metric_id: str) -> None:
         raise RuntimeError(
             f"{metric_id} is {state.value} and may not enter a scientific report. "
             f"Register it, give it falsification controls, and make them pass.")
+
+
+#: Schema of the reference other layers store instead of a bare name.
+INSTRUMENT_REF_SCHEMA = "terrario.lab.instrument-ref/v1"
+
+
+@dataclass(frozen=True)
+class InstrumentRef:
+    """What a name is not: enough to prove the ruler has not changed underneath.
+
+    An identifier alone cannot distinguish two rulers that share a name, which
+    is the failure this registry exists to prevent. The reference therefore
+    carries the declared version and the hash of the whole specification, so a
+    conditioning set edited after a protocol was locked is a resolution failure
+    rather than a silent reinterpretation of an old result.
+    """
+
+    instrument_id: str
+    version: int
+    spec_hash: str
+    schema_version: str = INSTRUMENT_REF_SCHEMA
+
+    def as_record(self) -> dict[str, Any]:
+        return {"instrument_id": self.instrument_id, "version": self.version,
+                "spec_hash": self.spec_hash, "schema_version": self.schema_version}
+
+    @staticmethod
+    def from_record(record: Any) -> "InstrumentRef":
+        if not isinstance(record, dict):
+            raise InstrumentResolutionError("INSTRUMENT_REF_MALFORMED")
+        try:
+            return InstrumentRef(str(record["instrument_id"]), int(record["version"]),
+                                 str(record["spec_hash"]),
+                                 str(record.get("schema_version", INSTRUMENT_REF_SCHEMA)))
+        except (KeyError, TypeError, ValueError) as exc:
+            raise InstrumentResolutionError("INSTRUMENT_REF_MALFORMED") from exc
+
+
+class InstrumentResolutionError(RuntimeError):
+    """A reference that does not resolve is never completed with a guess."""
+
+    def __init__(self, code: str, detail: str = ""):
+        super().__init__(f"{code}{': ' + detail if detail else ''}")
+        self.code = code
+
+
+def spec_hash(metric_id: str) -> str:
+    """The identity of a specification, not of its name."""
+    spec = REGISTRY.get(metric_id)
+    if spec is None:
+        raise InstrumentResolutionError("UNKNOWN_INSTRUMENT", metric_id)
+    return content_hash(asdict(spec))
+
+
+def ref_for(metric_id: str) -> InstrumentRef:
+    """The reference a protocol freezes at lock time."""
+    spec = REGISTRY.get(metric_id)
+    if spec is None:
+        raise InstrumentResolutionError("UNKNOWN_INSTRUMENT", metric_id)
+    return InstrumentRef(metric_id, int(spec.version), spec_hash(metric_id))
+
+
+def resolve(ref: InstrumentRef) -> MetricSpec:
+    """Fail closed. Silence here is how a ruler gets swapped mid-experiment.
+
+    Version drift is a distinct code from specification drift on purpose: the
+    first is an instrument that was deliberately revised and needs an
+    amendment, the second is one that was edited without saying so.
+    """
+    spec = REGISTRY.get(ref.instrument_id)
+    if spec is None:
+        raise InstrumentResolutionError("UNKNOWN_INSTRUMENT", ref.instrument_id)
+    if int(spec.version) != int(ref.version):
+        raise InstrumentResolutionError(
+            "INSTRUMENT_VERSION_DRIFT",
+            f"{ref.instrument_id} frozen at v{ref.version}, registry holds v{spec.version}")
+    current = spec_hash(ref.instrument_id)
+    if current != ref.spec_hash:
+        raise InstrumentResolutionError(
+            "INSTRUMENT_SPEC_DRIFT",
+            f"{ref.instrument_id} v{ref.version} was edited after it was frozen")
+    return spec
+
+
+def assert_admissible(ref: InstrumentRef) -> MetricSpec:
+    """The single question only this module may answer: may this produce evidence?
+
+    Resolution and reportability are asked together because either one alone is
+    insufficient -- a reportable instrument at the wrong version is the wrong
+    instrument, and the right instrument that failed its controls is not a
+    ruler at all.
+    """
+    spec = resolve(ref)
+    assert_reportable(ref.instrument_id)
+    return spec
 
 
 def report() -> str:
