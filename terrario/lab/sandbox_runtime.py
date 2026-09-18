@@ -182,7 +182,12 @@ class SandboxService:
         consequence=outcome.consequence; terminated=outcome.terminated
         agent_obs={"channels":obs.channels.tolist(),"mask":obs.mask.tolist(),"agent_energy":obs.agent_energy,"time_fraction":obs.time_fraction}
         world_events=tuple(consequence.observer_events)+tuple(f"rule_change:{x.old_version}->{x.new_version}" for x in outcome.change_events)
-        return SandboxTraceStep(run.run_id,"ENGINEERING_SANDBOX",run.spec.config_hash,run.spec.world_definition_hash,run.spec.world_instance_hash,run.spec.world_seed,run.spec.agent_seed,dict(agent.agent_identity),step,agent_obs,{"action_type":action.action_type.name,"direction":action.direction.name,"target_id":action.target_id,**provenance},tuple(consequence.events),world.serialize(),world_events,scientific_state(agent),terminated)
+        world_snapshot=world.serialize()
+        # ``serialize`` is an observer projection, whereas the parity contract
+        # needs the canonical state identity as well.  Add it to the trace only;
+        # it is never routed into the agent observation.
+        world_snapshot["state_hash"]=world._mutable_state().state_hash()
+        return SandboxTraceStep(run.run_id,"ENGINEERING_SANDBOX",run.spec.config_hash,run.spec.world_definition_hash,run.spec.world_instance_hash,run.spec.world_seed,run.spec.agent_seed,dict(agent.agent_identity),step,agent_obs,{"action_type":action.action_type.name,"direction":action.direction.name,"action_int":action.to_int(),"target_id":action.target_id,"resolved_target_id":outcome.target.object_id if outcome.target is not None else None,"energy_delta":outcome.energy_delta,"effects_applied":bool(outcome.effects),**provenance},tuple(consequence.events),world_snapshot,world_events,scientific_state(agent),terminated)
     def run_bounded(self,run_id,steps=None):
         limit=min(steps or self.get(run_id).spec.step_limit,self.get(run_id).spec.step_limit)
         while self.get(run_id).state not in {RunState.COMPLETED,RunState.TERMINATED,RunState.FAILED} and len(self.get(run_id).timeline)<limit: self.step(run_id)

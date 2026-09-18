@@ -44,17 +44,42 @@ class WorldScenarioRegistry:
             result.append(RegistryEntry(did,"IMPLEMENTED",str(path),("legacy YAML parses","world construction/controller tests"),definition,scenario))
         return result
 
-def adapt_legacy_scenario(did: str,raw: dict[str,Any],source: str):
-    prov=WorldProvenance("LEGACY_ADAPTER","non-destructive projection","LEGACY_UNKNOWN",source)
+def definition_from_runtime(did: str, raw: dict[str,Any], provenance: WorldProvenance) -> WorldDefinition:
+    """Project a runtime scenario into its scientific definition.
+
+    This is intentionally provenance-neutral.  Legacy YAML and deliberately
+    generated diagnostic worlds share the projection, but retain their own
+    origin instead of making generated worlds look like legacy imports.
+    """
     rule_rows=raw.get("rules",{}).get("rules",[])
     rules=tuple(WorldRuleDefinition(str(x.get("id",f"rule-{i}")),x.get("condition",{}),x.get("effect",{})) for i,x in enumerate(rule_rows))
-    world=WorldDefinition(f"{did.lower()}-gridworld",SCHEMA_VERSION,tuple(raw["grid_size"]),"bounded rectangular grid",("raw-channel object","single agent"),rules,{"objects":len(raw.get("objects",[])),"agent_start":raw.get("agent_start",{})},("local raw channel window","visibility mask","normalized agent energy","optional time fraction"),tuple(a.name for a in ActionType),tuple(r.rule_id for r in rules),("seeded procedural layout" if raw.get("procedural_layout") else "none",),(f"step energy cost {raw.get('step_energy_cost',0)}",),(f"duration {raw.get('duration',500)}","agent death"),"world seed materializes layout; agent seed is independently offset",prov)
+    constraints={"objects":len(raw.get("objects",[])),"agent_start":raw.get("agent_start",{})}
+    # Generated worlds declare a seed-independent semantic signature here.
+    # Explicit object placement stays an instance concern and is identified by
+    # the generated scenario / instance hashes in provenance.
+    if "generated_definition" in raw:
+        constraints["generated_definition"]=raw["generated_definition"]
+    return WorldDefinition(f"{did.lower()}-gridworld",SCHEMA_VERSION,tuple(raw["grid_size"]),"bounded rectangular grid",("raw-channel object","single agent"),rules,constraints,("local raw channel window","visibility mask","normalized agent energy","optional time fraction"),tuple(a.name for a in ActionType),tuple(r.rule_id for r in rules),("seeded procedural layout" if raw.get("procedural_layout") else "none",),(f"step energy cost {raw.get('step_energy_cost',0)}",),(f"duration {raw.get('duration',500)}","agent death"),"world seed materializes layout; agent seed is independently offset",provenance)
+
+
+def scenario_from_runtime(did: str, raw: dict[str,Any], world: WorldDefinition,
+                          provenance: WorldProvenance, *,
+                          required_capabilities: tuple[str,...] = ("gridworld", "observer")) -> ScenarioDefinition:
+    """Create the Lab scenario contract for an already projected runtime world."""
+    rule_rows=raw.get("rules",{}).get("rules",[])
+    rules=tuple(WorldRuleDefinition(str(x.get("id",f"rule-{i}")),x.get("condition",{}),x.get("effect",{})) for i,x in enumerate(rule_rows))
     obs=ObservationContract(tuple(f"channel_{i}" for i in range(raw.get("num_channels",4))),("channels","mask","agent_energy","time_fraction"),f"radius {raw.get('view_radius',2)} local window",True,1,"float32",0.0,0.0,"energy normalized; time optional",0)
     actions=tuple(ActionDefinition(a.name,{"direction":tuple(d.name for d in Direction),"target_id":"integer or -1"},("agent alive",),0.0,"perceptible consequence; no truth disclosure") for a in ActionType)
     action_contract=ActionContract(actions,"reject invalid enum/parameters without world-truth disclosure")
-    interventions=tuple(InterventionPoint(f"{did}-change-{i}","ENVIRONMENTAL_EVENT","world rules",f"PRE_STEP at {x.get('at_step')}","rules",("declared replacement",),"observer verifies rules_version and event",prov) for i,x in enumerate(raw.get("changes",[])))
+    interventions=tuple(InterventionPoint(f"{did}-change-{i}","ENVIRONMENTAL_EVENT","world rules",f"PRE_STEP at {x.get('at_step')}","rules",("declared replacement",),"observer verifies rules_version and event",provenance) for i,x in enumerate(raw.get("changes",[])))
     metric=MetricBinding(f"{did}-energy-trajectory","bounded behavioral performance","energy trajectory","terrario.experiment.metrics.MetricsCalculator","energy","higher",did,("agent_energy",),"trajectory and final value",("energy is not a direct cognitive construct",),"IMPLEMENTED")
-    scenario=ScenarioDefinition(did,SCHEMA_VERSION,world.content_hash,raw.get("description","legacy scenario"),{"agent_start":raw.get("agent_start",{}),"object_count":len(raw.get("objects",[]))},obs,action_contract,("objects","rules_version","energy_value"),interventions,(metric,),("gridworld","observer"),(),"IMPLEMENTED",prov)
+    return ScenarioDefinition(did,SCHEMA_VERSION,world.content_hash,raw.get("description","legacy scenario"),{"agent_start":raw.get("agent_start",{}),"object_count":len(raw.get("objects",[]))},obs,action_contract,("objects","rules_version","energy_value"),interventions,(metric,),required_capabilities,(),"IMPLEMENTED",provenance)
+
+
+def adapt_legacy_scenario(did: str,raw: dict[str,Any],source: str):
+    prov=WorldProvenance("LEGACY_ADAPTER","non-destructive projection","LEGACY_UNKNOWN",source)
+    world=definition_from_runtime(did, raw, prov)
+    scenario=scenario_from_runtime(did, raw, world, prov)
     return world,scenario
 
 def difficulty_for(entry: RegistryEntry) -> DifficultyProfile:

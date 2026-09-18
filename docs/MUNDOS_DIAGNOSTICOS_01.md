@@ -120,18 +120,56 @@ Nivel 3   EPMEM, LTMEM, TEMP, PLAST   una vez que el organismo pueda aprender un
 Y la Fase 3 —composición— deja de necesitar mundos nuevos: **es encender dos ejes a la vez** en el
 mismo generador, con los mismos controles.
 
-## Lo que queda por decidir
+## Lo decidido y construido (mismo día, más tarde)
 
-1. **¿Se acepta el canal 3 como variable oculta de diseño?** Es un efecto colateral de
-   `num_channels = 4` sobre objetos de 4 canales, no una decisión de diseño. Usarlo lo convierte en
-   contrato. La alternativa es añadir al motor un campo `hidden_channels` explícito, que es más
-   honesto y más caro.
+Las tres preguntas se cerraron construyendo:
 
-2. **¿Qué se hace con LEARN?** El replanteamiento lo pone en el camino crítico. Reparar
-   `OnlineLearner` toca A4, que está congelado. Sustituirlo por un learner mínimo de referencia
-   —regresión sobre el canal visible, sin backbone compartido— daría un ORACLE de aprendizaje y
-   diría si el problema es el mecanismo o el organismo.
+1. **Canal 3 como contrato.** Aceptado, con comprobación: `world_generator.channel_3_is_hidden()`
+   lo verifica contra el runtime real, y `NUM_CHANNELS = 4` es parte de la definición del mundo.
+   Un `hidden_channels` explícito en el motor sigue siendo más honesto; es deuda declarada, no
+   olvidada.
+2. **LEARN.** No se toca A4. Los mundos que lo exigen ya existen; el oráculo con `mapping` los
+   resuelve y sin `mapping` cae al azar. Falta el organismo.
+3. **Generador.** Construido: `terrario/lab/world_generator.py` + `terrario/lab/world_oracles.py`,
+   con `scripts/world_demand_check.py` y `tests/test_world_generator.py`. Detalle en la
+   cartografía, §XXXIV.
 
-3. **¿Un generador de escenarios, o siete YAML derivados de una plantilla?** El generador es lo
-   correcto; siete YAML son lo que existe hoy. La diferencia es si `procedural_layout` crece para
-   soportar cue/elección/distractor como clases con roles, o si se escriben a mano.
+### La regla que cambió la firma
+
+> «Eso es mundo de habilidad. Y si son múltiples habilidades, el mundo tiene que variar. Y tiene
+> que adaptarse a las habilidades para poder pasar el puzzle.»
+
+La entrada del generador no es una capacidad: es un **conjunto**. `world_for({A})` es el mundo de
+A. `world_for({A, B, C})` funde las exigencias por el máximo y produce un mundo que **no se pasa
+sin las tres**. Verificado con `{EPMEM, TEMP, PLAST}`: el oráculo completo 1.0; sin memoria, sin
+orden o sin seguimiento de la inversión, cada uno por separado, cae. La composición de la Fase 3
+es encender ejes, no diseñar mundos.
+
+### Lo que la falsación encontró
+
+Cuatro defectos míos antes de que el generador fuera fiable, y sólo uno lo vio la matriz de
+oráculos: **la puerta mala pagaba +6**. La matriz puntúa contra la clave y la clave era correcta;
+la física no. De ahí la segunda capa de tests — cada tipo de puerta produce el delta declarado
+por `RuleEngine` real. Es G3 aplicado a mundos: un mundo se falsa por lo que ejecuta, no por lo
+que su clave dice.
+
+### Corroboración externa
+
+Siete agentes diseñaron mundos en paralelo sin ver el generador. Los dos que respondieron a tiempo
+(LTMEM, UNC) llegaron a la **misma primitiva** — canal 3 truncado como variable oculta — por
+caminos distintos. LTMEM propuso un sustrato **temporal** (calendario de reglas:
+almaceno→demora→interferencia→recupero) en vez de espacial; queda como alternativa. UNC corrigió
+el eje `novelty`: la incertidumbre necesita un referente **irreducible** en el mundo, y ambas
+puertas seguras no lo son.
+
+### Resultado
+
+```
+LEARN  EPMEM  LTMEM  TEMP  HOMEO  PLAST   exigen lo que declaran (oráculo completo 1.0,
+                                          amputado 0.00–0.55, amputado en control 1.0)
+UNC                                       eje comprobado en el mundo; sin facultad guionizable
+WM  PLAN                                  sin mundo: intervención impura, sin exigencia declarada
+```
+
+Pasaportes con mundo: 7 de 9. Listas para certificar: 0 de 9 — procedencia (9/9) e instrumento
+(7/9) siguen bloqueando, y son lo siguiente.

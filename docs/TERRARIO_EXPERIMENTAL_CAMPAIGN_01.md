@@ -199,6 +199,13 @@ Una sola métrica `VALIDATED_FOR_CONSTRUCT`.
 
 # FASE 1 · Capability Certification
 
+> **Estado 2026-09-17.** Los mundos diagnósticos ya no se escriben: se generan
+> (`terrario/lab/world_generator.py`), a partir de un **conjunto** de capacidades, y cada uno se
+> falsa con oráculos amputados (`terrario/lab/world_oracles.py`,
+> `scripts/world_demand_check.py`). Seis de siete exigen lo que declaran; UNC se comprueba en
+> el mundo. Ver `docs/MUNDOS_DIAGNOSTICOS_01.md` y cartografía §XXXIV. Lo que sigue bloqueando
+> la certificación es procedencia (9/9) e instrumento (7/9), no el mundo.
+
 Aquí **no** se pregunta si la capacidad produce inteligencia general. Se pregunta si **hace lo que
 pretende hacer**. Cada capacidad recibe su propio **mundo diagnóstico**.
 

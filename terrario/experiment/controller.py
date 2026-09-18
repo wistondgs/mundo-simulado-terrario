@@ -38,6 +38,10 @@ def load_scenario(path: str) -> dict[str, Any]:
 def materialize_scenario(scenario: dict[str, Any], world_seed: int) -> dict[str, Any]:
     """Materialize procedural layout and hidden schedule deterministically."""
     resolved = deepcopy(scenario)
+    # The materialization identity is explicit even when there is no
+    # procedural layout.  Otherwise an inline scenario could silently fall
+    # back to an agent seed in a downstream controller call.
+    resolved["world_seed"] = world_seed
     layout = resolved.get("procedural_layout")
     if not layout:
         return resolved
@@ -68,7 +72,6 @@ def materialize_scenario(scenario: dict[str, Any], world_seed: int) -> dict[str,
     jitter = int(resolved.get("change_jitter", 0))
     for change in resolved.get("changes", []):
         change["at_step"] = int(change["at_step"]) + int(rng.integers(-jitter, jitter + 1))
-    resolved["world_seed"] = world_seed
     return resolved
 
 
@@ -104,7 +107,12 @@ class ExperimentController:
 
     def __init__(self, config: ExperimentConfig):
         self.config = config
-        self.scenario = load_scenario(config.scenario_path)
+        if config.scenario_payload is None:
+            self.scenario = load_scenario(config.scenario_path)
+        else:
+            # A controller must own its input.  A generated-world caller cannot
+            # mutate a running experiment by retaining the source dictionary.
+            self.scenario = deepcopy(dict(config.scenario_payload))
         self.results: dict[str, Any] = {
             "experiment_id": config.experiment_id,
             "config_hash": config.config_hash(), "code_hash": self._code_hash(), "episodes": [],
@@ -138,6 +146,7 @@ class ExperimentController:
             "seed": seed, "world_seed": world_seed, "agent_seed": agent_seed,
             "config_hash": self.config.config_hash(), "code_hash": self._code_hash(),
             "device": self.config.device, "agent_identity": agent.agent_identity,
+            "scenario_provenance": self.config.scenario_provenance,
         })
         observer.set_episode(episode_idx)
         try:
@@ -150,6 +159,7 @@ class ExperimentController:
             "metrics": MetricsCalculator.compute_all(episode_data, change_step=change_step),
             "num_steps": episode_data["num_steps"], "final_energy": episode_data["final_energy"],
             "agent_identity": agent.agent_identity, "observer_run_dir": run_dir,
+            "scenario_provenance": self.config.scenario_provenance,
         }
 
     def run_episode(
@@ -215,7 +225,18 @@ class ExperimentController:
                 "events": consequence.events, "observer_events": consequence.observer_events,
                 "prediction_error": getattr(agent, "last_prediction_error", 0.0),
                 "state_hash": truth.state_hash(),
+                # The exact agent-visible input at this tick.  Keeping it in
+                # the controller trace makes observation parity auditable
+                # without re-reading mutable world state after the step.
+                "agent_observation": {
+                    "channels": observation_t.channels.tolist(), "mask": observation_t.mask.tolist(),
+                    "agent_energy": observation_t.agent_energy, "time_fraction": observation_t.time_fraction,
+                },
                 "rule_changes": [{"step": e.step, "old_version": e.old_version, "new_version": e.new_version} for e in change_events],
+                "resolved_target_id": target.object_id if target is not None else None,
+                "energy_delta": energy_delta,
+                "effects_applied": bool(outcome.effects),
+                "terminated": terminated,
             }
             observer_annotations = self._causal_annotations(target, action_t, energy_delta, truth.rules_version)
             observer_annotations["geometry"] = lifecycle.geometry(world_state_mgr, view_radius=view_radius)

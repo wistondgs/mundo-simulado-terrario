@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Mapping
 
 import yaml
 
@@ -28,6 +28,14 @@ class ExperimentConfig:
     checkpoint_every: int
     output_dir: str
     device: str = "cpu"
+    # An in-memory, already validated scenario may enter the same controller
+    # path as a YAML scenario.  This is deliberately additive: persisted
+    # experiments keep using ``scenario_path``; generated diagnostic worlds do
+    # not need a lossy temporary YAML file or a second execution loop.
+    scenario_payload: Mapping[str, Any] | None = None
+    # Scientific origin of an inline scenario.  It is part of the config hash
+    # and is passed to the observer, but never interpreted as runtime physics.
+    scenario_provenance: Mapping[str, Any] | None = None
 
     @staticmethod
     def from_yaml(path: str) -> ExperimentConfig:
@@ -64,6 +72,8 @@ class ExperimentConfig:
             checkpoint_every=exp.get("checkpoint_every", 100),
             output_dir=exp.get("output_dir", "runs"),
             device=exp.get("device", "cpu"),
+            scenario_payload=exp.get("scenario_payload"),
+            scenario_provenance=exp.get("scenario_provenance"),
         )
 
     def config_hash(self) -> str:
@@ -79,6 +89,8 @@ class ExperimentConfig:
             "observer_mode": self.observer_mode,
             "checkpoint_every": self.checkpoint_every,
             "device": self.device,
+            "scenario_payload": self.scenario_payload,
+            "scenario_provenance": self.scenario_provenance,
         }
         if self.hypothesis is not None:
             data["hypothesis"] = {

@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-17",
-  "head": "15bb5e9",
+  "head": "d1c7e4f",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -193,6 +193,14 @@
         "terrario/observer/logger.py": "76ae4897262ba5bdd2978df8b245539bfd520a104c2347cb2f858990af812ca5",
         "terrario/observer/trace.py": "1efa9b5673dfbd702ba111d55df5c46ea01eec6a02392bb77fb39ef5c25dc032",
         "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374"
+      }
+    },
+    "XXXIV · Generador de mundos diagnósticos y oráculos amputados": {
+      "files": {
+        "scripts/world_demand_check.py": "3d8f8e0bc0107027757c879a847d00bc68fcb073fd40352c3e97d24c400c7b6e",
+        "terrario/lab/world_generator.py": "982597df9fca9e87967c6653ee958900405eeb3ef2a8f1b3d0c2044e0dc3e67d",
+        "terrario/lab/world_oracles.py": "d6ea12c98b4a58697f4e2f8aadfed8e991ac5757505021716fba9f611f6ecbf0",
+        "tests/test_world_generator.py": "53b4f5e66423869b50545de1d1c1e0b9349f441def68746e094f8997cfd2e56c"
       }
     }
   }

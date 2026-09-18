@@ -6,6 +6,7 @@ Returns LearningEvent with all metrics.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import torch
@@ -45,11 +46,25 @@ class OnlineLearner:
     def step_count(self) -> int:
         return self._step_count
 
+    def _gradient_hash(self) -> str:
+        """Stable diagnostic captured before commit/cleanup, never a control input."""
+        digest = hashlib.sha256()
+        for module_name, module in self._modules.items():
+            for parameter_name, parameter in module.named_parameters():
+                digest.update(f"{module_name}.{parameter_name}".encode())
+                if parameter.grad is None:
+                    digest.update(b"<none>")
+                else:
+                    digest.update(parameter.grad.detach().cpu().contiguous().numpy().tobytes())
+        return digest.hexdigest()
+
     def step(
         self,
         world_model_loss: torch.Tensor | None = None,
         policy_loss: torch.Tensor | None = None,
         total_loss: torch.Tensor | None = None,
+        *,
+        commit: bool = True,
     ) -> LearningEvent | None:
         """Perform one optimization step.
 
@@ -63,8 +78,14 @@ class OnlineLearner:
             policy_loss: scalar loss from policy.
             total_loss: combined loss (overrides sum if provided).
 
+        Args:
+            commit: apply the proposed update.  ``False`` deliberately runs the
+                same loss and backward pass but suppresses *only* optimizer
+                mutation.  Both paths clear gradients after capture, so a
+                suppressed proposal cannot contaminate a later update.
+
         Returns:
-            LearningEvent if an update was performed, None otherwise.
+            LearningEvent if an update proposal was computed, None otherwise.
         """
         self._step_count += 1
 
@@ -129,9 +150,12 @@ class OnlineLearner:
             all_params.extend(p for p in module.parameters() if p.grad is not None)
         if all_params:
             torch.nn.utils.clip_grad_norm_(all_params, self.grad_clip)
+        gradient_hash = self._gradient_hash()
 
-        # Optimizer step
-        self._optimizer.step()
+        # The causal boundary.  Adam's parameter writes and optimizer moments
+        # are a single commit: the no-commit arm must not advance either.
+        if commit:
+            self._optimizer.step()
 
         # Build loss components
         loss_components: dict[str, float] = {}
@@ -149,12 +173,20 @@ class OnlineLearner:
             learning_rate=self.lr,
         )
 
+        # `.grad` is transient observer state, not an accumulated proposal for
+        # the next experience.  Clear it in both arms after diagnostics have
+        # been captured; otherwise a commit-suppressed replay would have a
+        # hidden state difference before its next causal boundary.
+        self._optimizer.zero_grad(set_to_none=True)
+
         trace = {
             "op": "learning_step",
             "step": self._step_count,
+            "commit_applied": commit,
             "loss_total": total_loss.item(),
             "loss_components": loss_components,
             "grad_norms": grad_norms,
+            "gradient_hash": gradient_hash,
             "lr": self.lr,
         }
         self._trace.append(trace)

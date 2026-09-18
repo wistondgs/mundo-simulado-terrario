@@ -1,6 +1,6 @@
 # Cartografía de Terrario
 
-HEAD `427f8428` · 2026-09-17 · 179 ficheros, 29 050 líneas en `terrario/`
+HEAD `d1c7e4f` · 2026-09-17 · 149 ficheros Python, 30 703 líneas en `terrario/`
 
 **Qué es este documento.** Respuestas verificables a las 710 preguntas del interrogatorio de
 cartografía. Cada afirmación se apoya en lectura de código con `fichero:línea` o en una medición
@@ -60,7 +60,7 @@ experiment/  (10)       ejecución científica. → world, core, observer, agent
   adaptation.py       protocolo de adaptación (628 líneas)
   runner.py  campaign.py  metrics.py  specs.py  statistics.py  hypothesis.py
 
-lab/         (130)      laboratorio. → core, world, experiment, agent, observer
+lab/         (99)       laboratorio. → core, world, experiment, agent, observer
   sandbox_runtime.py  SandboxService
   api.py              superficie HTTP
   run_measures.py     las mallas de medición
@@ -78,7 +78,7 @@ lab/         (130)      laboratorio. → core, world, experiment, agent, observe
 
 ## 3 · Exclusivos del laboratorio
 
-`lab` (130 de 179 ficheros — el 73 % del repositorio) y `experiment`.
+`lab` (99 de 149 ficheros Python — el 66 % del repositorio) y `experiment`.
 
 ## 4 · Exclusivos de UI/observación
 
@@ -269,6 +269,15 @@ resolución y ejecución separadas.
 
 `OpportunityLifecycle.consume` y `.advance` (sólo controller), `RuleEngine.apply_effects`,
 `ChangeScheduler.check` (cambia `rules_version`), y cualquiera de los 38 usos de `_mutable_state`.
+
+## 39 · Mutación desde observación, métricas o UI
+
+**Sí, desde la UI de observación.**
+`lab/worldstream/service.py::_provenance_sidecar` llama a `_mutable_state()` para construir el
+mapa forense de celdas a `object_id`. En la implementación actual lo recorre sin escribir, por lo
+que las pruebas de pasividad no muestran una trayectoria alterada; pero rompe la frontera
+estructural: una capa clasificada como observadora obtiene el dataclass mutable autoritativo.
+Las métricas auditadas leen serializaciones/trazas, no mutan el mundo directamente.
 
 ## 40 · Pruebas de que la observación científica no altera la trayectoria
 
@@ -666,7 +675,7 @@ Bajo T0 nada más: se devuelve `Action.from_int`. Bajo T1 se determina si la ope
 entidad (`ALLOWED_SELECTORS`), se muestrea la ranura sobre `_slot_logits`, y la dirección se fija
 a `NONE`.
 
-## 125-127 · Qué estado cambia y cuándo
+## 125-128 · Qué estado cambia y cuándo
 
 | Estado | Cambia en | ¿Con `_use_online_learning=False`? |
 |---|---|---|
@@ -826,7 +835,7 @@ acción. Corregido en `run_measures`, pero la reconstrucción sigue siendo la fu
 [179] **Sí comparte**: las tres cabezas cuelgan del mismo backbone.
 [180] **Sí puede mejorar una y empeorar otras**: comparten backbone y las losses se suman sin pesos.
 
-## 181-184 · Dónde se usa la salida
+## 181-187 · Dónde se usa la salida
 
 [182] **El planner la consume directamente**: `score = Σ energy_pred − 10·Σ sigmoid(done_pred)`
 ([policy.py:~150](terrario/agent/policy.py)).
@@ -1000,7 +1009,7 @@ ninguna señal que separe «apunté a nada» de «apunté a algo inalcanzable» 
 tres cuestan 0.06. La descomposición de desperdicio existe **en el instrumento**, no en la
 experiencia del organismo.
 
-## 232-243 · Asignación de crédito y maquinaria
+## 232-245 · Asignación de crédito y maquinaria
 
 [232] REINFORCE con **baseline de media móvil**: `advantage = energy_delta − _energy_baseline`,
 donde el baseline se actualiza incrementalmente. Con el 99 % de los deltas igual a −0.06, el
@@ -1044,7 +1053,7 @@ Se registra `parameter_delta_norm` y `grad_norms` por módulo en cada `learn`, y
 [254] Olvida por sobrescritura FIFO al llenarse — con 1200 pasos, apenas.
 [255] Lo recuperado lo consume `_build_state`: media ponderada → `memory_context` (128,).
 
-## 256-263 · Memoria de largo plazo
+## 256-265 · Memoria de largo plazo
 
 `LongTermMemory(nn.Module)` — matriz `M (64, 128)` como `nn.Parameter`, más cinco proyecciones
 lineales.
@@ -1262,7 +1271,7 @@ canal 3 del objeto                    ← TRUNCADO, nunca llega
 
 Con varios objetos en una celda, los canales se **promedian**.
 
-## 339-348 · D4T en concreto
+## 339-349 · D4T en concreto
 
 [339] El canal 0 del objeto lleva 0.82 (clase A) o 0.18 (clase B).
 [340-341] Esos valores están escritos **en el escenario**,
@@ -1479,7 +1488,7 @@ update_frequency 1 · weight_decay: NINGUNO · regularización: sólo entropía,
 [419] La norma de gradiente se registra por módulo en `grad_norms`; **verificación pendiente**: no
 he extraído su magnitud típica.
 
-## 423 · Qué señal domina la loss total
+## 423-426 · Qué señal domina la loss total
 
 ```
 loss_total = loss_state (MSE sobre 640 dims)
@@ -2205,7 +2214,7 @@ ensemble cuando `use_uncertainty=False`** —se sigue construyendo el módulo—
 - La rama omnisciente `truth.objects.get(action.target_id)` en `controller._find_target`:
   **inalcanzable**, porque nada escribe `target_id` en esa ruta.
 
-## 657-666 · Fallos que se convierten en números plausibles
+## 657-667 · Fallos que se convierten en números plausibles
 
 [657-658] `try/except` alrededor de lógica científica:
 - `OnlineLearner.step`: captura loss o gradiente no finitos y **devuelve `None` en silencio**,
@@ -2943,3 +2952,102 @@ reductores puros probados en `tests_frontend/unit/`).
 38 ficheros. **24 vivos** (10 experimentos, 7 demostraciones CL, 4 semillas E2E, los gates y el
 runner), **4 latentes** (benchmarks), **11 históricos** — entre ellos `run_experiment.py` y
 `ablation_study.py`, ambos del día 1, anteriores a toda la infraestructura de preregistro.
+
+# XXXIV · Generador de mundos diagnósticos y oráculos amputados
+
+**2026-09-17.** Fase 1 de TCS-01 dejó de escribir un mundo por capacidad y pasó a generarlos.
+
+## 34.1 · La entrada es un conjunto, no una capacidad
+
+`terrario/lab/world_generator.py` recibe un conjunto de `capability_id`. Cada uno declara una
+exigencia sobre **un eje** (`DEMAND_OF`); las exigencias se funden por el máximo (`merge`); el mundo
+resultante no se pasa sin todas. Con un elemento es el mundo de esa habilidad; con varios, el mundo
+varía para exigirlas juntas — la Fase 3 sin mundos nuevos. El control de una capacidad dentro de un
+conjunto es el mismo mundo con **su** eje apagado (`control_for`); `axis_difference` verifica que
+exigente y control difieren en exactamente una dimensión.
+
+Siete ejes: `delay`, `hidden`, `distractors`, `sequence`, `risk`, `novelty`, `inversion`. `OFF` no
+coincide con `Demand()` en `hidden`: la base esconde la verdad, pero apagar el eje de LEARN es
+precisamente dejar de esconderla.
+
+## 34.2 · Sustrato: pasillo de tres filas
+
+`x` es fila, `y` es columna (`build_world_state` indexa `occupancy[pos.x, pos.y]` con forma
+`(grid_h, grid_w)`; `UP = (-1, 0)`, `RIGHT = (0, +1)`). El organismo arranca en `(1, 0)` y avanza
+por la fila 1. Cada estación: cue(s) en la fila 0, `delay` columnas después dos puertas en `(0, c)` y
+`(2, c)`, adyacentes por `UP`/`DOWN` desde `(1, c)`. Canal 1 marca qué es cada objeto (cue 0.9,
+distractor 0.6, novedoso 0.3, puerta 0.1); canal 3 dice qué hace una puerta (0.9 buena, 0.1 mala,
+0.5 segura, 0.35 inerte). Dos cues nunca coinciden en la ventana: separación `2·radio + 1`.
+
+Lo que usa del motor y nada más: objetos explícitos, reglas `(object_channel índice 3, CONSUME)`,
+`changes` para la inversión, las cuatro claves de economía de `strict_physics`. **No** usa
+`procedural_layout` ni `opportunity_lifecycle`: los ensayos repetidos dentro de una vida los dan
+las estaciones.
+
+**Contrato con el motor:** `num_channels = 4` ⇒ `obs[1..3] = canales 0..2`, canal 3 truncado.
+`channel_3_is_hidden()` lo comprueba contra `WorldStateManager.get_observation` real, no contra
+la docstring.
+
+## 34.3 · Oráculos con facultades desmontables
+
+`terrario/lab/world_oracles.py`. Un mundo que «exige memoria» es una afirmación; la prueba es un
+organismo guionizado que lo resuelve con todas sus facultades y deja de resolverlo sin exactamente
+la que el eje nombra. Leen la **ventana real** — la misma que A4 — y llevan su columna por
+integración de camino; nunca miran el estado. `FACULTY_OF_AXIS`: delay→memory, sequence→order,
+distractors→filter, hidden→mapping, risk→homeostasis, inversion→inversion. `novelty` no tiene
+facultad guionizable: lo que UNC produce es una señal, y un guion no la tiene.
+
+`verdict_for(cap)` corre exigente y control con oráculo completo y amputado; `demands` es
+`completo ≥ .95 ∧ amputado ≤ .70 ∧ amputado-en-control ≥ .95`.
+
+## 34.4 · Lo que se falseó al construirlo
+
+Cuatro defectos, todos míos, todos atrapados por una capa distinta:
+
+| Defecto | Quién lo vio |
+|---|---|
+| La puerta mala pagaba **+6** en vez de cobrar −6 (pasé `loss` positivo a una función que esperaba el signo puesto); las reglas invertidas de PLAST quedaban ambas negativas | **Nadie durante una hora.** La matriz puntúa contra la clave, no contra la energía. Lo vio un trazado de `energy_delta` por decisión. De ahí `door_deltas()` y la capa 2 de los tests: cada tipo de puerta debe producir el delta declarado, por `RuleEngine` real |
+| `consumptions_from` comparaba la energía **normalizada** de la observación con el umbral absoluto | Lectura del código; ahora recibe el mundo y desnormaliza |
+| Las estaciones novedosas entraban en el denominador y nunca en el numerador (UNC daba 0.625 con oráculo perfecto) | La matriz |
+| Las estaciones novedosas tenían ambas puertas **seguras**: consecuencia cierta, así que una incertidumbre calibrada debería ser *baja* ahí | El diseño D7U de un agente del workflow: la incertidumbre necesita un **referente irreducible**. Ahora el canal 3 de cada puerta novedosa es moneda al aire |
+
+Y dos calibraciones que no eran bugs sino mundos que no creaban la situación: HOMEO sin decisiones
+a energía baja (inicial 30 nunca cruzaba el umbral 8 → inicial 20, umbral 14, segura +0.5 < esperanza
+de la arriesgada +1); PLAST con la inversión al 50 % de `3·ancho`, cuando el oráculo agota el
+pasillo antes (→ `2·ancho`, inversión al 30 %).
+
+## 34.5 · Resultado
+
+`scripts/world_demand_check.py --semillas 8`:
+
+```
+capacidad  eje          facultad     completo  amputado  amp/ctrl  exige
+LEARN-A1   hidden       mapping      1.000     0.541     1.000     si
+EPMEM-A1   delay        memory       1.000     0.541     1.000     si
+LTMEM-A1   distractors  filter       1.000     0.297     1.000     si
+TEMP-A1    sequence     order        1.000     0.547     1.000     si
+HOMEO-A1   risk         homeostasis  1.000     0.000     1.000     si   (métrica: modulación)
+UNC-A1     novelty      —            1.000     —         —         —    (se comprueba en el mundo)
+PLAST-A1   inversion    inversion    1.000     0.000     1.000     si   (métrica: acierto tras inversión)
+```
+
+`tests/test_world_generator.py`: 32 pruebas en tres capas (estructura, física, exigencia), incluida
+una de conjunto `{EPMEM, TEMP, PLAST}` donde cada facultad amputada por separado hace caer al oráculo.
+
+**Verificación de esta auditoría (2026-09-17):**
+`scripts/world_demand_check.py --semillas 8` reprodujo la matriz anterior con 64 decisiones por
+capacidad falsable; `tests/test_world_generator.py -q` pasó sus **32** pruebas y el guard confirmó
+que la raíz de datos viva de Terrario no cambió.
+
+`capability_passport.register` deriva `demanding_world` de `world_generator.demanding_world_id`;
+7 de 9 pasaportes tienen mundo (WM-A1 y PLAN-A1 no: el generador no declara exigencia para ellos,
+y no la declarará mientras su intervención sea impura).
+
+## 34.6 · Lo que sigue sin resolverse
+
+- **LEARN sigue en el camino crítico.** Cuatro mundos (EPMEM, LTMEM, TEMP, PLAST) exigen aprender
+  el mapeo cue→lado, y el learner no se separa del azar con 1536 ejemplos puros. Los mundos ya
+  existen; el organismo que los pase, no.
+- **`primary_endpoint`** de 7 pasaportes sigue `PENDIENTE`: `score()` produce `accuracy`,
+  `modulation`, `accuracy_after`, pero no están registrados como instrumentos calibrados.
+- **Procedencia al corpus**, 9 de 9.

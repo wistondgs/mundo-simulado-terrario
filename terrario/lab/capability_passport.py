@@ -89,8 +89,14 @@ class CapabilityPassport:
     #: capacidad no debería ser sinónimo de una bandera interna de un espécimen.
     composition_flag: str | None
     #: Mundo que satisface `required_world_property`, o None si ninguno existe.
+    #: No se declara: `register` lo deriva de `world_generator.DEMAND_OF`, y que
+    #: el mundo exija de verdad la capacidad lo comprueba
+    #: `tests/test_world_generator.py` con oráculos amputados, no este campo.
     demanding_world: str | None
     notes: str = ""
+    #: Identificador de una decisión humana en capability_operationalization.
+    #: No es una afirmación atribuible al corpus.
+    operationalization_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.composition_flag is not None and self.composition_flag not in {
@@ -134,6 +140,10 @@ REGISTRY: dict[str, CapabilityPassport] = {}
 
 
 def register(passport: CapabilityPassport) -> CapabilityPassport:
+    if passport.demanding_world is None:
+        from dataclasses import replace
+        from terrario.lab.world_generator import demanding_world_id
+        passport = replace(passport, demanding_world=demanding_world_id(passport.capability_id))
     if passport.capability_id in REGISTRY:
         raise ValueError(f"pasaporte duplicado: {passport.capability_id}")
     REGISTRY[passport.capability_id] = passport
@@ -145,7 +155,8 @@ def register(passport: CapabilityPassport) -> CapabilityPassport:
 # Rellenados leyendo el código, no el nombre del módulo. `intervention_purity`
 # viene de `scripts/purity_check.py --all`, ejecutado, no supuesto.
 #
-# `corpus_provenance` está VACÍO en los nueve. No es un descuido de redacción:
+# `corpus_provenance` queda vacío salvo cuando una decisión humana enlaza una
+# capacidad concreta con claims concretos. No es un descuido de redacción:
 # `Concept.corpus_block` es un entero que ningún fichero lee, y no existe
 # `reference_id`, `claim_id` ni locator en ninguna parte. L-1 está incumplida por
 # todas las capacidades del catálogo, y el pasaporte lo hace visible por
@@ -261,7 +272,7 @@ register(CapabilityPassport(
 
 register(CapabilityPassport(
     concept_id="APRENDIZAJE_POR_EXPERIENCIA",
-    corpus_provenance=(),
+    corpus_provenance=("CLM-0127", "CLM-0132"),
     operational_definition=(
         "Modificar parámetros a partir de la consecuencia de la propia acción, de "
         "modo que la conducta futura mejore respecto a la misma demanda."),
@@ -296,6 +307,7 @@ register(CapabilityPassport(
     notes=(
         "Medido: con 1536 ejemplos informativos PUROS no se separa del azar. El "
         "cuadrante es «ninguna aprende», no «falta exposición»."),
+    operationalization_id="OPR-LEARN-A1-RL-01",
 ))
 
 register(CapabilityPassport(

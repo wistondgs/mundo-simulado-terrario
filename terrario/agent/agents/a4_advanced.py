@@ -103,6 +103,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "learning_rate": 3e-4,
     "grad_clip": 1.0,
     "update_frequency": 1,
+    # G4 intervention boundary.  This is not a capability-composition flag:
+    # both arms retain `use_online_learning` and compute the same proposal; the
+    # control suppresses only OnlineLearner's optimizer commit.
+    "learning_commit_enabled": True,
     "num_channels": 4,
     "view_size": 5,
 }
@@ -259,6 +263,7 @@ class A4Advanced(AgentInterface):
 
         # ── Online learner ───────────────────────────────────────────
         self._use_online_learning: bool = self.config["use_online_learning"]
+        self._learning_commit_enabled: bool = bool(self.config["learning_commit_enabled"])
         learnable_modules: dict[str, torch.nn.Module] = {
             "encoder": self.encoder,
             "policy_head": self.policy_head,
@@ -704,6 +709,7 @@ class A4Advanced(AgentInterface):
             event = self.learner.step(
                 world_model_loss=wm_loss,
                 policy_loss=policy_loss,
+                commit=self._learning_commit_enabled,
             )
 
             if event is not None:
@@ -727,6 +733,7 @@ class A4Advanced(AgentInterface):
                     "gradient_norm": sum(event.grad_norms.values()),
                     "loss_before": event.loss_total,
                     "loss_after": event.loss_total,
+                    "commit_applied": self._learning_commit_enabled,
                 })
         else:
             self._trace.append({
@@ -822,7 +829,7 @@ class A4Advanced(AgentInterface):
             ("uncertainty_estimator", self.uncertainty_estimator),
             ("policy_head", self.policy_head),
         ]
-        for nombre in ("operation_head", "selector_head"):
+        for nombre in ("operation_head", "selector_head", "direction_head", "selector_residual"):
             modulo = getattr(self, nombre, None)
             if isinstance(modulo, torch.nn.Module):
                 modules.append((nombre, modulo))

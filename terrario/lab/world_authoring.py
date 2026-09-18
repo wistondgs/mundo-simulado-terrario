@@ -10,7 +10,7 @@ import yaml
 from terrario.experiment.controller import build_world_state,materialize_scenario
 from terrario.lab.models import thaw
 from terrario.lab.world_contracts import SCHEMA_VERSION,WorldDefinition,WorldInstance,WorldProvenance,scientific_hash
-from terrario.lab.world_registry import adapt_legacy_scenario
+from terrario.lab.world_registry import definition_from_runtime
 from terrario.world.state import WorldStateManager
 
 GENERATOR_VERSION="terrario-world-generator/1"
@@ -83,7 +83,10 @@ def validate_draft(d:WorldDraft)->tuple[DraftFinding,...]:
     if unknown: out.append(DraftFinding("STRUCTURAL_ERROR","INVALID_ACTION_REFERENCE","action_availability",str(sorted(unknown)),True))
     for i,e in enumerate(d.entities):
         pos=e.get("pos")
-        if not isinstance(pos,(list,tuple)) or len(pos)!=2 or not (0<=pos[0]<d.dimensions[0] and 0<=pos[1]<d.dimensions[1]): out.append(DraftFinding("WORLD_CONSISTENCY_ERROR","INVALID_INITIAL_STATE",f"entities.{i}.pos","position outside world",True))
+        # Runtime convention: grid_size=[columns, rows], Position=(row, column).
+        # Validation must use the same convention or a rectangular valid world
+        # is rejected before it can reach the canonical runtime.
+        if not isinstance(pos,(list,tuple)) or len(pos)!=2 or not (0<=pos[0]<d.dimensions[1] and 0<=pos[1]<d.dimensions[0]): out.append(DraftFinding("WORLD_CONSISTENCY_ERROR","INVALID_INITIAL_STATE",f"entities.{i}.pos","position outside world",True))
         if len(e.get("channels",[]))>64: out.append(DraftFinding("STRUCTURAL_ERROR","INVALID_CHANNELS",f"entities.{i}.channels","too many channels",True))
     if not d.observation_sources: out.append(DraftFinding("SCIENTIFIC_WARNING","GROUND_TRUTH_INSUFFICIENT","observation_sources","no observation source declared",False))
     if not d.intervention_targets: out.append(DraftFinding("SCIENTIFIC_WARNING","NO_MANIPULATION_CHECK","intervention_targets","no intervention-compatible target",False))
@@ -103,10 +106,22 @@ def compile_draft(d:WorldDraft)->CompiledWorld:
     layout=dict(d.object_distributions[0]) if d.object_distributions else None
     channels=[len(x.get("channels",[])) for x in d.entities]
     if layout: channels+= [len(t.get("channels",[])) for t in layout.get("class_templates",{}).values()]
-    operational={"grid_size":list(d.dimensions),"duration":_duration(d),"view_radius":2,"num_channels":max(channels or [4]),"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[dict(x) for x in d.scheduled_events],**({"procedural_layout":layout} if layout else {}),**dict(d.resource_structure)}
-    stable_id="world-"+scientific_hash(operational)[:16]
-    runtime={"name":stable_id,"description":"compiled explicit world","seed":0,**operational}
-    definition,_=adapt_legacy_scenario(stable_id,runtime,d.provenance.source or d.draft_id)
+    resources=dict(d.resource_structure)
+    # Legacy drafts have always used this default.  A canonical generated-world
+    # draft may declare its sensory shape explicitly, so compilation cannot
+    # silently reinterpret a non-default diagnostic observation contract.
+    view_radius=int(resources.pop("view_radius",2))
+    num_channels=int(resources.pop("num_channels",max(channels or [4])))
+    generated_definition=resources.pop("generated_definition",None)
+    generated_provenance=resources.pop("generated_provenance",None)
+    canonical_world_id=resources.pop("canonical_world_id",None)
+    source_seed=resources.pop("source_seed",0)
+    operational={"grid_size":list(d.dimensions),"duration":_duration(d),"view_radius":view_radius,"num_channels":num_channels,"objects":[dict(x) for x in d.entities],"agent_start":dict(d.initial_conditions),"rules":{"rules":[dict(x) for x in d.deterministic_rules]},"changes":[dict(x) for x in d.scheduled_events],**({"procedural_layout":layout} if layout else {}),**resources}
+    if generated_definition is not None: operational["generated_definition"]=generated_definition
+    if generated_provenance is not None: operational["generated_provenance"]=generated_provenance
+    stable_id=canonical_world_id or "world-"+scientific_hash(operational)[:16]
+    runtime={"name":stable_id,"description":"compiled explicit world","seed":source_seed,**operational}
+    definition=definition_from_runtime(stable_id,runtime,d.provenance)
     return CompiledWorld(definition,runtime,tuple(x for x in findings if not x.blocking))
 
 def compile_registry_world(identifier:str,path:str|Path)->CompiledWorld: return compile_draft(draft_from_legacy(identifier,path))
