@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "fb60dfc",
+  "head": "721b6ef",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -211,7 +211,8 @@
     },
     "XXXVI · La frontera del estado aprendido, y la regla que G8 no había registrado": {
       "files": {
-        "scripts/learned_state_audit.py": "17085d1e47602b7cb5be868eafb9d0dc78c421f57b85b4ef73b488ada2fba0e7"
+        "scripts/learned_state_audit.py": "17085d1e47602b7cb5be868eafb9d0dc78c421f57b85b4ef73b488ada2fba0e7",
+        "scripts/m_information_audit.py": "3ecf1660b1f503554a58c63b5bc79e7e1d662f74488d5b736868493e5695bf0d"
       }
     }
   }

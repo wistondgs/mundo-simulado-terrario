@@ -3201,10 +3201,37 @@ Consecuencia: **el brazo suprimido no es un control de cero aprendizaje**, así 
 FULL−ABL no mide «aprender frente a no aprender». El primer piloto de LEARN-A1 queda bloqueado
 hasta que se elija entre las cuatro opciones que el documento nombra sin elegir.
 
-## 36.3 · Hallazgo secundario: M satura
+## 36.3 · Dos afirmaciones mías sobre M, y su refutación medida
 
-M alcanza el recorte de ±10 al 100 % en los dos brazos, en 68 pasos, en las tres semillas. La regla
-`M ← M·(1−g) + outer(w,v)·g` no tiene decaimiento ni normalización, así que el punto fijo está en el
-clamp. Una memoria saturada es una constante con forma de matriz.
+La primera versión de esta sección decía que M satura al 100 % y que su regla de escritura «no tiene
+decaimiento». Las dos eran falsas, y `scripts/m_information_audit.py` las midió:
 
-No es asunto de LEARN-A1 y no se tocó, pero condiciona lo que LTMEM-A1 pueda afirmar alguna vez.
+- **La saturación real es 9–25 %**, no 100 %. La cifra anterior era `|M|max / 10`, es decir *si algún*
+  elemento tocaba el tope — una mala estadística presentada como un hecho.
+- **Sí hay decaimiento.** `M·(1−g)` es el término de retención, y con `g` medido entre 0.43 y 1.0
+  (medio ~0.79) el olvido es fuerte. Afirmé una propiedad formal sin medir `g`.
+
+## 36.4 · Qué transporta M, medido
+
+Que M se mueva mucho no demuestra que lleve información. Con el pipeline real, la función de lectura
+del propio agente y un contrafáctico de misma geometría y contingencia invertida:
+
+```
+signos distintos entre M_A y M_B      0 / 32 en las tres semillas
+coseno(M_A, M_B)                      0.802 · 1.000 · 1.000   ← idénticas en 2 de 3
+‖Δ logits‖ relativo al intercambiar M  0 … 4.3 %
+acciones cambiadas                    0   en las tres semillas y en los dos brazos
+inversiones de preferencia            0
+```
+
+M tiene ruta causal real hacia la política —entra dos veces en la lectura, `key_proj(M)` fija la
+atención y `attn @ M` es el valor— pero intercambiar toda la memoria por la de una historia con la
+contingencia opuesta **no cambió una sola decisión**. `M_MAPPING_CARRIER = NO`.
+
+Además, desactivar la memoria a largo plazo por composición es **local**: `_state_dim` no cambia,
+ningún otro módulo cambia de recuento de parámetros, y lo único que ocurre es que `longterm_memory`
+sale de la lista del learner. `LTM_DISABLE_IS_COMPOSITION_LOCAL = PASS`.
+
+Lo que sigue abierto: buffer episódico, estado recurrente, homeostasis y baseline del learner están
+clasificados **leyendo el código**, no probados con el mismo contrafáctico. Sus gates quedan en
+`UNKNOWN`, y `UNKNOWN` no se convierte en `PASS`.

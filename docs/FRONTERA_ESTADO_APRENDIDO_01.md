@@ -30,7 +30,7 @@ experiencia. Una de ellas se mueve muchísimo.
 | ‖Δ parámetros‖ (bajo optimizador) | 1.714 | **0** |
 | ‖Δ M‖ (fuera del optimizador) | 41.09 | **25.02** |
 | ‖Δ M‖ / ‖M inicial‖ | 76.9× | **46.8×** |
-| saturación de M | 100 % | **100 %** |
+| elementos de M en el tope ±10 | 9–25 % | **9–25 %** |
 | slots de M movidos | 4/4 | **4/4** |
 | baseline de energía | 0.000 → −0.032 | 0.000 → −0.032 |
 | buffer episódico | 16/16, 4 rotaciones | 16/16, 4 rotaciones |
@@ -39,6 +39,11 @@ Tres semillas (7, 11, 23). `‖Δ parámetros‖` bajo ABL es **exactamente 0** 
 ABL va de 46.8× a 60.1× su norma inicial, y en la semilla 11 es **mayor** que bajo FULL — la
 diferencia entre brazos ni siquiera tiene signo estable. Dos corridas con la misma semilla dan
 resultados idénticos.
+
+> **Corrección a la primera versión de este documento.** Decía «saturación de M = 100 %». Esa cifra
+> era `|M|max / 10`, es decir *si algún* elemento tocaba el recorte — no qué fracción lo hacía. La
+> fracción real es **9–25 %**. La afirmación era una mala estadística presentada como un hecho, y
+> la conclusión que colgaba de ella («una constante con forma de matriz») no se sostenía.
 
 ## Clasificación
 
@@ -77,28 +82,101 @@ adquirido, y una de ellas recorre decenas de veces su magnitud inicial. Por tant
 
 Ninguna de las dos lecturas es la que el piloto pretendía obtener.
 
-## Hallazgo secundario, independiente del piloto
+## Segunda medición: ¿M transporta información, o sólo magnitud?
 
-**`M` satura.** Alcanza el recorte de ±10 de `memory.py:239` al 100 % en los dos brazos, en 68
-pasos, en las tres semillas. Una memoria saturada no almacena nada discriminativo: es una
-constante con forma de matriz. La regla de escritura
+`scripts/m_information_audit.py`. Que M se mueva mucho no demuestra que lleve información. Se midió
+con el pipeline real y con la función de lectura del propio agente.
+
+**El camino de lectura existe y es doble.** `hidden → longterm_memory.read(hidden) → lt_context`
+([a4_advanced.py:333](terrario/agent/agents/a4_advanced.py:333)), y `lt_context` entra en el estado
+que ve la política ([:337](terrario/agent/agents/a4_advanced.py:337)). M aparece **dos veces** en la
+lectura: `key_proj(M)` fija la atención y `attn @ M` es el valor devuelto
+([memory.py:181-186](terrario/agent/memory.py:181)).
+
+**La dinámica real de la escritura.** `g` medido: mínimo 0.43, medio 0.71–0.86, máximo ~1.0. Es
+decir, `M·(1−g)` retiene entre el 0 % y el 57 % de M por escritura.
+
+> **Segunda corrección.** La primera versión decía que la regla «no tiene término de decaimiento».
+> Es falso: `M·(1−g)` **es** el término de retención, y con `g` medio ~0.79 el olvido es fuerte, no
+> ausente. Escribí una propiedad formal sin medir el rango de `g`.
+
+Estructura de M tras la historia: entropía de signo **1.0** (signos perfectamente balanceados) y
+**rango efectivo 1.0–1.3 sobre 4**. M no está vacía, pero colapsa a esencialmente una dirección.
+
+**Contrafáctico.** Dos historias con la **misma geometría, mismos cues, misma semilla** y la
+contingencia invertida (mismo mundo, reglas del canal oculto dadas vuelta), ambas bajo
+SUPPRESS_COMMIT:
+
+| | semilla 7 | semilla 11 | semilla 23 |
+|---|---|---|---|
+| signos distintos entre M_A y M_B | 0 / 32 | 0 / 32 | 0 / 32 |
+| coseno(M_A, M_B) | 0.802 | **1.000** | **1.000** |
+| diferencia relativa de recuperación | 0.635 | **0** | **0** |
+
+En dos de las tres semillas **M acaba siendo idéntica** bajo contingencias opuestas. M se escribe
+desde `hidden`, que viene de la observación; si el organismo no llega a consumir nada distinto, la
+inversión de las reglas no le llega.
+
+**Prueba causal.** Mismo estado en todo salvo M, comparando logits antes del muestreo:
+
+| | ABL | FULL |
+|---|---|---|
+| observaciones donde los logits cambiaron | 24 / 24 | 24 / 24 |
+| ‖Δ logits‖ relativo a ‖logits‖ | 1.2e-06 … 0 | 2.5e-07 … 0.043 |
+| **acciones que cambiaron** | **0** | **0** |
+| **veces que se invirtió la preferencia entre puertas** | **0** | **0** |
+
+La ruta causal existe y es real, pero su efecto va de exactamente 0 a 4.3 % de la norma de los
+logits, y **en ninguna semilla, en ninguno de los dos brazos, intercambiar toda la memoria por la de
+una historia con la contingencia opuesta cambió una sola decisión.**
+
+## Desactivar la memoria a largo plazo es local
+
+`use_longterm_memory=False`: la escritura está gateada
+([a4_advanced.py:587](terrario/agent/agents/a4_advanced.py:587)) y la lectura se sustituye por ceros
+**conservando la dimensión** ([:335](terrario/agent/agents/a4_advanced.py:335)).
+
+| | ON | OFF |
+|---|---|---|
+| `_state_dim` | 64 | 64 |
+| encoder / policy_head / temporal_core / world_model / uncertainty | idénticos | idénticos |
+| módulos en el learner | 6 | 5 (sale `longterm_memory`) |
+
+No apaga ninguna otra capacidad ni cambia ninguna dimensión.
 
 ```
-M ← M·(1−g) + outer(w, v)·g
+LTM_DISABLE_IS_COMPOSITION_LOCAL = YES
 ```
 
-no tiene término de decaimiento hacia cero ni normalización, así que con `g` apreciable y escrituras
-repetidas el punto fijo está en el clamp.
+## Gates
 
-Esto no es asunto de LEARN-A1 y **no se toca aquí**, pero afecta a lo que LTMEM-A1 pueda afirmar
-alguna vez, y conviene que quede registrado antes de que alguien construya un mundo que exija
-memoria persistente. Sigue a `docs/MUNDOS_DIAGNOSTICOS_01.md`, nivel 3.
+```
+LSB.1  ABL_PARAMETER_DELTA_ZERO_RECONFIRMED   PASS    exactamente 0, tres semillas
+LSB.2  M_MUTATION_REPRODUCIBLE                PASS    dos corridas idénticas
+LSB.3  M_SATURATION_CHARACTERIZED             PASS    9–25 % en tope, entropía de signo 1.0,
+                                                      rango efectivo 1.0–1.3 / 4
+LSB.4  M_HISTORY_DISCRIMINATION               PARCIAL 1 de 3 semillas; en 2 M es idéntica
+LSB.5  M_RETRIEVAL_DIFFERENTIATES             PARCIAL misma proporción
+LSB.6  M_CAUSALLY_AFFECTS_POLICY              PASS    ruta real, efecto 0 … 4.3 % relativo
+LSB.7  M_MAPPING_CARRIER                      NO      cero decisiones cambiadas, cero
+                                                      inversiones de preferencia
+LSB.13 LTM_DISABLE_IS_COMPOSITION_LOCAL       PASS
+LSB.15 NO_PRODUCTION_CODE_CHANGED             PASS
+LSB.8  EPISODIC_STATE_CLASSIFIED              UNKNOWN clasificado por lectura, sin prueba causal
+LSB.9  RECURRENT_STATE_CLASSIFIED             UNKNOWN idem
+LSB.10 HOMEOSTASIS_CLASSIFIED                 UNKNOWN idem
+LSB.11 LEARNER_BASELINE_CLASSIFIED            UNKNOWN idem
+```
+
+Los cuatro `UNKNOWN` no se convierten en `PASS`: están clasificados leyendo el código, no probados
+con el mismo contrafáctico que se aplicó a M.
 
 ## Opciones, sin elegir ninguna
 
-1. **Declararlo como confusor conocido.** No tocar nada; el preregistro declara que M, el buffer y
-   el baseline se mueven en los dos brazos, y el claim se acota a «el commit del optimizador sobre
-   este sustrato». Honesto, barato, y deja el resultado nulo sin interpretación.
+1. **Declararlo como confusor conocido.** El preregistro declara que M, el buffer y el baseline se
+   mueven en los dos brazos, con la medición adjunta: M no cambió ninguna decisión en ninguna
+   semilla. Es la opción que la evidencia sostiene hoy para M — pero no dice nada de los otros
+   tres estados, que siguen sin prueba causal.
 2. **Componer el piloto sin memoria a largo plazo** (`use_longterm_memory=False`). No toca código de
    A4, sólo la configuración de la composición. Elimina el confusor mayor de raíz, a cambio de medir
    LEARN-A1 en un organismo que no es el de la campaña — y de que la composición pase a ser parte
@@ -106,9 +184,9 @@ memoria persistente. Sigue a `docs/MUNDOS_DIAGNOSTICOS_01.md`, nivel 3.
 3. **Extender la intervención para congelar M bajo ABL.** Haría de ABL un control limpio, pero
    **cambia la frontera causal certificada en G4** y el manifiesto de intervención aprobado. Reabre
    G4.
-4. **Reparar la saturación primero.** Si M satura, quizá no hay nada que congelar: el confusor
-   podría ser grande en norma y nulo en información. Requiere su propia auditoría, y es la única
-   opción que responde *qué* está guardando M además de *cuánto* se mueve.
+4. **Auditar los otros tres estados adaptativos** con el mismo contrafáctico aplicado a M: buffer
+   episódico, estado recurrente y baseline del learner. Es lo único que falta para poder afirmar
+   que la frontera está caracterizada y no sólo inventariada.
 
 ## Lo que queda comprobado y no hay que rehacer
 
