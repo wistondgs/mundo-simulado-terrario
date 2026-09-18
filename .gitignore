@@ -29,3 +29,4 @@ playwright-report/
 
 # Runtime state from the screening bench; regenerable, never committed.
 .sandbox-*/
+.cartografia/
