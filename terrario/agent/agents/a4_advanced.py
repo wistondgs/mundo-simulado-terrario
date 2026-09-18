@@ -558,6 +558,16 @@ class A4Advanced(AgentInterface):
         })
         return Action.from_int(action_int)
 
+    def _policy_reward(self, consequence: Transition) -> float:
+        """What the policy is reinforced on.
+
+        For A4 this is the metabolic consequence and nothing else: the organism
+        is paid only by the world. A descendant that has a reason of its own to
+        act overrides this, and the override is then the entire causal surface
+        of that capability -- which is what makes it ablatable.
+        """
+        return float(consequence.energy_delta)
+
     def learn(self, consequence: Transition) -> None:
         if self._last_state is None or self._last_latent is None:
             self._step += 1
@@ -644,13 +654,19 @@ class A4Advanced(AgentInterface):
 
             # Policy loss: REINFORCE with baseline
             if self._last_log_prob is not None and self._last_state is not None:
-                # Update running baseline
+                # The one seam.  A4 reinforces on the metabolic consequence and
+                # nothing else, which `_policy_reward` returns unchanged -- this
+                # is inert here and exists so a descendant can add a reward term
+                # without duplicating 187 lines of this method and letting the
+                # copy drift.  Baseline and advantage read the same quantity, or
+                # the advantage stops being centred.
+                reward = self._policy_reward(consequence)
                 self._baseline_count += 1
                 self._energy_baseline += (
-                    consequence.energy_delta - self._energy_baseline
+                    reward - self._energy_baseline
                 ) / self._baseline_count
 
-                advantage = consequence.energy_delta - self._energy_baseline
+                advantage = reward - self._energy_baseline
 
                 # Re-compute log_prob with fresh graph to avoid double-backward
                 if self._use_factored_action:

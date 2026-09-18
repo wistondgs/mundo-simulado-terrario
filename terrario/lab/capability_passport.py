@@ -502,3 +502,60 @@ register(CapabilityPassport(
         "cabeza de terminación (2.4× la de energía), ambas ruido. Funciona como "
         "fuente de exploración, no como planificación — L-2 en acto."),
 ))
+
+
+register(CapabilityPassport(
+    concept_id="MOTIVACION_INTRINSECA",
+    corpus_provenance=("CLM-0121", "CLM-0122", "CLM-0123"),
+    operational_definition=(
+        "Convertir el error al predecir la consecuencia de la propia acción en una señal "
+        "de valor que entra en la selección de acción, de modo que el organismo tenga "
+        "motivo para actuar cuando ninguna recompensa externa se lo da."),
+    algorithm_id="IntrinsicPredictionError",
+    algorithm_version="v1",
+    capability_id="CURIO-A1",
+    inputs=("prediccion de consecuencia", "consecuencia observada"),
+    outputs=("senal intrinseca de valor",),
+    internal_state=("error de prediccion del paso anterior",),
+    allowed_information=("su propia prediccion", "la consecuencia que efectivamente ocurrio"),
+    forbidden_information=(
+        "donde estan las entidades favorables",
+        "el canal oculto que decide la consecuencia",
+        "cualquier cosa que haga la senal dependiente del mapeo a aprender"),
+    expected_behavior=(
+        "Con recompensa externa escasa, visita mas estados cuya consecuencia predice peor "
+        "que un organismo identico sin la senal."),
+    negative_prediction=(
+        "Sin ella el organismo no tiene direccion: su unica presion es la temperatura "
+        "homeostatica, que aumenta el ruido sin orientarlo. MEDIDO en A4: recorre 2 "
+        "columnas de 34 y alcanza 1 estacion de 8 antes de morir de inanicion."),
+    required_world_property=(
+        "Recompensa externa escasa o ausente, y estados cuya consecuencia el organismo "
+        "aun no predice bien. Un mundo que paga en cada paso no la exige."),
+    primary_endpoint="PENDIENTE-exploracion-dirigida-por-error",
+    secondary_endpoints=("estaciones alcanzadas", "columnas recorridas"),
+    falsification_controls=(
+        "senal_constante_no_dirige",
+        "senal_invertida_reduce_exploracion",
+        "ruido_incontrolable_no_la_satura"),
+    intervention_purity=Purity.UNMEASURED,
+    known_dependencies=(
+        "modelo del mundo: sin prediccion no hay error de prediccion",),
+    known_confounders=(
+        "CLM-0126: predecir directamente puede mantener el error alto por factores "
+        "incontrolables, y CLM-0125 (dinamica inversa) es lo que lo reduce. A4 no la "
+        "implementa, asi que el confusor queda declarado y NO resuelto.",
+        "UNC-A1 ya consume senal con forma de error de prediccion y ya posee el eje "
+        "`novelty`. La superficie de intervencion se solapa y hay que separarla antes "
+        "de atribuir nada.",
+        "Trampa de pureza: si se implementa como termino sumado a los logits en vez de "
+        "como modulo, `purity_check` la declarara PURE por construccion y el gate pasara "
+        "en vacio."),
+    composition_flag="use_curiosity",
+    demanding_world=None,
+    notes=(
+        "A4 YA calcula `last_prediction_error` en learn() y lo entrega solo al observador. "
+        "El organo existe y esta cableado a la libreta en vez de a la conducta; esta "
+        "capacidad es cerrar ese lazo, no anadir uno nuevo."),
+    operationalization_id="OPR-CURIO-A1-PE-01",
+))

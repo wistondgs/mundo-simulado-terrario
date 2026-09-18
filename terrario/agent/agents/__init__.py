@@ -13,6 +13,7 @@ from terrario.agent.agents.a1_reactive import A1Reactive
 from terrario.agent.agents.a2_gru import A2GRUBaseline
 from terrario.agent.agents.a3_worldmodel import A3WorldModel
 from terrario.agent.agents.a4_advanced import A4Advanced
+from terrario.agent.agents.a5_cybernetic import A5Cybernetic
 
 
 class AgentFactoryError(ValueError):
@@ -31,6 +32,8 @@ _AGENT_IDS = {
     "A3_WORLD_MODEL": "A3_WORLD_MODEL",
     "A4": "A4_ADVANCED",
     "A4_ADVANCED": "A4_ADVANCED",
+    "A5": "A5_CYBERNETIC",
+    "A5_CYBERNETIC": "A5_CYBERNETIC",
 }
 
 
@@ -91,6 +94,8 @@ def create_agent(
                 **common,
                 hidden_dim=int(agent_config.get("hidden_dim", 256)),
             )
+        elif architecture_id == "A5_CYBERNETIC":
+            agent = A5Cybernetic(config=agent_config, generator=generator)
         else:
             agent = A4Advanced(config=agent_config, generator=generator)
     except Exception as exc:
@@ -118,6 +123,6 @@ def create_agent(
 
 
 __all__ = [
-    "A0Random", "A1Reactive", "A2GRUBaseline", "A3WorldModel", "A4Advanced",
+    "A0Random", "A1Reactive", "A2GRUBaseline", "A3WorldModel", "A4Advanced", "A5Cybernetic",
     "AgentFactoryError", "create_agent",
 ]

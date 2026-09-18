@@ -348,9 +348,58 @@ UNC_A1_OPERATIONALIZATION = OperationalizationRecord(
 )
 
 
+# --- CURIO-A1 · Pathak 2017 ---------------------------------------------------
+#
+# La mitad del artículo que UNC-A1 no cita. CLM-0121 está tipado
+# OPERATIONAL_DEFINITION: el corpus no da un concepto que haya que interpretar,
+# da el mecanismo. Y CLM-0123 describe exactamente el fallo que medimos —el
+# organismo recorre 2 columnas de 34 porque la recompensa externa es escasa—,
+# así que esta capacidad no se elige por elegancia: se elige porque la fuente
+# nombra nuestro problema.
+
+CURIO_A1_OPERATIONALIZATION = OperationalizationRecord(
+    operationalization_id="OPR-CURIO-A1-PE-01",
+    capability_id="CURIO-A1",
+    primary_claim=_claim("CLM-0121", "abstract y §2, PDF pp. 1–3", "TI-0090"),
+    supporting_claims=(
+        _claim("CLM-0122", "§2, PDF pp. 2–3", "TI-0090"),
+        _claim("CLM-0123", "abstract y §1, PDF pp. 1–2", "TI-0090"),
+    ),
+    human_operationalization=HumanOperationalization(
+        decision_id="HD-CURIO-A1-01",
+        scope=(
+            "El error al predecir la consecuencia de la propia acción se devuelve al "
+            "organismo como señal de valor, y esa señal entra en la selección de acción."),
+        excluded_scope=(
+            "La señal NO puede depender de dónde está la comida. Dice «andá donde tu "
+            "predicción falla», nunca «las puertas son buenas». Si supiera el mapeo "
+            "habríamos construido la respuesta dentro del organismo, que es el problema "
+            "del oráculo entrando por la puerta de atrás.",
+            "No se afirma dinámica inversa ni rasgos condicionados a la acción: CLM-0125 "
+            "pertenece a UNC-A1 y A4 no la implementa, así que el ruido incontrolable "
+            "(CLM-0126) queda como confusor declarado y no resuelto.",
+            "No se afirma que las habilidades resultantes sean útiles después: CLM-0124 "
+            "queda fuera hasta que exista con qué medirlo."),
+        conceptual_property=(
+            "El error de predicción sobre las propias consecuencias es una fuente de valor "
+            "que no requiere recompensa externa."),
+        observable_property=(
+            "Con recompensa externa escasa, el organismo visita más estados cuya "
+            "consecuencia predice peor que uno idéntico sin la señal."),
+        possible_intervention=(
+            "Suprimir la entrada de la señal intrínseca en la selección de acción, dejando "
+            "intacto el cálculo del error de predicción."),
+    ),
+    algorithm=AlgorithmBinding("IntrinsicPredictionError", "v1"),
+    implementation=ImplementationBinding("terrario.agent.curiosity.IntrinsicPredictionError"),
+    endpoint=EndpointBinding("PENDIENTE-exploracion-dirigida-por-error"),
+)
+
+
 REGISTRY.update({record.operationalization_id: record for record in (
     LEARN_A1_OPERATIONALIZATION,
     HOMEO_A1_OPERATIONALIZATION,
     WM_A1_OPERATIONALIZATION,
     UNC_A1_OPERATIONALIZATION,
+    CURIO_A1_OPERATIONALIZATION,
 )})
