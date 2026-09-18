@@ -23,8 +23,17 @@ SNAPSHOT_HASH = "f59dbb6d6ee3850c7fa366f087f51f0a0dc69d8ef2ea973e33ad8681eb692b6
 SNAPSHOT_MANIFEST_SHA256 = "44cac69a0fa6e6f057881365de2f95bdd1d95c4aaa94e245061e9fe92ee7de98"
 
 
-def snapshot_root() -> Path:
-    return Path(__file__).resolve().parents[2] / "theory_snapshots" / SNAPSHOT_ID
+def snapshot_root(snapshot_id: str = SNAPSHOT_ID) -> Path:
+    """Where a snapshot lives, resolved from ITS id and not from this module's.
+
+    The constant is a default, not the answer. Reading the id from the module
+    meant a reference declaring a second snapshot still looked inside the first,
+    found its manifest, and failed with `corpus snapshot manifest hash mismatch`
+    -- a message that accuses the corpus of corruption when the defect is that
+    nobody went to the right directory. A corpus is a thing the laboratory has
+    more than one of, over time; this makes that expressible.
+    """
+    return Path(__file__).resolve().parents[2] / "theory_snapshots" / snapshot_id
 
 
 @dataclass(frozen=True)
@@ -43,7 +52,7 @@ class CorpusClaimReference:
     snapshot_manifest_sha256: str = SNAPSHOT_MANIFEST_SHA256
 
     def validate(self, root: str | Path | None = None) -> None:
-        root = Path(root) if root is not None else snapshot_root()
+        root = Path(root) if root is not None else snapshot_root(self.snapshot_id)
         manifest_path = root / "snapshot_manifest.json"
         if not manifest_path.is_file():
             raise ValueError("corpus snapshot is unavailable")
@@ -69,6 +78,70 @@ class CorpusClaimReference:
             raise ValueError("claim locator mismatch")
         if self.source_id not in (root / self.source_artifact).read_text(encoding="utf-8"):
             raise ValueError("unknown source id")
+
+
+@dataclass(frozen=True)
+class CorpusConceptReference:
+    """Un concepto del corpus, citable — la mitad de L-1 que no existía.
+
+    L-1 exige conexión explícita con corpus **y concepto**, y hasta aquí el
+    esquema sólo sabía direccionar claims. Por eso `P3C-0014` —la curiosidad
+    adaptativa de Oudeyer— está en el corpus y no había forma de citarla: existe
+    como fila de concepto y ninguna capacidad podía apuntarle.
+
+    La referencia es una CADENA, no un puntero suelto:
+
+        concepto  →  claim que lo menciona, con locator  →  fuente [TI-XXXX]
+
+    El eslabón del medio es lo que la hace verificable. Un concepto no tiene por
+    sí mismo un sitio en un documento que un tercero pueda abrir; el claim sí.
+    Citar un concepto sin claim sería declarar una lectura, y eso es lo que la
+    capa v0.3 hizo con 59 conceptos de definición vacía.
+
+    Límite del corpus que conviene saber de antemano: de 187 nombres
+    normalizados sólo 56 aparecen en algún claim. Los otros 131 no son citables
+    y no lo serán hasta que alguien extraiga un claim que los mencione. Eso es
+    escasez de corpus, no del código.
+    """
+
+    concept_id: str
+    normalized_name: str
+    concept_locator: str
+    concept_artifact: str
+    concept_artifact_sha256: str
+    via_claim: CorpusClaimReference
+
+    def validate(self, root: str | Path | None = None) -> None:
+        # El claim primero: arrastra las nueve reglas, incluida la identidad del
+        # snapshot. Si el claim no resuelve, el concepto tampoco.
+        self.via_claim.validate(root)
+        base = Path(root) if root is not None else snapshot_root(self.via_claim.snapshot_id)
+
+        manifest = json.loads((base / "snapshot_manifest.json").read_text(encoding="utf-8"))
+        artifacts = {item["filename"]: item["sha256"] for item in manifest.get("artifacts", ())}
+        if artifacts.get(self.concept_artifact) != self.concept_artifact_sha256:
+            raise ValueError("concept artifact hash mismatch")
+
+        with (base / self.concept_artifact).open(encoding="utf-8-sig", newline="") as stream:
+            concept = next((row for row in csv.DictReader(stream)
+                            if row.get("concept_id") == self.concept_id), None)
+        if concept is None:
+            raise ValueError("unknown concept id")
+        if concept.get("nombre_normalizado_provisional") != self.normalized_name:
+            raise ValueError("concept name mismatch")
+        # La comprobación que habría rechazado la capa v0.3 entera: 59 conceptos
+        # con `definicion_del_autor` vacía, es decir sin nada del autor que citar.
+        if not (concept.get("definicion_del_autor") or "").strip():
+            raise ValueError("concept has no author definition")
+        if concept.get("pagina_seccion") != self.concept_locator:
+            raise ValueError("concept locator mismatch")
+
+        with (base / self.via_claim.claim_artifact).open(encoding="utf-8-sig", newline="") as stream:
+            claim = next(row for row in csv.DictReader(stream)
+                         if row.get("claim_id") == self.via_claim.claim_id)
+        # El eslabón: el concepto tiene que estar EN el claim, no cerca de él.
+        if self.normalized_name not in (claim.get("source_concept"), claim.get("target_concept")):
+            raise ValueError("concept does not appear in the declared claim")
 
 
 @dataclass(frozen=True)
