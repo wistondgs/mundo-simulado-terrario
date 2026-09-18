@@ -157,16 +157,29 @@ CAMPAIGN_STATUS = BLOCKED_RUNTIME_SEMANTICS
 
 No se sigue acumulando «evidencia».
 
-## 0.2 · Estado medido de la Fase 0
+## 0.2 · Estado medido de la Fase 0 — **PASS**
 
-| | |
-|---|---|
-| `find_target` unificado | ✅ |
-| `build_episode_components` unificado | ✅ |
-| `run_step` — una sola secuencia | ✅ |
-| Ciclo de oportunidades encendido en el banco | ⬜ |
-| `set_global_determinism` simétrico | ⬜ |
-| Test de paridad automático | ⬜ |
+| | | evidencia |
+|---|---|---|
+| `find_target` unificado | ✅ | una implementación en vez de tres |
+| `build_episode_components` unificado | ✅ | una construcción en vez de cuatro |
+| `run_step` — una sola secuencia | ✅ | fixture de conducta idéntica, 9 casos con su digest |
+| Ciclo de oportunidades encendido en el banco | ✅ | D4T 250 pasos: 32→29 pasó a **32→32**, con 3 de id ≥ 10000 |
+| `set_global_determinism` simétrico | ✅ | mismo spec dos veces ⇒ mismo `initial_parameters_hash` |
+| Test de paridad automático | ✅ | 6 pruebas; falla nombrando **primer paso y primer campo** |
+
+```
+WORLD_RUNTIME_PARITY = PASS
+```
+
+El test se escribió **antes** de reparar, para que el defecto quedara demostrado y no afirmado:
+el determinismo se sostiene campo por campo incluidos linaje y generación —que `state_hash` no
+cubre porque excluye `properties`—; semillas distintas **sí** divergen, que es el control negativo
+que le falta a un test que siempre coincide; el ciclo **sí** cambia D4T; y **no** cambia D0, que fue
+el permiso para encenderlo sin tocar los mundos que nunca lo declararon.
+
+Consecuencia: toda evidencia anterior queda declarada `runtime Sandbox pre-parity`. Los números de
+D4T del banco no son comparables con los de antes de este punto.
 
 ## 0.3 · Gate de instrumento
 
