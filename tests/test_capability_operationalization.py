@@ -40,11 +40,24 @@ def test_unknown_claim_fails_closed_against_the_immutable_snapshot():
         replace(CLAIM_0127, claim_id="CLM-UNKNOWN").validate()
 
 
-def test_only_learn_a1_has_explicit_provenance_or_operationalization():
-    linked = [passport for passport in PASSPORTS.values()
-              if passport.corpus_provenance or passport.operationalization_id]
-    assert [passport.capability_id for passport in linked] == ["LEARN-A1"]
-    assert PASSPORTS["LEARN-A1"].corpus_provenance == ("CLM-0127", "CLM-0132")
+def test_provenance_and_operationalization_never_appear_one_without_the_other():
+    """The invariant, which is not a head count.
+
+    This used to assert that LEARN-A1 was the only capability with provenance.
+    That was true when written and is no longer: Ashby, Ha & Schmidhuber and
+    Pathak were sitting in the audited layer of the corpus, with locators, while
+    three passports shipped `corpus_provenance=()`. What must hold is not how
+    many are linked but that a passport can never claim a corpus link it cannot
+    resolve, nor carry a record that does not round-trip back to it.
+    """
+    for passport in PASSPORTS.values():
+        linked = bool(passport.corpus_provenance)
+        assert linked == bool(passport.operationalization_id), passport.capability_id
+        if not linked:
+            continue
+        record = REGISTRY[passport.operationalization_id]
+        assert record.capability_id == passport.capability_id
+        assert passport.corpus_provenance == record.claim_ids
 
 
 def test_serialization_and_hash_round_trip_are_stable():
@@ -55,5 +68,11 @@ def test_serialization_and_hash_round_trip_are_stable():
 
 
 def test_registry_is_complete_and_fail_closed():
-    assert tuple(REGISTRY) == ("OPR-LEARN-A1-RL-01",)
     validate_registry()
+    # Every claim every record cites resolves against the sealed snapshot: hash,
+    # identity, claim id, declared source and exact locator.
+    for record in REGISTRY.values():
+        for claim in (record.primary_claim, *record.supporting_claims):
+            claim.validate()
+    assert {record.capability_id for record in REGISTRY.values()} == {
+        passport.capability_id for passport in PASSPORTS.values() if passport.corpus_provenance}

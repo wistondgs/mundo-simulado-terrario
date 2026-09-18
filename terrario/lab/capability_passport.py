@@ -164,7 +164,7 @@ def register(passport: CapabilityPassport) -> CapabilityPassport:
 
 register(CapabilityPassport(
     concept_id="REGULACION_HOMEOSTATICA",
-    corpus_provenance=(),
+    corpus_provenance=("CLM-0056", "CLM-0052", "CLM-0053"),
     operational_definition=(
         "El organismo modula su conducta según el estado de una variable esencial "
         "interna, de modo que la misma observación externa produzca decisiones "
@@ -193,10 +193,13 @@ register(CapabilityPassport(
     known_dependencies=(),
     known_confounders=(
         "`perceive` asigna `_energy` directamente, así que `update()` sólo alimenta "
-        "la traza y nunca se lee para decidir: estado escrito y no leído."),
+        "la traza y nunca se lee para decidir: estado escrito y no leído.",
+        "MEDIDO: `drive` se calcula y no lo lee nadie. La única vía a la conducta es "
+        "`exploration_bias` → temperatura, que sube el ruido sin dar dirección.",),
     composition_flag="use_homeostasis",
     demanding_world=None,
     notes="Única vía causal: temperatura del muestreo. No toca planner ni pérdida.",
+    operationalization_id="OPR-HOMEO-A1-REG-01",
 ))
 
 register(CapabilityPassport(
@@ -312,7 +315,7 @@ register(CapabilityPassport(
 
 register(CapabilityPassport(
     concept_id="ESTIMACION_DE_INCERTIDUMBRE",
-    corpus_provenance=(),
+    corpus_provenance=("CLM-0126", "CLM-0125"),
     operational_definition=(
         "Producir una magnitud CALIBRADA que distinga situaciones familiares, "
         "ambiguas y novedosas, y que modifique la decisión en consecuencia."),
@@ -344,6 +347,7 @@ register(CapabilityPassport(
     composition_flag="use_uncertainty",
     demanding_world=None,
     notes="Cuesta el 43% del tiempo de decisión: 25 acciones × 5 cabezas por paso.",
+    operationalization_id="OPR-UNC-A1-NOISE-01"
 ))
 
 register(CapabilityPassport(
@@ -424,7 +428,7 @@ register(CapabilityPassport(
 
 register(CapabilityPassport(
     concept_id="MODELO_PREDICTIVO_DEL_MUNDO",
-    corpus_provenance=(),
+    corpus_provenance=("CLM-0116", "CLM-0117"),
     operational_definition=(
         "Predecir consecuencias relevantes de una acción antes de tomarla, con "
         "error medible contra el resultado real."),
@@ -458,6 +462,7 @@ register(CapabilityPassport(
     notes=(
         "BLOQUEADA. Medido: tras 600 pasos `energy_head` tiene dispersión 0.0037 "
         "sobre una cantidad que varía 2.0 — indistinguible de su valor al nacer."),
+    operationalization_id="OPR-WM-A1-REPR-01"
 ))
 
 register(CapabilityPassport(

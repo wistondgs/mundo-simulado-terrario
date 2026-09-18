@@ -176,9 +176,10 @@ class OperationalizationRecord:
             claim.validate(root)
 
 
-def _claim(claim_id: str, locator: str) -> CorpusClaimReference:
+def _claim(claim_id: str, locator: str, source_id: str = "TI-0097") -> CorpusClaimReference:
+    """Una referencia al snapshot sellado; los hashes son los del manifiesto."""
     return CorpusClaimReference(
-        claim_id=claim_id, source_id="TI-0097", locator=locator,
+        claim_id=claim_id, source_id=source_id, locator=locator,
         claim_artifact="CLAIMS_RELATIONS_v0.1.csv",
         claim_artifact_sha256="4bc6a81191e128e0c7e9926d5fdf9a659211799f303b8c961d4b6773ee375340",
         source_artifact="SOURCE_SAMPLE_v0.1.md",
@@ -206,9 +207,7 @@ LEARN_A1_OPERATIONALIZATION = OperationalizationRecord(
     implementation=ImplementationBinding("terrario.agent.agents.a4_advanced:A4Advanced.learn"),
     endpoint=EndpointBinding("conversion_aprendizaje"),
 )
-REGISTRY: dict[str, OperationalizationRecord] = {
-    LEARN_A1_OPERATIONALIZATION.operationalization_id: LEARN_A1_OPERATIONALIZATION,
-}
+REGISTRY: dict[str, OperationalizationRecord] = {}
 
 
 def operationalization_for_capability(capability_id: str) -> OperationalizationRecord:
@@ -252,3 +251,106 @@ def validate_registry(records: Iterable[OperationalizationRecord] = REGISTRY.val
                 and (passport.corpus_provenance or passport.operationalization_id)]
     if implicit:
         raise ValueError("implicit provenance on unlinked passports: " + ", ".join(sorted(implicit)))
+
+
+# --- HOMEO-A1 · Ashby 1956 ----------------------------------------------------
+#
+# El pasaporte se registró con `corpus_provenance=()` mientras estos tres claims
+# estaban en la capa auditada del corpus, con locator, sin que nadie los mirara.
+
+HOMEO_A1_OPERATIONALIZATION = OperationalizationRecord(
+    operationalization_id="OPR-HOMEO-A1-REG-01",
+    capability_id="HOMEO-A1",
+    primary_claim=_claim("CLM-0056", "part I–III", "TI-0049"),
+    supporting_claims=(
+        _claim("CLM-0052", "part II, ch. 11, PDF pp. 108–110", "TI-0049"),
+        _claim("CLM-0053", "part II, ch. 11", "TI-0049"),
+    ),
+    human_operationalization=HumanOperationalization(
+        decision_id="HD-HOMEO-A1-01",
+        scope=("Regulación entendida como restricción de la desviación de una variable "
+               "esencial del organismo, no como optimización de recompensa externa."),
+        excluded_scope=(
+            "No se afirma que el organismo posea variedad requerida suficiente: Ashby da "
+            "una cota, no una capacidad.",
+            "No se afirma jerarquía de control; CLM-0055 queda fuera de esta decisión.",
+            "No se afirma que la regulación observada sea adaptativa ni aprendida."),
+        conceptual_property="Restringir la desviación de una variable esencial sostiene estabilidad.",
+        observable_property=("Ante la misma observación externa, la decisión difiere según el "
+                             "valor de la variable esencial interna."),
+        possible_intervention=("Suprimir la lectura de la variable esencial en la selección de "
+                               "acción, dejando intacto su cálculo."),
+    ),
+    algorithm=AlgorithmBinding("HomeostaticState", "v1"),
+    implementation=ImplementationBinding("terrario.agent.homeostasis.HomeostaticState"),
+    endpoint=EndpointBinding("PENDIENTE-regulacion-condicionada-al-estado"),
+)
+
+
+# --- WM-A1 · Ha & Schmidhuber 2018 --------------------------------------------
+
+WM_A1_OPERATIONALIZATION = OperationalizationRecord(
+    operationalization_id="OPR-WM-A1-REPR-01",
+    capability_id="WM-A1",
+    primary_claim=_claim("CLM-0116", "abstract, PDF p. 1", "TI-0087"),
+    supporting_claims=(_claim("CLM-0117", "abstract y §2, PDF pp. 1–2", "TI-0087"),),
+    human_operationalization=HumanOperationalization(
+        decision_id="HD-WM-A1-01",
+        scope=("Modelo del mundo entendido como representación comprimida que la política "
+               "consume, no como simulador fiel del entorno."),
+        excluded_scope=(
+            "No se afirma simulación latente ni entrenamiento dentro del modelo; "
+            "CLM-0118 a CLM-0120 quedan fuera.",
+            "No se afirma que la representación sea espaciotemporal en el sentido del "
+            "artículo: A4 predice su propio latente, no el mundo. La brecha se declara "
+            "aquí en vez de disimularse.",
+            "No se afirma transferencia de política."),
+        conceptual_property=("Una representación comprimida del mundo es utilizable por una "
+                             "política compacta."),
+        observable_property=("La predicción del modelo ordena correctamente entidades favorables "
+                             "y desfavorables nunca experimentadas."),
+        possible_intervention="Desactivar el modelo del mundo dejando intacto el resto del ciclo.",
+    ),
+    algorithm=AlgorithmBinding("WorldModel", "v1"),
+    implementation=ImplementationBinding("terrario.agent.world_model.WorldModel"),
+    endpoint=EndpointBinding("examen_prediccion"),
+)
+
+
+# --- UNC-A1 · Pathak 2017 -----------------------------------------------------
+#
+# Se cita la mitad del artículo que trata del RUIDO INCONTROLABLE, no la que
+# define la curiosidad: ésa pertenece a CURIO-A1, y mezclarlas haría de UNC-A1 y
+# CURIO-A1 la misma capacidad con dos nombres.
+
+UNC_A1_OPERATIONALIZATION = OperationalizationRecord(
+    operationalization_id="OPR-UNC-A1-NOISE-01",
+    capability_id="UNC-A1",
+    primary_claim=_claim("CLM-0126", "§2, PDF p. 3", "TI-0090"),
+    supporting_claims=(_claim("CLM-0125", "§2, PDF p. 3", "TI-0090"),),
+    human_operationalization=HumanOperationalization(
+        decision_id="HD-UNC-A1-01",
+        scope=("Incertidumbre entendida como la parte del error de predicción que procede de "
+               "factores que el organismo no controla, y que por tanto no debe perseguir."),
+        excluded_scope=(
+            "No se afirma curiosidad: CLM-0121 a CLM-0124 pertenecen a CURIO-A1.",
+            "No se afirma que el estimador esté calibrado; el endpoint sigue pendiente.",
+            "No se afirma dinámica inversa: A4 no la implementa."),
+        conceptual_property=("Parte del error de predicción es irreducible, y distinguirla es lo "
+                             "que evita perseguir ruido."),
+        observable_property=("La varianza estimada es mayor ante consecuencias genuinamente "
+                             "estocásticas que ante consecuencias deterministas no aprendidas."),
+        possible_intervention="Desactivar el estimador de incertidumbre dejando intacta la política.",
+    ),
+    algorithm=AlgorithmBinding("UncertaintyEstimator", "v1"),
+    implementation=ImplementationBinding("terrario.agent.uncertainty.UncertaintyEstimator"),
+    endpoint=EndpointBinding("PENDIENTE-calibracion-de-incertidumbre"),
+)
+
+
+REGISTRY.update({record.operationalization_id: record for record in (
+    LEARN_A1_OPERATIONALIZATION,
+    HOMEO_A1_OPERATIONALIZATION,
+    WM_A1_OPERATIONALIZATION,
+    UNC_A1_OPERATIONALIZATION,
+)})
