@@ -1,5 +1,10 @@
 # Brief · Reestructuración del corpus de Terrario y construcción de `theory-v2`
 
+> **Anexo.** El documento maestro es `ORIENTACIONES_CORPUS_COMPLETAS.md`, que cubre estado,
+> defectos, contrato de claims, tipos de documento, artefactos, hashes, construcción,
+> adquisición y aceptación. Esto queda como detalle de una parte.
+
+
 **Para un agente externo con acceso al disco.** Autorizado por Wis, 2026-09-18.
 
 Este documento es autosuficiente: contiene rutas exactas, esquemas exactos, reglas de validación

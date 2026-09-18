@@ -1,5 +1,10 @@
 # Brief · Documentos que el corpus necesita
 
+> **Anexo.** El documento maestro es `ORIENTACIONES_CORPUS_COMPLETAS.md`, que cubre estado,
+> defectos, contrato de claims, tipos de documento, artefactos, hashes, construcción,
+> adquisición y aceptación. Esto queda como detalle de una parte.
+
+
 **2026-09-18.** Para quien vaya a conseguir los ficheros. Cada entrada trae identificación exacta,
 qué desbloquea, y por qué la necesito ahora y no después.
 
