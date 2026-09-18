@@ -133,10 +133,7 @@ integridad**.
 docs/handoff/HEA_CLAIMS_EXTRAIDOS_v1.csv
 ```
 
-**97 claims** de HEA-001, HEA-005, HEA-007, HEA-008, HEA-011, HEA-014, HEA-015 y HEA-016, leídos
-del cuerpo de los PDFs, **con locator exacto de sección y página**, y verificados releyendo la
-página citada: 38 de 40 comprobaciones independientes confirmaron locator correcto y afirmación
-sostenida contra el PDF; las 2 restantes traen el matiz anotado.
+**176 claims** — el corpus HEA extraído entero, sus 15 documentos.
 
 **Aviso de paginación en HEA-015.** Ese PDF es una re-composición en Word (Hollnagel, 2004) de 10
 páginas del artículo original de 9, sin números de página de revista impresos. La correspondencia
@@ -146,7 +143,17 @@ de *Int. J. Systems Sci.* 1(2):89-97 antes de sellar v2. Columnas: `claim_id`, `
 `source_concept`, `relation_type`, `target_concept`, `claim_text_or_paraphrase`, `pagina_seccion`,
 `explicit_or_inferred`, `evidence_type`, `bears_on`.
 
-Estos entran a `theory-v2` **tal cual**, tras remapear sus ids al espacio `CLM-*`.
+Todos con **locator exacto de sección y página**, leídos del cuerpo del PDF. Verificados releyendo
+la página citada: **61 de 68 comprobaciones** independientes confirmaron locator correcto y
+afirmación sostenida.
+
+**Los 7 que no pasaron no son ruido: son la razón de verificar.** El patrón dominante es tipar como
+`AUTHOR_EXPLICIT` una cláusula que es inferencia del extractor, o importar a un paper el encuadre
+de otro. Ejemplo real, HEA-002: la extracción decía que la recompensa «ya no es una diferencia de
+drives entre dos pasos» — eso es la formulación de Keramati & Gutkin, que este paper cita pero no
+afirma. Antes de sellar v2, **cada claim rechazado hay que retiparlo o quitarlo**, no promoverlo.
+
+Entran a `theory-v2` tras remapear sus ids al espacio `CLM-*`.
 
 ---
 
