@@ -97,20 +97,33 @@ def marcar(ruta: str, tarea: str, motivo: str) -> int:
     return 0
 
 
-def consultar(ruta: str, tarea: str) -> int:
-    """¿Vale la pena abrirlo? Sale 1 si el registro dice que no."""
+def veredicto(ruta: str, tarea: str) -> tuple[bool, str, int]:
+    """Consulta sin imprimir, para que otro gate la use.
+
+    Devuelve (descartado, motivo, bytes) y **registra el evento**. Que lo
+    registre importa: el ahorro sólo es medible donde ocurre, y ocurre cuando
+    otro paso del trabajo decide no abrir algo. Una consulta que no se cuenta es
+    un ahorro que no existe para el contador.
+    """
     with conectar() as conexion:
         _evento(conexion, "CONSULTA", ruta, tarea)
         fila = conexion.execute(
             "SELECT motivo, bytes FROM irrelevante WHERE ruta=? AND tarea=?",
             (ruta, tarea)).fetchone()
         if fila is None:
-            print(f"ábrelo: sin registro para «{tarea}»")
-            return 0
+            return False, "", 0
         _evento(conexion, "DESCARTE", ruta, tarea, fila["bytes"])
-        print(f"NO lo abras: {fila['motivo']}  "
-              f"(hasta ~{fila['bytes'] // BYTES_POR_TOKEN} tokens)")
-        return 1
+        return True, fila["motivo"], fila["bytes"]
+
+
+def consultar(ruta: str, tarea: str) -> int:
+    """¿Vale la pena abrirlo? Sale 1 si el registro dice que no."""
+    descartado, motivo, bytes_ = veredicto(ruta, tarea)
+    if not descartado:
+        print(f"ábrelo: sin registro para «{tarea}»")
+        return 0
+    print(f"NO lo abras: {motivo}  (hasta ~{bytes_ // BYTES_POR_TOKEN} tokens)")
+    return 1
 
 
 def falso_descarte(ruta: str, tarea: str) -> int:

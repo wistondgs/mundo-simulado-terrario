@@ -22,6 +22,13 @@ describe, que es exactamente el fallo que este gate existe para impedir.
     python scripts/cartografia_check.py            comprueba; sale != 0 si hay algo obsoleto
     python scripts/cartografia_check.py --write    regenera el manifiesto tras releer
     python scripts/cartografia_check.py --section "IX"   limita el alcance
+    python scripts/cartografia_check.py --tarea paridad-runtime
+                                        filtra la lista de lectura con el registro negativo
+
+Con `--tarea`, el gate deja de ser sólo una alarma y pasa a devolver una lista de
+lectura ya filtrada: qué envejeció, menos lo que ya se aprendió que no sirve para
+esa clase de tarea. Un gate que nombra cuarenta ficheros es un gate que se
+ignora.
 """
 
 from __future__ import annotations
@@ -39,6 +46,9 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from terrario.lab.characterization import file_sha256
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from registro_negativo import BYTES_POR_TOKEN, veredicto  # noqa: E402
 
 SCHEMA = "terrario.docs.cartography-manifest/v1"
 CARTOGRAPHY = PROJECT_ROOT / "docs" / "CARTOGRAFIA_TERRARIO_01.md"
@@ -113,7 +123,7 @@ def write_manifest() -> int:
     return 0
 
 
-def check(only: str | None) -> int:
+def check(only: str | None, tarea: str | None = None) -> int:
     if not MANIFEST.is_file():
         print(f"no hay manifiesto: {MANIFEST.relative_to(PROJECT_ROOT)}")
         print("ejecuta --write tras leer el código que la cartografía describe")
@@ -123,7 +133,13 @@ def check(only: str | None) -> int:
     recorded = {title: entry["files"] for title, entry in manifest["sections"].items()}
     current = survey()
 
+    # G1 dice qué envejeció; el registro negativo dice qué de eso no vale la pena
+    # abrir para ESTA clase de tarea. Unidos, lo que sale no es «lee estas
+    # secciones» sino una lista de lectura ya filtrada — que es lo único que hace
+    # accionable un mapa: sin filtro, un gate que nombra cuarenta ficheros es un
+    # gate que se ignora.
     stale: dict[str, list[str]] = {}
+    descartes: list[tuple[str, str, int]] = []
     for title, files in current.items():
         if only and only.lower() not in title.lower():
             continue
@@ -135,11 +151,20 @@ def check(only: str | None) -> int:
         for relative, digest in sorted(files.items()):
             before = was.get(relative)
             if before is None:
-                reasons.append(f"cita nueva: {relative}")
+                motivo = f"cita nueva: {relative}"
             elif digest == "ABSENT":
-                reasons.append(f"ya no existe: {relative}")
+                motivo = f"ya no existe: {relative}"
             elif digest != before:
-                reasons.append(f"cambió: {relative}")
+                motivo = f"cambió: {relative}"
+            else:
+                continue
+            if tarea:
+                descartado, porque, bytes_ = veredicto(relative, tarea)
+                if descartado:
+                    descartes.append((relative, porque, bytes_))
+                    reasons.append(f"{motivo}  —  DESCARTADO: {porque}")
+                    continue
+            reasons.append(motivo)
         for relative in sorted(set(was) - set(files)):
             reasons.append(f"dejó de citarse: {relative}")
         if reasons:
@@ -158,6 +183,13 @@ def check(only: str | None) -> int:
         for reason in reasons:
             print(f"      {reason}")
         print()
+    if descartes:
+        evitados = sum(b for _, _, b in descartes) // BYTES_POR_TOKEN
+        unicos = {ruta for ruta, _, _ in descartes}
+        print(f"  {len(unicos)} fichero(s) descartado(s) para «{tarea}»: "
+              f"hasta ~{evitados} tokens que no hace falta releer.")
+        print("  Si alguno resulta que sí hacía falta:")
+        print(f"      python scripts/registro_negativo.py falso-descarte <ruta> {tarea}\n")
     print("G1: léelas antes de construir sobre ellas, reescríbelas y corre --write.")
     return 1
 
@@ -168,8 +200,10 @@ def main() -> int:
                         help="regenera el manifiesto (sólo tras releer el código)")
     parser.add_argument("--section", default=None,
                         help="limita la comprobación a las secciones que contengan este texto")
+    parser.add_argument("--tarea", default=None,
+                        help="clase de tarea; filtra la lista de lectura con el registro negativo")
     args = parser.parse_args()
-    return write_manifest() if args.write else check(args.section)
+    return write_manifest() if args.write else check(args.section, args.tarea)
 
 
 if __name__ == "__main__":
