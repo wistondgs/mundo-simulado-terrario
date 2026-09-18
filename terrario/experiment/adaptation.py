@@ -32,6 +32,7 @@ from terrario.experiment.campaign import (
     verify_run_completion,
     write_manifest,
 )
+from terrario.world.transition import build_episode_components
 from terrario.experiment.controller import ExperimentController, build_world_state, load_scenario, materialize_scenario
 from terrario.experiment.specs import EvidenceRecord, EvidenceSpec
 from terrario.experiment.statistics import descriptive, paired_comparison, sensitivity_label
@@ -186,14 +187,8 @@ VARIANTS: dict[str, dict[str, Any]] = {
 
 
 def _phase_components(scenario: dict[str, Any]):
-    world = WorldStateManager(
-        build_world_state(scenario), scenario.get("duration", 500), scenario.get("max_energy", 100.0),
-        scenario.get("step_energy_cost", 0.0), scenario.get("expose_time_fraction", True),
-    )
-    rules = RuleEngine()
-    rules.load_rules(scenario.get("rules", {}))
-    world.set_rules_version(rules.version)
-    return world, rules, ChangeScheduler(scenario.get("changes", []), rules)
+    components = build_episode_components(scenario, duration_fallback=500)
+    return components.world, components.rules, components.scheduler
 
 
 def _stable_hash(value: Any) -> str:

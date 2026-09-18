@@ -16,6 +16,7 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
+from terrario.world.transition import build_episode_components
 from terrario.observer.logger import ScientificObserver
 from terrario.agent.scientific import scientific_state, scientific_transport_projection
 from terrario.lab.persistence.canonical import content_hash
@@ -86,9 +87,9 @@ def run_materialized_trial(root: Path, identity: ScientificTrialIdentity, *, sce
         int(step_limit), observer_profile if observer_profile in ScientificObserver.VALID_MODES else "scientific_standard", max(1, min(int(step_limit), 100)), str(root), "cpu")
     controller = ExperimentController(config); scenario = materialize_scenario(controller.scenario, identity.world_seed); scenario["world_seed"] = identity.world_seed
     RNGManager.set_global_determinism(identity.agent_seed)
-    world = WorldStateManager(build_world_state(scenario), scenario.get("duration", config.max_steps_per_episode), scenario.get("max_energy", 100.0), scenario.get("step_energy_cost", 0.0), scenario.get("expose_time_fraction", True))
-    rules = RuleEngine(); rules.load_rules(scenario.get("rules", {})); world.set_rules_version(rules.version)
-    scheduler = ChangeScheduler(scenario.get("changes", []), rules); agent = controller._create_agent(identity.agent_identity, identity.agent_seed, scenario)
+    components = build_episode_components(scenario, duration_fallback=config.max_steps_per_episode)
+    world, rules, scheduler = components.world, components.rules, components.scheduler
+    agent = controller._create_agent(identity.agent_identity, identity.agent_seed, scenario)
     observer = ScientificObserver(str(root / "observer"), config.observer_mode, {"scientific_trial_identity": scientific_trial_identity_payload(identity), "plan_hash": identity.plan_hash, "preregistration_root_hash": identity.preregistration_root_hash})
     observation_faults: list[dict[str, Any]] = []
     try:

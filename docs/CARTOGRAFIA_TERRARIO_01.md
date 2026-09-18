@@ -28,12 +28,14 @@ core/        (6 ficheros)   tipos primitivos. NADA sale de aquí.
   events.py           LearningEvent
   ids.py
 
-world/       (7)        física. → core
+world/       (8)        física. → core
   state.py            WorldStateManager · AUTORIDAD del estado
   physics.py          PhysicsEngine · MOVE/PUSH/CONSUME/INSPECT/NOOP
   rules.py            RuleEngine · evalúa y aplica efectos
   scheduler.py        ChangeScheduler · inversiones programadas
   opportunities.py    OpportunityLifecycle · despawn/cooldown/respawn
+  transition.py       AUTORIDAD COMPARTIDA · build_world_state, find_target,
+                      build_episode_components, SEMANTICS_VERSION
   scenario.py
   observation.py
 
@@ -164,11 +166,20 @@ Sólo dos funciones lo hacen de principio a fin:
 
 ## 19 · Qué duplican
 
-- **`_find_target`**: `controller.py:317` (método) y `sandbox_runtime.py:294` (función módulo).
-  Los diferencié: **semánticamente idénticos**, escritos distinto. Duplicación sin drift actual,
-  con riesgo de drift permanente.
-- La construcción del `Transition` y el cálculo de `energy_delta`.
-- La secuencia perceive → decide → physics → rules → cost.
+- ~~**`_find_target`**: `controller.py:317` y `sandbox_runtime.py:294`.~~ **RESUELTO**
+  (2026-09-17). Una sola implementación en
+  [world/transition.py](terrario/world/transition.py); los dos sitios delegan y el método del
+  controller se conserva porque `causal.py` lo llama a través de paquetes. Eran semánticamente
+  idénticos, que es la única razón por la que el traslado es demostrablemente neutro — probado con
+  la fixture de conducta.
+- ~~La construcción del mundo, copiada en cuatro sitios~~ **RESUELTO** (2026-09-17):
+  `build_episode_components` en `world/transition.py`. Los fallbacks habían derivado —
+  `duration → config.max_steps_per_episode` en un sitio y el literal `500` en otro — y ahora el
+  fallback es un parámetro, porque los dos llamadores difieren legítimamente en orquestación.
+  `build_world_state` se movió de `experiment/` a `world/`, con re-export para los treinta
+  ficheros que lo importan desde allí.
+- La construcción del `Transition` y el cálculo de `energy_delta`. **Pendiente.**
+- La secuencia perceive → decide → physics → rules → cost. **Pendiente** — es `run_step`.
 
 ## 20 · Divergencias semánticas — ver §XXI.
 
@@ -351,9 +362,15 @@ loops leen dicts de escenario directamente. No reciben una representación compi
 
 ## 53-54 · ¿Existe `WorldDefinition → ExecutableWorldSemantics`?
 
-**No.** `WorldDefinition` es una representación **descriptiva y hasheable** para el laboratorio;
-el runtime nunca la consume. Ambos loops interpretan el dict del escenario **por separado**. Ésa
-es la raíz estructural de toda la sección §XXI.
+**Parcialmente, desde el 2026-09-17.** `WorldDefinition` sigue siendo una representación
+descriptiva y hasheable que el runtime nunca consume. Lo que cambió es que la **construcción** del
+episodio ya no se interpreta por separado: `build_episode_components`
+([world/transition.py](terrario/world/transition.py)) es la única que arma mundo, reglas, calendario
+y física, y las cuatro copias delegan en ella. `SEMANTICS_VERSION` declara bajo qué semántica se
+produjo un resultado.
+
+Lo que **sigue interpretándose por separado** es la secuencia del paso — `run_step` no existe aún —
+y ésa es la raíz que queda de §XXI.
 
 ## 55-59 · Divergencias declarado ↔ ejecutado
 

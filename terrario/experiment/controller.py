@@ -22,7 +22,8 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
-from terrario.world.transition import find_target
+from terrario.world.transition import (
+    build_episode_components, build_world_state as _build_world_state, find_target)
 from terrario.world.opportunities import OpportunityLifecycle
 from terrario.agent.scientific import scientific_state as build_scientific_state, scientific_transport_projection
 
@@ -92,26 +93,9 @@ def _observer_planner_proposal_trace(agent_events: list[dict[str, Any]]) -> list
     ]
 
 
-def build_world_state(scenario: dict[str, Any]) -> WorldState:
-    grid_w, grid_h = scenario["grid_size"]
-    occupancy = np.zeros((grid_h, grid_w), dtype=np.int32)
-    objects: dict[int, ObjectSpec] = {}
-    for i, obj_data in enumerate(scenario.get("objects", [])):
-        pos = Position(*obj_data["pos"])
-        objects[i] = ObjectSpec(
-            object_id=i, pos=pos, channels=np.array(obj_data["channels"], dtype=np.float32),
-            movable=obj_data.get("movable", True), energy_value=obj_data.get("energy_value", 0.0),
-            properties=dict(obj_data.get("properties", {})),
-        )
-        occupancy[pos.x, pos.y] += 1
-    start = scenario.get("agent_start", {"pos": [5, 5], "energy": 100.0})
-    agent_pos = Position(*start["pos"])
-    occupancy[agent_pos.x, agent_pos.y] += 1
-    return WorldState(
-        grid_width=grid_w, grid_height=grid_h, time=0, objects=objects,
-        agents={0: AgentState(0, agent_pos, start.get("energy", 100.0))},
-        rules_version=0, occupancy=occupancy,
-    )
+#: Re-exported from `world/transition.py`, where the implementation now lives.
+#: Thirty callers import it from here; the name stays so none of them change.
+build_world_state = _build_world_state
 
 
 class ExperimentController:
@@ -138,17 +122,10 @@ class ExperimentController:
         agent_seed = seed + 1_000_003
         scenario = materialize_scenario(self.scenario, world_seed)
         RNGManager.set_global_determinism(agent_seed)
-        world_mgr = WorldStateManager(
-            build_world_state(scenario),
-            scenario.get("duration", self.config.max_steps_per_episode),
-            scenario.get("max_energy", 100.0),
-            scenario.get("step_energy_cost", 0.0),
-            scenario.get("expose_time_fraction", True),
-        )
-        rule_engine = RuleEngine()
-        rule_engine.load_rules(scenario.get("rules", {}))
-        world_mgr.set_rules_version(rule_engine.version)
-        scheduler = ChangeScheduler(scenario.get("changes", []), rule_engine)
+        components = build_episode_components(
+            scenario, duration_fallback=self.config.max_steps_per_episode)
+        world_mgr, rule_engine, scheduler = (
+            components.world, components.rules, components.scheduler)
         agent = self._create_agent(agent_type, agent_seed, scenario)
         run_dir = os.path.join(
             self.config.output_dir, "observations", self.config.experiment_id,

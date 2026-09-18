@@ -22,7 +22,8 @@ from terrario.world.physics import Physics
 from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
-from terrario.world.transition import find_target
+from terrario.world.transition import (
+    WorldPhysicsNotDeclared, build_episode_components, find_target)
 
 TRACE_SCHEMA="terrario.sandbox.trace/v1"; MAX_STEPS=2000
 class ExecutionClassification(StrEnum): PREVIEW_ONLY="PREVIEW_ONLY"; ENGINEERING_SANDBOX="ENGINEERING_SANDBOX"; SCIENTIFIC="SCIENTIFIC"
@@ -109,12 +110,17 @@ class SandboxService:
         # up running 1200 steps with no energy cost and no reward. The defaults
         # belong at the YAML boundary (`_runtime_economy`), where a person can
         # see what they are choosing.
-        missing=[k for k in ("duration","max_energy","step_energy_cost","expose_time_fraction") if k not in s]
-        if missing: raise SandboxValidationError(f"WORLD_PHYSICS_NOT_DECLARED: {sorted(missing)}")
-        manager=WorldStateManager(build_world_state(s),s["duration"],s["max_energy"],s["step_energy_cost"],s["expose_time_fraction"]); rules=RuleEngine();rules.load_rules(s.get("rules",{}));manager.set_rules_version(rules.version)
+        try:
+            components=build_episode_components(s,duration_fallback=s.get("duration",0),strict_physics=True)
+        except WorldPhysicsNotDeclared as exc:
+            raise SandboxValidationError(str(exc)) from exc
+        manager=components.world; rules=components.rules
         # The world fixes the sensory shape; the spec fixes which concepts exist.
         agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1,**dict(run.spec.agent_configuration)},run.spec.agent_seed,device="cpu")
-        return {"scenario":s,"world":manager,"rules":rules,"scheduler":ChangeScheduler(s.get("changes",[]),rules),"physics":Physics(),"agent":agent}
+        # `physics` stays the same object the components carry: a test replaces it
+        # here to prove a failing step is classified, and a second instance would
+        # make that injection land on a copy nobody runs.
+        return {"scenario":s,"world":manager,"rules":rules,"scheduler":components.scheduler,"physics":components.physics,"agent":agent,"components":components}
     def step(self,run_id):
         run=self.get(run_id)
         if run.state==RunState.READY: run.transition(RunState.RUNNING)
