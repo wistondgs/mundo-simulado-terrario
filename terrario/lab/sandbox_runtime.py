@@ -111,11 +111,31 @@ class SandboxService:
         # belong at the YAML boundary (`_runtime_economy`), where a person can
         # see what they are choosing.
         try:
-            components=build_episode_components(s,duration_fallback=s.get("duration",0),strict_physics=True)
+            # El ciclo de oportunidades pasa a ejecutarse. El banco corría D4S y
+            # D4T sin respawn ni despawn aunque el escenario los declara con
+            # cooldown 3-8: 32 objetos al inicio, 29 a los 250 pasos, cero
+            # reapariciones. Era un mundo estrictamente agotable que nadie
+            # diseñó. `enabled = bool(config)`, así que en los mundos que no lo
+            # declaran -- D0 a D3 -- esto es inerte, y hay un test de paridad que
+            # lo fija en vez de confiarlo.
+            components=build_episode_components(
+                s,duration_fallback=s.get("duration",0),strict_physics=True,
+                with_lifecycle=True,world_seed=run.spec.world_seed)
         except WorldPhysicsNotDeclared as exc:
             raise SandboxValidationError(str(exc)) from exc
         manager=components.world; rules=components.rules
         # The world fixes the sensory shape; the spec fixes which concepts exist.
+        #
+        # Seeded before construction, not only inside it. `create_agent` seeds a
+        # per-agent torch.Generator, but module weights come from the GLOBAL
+        # torch RNG -- `memory.py:156` calls torch.randn with no generator, and
+        # so does every nn.Linear. So two runs of the same spec in one process
+        # produced different organisms, and `initial_parameters_hash` was not
+        # reproducible across processes. The benches were compensating by hand
+        # with torch.manual_seed before each create; the scientific path has
+        # called set_global_determinism since the beginning, and this is the
+        # asymmetry that made "same seed" mean different things on each surface.
+        RNGManager.set_global_determinism(run.spec.agent_seed)
         agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1,**dict(run.spec.agent_configuration)},run.spec.agent_seed,device="cpu")
         # `physics` stays the same object the components carry: a test replaces it
         # here to prove a failing step is classified, and a second instance would

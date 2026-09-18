@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-17",
-  "head": "4171086",
+  "head": "929a80c",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -15,7 +15,7 @@
         "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
         "terrario/lab/instrument_registry.py": "e146733662f0911357ffbd8b61a9f326dfe1968bcac8ddc8b6d3094b80debbdc",
         "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
-        "terrario/lab/sandbox_runtime.py": "318f5faf5f576a46cf46a3c52129269f581e8ece163229bea96e212bef233701",
+        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8",
         "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
@@ -36,7 +36,7 @@
       "files": {
         "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
         "terrario/experiment/controller.py": "cc1c0ab8a1f61572157e7c68956694d67c173631793488824591e294f149b6b1",
-        "terrario/lab/sandbox_runtime.py": "318f5faf5f576a46cf46a3c52129269f581e8ece163229bea96e212bef233701",
+        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8",
         "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
@@ -128,7 +128,7 @@
     "XIX · Traza, ScientificFrame y evidencia": {
       "files": {
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/lab/sandbox_runtime.py": "318f5faf5f576a46cf46a3c52129269f581e8ece163229bea96e212bef233701"
+        "terrario/lab/sandbox_runtime.py": "b28d72973ec0bd5bdb4c6b3f08a3183b22f79d00709c12f2223295bb642373e8"
       }
     },
     "XX · Checkpoints y persistencia": {
