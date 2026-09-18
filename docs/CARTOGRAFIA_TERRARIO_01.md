@@ -2573,3 +2573,356 @@ No verificado en esta pasada, y por qué:
 
 La última es la más valiosa de todas: separa «colapsa por la geometría de la loss» de «colapsa al
 recibir evidencia».
+
+---
+
+# XXXI · La cadena científica de evidencia
+
+Mapeo del 2026-09-17. Cubre `terrario/lab/preregistration/`, `terrario/lab/execution/`,
+`terrario/lab/evidence_publication.py`, `terrario/lab/persistence/`,
+`terrario/lab/measurement_status.py`, `terrario/lab/instrument_registry.py`,
+`terrario/lab/metric_result_sealing.py`.
+
+## 31.1 · La cadena, y dónde se corta
+
+```
+✅ fuente (PDF + sha256) → claim → hiperarista con roles
+✅ hiperarista → hipótesis → ExperimentDraft         146 borradores reales
+✅ ExperimentDraft → Preregistro → TrialMatrix → run_attempt
+                                                      144 preregistros · 146 matrices
+                                                      240 intentos · 141 ejecuciones
+❌ corrida → evidencia          scientific_results = 0 · empirical_evidence = 0
+❌ evidencia → hiperarista      el campo no existe; corroboration_status sólo sabe negar
+❌ el ciclo experimental real    screen_concepts / experiment_* escriben a runs/ y artifacts/
+                                 y no tocan ninguna tabla del grafo
+```
+
+**240 intentos ejecutados, cero resultados científicos publicados.** Todo el aparato corre y nada
+ha cruzado nunca el cortafuegos.
+
+## 31.2 · Preregistro
+
+`AnalysisPlan` ([domain.py:288](terrario/lab/preregistration/domain.py:288)) — 12 campos, **ninguno
+con default**; los defaults reales los inyecta el ensamblador en
+[service.py:621](terrario/lab/preregistration/service.py:621).
+
+`ProtocolSnapshot` ([domain.py:397](terrario/lab/preregistration/domain.py:397)) — 19 campos.
+
+**Máquina de estados** ([domain.py:49](terrario/lab/preregistration/domain.py:49)):
+
+```
+DRAFT → READY_FOR_REVIEW → REVIEW_IN_PROGRESS → REVIEWED → PREREGISTERED_LOCKED
+                                                     ↓              ↓
+                                                   DRAFT      SUPERSEDED / WITHDRAWN
+```
+
+`assert_transition` sólo se usa en **2 de 7** transiciones (`withdraw` y `supersede`); las demás se
+validan con comparaciones de string sueltas en el repositorio. Dos fuentes de verdad.
+
+**Amendment vs deviation** ([service.py:322](terrario/lab/preregistration/service.py:322)):
+una *deviation* registra lo que pasó distinto de lo planeado y no engendra nada; un *amendment* es
+cambio de diseño y **debe parir un preregistro hijo** salvo que sea metadatos. Ambos se sellan como
+`POST_LOCK_GOVERNANCE_RECORD`.
+
+**Inmutabilidad estructural** ([migrations.py:183](terrario/lab/persistence/migrations.py:183)):
+
+```sql
+CREATE TRIGGER artifact_versions_no_update BEFORE UPDATE ON artifact_versions
+BEGIN SELECT RAISE(ABORT, 'artifact versions are append-only'); END;
+```
+
+## 31.3 · Diecisiete roturas de provenance
+
+| # | Rotura | Dónde | Sev |
+|---|---|---|---|
+| 17 | **`assert_reportable` no lo llama nada en producción**; dos registros de métricas disjuntos | [instrument_registry.py:254](terrario/lab/instrument_registry.py:254) | 🔴 |
+| 13 | `definition_version` es una **constante global** — la semántica de métrica no se versiona en el ledger; la comprobación de `evidence_publication` es tautológica | [service.py:675](terrario/lab/preregistration/service.py:675) | 🔴 |
+| 1 | `observation_contract_hash`, `action_contract_hash`, `interventions_hash` y `agent_identity_hashes` **hashean etiquetas literales**, no contenido | [service.py:592](terrario/lab/preregistration/service.py:592) | 🔴 |
+| 10 | `implementation_hash` hashea la **ruta del símbolo**; reescribir el evaluador no lo mueve | [service.py:675](terrario/lab/preregistration/service.py:675) | 🔴 |
+| 9 | `dirty_diff_hash` hashea `git status --porcelain` — **nombres, no contenido** | [service.py:752](terrario/lab/preregistration/service.py:752) | 🔴 |
+| 11 | `_git` devuelve `""` ante cualquier fallo → **árbol sucio declarado limpio** | [service.py:773](terrario/lab/preregistration/service.py:773) | 🔴 |
+| 16 | **`NOT_EVALUABLE` no es publicable**: `denominator <= 0` es blocker. La ausencia de soporte desaparece del registro permanente | [evidence_publication.py:278](terrario/lab/evidence_publication.py:278) | 🟠 |
+| 15 | `run_measures.py` **no importa `measurement_status`**: colapsa MISSING, NOT_EVALUABLE e INVALID en `None` | `run_measures.py` | 🟠 |
+| 14 | `missing_data_behavior` **hardcodeado a `"ERROR"`** para toda métrica; la política real del instrumento nunca llega al ledger | [service.py:678](terrario/lab/preregistration/service.py:678) | 🟠 |
+| 8 | Los **5 gates humanos** registran el mismo literal `"local-user"` | `preregistration/api.py`, `execution/api.py` | 🟠 |
+| 12 | `epistemic_classification` sin verificación contra la regla ni contra el número | [metric_result_sealing.py:66](terrario/lab/metric_result_sealing.py:66) | 🟠 |
+| 6 | CONFIRMATORY sobre semillas expuestas = warning **aceptable**; `"VERIFIED_UNEXPOSED_INVENTORY"` es convención de string no verificada | [validation.py:206](terrario/lab/preregistration/validation.py:206) | 🟠 |
+| 7 | `software_identity` degrada a `"UNKNOWN"` sin bloquear | [dispatcher.py:76](terrario/lab/execution/dispatcher.py:76) | 🟡 |
+| 5 | Una ejecución `ABORTED` **no marca el preregistro** | (ausencia de código) | 🟡 |
+| 2 | `assert_transition` en 2 de 7 transiciones | [service.py:305](terrario/lab/preregistration/service.py:305) | 🟡 |
+| 3 | `sequence=2` hardcodeada en el evento de estado de revisión | [repository.py:206](terrario/lab/preregistration/repository.py:206) | 🟡 |
+| 4 | `withdraw` imposible desde `DRAFT`; devuelve 500 | [domain.py:636](terrario/lab/preregistration/domain.py:636) | 🟡 |
+
+## 31.4 · Lo que sí está bien atado
+
+Cadena hash de eventos de ejecución ([execution/service.py:430](terrario/lab/execution/service.py:430));
+cadena de auditoría del preregistro ([repository.py:486](terrario/lab/preregistration/repository.py:486));
+verificación CAS de componentes del bundle ([commitments.py:106](terrario/lab/preregistration/commitments.py:106));
+binding revisión↔lock↔attestation ([repository.py:342](terrario/lab/preregistration/repository.py:342));
+aislamiento de aliasing en forks causales (`BRANCH_ALIASING_DETECTED`, [causal.py:224](terrario/lab/causal.py:224));
+liberación **visible** de trabajos huérfanos (`_release_orphaned_jobs`, `TRIAL_RELEASED_AFTER_LEASE_LOSS`);
+y el único default que falla hacia la incertidumbre: `.get("critical", True)` en desviaciones
+([evidence_publication.py:281](terrario/lab/evidence_publication.py:281)).
+
+## 31.5 · `measurement_status` — la coerción a cero es estructuralmente imposible
+
+[measurement_status.py:67](terrario/lab/measurement_status.py:67):
+
+```python
+def __float__(self) -> float:
+    if self.status is not Status.OK:
+        raise NotEvaluableError(...)
+```
+
+No hay `.or_zero()`, ni `.value_or()`, ni `__int__`. `ratio()` resuelve el denominador vacío **en el
+único sitio donde nace**. Sus consumidores son cuatro: `selector_isolation`, `snapshot_bank`,
+`capability_exam` y `sandbox_runtime`. **`run_measures.py`, el camino de medida principal, no está
+entre ellos.**
+
+## 31.6 · Persistencia
+
+9 migraciones numeradas, 65 tablas, checksum sha256 por migración verificado antes **y después** de
+aplicar ([store.py:156](terrario/lab/persistence/store.py:156)); backup automático si hay contenido;
+WAL con `synchronous=FULL`; `BEGIN IMMEDIATE`. Sin downgrade.
+
+---
+
+# XXXII · La capa de conocimiento
+
+Mapeo del 2026-09-17. Cubre `terrario/lab/hypergraph/`, `terrario/lab/crossgraph/`,
+`terrario/lab/referencegraph/`, `terrario/lab/theory/`, `terrario/lab/agent_composition.py`,
+`knowledge/`, `theory_snapshots/`.
+
+**Veredicto:** contratos tipados de alta calidad (≈6500 líneas), con **dos subsistemas
+físicamente vacíos en producción** y un solo punto de contacto con el ciclo experimental.
+
+## 32.1 · Qué está conectado de verdad
+
+| Módulo | Líneas | Filas en producción | Consumidor real |
+|---|---|---|---|
+| `agent_composition.py` | 170 | — | ✅ `sandbox_runtime:10,50` + 4 scripts de experimento |
+| `hypergraph/` | ~500 | 2 hipótesis, 146 borradores | sólo API HTTP / UI |
+| `theory/` | ~1400 | 1 snapshot, 146 borradores | sólo API HTTP / UI |
+| `referencegraph/` | **1293** | **0 en 22 tablas** | ninguno (fuera de tests y un benchmark sintético) |
+| `crossgraph/` | **1740** | **0 en 9 tablas** | ninguno |
+
+`crossgraph/d2trace.py` —la pieza que uniría Reference → Claim → Theory → Hyperedge → Scenario—
+**no tiene ningún llamador, ni siquiera un test**.
+
+Confirmación negativa: `grep "hypergraph\|crossgraph\|referencegraph\|theory"` sobre
+`terrario/lab/run_measures.py` da **una coincidencia, y es un comentario**.
+`terrario/experiment/controller.py` no importa nada de esta capa.
+
+## 32.2 · Corpus
+
+El corpus físico **existe**: 42 PDFs en `/home/wis/Documentos/teoria de la inteligencia/`.
+El formato que `import_corpus.py` consume —`manifest/CORPUS_MANIFEST.jsonl`— **no existe en
+ninguna parte del disco**.
+
+El catálogo real vive en otro sitio y otro formato:
+`theory_snapshots/theory-f59dbb6d6ee3850c/SOURCE_PROVENANCE_v0.3.csv`, con `ingestion_summary.json`
+declarando 44 fuentes, 189 claims, 283 conceptos raw, 224 canónicos, 206 relaciones, 8 hiperaristas.
+
+**Son dos sistemas paralelos que nunca se tocaron.**
+
+`referencegraph/domain.py` modela 17 tipos de nodo y 22 de arista, con `ClaimLocator`
+([domain.py:181](terrario/lab/referencegraph/domain.py:181)) capaz de citar página, sección, figura,
+tabla, párrafo, apéndice y suplemento. El importador **crea el locator vacío**
+([import_corpus.py:367](terrario/lab/referencegraph/import_corpus.py:367)).
+
+## 32.3 · Conceptos
+
+**El ciclo de madurez RAW → DEFINED → RELATED → OPERATIONALIZABLE → IMPLEMENTED → INSTRUMENTED →
+TESTED → RETAINED/REVISED/REJECTED no existe.** Lo que hay son tres enums desconectados:
+
+- `EpistemicStatus` ([models.py:14](terrario/lab/models.py:14)) — 9 valores, **sin función de
+  transición**; el código sólo verifica que no suba: `raise ValueError("materialization cannot
+  promote epistemic status")`.
+- `ReviewState` ([theory/factory.py:19](terrario/lab/theory/factory.py:19)) — sí tiene máquina real,
+  pero se aplica a **diseños de experimento**, no a conceptos.
+- `ScientificReadiness` — tabla hardcodeada por candidato.
+
+**`Concept`** ([agent_composition.py:32](terrario/lab/agent_composition.py:32)): `key, label,
+purpose, without_it, block, corpus_block`. Diez conceptos.
+
+**`corpus_block` es un `int` que ningún otro fichero lee** — `grep` da una sola línea, su
+declaración. Sin `reference_id`, sin `claim_id`, sin locator. El comentario más honesto del
+repositorio está justo ahí ([agent_composition.py:89](terrario/lab/agent_composition.py:89)):
+
+> `# Corpus block 0 -- meaning NONE. Every other concept here answers to a numbered block`
+> `# of the 64-block map; this one does not, and saying it did would be a fabricated citation.`
+
+## 32.4 · Hipergrafo — lo mejor construido de la capa
+
+`TheoryHyperedgeBinding` ([theory_operational.py:27](terrario/lab/hypergraph/theory_operational.py:27))
+— **13 campos, todos obligatorios**, con validación fail-closed:
+
+```python
+raise ValueError("hyperedge binding requires a complete provenance locator")
+raise ValueError("role binding basis is not source-backed")
+```
+
+**Roles reales, verificados** en `HYPEREDGE_ROLE_BINDINGS_v0.2.csv`: `agent`,
+`action_sequence_proposer`, `future_state_predictor`, `intrinsic_cost_and_critic_evaluator`.
+Exactamente el caso donde memoria, modelo del mundo y planificador ocupan lugares distintos en la
+misma hipótesis. `materialize()` verifica el **sha256 del PDF real** y rechaza si no coincide.
+
+**Lo que el hipergrafo NO puede hacer:**
+
+- **Adjuntar evidencia.** No hay campo. `corroboration_status` sólo toma `"NOT_CLAIMED"` y
+  `"STRUCTURAL_COMPOSITION_NOT_CORROBORATION"` — existe **para declarar que no hay corroboración**.
+- **Registrar contexto** (mundo, régimen, agente, versión de instrumento). Ausente por completo de
+  `_semantic_payload()`.
+- **Tipar dependencias.** `relation_type` toma dos valores. No existen `REQUIERE / REGULA /
+  HABILITA / COMPENSA`. El tipado fuerte existe en `RelationStrength`
+  ([theory/models.py:25](terrario/lab/theory/models.py:25)) con 5 niveles, pero se aplica a CSV de
+  auditoría, no al hipergrafo.
+
+Consecuencia: **es un almacén de estructura, no de conocimiento acumulado.**
+
+## 32.5 · Generación de hipótesis — sí funciona
+
+Tres generadores: `compose()` (deriva hiperaristas exigiendo compatibilidad de roles con
+`rationale`), `OperationalHypothesisCompiler.compile()` (hiperarista → `HypothesisDraft` con
+premisas trazadas), y `build_portfolio()` (explosión combinatoria: para HYPERCAND-08 con 6
+componentes → 63 rivales + 1 nula).
+
+Producción real: **2 `OperationalHypothesisDraft` y 146 `ExperimentDraft`** en la base de datos,
+con `provenance.source_artifact = "HYPERCAND-01"`.
+
+Pero `build_portfolio` llama a `generate(edge, snapshot_id)` **sin pasar `source_claim_ids`**
+([factory.py:337](terrario/lab/theory/factory.py:337)), así que ese campo queda vacío en todo el
+portafolio generado.
+
+---
+
+# XXXIII · Observación, traza e interfaz
+
+Mapeo del 2026-09-17. Cubre `terrario/observer/`, `terrario/lab/worldstream/`,
+`terrario/lab/api.py`, `terrario/lab/metrics_observer.py`, `terrario/agent/scientific.py`,
+`terrario/lab/static/`, `tests_frontend/`, `scripts/`.
+
+## 33.1 · Seis de once clases de traza son código muerto
+
+`TRACE_REGISTRY` ([trace.py:406](terrario/observer/trace.py:406)) declara 11 clases. El **único**
+llamador de `log_step` pasa un dict vacío
+([controller.py:263](terrario/experiment/controller.py:263)), y `logger.py` sólo escribe una traza
+si está en ese dict.
+
+**Nunca se construyen:** `DecisionTrace`, `PerceptionTrace`, `TemporalTrace`, `MemoryTrace`,
+`PredictionTrace`, `LearningTrace`. Confirmado contra disco: una corrida real sólo produce
+`world`, `consequence`, `sensation`, `provenance` y `transition`.
+
+`ObserverRegistry` declara el canal `decision` con `payload_schema="DecisionTrace"` y
+`availability="AVAILABLE"` — y **ningún `DecisionTrace` se escribe jamás**.
+
+## 33.2 · Dos esquemas de traza, traducción de un solo sentido
+
+| | `TransitionTrace` | `SandboxTraceStep` |
+|---|---|---|
+| versión | `terrario.observer.transition/v2` | `terrario.sandbox.trace/v1` |
+| observación | `observation_t` **y** `observation_t1`, ambos con hash | sólo `agent_observation`, sin hash |
+| terminación | `terminated` **y** `truncated` | sólo `terminated` |
+| contrato de acción v2 | ausente | presente |
+
+`worldstream/service.py:212` construye un `TransitionTrace` *a partir de* un `SandboxTraceStep`
+poniendo `internal_state={}` y `agent_trace_events=[]`, y **fabrica los hashes de observación ad
+hoc** con `sha256` del payload JSON en vez de `Observation.obs_hash()`. Dos definiciones distintas
+de «el hash de esta observación» conviviendo.
+
+**No hay campo común entre una sesión de sandbox y un trial científico.** Es deliberado —el
+cortafuegos— pero significa que no se pueden correlacionar por identidad.
+
+## 33.3 · Autoridad de la traza
+
+- **Worldstream:** *«El JSONL es autoritativo; todo otro artefacto es desechable»*
+  ([worldstream/trace.py:31](terrario/lab/worldstream/trace.py:31)). El SQLite guarda punteros de
+  byte; `_ensure_index` detecta divergencia y reconstruye; `verify()` recorre la cadena de hashes.
+- **Científico:** *«A live in-memory view is only an accelerator; terminal truth is CAS»*
+  ([execution/observation.py:71](terrario/lab/execution/observation.py:71)).
+
+## 33.4 · Pasividad — cinco mutaciones desde código de observación
+
+| | Dónde | Qué pasa | ¿Cambia trayectoria? |
+|---|---|---|---|
+| **V1** | `capability_exam.py` vs `a4_advanced.py:347` | la lista `volatile` omitía `homeostasis._energy` (1.0→0.5) y `_trace` (0→40) | **sí en potencia** — energía → `exploration_bias` → temperatura → muestreo. **Medido: efecto nulo**, porque el examen nunca llama `decide()`. **Reparado**: el conjunto ahora se deriva. |
+| **V2** | `experiment_learner_sample_efficiency.py` | `exam()` reimplementado sin guardián, y el `before` corría justo antes del entrenamiento | **medido: idéntico hasta el último dígito** en 3 semillas. **Reparado.** |
+| **V3** | [opportunities.py:195](terrario/world/opportunities.py:195) desde `controller.py:246` | `geometry()` muta `min_distance_during_lifetime` y `ever_visible` | **no** — pero la métrica depende de cuántas veces se llamó y con qué `view_radius` |
+| **V4** | [a4_advanced.py:774](terrario/agent/agents/a4_advanced.py:774) desde `controller.py:264` | `get_trace_events()` **vacía** `_trace` del agente y de 5 submódulos | **no** — pero un segundo observador vería cero eventos. Observar consume lo observado. |
+| **V5** | [logger.py:183](terrario/observer/logger.py:183) | el logger escribe `None` en el objeto de traza del llamador | no (código muerto) |
+
+**El backpressure sí puede acortar una corrida.** Superar 16 MiB por frame o 2 GiB de traza lanza
+excepción dentro de `_advance`, el worker marca `FAILED` y la simulación para
+([worldstream/service.py:174](terrario/lab/worldstream/service.py:174)). Una sesión observada es
+más corta que una no observada.
+
+En la ruta científica el fallo de observación **no corrompe** la trayectoria pero **la descarta**:
+`OBSERVER_MATERIALIZATION_FAILED` lleva el intento a `MATERIALIZATION_FAILED`.
+
+**Ningún observador, métrica ni la UI consume RNG.** Verificado módulo por módulo.
+`perceive_targets` deriva los handles por hash salado, no por sorteo, lo que permite que los
+instrumentos usen el mismo resolvedor que el runtime sin tocar ningún flujo aleatorio.
+
+**Brecha:** la pasividad sólo está probada para **A0_RANDOM**. El único agente donde es difícil
+—estado recurrente, memoria episódica, baseline, homeostasis— no tiene ni un test.
+
+## 33.5 · Checkpoints — el único artefacto persistente sin versión
+
+`save()` escribe cuatro cosas: `params.safetensors`, `optimizer.safetensors` (**nunca**: ningún
+agente implementa `get_optimizer_state`), `metadata.json` (**sin `schema_version`**) y
+`runtime_state.pt` con los cuatro estados RNG y el `state_dict` del optimizador.
+
+`_optimizer_for` **sí funciona con A4** por la rama de respaldo `agent.learner._optimizer`, pero es
+un acoplamiento por nombre de atributo privado a dos niveles: un agente que lo llame distinto
+pierde el estado **en silencio**.
+
+**Restaurar A4 no reproduce el siguiente paso.** Quedan fuera: `_hidden`, `episodic_memory._buffer`,
+`_energy_baseline`/`_baseline_count`, `_step`, y **`learner._step_count`** — que decide *si hay
+actualización en este paso*. Del mundo quedan fuera el estado completo de `OpportunityLifecycle`
+(records, pendientes, posiciones recientes, generaciones de linaje) y qué cambios disparó el
+scheduler.
+
+Dos rutas de degradación **silenciosa**: sin `runtime_state.pt` el RNG no se restaura sin aviso; y
+`set_parameters` ignora claves que no reconoce, así que un checkpoint anterior a
+`operation_head`/`selector_head` deja esas cabezas en su inicialización aleatoria.
+
+Y `torch.load(..., weights_only=False)` — ejecución arbitraria por deserialización, en un
+repositorio que eligió `safetensors` precisamente para evitarla.
+
+Hay test de reconstrucción para **A0 y A1**. Ninguno para A4.
+
+## 33.6 · Mallas y controles
+
+**22 mallas** en `run_measures.py`; **6** en el registro de instrumentos. 16 reconstruyen desde la
+traza, 6 leen algo registrado durante la transición.
+
+`cambio_propio` está **declarada y es permanentemente inevaluable**: A4 calcula
+`parameter_delta_norm` en `learn()` y lo pone en su traza; `get_scientific_state()` no lo lleva. La
+malla teóricamente más relevante está rota por un campo que no cruza la frontera — y el código lo
+documenta en vez de esconderlo ([run_measures.py:429](terrario/lab/run_measures.py:429)).
+
+`colapso_politica` es la única malla que emite un **veredicto booleano** sobre el organismo, con
+tres umbrales escritos a mano y **ningún caso conocido**.
+
+**24 controles de falsación** sobre 8 métricas, cada una con techo, suelo y —donde existe— valor
+analítico de azar. Cuatro esperan `None`, codificando que `NOT_EVALUABLE ≠ 0.0`.
+
+## 33.7 · API y pantallas
+
+`lab/api.py` bifurca en `/api/v1/` (científico, delegado) y `/api/` (legado/sandbox). Guardia
+global: toda mutación no enumerada devuelve 405.
+
+**Efecto lateral notable:** un `GET` de previsualización de mundo **escribe un registro de
+exposición** ([api.py:182](terrario/lab/api.py:182)). Mirar un mundo queda registrado — disciplina
+de preregistro correcta contra el *seed hunting*, y a la vez un `GET` que no es seguro, mientras
+`/api/status` responde `"mode": "READ_ONLY"`.
+
+Cuatro superficies: `index.html` (15 vistas), `componer.html` (4 pasos, el frontend del sandbox),
+`review-center.html` (revisión humana) y `workspace/index.html` (el taller visual científico, con
+reductores puros probados en `tests_frontend/unit/`).
+
+## 33.8 · Scripts
+
+38 ficheros. **24 vivos** (10 experimentos, 7 demostraciones CL, 4 semillas E2E, los gates y el
+runner), **4 latentes** (benchmarks), **11 históricos** — entre ellos `run_experiment.py` y
+`ablation_study.py`, ambos del día 1, anteriores a toda la infraestructura de preregistro.
