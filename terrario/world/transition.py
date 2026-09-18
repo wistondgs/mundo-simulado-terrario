@@ -30,8 +30,15 @@ from typing import Any, Mapping
 
 import numpy as np
 
+from terrario.core.action_contract import (
+    ActionIntent, ActionProvenance, AddressingMode, ExecutionStatus, SelectorType,
+    TARGET_BEARING_OPERATIONS, TargetStatus, perceive_targets, resolve,
+)
+from terrario.core.contracts import Transition
+from terrario.core.rng import RNGManager
 from terrario.core.types import (
-    DIRECTION_DELTA, Action, ActionType, AgentState, ObjectSpec, Position, WorldState,
+    DIRECTION_DELTA, Action, ActionType, AgentState, Consequence, ObjectSpec, Position,
+    WorldState,
 )
 from terrario.world.opportunities import OpportunityLifecycle
 from terrario.world.physics import Physics
@@ -190,4 +197,200 @@ def build_episode_components(
         world=world, rules=rules,
         scheduler=ChangeScheduler(scenario.get("changes", []), rules),
         physics=Physics(), scenario=scenario, lifecycle=lifecycle,
+    )
+
+
+# ── Contrato de Acción v2 ────────────────────────────────────────────────
+#
+# Estas tres funciones vivían en `lab/sandbox_runtime.py`, así que la ruta
+# científica no las tenía: bajo T1 el organismo emitía `direction=NONE` y
+# `target_id=-1`, y `find_target` buscaba en su propia celda. Todo CONSUME
+# dirigido a una entidad fallaba en silencio. El brazo experimental T no podía
+# correrse por la ruta autoritativa, y nadie lo sabía porque no fallaba: daba
+# ceros plausibles.
+
+def perceive_slot_table(world,obs,agent,step,world_seed):
+    """The slot table, or None when this agent does not address entities."""
+    mode=getattr(agent,"_addressing_mode",None)
+    if mode is None or mode is AddressingMode.T0_DIRECTIONAL: return None
+    return perceive_targets(world._mutable_state(),0,obs.channels.shape[-1],
+                            salt=f"{world_seed}",step=step,mask=obs.mask)
+
+
+def directional_provenance(world,action,step):
+    """Provenance for a directional consume, so the two arms are comparable.
+
+    Without this the waste decomposition exists only for T1 and the comparison
+    is between a measured arm and an unmeasured one. Resolution is READ here and
+    nothing is written back: T0 keeps the v1 physics path exactly, the faced-cell
+    lookup, so the control arm stays byte-identical to every run that came before
+    Action Contract v2.
+    """
+    if action.action_type not in TARGET_BEARING_OPERATIONS: return {}
+    truth=world._mutable_state()
+    res=resolve(ActionIntent(action.action_type,SelectorType.DIRECTION,int(action.direction)),
+                [],truth,0)
+    valid=res.status is TargetStatus.VALID
+    return {"action_contract":ActionProvenance(step=step,
+        addressing_mode=AddressingMode.T0_DIRECTIONAL.value,perceived_targets=[],
+        perceived_truncated=False,chosen_operation=action.action_type.name,
+        chosen_selector_type=SelectorType.DIRECTION.name,
+        intended_selector_value=int(action.direction),
+        intended_target=action.direction.name,resolved_target=str(res.entity_id) if valid else None,
+        target_status=res.status.value,executed_target=str(res.entity_id) if valid else None,
+        execution_status=(ExecutionStatus.EXECUTED.value if valid
+            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value)).as_record()}
+
+
+def apply_action_contract(world,obs,action,agent,step,perceived):
+    """Resolve the organism's intention against what it could actually perceive.
+
+    Under T0 this is a no-op by construction: the directional contract needs no
+    resolution layer, and the returned action is the one the agent emitted, so a
+    T0 run is byte-identical to a run before Action Contract v2 existed. That
+    matters -- T0 is the control arm, and a control that quietly changed would
+    make the comparison meaningless.
+
+    Under T1 the slot the organism named is resolved here, and ONLY a VALID
+    resolution writes `target_id`. Everything else leaves it at -1 with the
+    direction already pinned to NONE by the agent, so an unresolvable target
+    consumes nothing rather than silently becoming a neighbour (AC2-5). The
+    physics is untouched: it still reads `target_id`, it simply can no longer be
+    handed an entity the organism never perceived (AC2-2), because the only
+    writer is a resolution that came out of the agent's own view window.
+    """
+    if perceived is None: return action,directional_provenance(world,action,step)
+    mode=getattr(agent,"_addressing_mode",AddressingMode.T1_ENTITY)
+    truth=world._mutable_state()
+    targets,truncated=perceived
+    # An operation that addresses space rather than an entity -- MOVE, NOOP --
+    # arrives in v1 shape even under T1, with the direction in `direction` and no
+    # selector value. Normalising here keeps `Domain(s, O_t)` a property of the
+    # operation instead of forcing every caller to remember it.
+    selector=SelectorType(action.selector_type)
+    value=action.selector_value if action.selector_value>=0 else int(action.direction)
+    intent=ActionIntent(action.action_type,selector,value)
+    res=resolve(intent,targets,truth,0)
+    resolved=res.status is TargetStatus.VALID
+    action.target_id=res.entity_id if resolved else -1
+    prov=ActionProvenance(step=step,addressing_mode=mode.value,
+        perceived_targets=[t.handle for t in targets],perceived_truncated=truncated,
+        chosen_operation=action.action_type.name,chosen_selector_type=SelectorType(action.selector_type).name,
+        intended_selector_value=action.selector_value,
+        intended_target=next((t.handle for t in targets if t.slot==action.selector_value),None),
+        resolved_target=res.handle if resolved else None,target_status=res.status.value,
+        executed_target=res.handle if resolved else None,
+        execution_status=(ExecutionStatus.EXECUTED.value if resolved else
+            ExecutionStatus.NOT_APPLICABLE.value if res.status is TargetStatus.NOT_ADDRESSED
+            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value))
+    return action,{"action_contract":prov.as_record()}
+
+
+@dataclass
+class StepOutcome:
+    """Lo que ocurrió en un paso, para que cada superficie lo instrumente a su modo.
+
+    Lleva más de lo que cualquiera de las dos necesita por separado, a propósito:
+    lo que una superficie decida no registrar es asunto suyo, pero lo que ocurrió
+    tiene que ser lo mismo para ambas o no hay una respuesta a «qué pasó».
+    """
+
+    step: int
+    observation_t: Any
+    action: Action
+    provenance: Mapping[str, Any]
+    change_events: list
+    respawn_events: list
+    target: ObjectSpec | None
+    target_before: ObjectSpec | None
+    effects: list
+    energy_delta: float
+    lifecycle_event: Any
+    consequence: Consequence
+    observation_t1: Any
+    terminated: bool
+    truncated: bool
+    transition: Transition
+
+
+def run_step(
+    components: EpisodeComponents,
+    agent: Any,
+    step: int,
+    *,
+    world_seed: int,
+    agent_seed: int,
+    max_steps: int,
+    learning_enabled: bool = True,
+) -> StepOutcome:
+    """Un paso, con la única semántica que ambas superficies ejecutan.
+
+    El orden es el del controller —física antes de resolver el objetivo—, con el
+    contrato de acción del banco y el ciclo de oportunidades que sólo el
+    controller tenía. Cada pieza viene de la ruta que ya la hacía bien; ninguna
+    se inventó aquí.
+
+    La semilla de la física es `world_seed + step`, que es lo que el registro de
+    mundos declara: *world seed materializes layout; agent seed is independently
+    offset*. El controller usaba `agent_seed + step`, lo que ataría los shocks
+    exógenos futuros a qué agente corre. Hoy es inerte porque `Physics.step` no
+    consume su RNG, y por eso canonizarlo ahora es gratis y después no lo sería.
+
+    El llamante comprueba que el organismo siga vivo antes de llamar. No se
+    decide aquí porque lo que sigue a la muerte es orquestación: el controller
+    rompe el bucle y el banco transiciona a COMPLETED, y ninguna de las dos es
+    más correcta que la otra.
+    """
+    world, rules, scheduler = components.world, components.rules, components.scheduler
+    lifecycle = components.lifecycle
+    view_radius, channels = components.view_radius, components.num_channels
+
+    observation_t = world.get_observation(0, view_radius, channels)
+    agent.perceive(observation_t)
+
+    targets = perceive_slot_table(world, observation_t, agent, step, world_seed)
+    if targets is not None and hasattr(agent, "offer_targets"):
+        agent.offer_targets(targets[0])
+    action = agent.decide()
+    action, provenance = apply_action_contract(
+        world, observation_t, action, agent, step, targets)
+
+    change_events = scheduler.check(world, step=step)
+    respawn_events = lifecycle.advance(world, step) if lifecycle is not None else []
+
+    physical = components.physics.step(world, {0: action}, RNGManager(world_seed + step))
+    target = find_target(world, 0, action)
+    target_before = target.clone() if target is not None else None
+
+    effects = rules.evaluate(world, 0, action, target)
+    energy_delta = rules.apply_effects(world, 0, target.object_id, effects) if target else 0.0
+
+    lifecycle_event = None
+    if (lifecycle is not None and target_before is not None
+            and target_before.object_id not in world._mutable_state().objects):
+        lifecycle_event = lifecycle.consume(world, target_before, step)
+
+    energy_delta += world.apply_step_energy_cost(0)
+
+    consequence = physical.get(0, Consequence(energy_delta=energy_delta, events=[]))
+    consequence.energy_delta = energy_delta
+    observation_t1 = world.get_observation(0, view_radius, channels)
+    terminated = not world._mutable_state().agents[0].alive
+    truncated = step + 1 >= max_steps
+    consequence.new_observation = observation_t1
+    consequence.done = terminated or truncated
+
+    transition = Transition(
+        observation_t, str(agent.get_internal_state()), action, consequence,
+        observation_t1, terminated, truncated, step, agent_seed)
+    if learning_enabled:
+        agent.learn(transition)
+
+    return StepOutcome(
+        step=step, observation_t=observation_t, action=action, provenance=provenance,
+        change_events=list(change_events), respawn_events=list(respawn_events),
+        target=target, target_before=target_before, effects=list(effects),
+        energy_delta=energy_delta, lifecycle_event=lifecycle_event,
+        consequence=consequence, observation_t1=observation_t1,
+        terminated=terminated, truncated=truncated, transition=transition,
     )

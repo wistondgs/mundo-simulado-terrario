@@ -23,7 +23,8 @@ from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
 from terrario.world.transition import (
-    build_episode_components, build_world_state as _build_world_state, find_target)
+    EpisodeComponents, build_episode_components,
+    build_world_state as _build_world_state, find_target, run_step)
 from terrario.world.opportunities import OpportunityLifecycle
 from terrario.agent.scientific import scientific_state as build_scientific_state, scientific_transport_projection
 
@@ -170,39 +171,33 @@ class ExperimentController:
         forensic_policy = ForensicWindowPolicy(change_step) if change_step is not None else None
         lifecycle = OpportunityLifecycle(active_scenario.get("opportunity_lifecycle", {}), active_scenario.get("world_seed", seed))
         lifecycle.register_initial(world_state_mgr)
+        # `run_episode` recibe mundo, reglas, calendario y física inyectados --
+        # tres tests los construyen ellos mismos -- así que los componentes del
+        # paso se arman a partir de lo recibido en vez de reconstruirse.
+        step_components = EpisodeComponents(
+            world=world_state_mgr, rules=rule_engine, scheduler=scheduler,
+            physics=physics, scenario=active_scenario, lifecycle=lifecycle)
 
         for step in range(max_steps):
             agent_state = world_state_mgr._mutable_state().agents.get(0)
             if agent_state is None or not agent_state.alive:
                 break
-            observation_t = world_state_mgr.get_observation(0, view_radius, num_channels)
-            agent.perceive(observation_t)
-            action_t = agent.decide()
-            change_events = scheduler.check(world_state_mgr, step=step)  # PRE_STEP convention
-            respawn_events = lifecycle.advance(world_state_mgr, step)
-            consequences = physics.step(world_state_mgr, {0: action_t}, RNGManager(seed + step))
-            target = self._find_target(world_state_mgr, 0, action_t)
-            target_before = target.clone() if target is not None else None
-            effects = rule_engine.evaluate(world_state_mgr, 0, action_t, target)
-            energy_delta = rule_engine.apply_effects(world_state_mgr, 0, target.object_id, effects) if target else 0.0
-            lifecycle_event = None
-            if target_before is not None and target_before.object_id not in world_state_mgr._mutable_state().objects:
-                lifecycle_event = lifecycle.consume(world_state_mgr, target_before, step)
-            energy_delta += world_state_mgr.apply_step_energy_cost(0)
-            consequence = consequences.get(0, Consequence(energy_delta=energy_delta, events=[]))
-            consequence.energy_delta = energy_delta
-            observation_t1 = world_state_mgr.get_observation(0, view_radius, num_channels)
-            terminated = not world_state_mgr._mutable_state().agents[0].alive
-            truncated = step + 1 >= max_steps
-            consequence.new_observation = observation_t1
-            consequence.done = terminated or truncated
-            transition = Transition(
-                observation_t, str(agent.get_internal_state()), action_t, consequence,
-                observation_t1, terminated, truncated, step, seed,
-            )
+            # La secuencia la ejecuta `run_step`, la misma que ejecuta el banco.
+            # Lo que queda aquí es la instrumentación científica -- anotaciones
+            # causales, geometría, ventana forense, sumidero de frames,
+            # checkpoints -- que es lo que sí puede diferir entre superficies.
             before_parameters = agent.get_parameters() if observer.mode == "forensic_full" else None
-            if learning_enabled:
-                agent.learn(transition)
+            outcome = run_step(
+                step_components, agent, step,
+                world_seed=active_scenario.get("world_seed", seed), agent_seed=seed,
+                max_steps=max_steps, learning_enabled=learning_enabled)
+            observation_t, action_t = outcome.observation_t, outcome.action
+            change_events, respawn_events = outcome.change_events, outcome.respawn_events
+            target, target_before = outcome.target, outcome.target_before
+            energy_delta, lifecycle_event = outcome.energy_delta, outcome.lifecycle_event
+            consequence, observation_t1 = outcome.consequence, outcome.observation_t1
+            terminated, truncated = outcome.terminated, outcome.truncated
+            transition = outcome.transition
             scientific_snapshot = build_scientific_state(agent)
             parameter_deltas = None
             if before_parameters is not None:

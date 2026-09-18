@@ -23,7 +23,7 @@ from terrario.world.rules import RuleEngine
 from terrario.world.scheduler import ChangeScheduler
 from terrario.world.state import WorldStateManager
 from terrario.world.transition import (
-    WorldPhysicsNotDeclared, build_episode_components, find_target)
+    WorldPhysicsNotDeclared, build_episode_components, find_target, run_step)
 
 TRACE_SCHEMA="terrario.sandbox.trace/v1"; MAX_STEPS=2000
 class ExecutionClassification(StrEnum): PREVIEW_ONLY="PREVIEW_ONLY"; ENGINEERING_SANDBOX="ENGINEERING_SANDBOX"; SCIENTIFIC="SCIENTIFIC"
@@ -150,22 +150,18 @@ class SandboxService:
         if run.state in _TERMINAL or len(run.timeline)%SNAPSHOT_EVERY==0: self.storage.write(run)
         return trace
     def _step_runtime(self,run,r):
-        step=len(run.timeline); s=r["scenario"]; world=r["world"]; agent=r["agent"]
-        obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4)); agent.perceive(obs)
-        # The slot table is built BEFORE the decision and the same table resolves
-        # it. Building it afterwards meant the organism chose a slot against one
-        # view of the world and was judged against another -- and it also made
-        # behavioural parity impossible, because an agent cannot map a slot onto
-        # the direction that reaches it without knowing where the slots are.
-        targets=_perceived(world,obs,agent,step,run.spec.world_seed)
-        if targets is not None and hasattr(agent,"offer_targets"): agent.offer_targets(targets[0])
-        action=agent.decide()
-        action,provenance=_apply_action_contract(world,obs,action,agent,step,targets)
-        changes=r["scheduler"].check(world,step); target=_find_target(world,action); physical=r["physics"].step(world,{0:action},RNGManager(run.spec.world_seed+step)); effects=r["rules"].evaluate(world,0,action,target); delta=r["rules"].apply_effects(world,0,target.object_id,effects) if target else 0.0; delta+=world.apply_step_energy_cost(0)
-        consequence=physical.get(0,Consequence(delta,[]));consequence.energy_delta=delta; next_obs=world.get_observation(0,s.get("view_radius",2),s.get("num_channels",4));terminated=not world._mutable_state().agents[0].alive; consequence.new_observation=next_obs;consequence.done=terminated or step+1>=run.spec.step_limit
-        transition=Transition(obs,str(agent.get_internal_state()),action,consequence,next_obs,terminated,step+1>=run.spec.step_limit,step,run.spec.agent_seed);agent.learn(transition)
+        # La secuencia del paso ya no vive aquí: la ejecuta `run_step`, la misma
+        # que ejecuta la ruta científica. Lo que queda en este método es
+        # instrumentación del banco — su esquema de traza y sus hashes — que es
+        # exactamente lo que sí puede diferir entre superficies.
+        step=len(run.timeline); world=r["world"]; agent=r["agent"]
+        outcome=run_step(r["components"],agent,step,
+                         world_seed=run.spec.world_seed,agent_seed=run.spec.agent_seed,
+                         max_steps=run.spec.step_limit)
+        obs=outcome.observation_t; action=outcome.action; provenance=outcome.provenance
+        consequence=outcome.consequence; terminated=outcome.terminated
         agent_obs={"channels":obs.channels.tolist(),"mask":obs.mask.tolist(),"agent_energy":obs.agent_energy,"time_fraction":obs.time_fraction}
-        world_events=tuple(consequence.observer_events)+tuple(f"rule_change:{x.old_version}->{x.new_version}" for x in changes)
+        world_events=tuple(consequence.observer_events)+tuple(f"rule_change:{x.old_version}->{x.new_version}" for x in outcome.change_events)
         return SandboxTraceStep(run.run_id,"ENGINEERING_SANDBOX",run.spec.config_hash,run.spec.world_definition_hash,run.spec.world_instance_hash,run.spec.world_seed,run.spec.agent_seed,dict(agent.agent_identity),step,agent_obs,{"action_type":action.action_type.name,"direction":action.direction.name,"target_id":action.target_id,**provenance},tuple(consequence.events),world.serialize(),world_events,scientific_state(agent),terminated)
     def run_bounded(self,run_id,steps=None):
         limit=min(steps or self.get(run_id).spec.step_limit,self.get(run_id).spec.step_limit)
@@ -221,83 +217,6 @@ def classify_error(exc):
 def _plain(x):
     from terrario.lab.models import thaw
     return thaw(x)
-def _perceived(world,obs,agent,step,world_seed):
-    """The slot table, or None when this agent does not address entities."""
-    mode=getattr(agent,"_addressing_mode",None)
-    if mode is None or mode is AddressingMode.T0_DIRECTIONAL: return None
-    return perceive_targets(world._mutable_state(),0,obs.channels.shape[-1],
-                            salt=f"{world_seed}",step=step,mask=obs.mask)
-
-
-def _t0_provenance(world,action,step):
-    """Provenance for a directional consume, so the two arms are comparable.
-
-    Without this the waste decomposition exists only for T1 and the comparison
-    is between a measured arm and an unmeasured one. Resolution is READ here and
-    nothing is written back: T0 keeps the v1 physics path exactly, the faced-cell
-    lookup, so the control arm stays byte-identical to every run that came before
-    Action Contract v2.
-    """
-    if action.action_type not in TARGET_BEARING_OPERATIONS: return {}
-    truth=world._mutable_state()
-    res=resolve(ActionIntent(action.action_type,SelectorType.DIRECTION,int(action.direction)),
-                [],truth,0)
-    valid=res.status is TargetStatus.VALID
-    return {"action_contract":ActionProvenance(step=step,
-        addressing_mode=AddressingMode.T0_DIRECTIONAL.value,perceived_targets=[],
-        perceived_truncated=False,chosen_operation=action.action_type.name,
-        chosen_selector_type=SelectorType.DIRECTION.name,
-        intended_selector_value=int(action.direction),
-        intended_target=action.direction.name,resolved_target=str(res.entity_id) if valid else None,
-        target_status=res.status.value,executed_target=str(res.entity_id) if valid else None,
-        execution_status=(ExecutionStatus.EXECUTED.value if valid
-            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value)).as_record()}
-
-
-def _apply_action_contract(world,obs,action,agent,step,perceived):
-    """Resolve the organism's intention against what it could actually perceive.
-
-    Under T0 this is a no-op by construction: the directional contract needs no
-    resolution layer, and the returned action is the one the agent emitted, so a
-    T0 run is byte-identical to a run before Action Contract v2 existed. That
-    matters -- T0 is the control arm, and a control that quietly changed would
-    make the comparison meaningless.
-
-    Under T1 the slot the organism named is resolved here, and ONLY a VALID
-    resolution writes `target_id`. Everything else leaves it at -1 with the
-    direction already pinned to NONE by the agent, so an unresolvable target
-    consumes nothing rather than silently becoming a neighbour (AC2-5). The
-    physics is untouched: it still reads `target_id`, it simply can no longer be
-    handed an entity the organism never perceived (AC2-2), because the only
-    writer is a resolution that came out of the agent's own view window.
-    """
-    if perceived is None: return action,_t0_provenance(world,action,step)
-    mode=getattr(agent,"_addressing_mode",AddressingMode.T1_ENTITY)
-    truth=world._mutable_state()
-    targets,truncated=perceived
-    # An operation that addresses space rather than an entity -- MOVE, NOOP --
-    # arrives in v1 shape even under T1, with the direction in `direction` and no
-    # selector value. Normalising here keeps `Domain(s, O_t)` a property of the
-    # operation instead of forcing every caller to remember it.
-    selector=SelectorType(action.selector_type)
-    value=action.selector_value if action.selector_value>=0 else int(action.direction)
-    intent=ActionIntent(action.action_type,selector,value)
-    res=resolve(intent,targets,truth,0)
-    resolved=res.status is TargetStatus.VALID
-    action.target_id=res.entity_id if resolved else -1
-    prov=ActionProvenance(step=step,addressing_mode=mode.value,
-        perceived_targets=[t.handle for t in targets],perceived_truncated=truncated,
-        chosen_operation=action.action_type.name,chosen_selector_type=SelectorType(action.selector_type).name,
-        intended_selector_value=action.selector_value,
-        intended_target=next((t.handle for t in targets if t.slot==action.selector_value),None),
-        resolved_target=res.handle if resolved else None,target_status=res.status.value,
-        executed_target=res.handle if resolved else None,
-        execution_status=(ExecutionStatus.EXECUTED.value if resolved else
-            ExecutionStatus.NOT_APPLICABLE.value if res.status is TargetStatus.NOT_ADDRESSED
-            else ExecutionStatus.FAILED_TARGET_RESOLUTION.value))
-    return action,{"action_contract":prov.as_record()}
-
-
 def _find_target(world,action):
     """Delegates to the shared semantics; agent 0 is the sandbox's only agent."""
     return find_target(world,0,action)
