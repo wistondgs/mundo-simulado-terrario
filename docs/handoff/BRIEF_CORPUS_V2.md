@@ -133,9 +133,16 @@ integridad**.
 docs/handoff/HEA_CLAIMS_EXTRAIDOS_v1.csv
 ```
 
-49 claims de HEA-001, HEA-005, HEA-014 y HEA-016, leídos del cuerpo de los PDFs, **con locator
-exacto de sección y página**, y verificados: 18 de 20 comprobaciones independientes confirmaron
-locator correcto y afirmación sostenida contra el PDF. Columnas: `claim_id`, `reference_id`,
+**97 claims** de HEA-001, HEA-005, HEA-007, HEA-008, HEA-011, HEA-014, HEA-015 y HEA-016, leídos
+del cuerpo de los PDFs, **con locator exacto de sección y página**, y verificados releyendo la
+página citada: 38 de 40 comprobaciones independientes confirmaron locator correcto y afirmación
+sostenida contra el PDF; las 2 restantes traen el matiz anotado.
+
+**Aviso de paginación en HEA-015.** Ese PDF es una re-composición en Word (Hollnagel, 2004) de 10
+páginas del artículo original de 9, sin números de página de revista impresos. La correspondencia
+`PDF p. 1 = journal p. 89` es una inferencia lineal y **deriva en algún punto del artículo**. Los
+locators citan ambas paginaciones; la del PDF es la fiable. Conviene resolverlo contra el original
+de *Int. J. Systems Sci.* 1(2):89-97 antes de sellar v2. Columnas: `claim_id`, `reference_id`,
 `source_concept`, `relation_type`, `target_concept`, `claim_text_or_paraphrase`, `pagina_seccion`,
 `explicit_or_inferred`, `evidence_type`, `bears_on`.
 
