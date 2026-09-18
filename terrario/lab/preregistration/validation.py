@@ -44,6 +44,7 @@ RULES = (
     RuleDefinition("PR-RESOURCE-001", "1", FindingSeverity.RESOURCE_WARNING, "Required execution resources are not silently substituted."),
     RuleDefinition("PR-PROXY-001", "1", FindingSeverity.SCIENTIFIC_WARNING, "Metric implementation is not construct validation."),
     RuleDefinition("PR-CL7-001", "1", FindingSeverity.INTEGRITY_ERROR, "Planning-trace ablation uses a complete paired treatment matrix."),
+    RuleDefinition("PR-INSTRUMENT-001", "1", FindingSeverity.STRUCTURAL_ERROR, "Primary endpoints resolve to a canonical reportable instrument."),
 )
 RULE_BY_ID = {rule.rule_id: rule for rule in RULES}
 

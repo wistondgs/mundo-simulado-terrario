@@ -227,3 +227,83 @@ def test_instrument_identity_survives_a_record_round_trip():
     ref = _ref()
     assert authority.InstrumentRef.from_record(ref.as_record()) == ref
     assert authority.resolve(authority.InstrumentRef.from_record(ref.as_record())) is authority.REGISTRY[REPORTABLE_ID]
+
+
+# --- the rule that enforces all of the above at preregistration -------------------
+
+from terrario.lab.preregistration.domain import (  # noqa: E402
+    EndpointCommitment, EndpointRole, MetricCommitment,
+)
+from terrario.lab.preregistration.validation import (  # noqa: E402
+    RULE_BY_ID, _instrument_findings,
+)
+
+
+def _commitment(**overrides):
+    base = dict(metric_id="m1", definition_version="1", implementation_identity=None,
+                implementation_hash=None, construct="c", proxy="p", required_signals=(),
+                unit="u", directionality="HIGHER_IS_BETTER", aggregation="mean",
+                applicable_population=(), missing_data_behavior="x", limitations=(),
+                implementation_status="IMPLEMENTED",
+                validation_status="VALIDATED_FOR_CONSTRUCT")
+    base.update(overrides)
+    return MetricCommitment(**base)
+
+
+PRIMARY = EndpointCommitment("e1", "m1", EndpointRole.PRIMARY, "cmp", "est", "rule")
+
+
+def test_the_instrument_rule_is_registered_in_the_validation_policy():
+    """Regression.
+
+    The rule was emitted from four places and never added to `RULES`, so
+    `_finding` raised `KeyError` instead of producing a finding. It failed
+    loudly rather than permissively, which is why nothing unsafe got through --
+    but a gate that crashes is not a gate, and through the API it surfaced as an
+    opaque 400 rather than something a reviewer could read. The bug survived
+    because every other test in this file exercises the authority and the
+    admission boundary directly, and never the preregistration path with an
+    unbound primary endpoint.
+    """
+    rule = RULE_BY_ID["PR-INSTRUMENT-001"]
+    assert rule.severity.blocking, "a confirmatory endpoint must not pass on a warning"
+
+
+@pytest.mark.parametrize("ref,why", [
+    (None, "no binding at all"),
+    ({"instrument_id": "no-such-instrument", "version": 1, "spec_hash": "0" * 64},
+     "names an instrument the authority does not know"),
+    ({"instrument_id": REPORTABLE_ID, "version": 99, "spec_hash": "0" * 64},
+     "frozen at a version the registry does not hold"),
+])
+def test_a_primary_endpoint_without_a_canonical_instrument_is_blocked(ref, why):
+    findings = _instrument_findings(_commitment(instrument_ref=ref), PRIMARY)
+    assert findings, why
+    assert findings[0].rule_id == "PR-INSTRUMENT-001"
+    assert findings[0].blocking
+
+
+def test_a_primary_endpoint_bound_to_a_reportable_instrument_passes():
+    assert _instrument_findings(_commitment(instrument_ref=_ref().as_record()), PRIMARY) == []
+
+
+def test_a_registered_but_uncertified_instrument_cannot_carry_a_primary_endpoint(monkeypatch):
+    def refuse(metric_id):
+        raise RuntimeError(f"{metric_id} is DEFINED and may not enter a scientific report.")
+    monkeypatch.setattr(authority, "assert_reportable", refuse)
+    findings = _instrument_findings(_commitment(instrument_ref=_ref().as_record()), PRIMARY)
+    assert findings and findings[0].rule_id == "PR-INSTRUMENT-001" and findings[0].blocking
+
+
+def test_an_unavailable_authority_refuses_instead_of_degrading_to_permissive(monkeypatch):
+    """An enforcement gate that falls open under ImportError is not a gate."""
+    import sys
+
+    import terrario.lab
+
+    # Both are needed: `from package import name` resolves the already-bound
+    # attribute first and only falls back to importing the submodule.
+    monkeypatch.delattr(terrario.lab, "instrument_registry", raising=False)
+    monkeypatch.setitem(sys.modules, "terrario.lab.instrument_registry", None)
+    findings = _instrument_findings(_commitment(instrument_ref=_ref().as_record()), PRIMARY)
+    assert findings and findings[0].rule_id == "PR-INSTRUMENT-001" and findings[0].blocking
