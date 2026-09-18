@@ -202,6 +202,46 @@ pretende hacer**. Cada capacidad recibe su propio **mundo diagnóstico**.
 | **Incertidumbre** | situaciones familiares, ambiguas y novedosas, distinguidas de forma **calibrada**. No basta con producir un número llamado `uncertainty`. |
 | **Plasticidad** | `Rule_A → Rule_B` tras haber aprendido A. Se mide resistencia, velocidad de revisión, olvido, recuperación y nueva estabilización. |
 
+## 1.1 bis · Estado medido de los pasaportes (P1, cerrado)
+
+Nueve pasaportes registrados, con el estado **calculado** y no declarado:
+
+```
+capacidad  concepto                      contrato  procedencia  pureza  mundo  instrumento
+HOMEO-A1   REGULACION_HOMEOSTATICA         si         NO         si      NO       NO
+EPMEM-A1   MEMORIA_EPISODICA               si         NO         si      NO       NO
+LTMEM-A1   MEMORIA_PERSISTENTE             si         NO         si      NO       NO
+LEARN-A1   APRENDIZAJE_POR_EXPERIENCIA     si         NO         si      NO       si
+UNC-A1     ESTIMACION_DE_INCERTIDUMBRE     si         NO         si      NO       NO
+PLAST-A1   PLASTICIDAD_EXPLORATORIA        si         NO         si      NO       NO
+TEMP-A1    INTEGRACION_TEMPORAL            si         NO         si      NO       NO
+WM-A1      MODELO_PREDICTIVO_DEL_MUNDO     si         NO         NO      NO       si
+PLAN-A1    PLANIFICACION_ANTICIPATORIA     si         NO         NO      NO       NO
+
+listas para certificar: 0 de 9
+```
+
+### El hallazgo que reencuadra la Fase 1
+
+**Mundo: falla 9 de 9.** No existe hoy un solo mundo que exija a ninguna de las nueve capacidades.
+
+Eso no es una deuda de infraestructura: **invalida la lectura de todas las ablaciones nulas
+medidas hasta ahora**. Que el núcleo temporal, la incertidumbre y las dos memorias «no muevan nada»
+en D4T no dice nada sobre ellas, porque D4T exige consumo discriminativo y nada más.
+
+Consecuencia operativa: la Fase 1 no es «correr ablaciones». Es **construir los mundos
+diagnósticos**, uno por capacidad, cada uno con su control — y el motor de reglas sólo puede
+condicionar sobre `(canal del objeto, acción)`, sin posición, tiempo, historia ni estado del
+agente. Si un mundo diagnóstico necesita más que eso, el hueco de gramática es parte del hallazgo.
+
+**Procedencia: falla 9 de 9.** L-1 la incumple el catálogo entero, y hasta repararlo ninguna
+capacidad puede certificarse aunque todo lo demás pase.
+
+```bash
+python scripts/passport_check.py               # la matriz
+python scripts/passport_check.py --detalle EPMEM-A1
+```
+
 ## 1.2 · Los cuatro brazos mínimos
 
 | Brazo | Qué es |
@@ -615,8 +655,8 @@ Eso sí empieza a ser una teoría computacional de inteligencia.
 
 | | Paquete | Estado |
 |---|---|---|
-| **P0** | `WORLD-RUNTIME-PARITY-01` — una física ejecutable única | **en curso**, 3 de 6 |
-| **P1** | `CAPABILITY-PASSPORTS-01` — concepto → operacionalización → algoritmo → capacidad | pendiente |
+| **P0** | `WORLD-RUNTIME-PARITY-01` — una física ejecutable única | ✅ **PASS** |
+| **P1** | `CAPABILITY-PASSPORTS-01` — concepto → operacionalización → algoritmo → capacidad | ✅ **cerrado** — 9 pasaportes, 0 listos |
 | **P2** | `CAPABILITY-CERTIFICATION-01` — mundos diagnósticos + OFF/ON/SHAM/ORACLE | pendiente |
 | **P3** | `TCS-01-SINGLE` — capacidades individuales | pendiente |
 | **P4** | `TCS-01-COMPOSITION` — pares y tríos guiados por corpus | pendiente |
@@ -630,10 +670,13 @@ Eso sí empieza a ser una teoría computacional de inteligencia.
 ✅ find_target unificado
 ✅ build_episode_components unificado
 ✅ run_step — una sola secuencia de paso
-⬜ ciclo de oportunidades encendido en el banco     ← aquí cambian los números de D4T
-⬜ set_global_determinism simétrico
-⬜ test de paridad automático, fallando en el PRIMER paso y PRIMER campo divergente
+✅ ciclo de oportunidades encendido en el banco     32→29 objetos pasó a 32→32, con 3 reaparecidos
+✅ set_global_determinism simétrico                 mismo spec ⇒ mismo hash de parámetros
+✅ test de paridad automático, 6 pruebas            falla nombrando PRIMER paso y PRIMER campo
 ```
+
+**`WORLD_RUNTIME_PARITY = PASS`.** Toda evidencia anterior queda declarada
+`runtime Sandbox pre-parity`.
 
 ---
 
