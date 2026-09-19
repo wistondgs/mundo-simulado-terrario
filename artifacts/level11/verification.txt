@@ -1,0 +1,59 @@
+LEVEL1.1-INTEGRATION-VERIFICATION-01
+  8 realizaciones · semillas 70000019…70000026
+  sin bootstrap, sin intervalos: no es una muestra poblacional
+
+  PREDICCIÓN · Brier por estrato. Primaria: balanced.
+  A = acción del cue y libre · B = acción del cue y bloqueada · C = otra acción
+
+    brazo            total       A       B       C  balanced  oráculo       Δ
+    -------------------------------------------------------------------------
+    COMPOSITE       0.0001   0.000   0.000   0.000     0.000    0.000  +0.000
+    BODY-ONLY       0.1249   0.250   0.000   0.125     0.125    0.125  +0.000
+    CUE-ONLY        0.1218   0.000   0.973   0.000     0.324    0.333  -0.009
+    FROZEN          0.1249   0.250   0.000   0.125     0.125    0.125  +0.000
+    SHUFFLED        0.0957   0.564   0.000   0.034     0.199      nan       —
+    JOINT-TABLE     0.0781   0.070   0.087   0.078     0.078      nan       —
+    SIEMPRE-CERO    0.1250   1.000   0.000   0.000     0.333    0.333  +0.000
+    IGNORANTE       0.2500   0.250   0.250   0.250     0.250    0.250  +0.000
+
+    referencia obligatoria · siempre-cero en total = 0.1250
+
+  CONDUCTA · R_align sobre estados accionables, en cerrado
+
+    brazo            medido  oráculo       Δ
+    ----------------------------------------
+    COMPOSITE        1.0000   1.0000 +0.0000
+    BODY-ONLY        0.4688   0.4688 -0.0000
+    CUE-ONLY         1.0000   1.0000 +0.0000
+    FROZEN           0.4688   0.4688 -0.0000
+    SHUFFLED         0.4531      nan       —
+    JOINT-TABLE      0.8125      nan       —
+    SIEMPRE-CERO     0.2500   0.2500 +0.0000
+    IGNORANTE        0.2500   0.2500 +0.0000
+
+  HOLDOUT · 16 pares (o,g) nunca vistos juntos
+
+    brazo           balanced
+    --------------------------
+    COMPOSITE          0.000
+    JOINT-TABLE        0.250
+    FROZEN             0.125
+    SHUFFLED           0.206
+
+  PROBE 2×2 · intervención causal por situación
+
+    brazo           sensib. cue  sensib. cuerpo
+    --------------------------------------------
+    COMPOSITE             0.972           0.984
+    BODY-ONLY             0.000           0.499
+    CUE-ONLY              0.973          -0.000
+
+  INTEGRIDAD
+
+    cobertura informativa mínima   46  (criterio ≥ 30)
+    cuerpo intacto en las 8         True
+    violaciones del contrato       0
+    fugas del holdout              0
+    mayor desviación del oráculo   0.0085  (tolerancia 0.02)
+
+  LEVEL11_STATUS = VERIFIED
