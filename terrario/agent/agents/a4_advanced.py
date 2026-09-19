@@ -27,6 +27,7 @@ import torch.nn.functional as F
 
 from terrario.agent.base import AgentInterface
 from terrario.agent.encoder import PerceptualEncoder
+from terrario.agent.adaptive_freeze import AdaptiveFreeze, combine
 from terrario.agent.homeostasis import HomeostaticState
 from terrario.agent.learner import OnlineLearner
 from terrario.agent.memory import EpisodicMemory, LongTermMemory
@@ -107,6 +108,9 @@ DEFAULT_CONFIG: dict[str, Any] = {
     # both arms retain `use_online_learning` and compute the same proposal; the
     # control suppresses only OnlineLearner's optimizer commit.
     "learning_commit_enabled": True,
+    # OCF-G3. `learning_commit_enabled` sólo suprime `optimizer.step()`;
+    # esto congela la frontera adaptativa entera. Ver adaptive_freeze.py.
+    "full_adaptive_freeze": False,
     "num_channels": 4,
     "view_size": 5,
 }
@@ -264,6 +268,8 @@ class A4Advanced(AgentInterface):
         # ── Online learner ───────────────────────────────────────────
         self._use_online_learning: bool = self.config["use_online_learning"]
         self._learning_commit_enabled: bool = bool(self.config["learning_commit_enabled"])
+        self.adaptive_freeze = AdaptiveFreeze(
+            enabled=bool(self.config.get("full_adaptive_freeze", False)))
         learnable_modules: dict[str, torch.nn.Module] = {
             "encoder": self.encoder,
             "policy_head": self.policy_head,
@@ -585,18 +591,20 @@ class A4Advanced(AgentInterface):
                     _, e_pred, _ = self.world_model(self._last_state, a_onehot)
                     prediction_error = abs(e_pred.item() - consequence.energy_delta)
 
-            self.episodic_memory.write(
-                embedding=self._last_latent,
-                action=self._last_action,
-                energy_delta=consequence.energy_delta,
-                prediction_error=prediction_error,
-                timestamp=self._step,
-            )
+            if self.adaptive_freeze.allow("episodic_buffer"):
+                self.episodic_memory.write(
+                    embedding=self._last_latent,
+                    action=self._last_action,
+                    energy_delta=consequence.energy_delta,
+                    prediction_error=prediction_error,
+                    timestamp=self._step,
+                )
 
         # ── Write to long-term memory ────────────────────────────────
         if self._use_longterm:
             h = self._hidden.squeeze(0) if self._hidden.dim() > 1 else self._hidden
-            self.longterm_memory.write(h, h)
+            if self.adaptive_freeze.allow("longterm_M"):
+                self.longterm_memory.write(h, h)
 
         # Prediction remains an observer metric even for the no-online-learning
         # ablation. It must not depend on whether parameters will be updated.
@@ -661,10 +669,15 @@ class A4Advanced(AgentInterface):
                 # copy drift.  Baseline and advantage read the same quantity, or
                 # the advantage stops being centred.
                 reward = self._policy_reward(consequence)
-                self._baseline_count += 1
-                self._energy_baseline += (
-                    reward - self._energy_baseline
-                ) / self._baseline_count
+                # OCF-G3: `_baseline_count` y `_energy_baseline` son una sola
+                # pieza adaptativa y se congelan juntas. `advantage` sigue
+                # calculándose con la línea base vigente: lo que se congela es
+                # la adaptación, no el cálculo de la política.
+                if self.adaptive_freeze.allow("energy_baseline"):
+                    self._baseline_count += 1
+                    self._energy_baseline += (
+                        reward - self._energy_baseline
+                    ) / self._baseline_count
 
                 advantage = reward - self._energy_baseline
 
@@ -725,7 +738,8 @@ class A4Advanced(AgentInterface):
             event = self.learner.step(
                 world_model_loss=wm_loss,
                 policy_loss=policy_loss,
-                commit=self._learning_commit_enabled,
+                commit=combine(self.adaptive_freeze, "parameters",
+                               also=(self._learning_commit_enabled,)),
             )
 
             if event is not None:
@@ -801,6 +815,7 @@ class A4Advanced(AgentInterface):
         events.extend(self.longterm_memory.get_trace())
         events.extend(self.planner.get_trace())
         events.extend(self.homeostasis.get_trace())
+        events.extend(self.adaptive_freeze.get_trace())
         events.extend(self.learner.get_trace())
 
         return events
@@ -826,6 +841,7 @@ class A4Advanced(AgentInterface):
         self.longterm_memory.reset_memory()
         self.homeostasis.reset()
         self.learner.reset()
+        self.adaptive_freeze.reset()
 
     def _parameter_modules(self) -> list[tuple[str, torch.nn.Module]]:
         """One list, so a module added later cannot be silently left out.

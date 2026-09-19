@@ -1212,6 +1212,13 @@ drive              = max(0, threshold − energy)     DERIVADA
 exploration_bias   = 1 − energy                     DERIVADA
 ```
 
+> **Medido el 2026-09-18 (OCF-G1).** `_energy` tiene **dos escritores**: `perceive` lo asigna
+> desde `observation.agent_energy` ([a4_advanced.py:352](terrario/agent/agents/a4_advanced.py:352))
+> y `learn` lo acumula con `update()` ([a4:577](terrario/agent/agents/a4_advanced.py:577)), 68 y 68
+> veces en una vida de 68 pasos. De 21 estados instrumentados es el **único** con autoridad
+> disputada. Queda deliberadamente sin reparar: es O1, no OCF-G3. `_threshold` no lo escribe nadie
+> en runtime, que es lo que lo hace la costura limpia para la alostasis. Ver §XXXVII.
+
 [317] **Sólo una es independiente: `_energy`.** [318] `drive` y `exploration_bias` son **alias
 funcionales** de la misma variable; ninguna aporta información que la otra no tenga.
 
@@ -2835,6 +2842,10 @@ llamador de `log_step` pasa un dict vacío
 ([controller.py:263](terrario/experiment/controller.py:263)), y `logger.py` sólo escribe una traza
 si está en ese dict.
 
+> **2026-09-18.** La traza de A4 lleva además `adaptive_freeze_attempt`, un evento por intento de
+> escritura sobre la frontera adaptativa, con `attempted` / `committed` / `blocked_reason`. Es
+> observabilidad del commit, no genealogía del conocimiento: eso es OCF-G5. Ver §XXXVII.
+
 **Nunca se construyen:** `DecisionTrace`, `PerceptionTrace`, `TemporalTrace`, `MemoryTrace`,
 `PredictionTrace`, `LearningTrace`. Confirmado contra disco: una corrida real sólo produce
 `world`, `consequence`, `sensation`, `provenance` y `transition`.
@@ -3284,3 +3295,63 @@ sale de la lista del learner. `LTM_DISABLE_IS_COMPOSITION_LOCAL = PASS`.
 Lo que sigue abierto: buffer episódico, estado recurrente, homeostasis y baseline del learner están
 clasificados **leyendo el código**, no probados con el mismo contrafáctico. Sus gates quedan en
 `UNKNOWN`, y `UNKNOWN` no se convierte en `PASS`.
+
+
+---
+
+# XXXVII · Fundación causal del organismo · OCF-G1 y OCF-G3
+
+**2026-09-18.** Antes de dar motivación al organismo hay que poder demostrar qué mecanismo produjo
+qué cambio. Los gates van como **OCF-G1..OCF-G5** porque G0–G8 ya están tomados con otro
+significado en este mismo documento.
+
+## 37.1 · OCF-G1 · Autoridad de estado — NO PASA
+
+`scripts/state_authority_probe.py`. No lee el código: intercepta `__setattr__` del agente y de cada
+submódulo, envuelve `perceive`/`decide`/`learn`, y hashea el conjunto adaptativo al final de cada
+fase para atrapar las escrituras en sitio que `setattr` no ve.
+
+De 21 estados, **uno** tiene dos escritores: `homeostasis._energy` (perceive 68, learn 68). Los
+otros veinte, uno solo. `homeostasis._threshold` no lo escribe nadie. `_energy_baseline` se mueve
+45 de 68 veces, no 68: depende de `_last_log_prob`, así que su deriva cuenta políticas producidas,
+no pasos vividos.
+
+La sonda demuestra su propia pasividad: la vida instrumentada y la limpia terminan con la misma
+huella en las seis piezas. Sin eso no sería evidencia — la sonda anterior de esta familia infló dos
+magnitudes ×18.6 y ×10 por contaminarse, y no se vio hasta una verificación adversarial.
+
+## 37.2 · OCF-G3 · FULL_ADAPTIVE_FREEZE — construido, gate ABIERTO
+
+`terrario/agent/adaptive_freeze.py`, `scripts/adaptive_freeze_gate.py`.
+
+Una **sola autoridad lógica** (`AdaptiveFreeze.allow`) y cuatro puntos de commit que la consultan,
+en vez de cuatro `if freeze:` dispersos por A4. Congela exactamente la frontera adoptada
+—parámetros, buffer episódico, `M`, `_energy_baseline`— y nada más: percepción, inferencia,
+pérdidas, gradientes y candidatos de experiencia siguen funcionando. Lo prohibido es el **commit**,
+no el cálculo.
+
+**Bloquea antes de la escritura; no revierte después.** `escribir → leer → revertir` no equivale a
+`no escribir → leer` aunque las dos terminen con el mismo hash.
+
+| Componente | NORMAL | heredado | FULL |
+|---|---|---|---|
+| parámetros | cambia | no cambia | no cambia |
+| buffer episódico | cambia | cambia | no cambia |
+| `M` | cambia | cambia | no cambia |
+| `_energy_baseline` | cambia | cambia | no cambia |
+| candidatos adaptativos | existen | existen | **existen** |
+| commits adaptativos | 60/60 por writer | parciales | **0 de 240** |
+
+Doce criterios en verde, incluida la ruta real (`run_step`, no sólo replay), pasividad
+auditoría-ON/OFF sobre acciones y energía, y regresión: NORMAL es idéntico campo por campo al A4
+previo a la infraestructura.
+
+**Pero el gate queda ABIERTO por condición de parada 10.** `_adaptive_state_hash`
+([adaptation.py:198](terrario/experiment/adaptation.py:198)) **no ve `_energy_baseline`** —se le
+puede sumar 42.0 y no se mueve— mientras que la frontera adoptada en §XXXVI es «lo que esa huella
+ya trazaba **más `_energy_baseline`**». La huella agregada del proyecto no cubre la frontera que el
+proyecto adoptó, así que el criterio de igualdad agregada se satisface en vacío para esa pieza.
+`adaptation.py:331` la usa antes de una transferencia. El propio gate lo comprueba y se niega a
+declarar PASS mientras la omisión exista.
+
+Detalle en `docs/ORGANISM_CAUSAL_FOUNDATION_01.md`.

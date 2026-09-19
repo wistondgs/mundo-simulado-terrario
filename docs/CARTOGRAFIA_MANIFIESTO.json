@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "3dc875d",
+  "head": "65c877c",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -100,7 +100,7 @@
     },
     "XIV · Homeostasis y viabilidad": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
         "terrario/agent/homeostasis.py": "923f93c1be4cc088363d5b91bb5fdeecd215b262de4e8e4a472b83c203bc1d21",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
       }
@@ -181,7 +181,7 @@
     },
     "XXXIII · Observación, traza e interfaz": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
@@ -213,6 +213,14 @@
       "files": {
         "scripts/learned_state_audit.py": "17085d1e47602b7cb5be868eafb9d0dc78c421f57b85b4ef73b488ada2fba0e7",
         "scripts/m_information_audit.py": "3ecf1660b1f503554a58c63b5bc79e7e1d662f74488d5b736868493e5695bf0d"
+      }
+    },
+    "XXXVII · Fundación causal del organismo · OCF-G1 y OCF-G3": {
+      "files": {
+        "scripts/adaptive_freeze_gate.py": "d31cddcba7886d56d7dfb836065b09a3b500a86db2d9c164a2c7ae3f3543eb76",
+        "scripts/state_authority_probe.py": "9edb25decbcbbf4cb483c5fac721d1f782c1885d0894c4c31e565f2be2f1f86b",
+        "terrario/agent/adaptive_freeze.py": "7f1862f4e501cf04bc15eb8323ca858a0d1c92885ccfb8f2d5c791bda7009652",
+        "terrario/experiment/adaptation.py": "92d074a86053ebb113bb43f6c92ace5a4170d9d61baa2a4e1bd6c923e212bb73"
       }
     }
   }
