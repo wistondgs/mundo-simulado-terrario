@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "721b6ef",
+  "head": "3dc875d",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -100,7 +100,7 @@
     },
     "XIV · Homeostasis y viabilidad": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
+        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
         "terrario/agent/homeostasis.py": "923f93c1be4cc088363d5b91bb5fdeecd215b262de4e8e4a472b83c203bc1d21",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
       }
@@ -169,7 +169,7 @@
     "XXXII · La capa de conocimiento": {
       "files": {
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/agent_composition.py": "802ea30ee0bf3d18d5365c9e02773f99243c9bcb17a051a0cb2e5796e51c83bb",
+        "terrario/lab/agent_composition.py": "493515cb170809549f7dffeb1ec00cba5f8cd1b7508d741838092899386c0da4",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/models.py": "7dd354ab73d2b18351d431dc775a8628b0d1d79622cfdee5a53eccab3f570429",
         "terrario/lab/referencegraph/domain.py": "2b67377a5e340c5e70beffbea5213949b8c0532d50cff30edab1a613a1aeaf0d",
@@ -181,7 +181,7 @@
     },
     "XXXIII · Observación, traza e interfaz": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
+        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
@@ -198,9 +198,9 @@
     "XXXIV · Generador de mundos diagnósticos y oráculos amputados": {
       "files": {
         "scripts/world_demand_check.py": "3d8f8e0bc0107027757c879a847d00bc68fcb073fd40352c3e97d24c400c7b6e",
-        "terrario/lab/world_generator.py": "38db408810728f65004389f87d22d22c7db4544e825b480c04b77b81e0f6cddc",
-        "terrario/lab/world_oracles.py": "5cbb8122a2b3a93ddbfc89d1d8984fb5b0306be5bcccdc7fdbb080d7450cfadd",
-        "tests/test_world_generator.py": "53b4f5e66423869b50545de1d1c1e0b9349f441def68746e094f8997cfd2e56c"
+        "terrario/lab/world_generator.py": "529eb82d488fca42d326b6214e6dc315d6519548d9acc5e0efd6caa4e262ae75",
+        "terrario/lab/world_oracles.py": "2b1592b767f61915b859095ff1872238f8e9fb98c086c69ed776118933df3318",
+        "tests/test_world_generator.py": "e48addd00117641916f1eb32992f80f68957204801190fd50d8a0d5c05cf5767"
       }
     },
     "XXXV · G8 · Autoridad instrumental única y frontera de admisión de evidencia": {

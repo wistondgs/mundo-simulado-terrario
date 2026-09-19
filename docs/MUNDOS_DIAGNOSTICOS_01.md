@@ -173,3 +173,36 @@ WM  PLAN                                  sin mundo: intervención impura, sin e
 
 Pasaportes con mundo: 7 de 9. Listas para certificar: 0 de 9 — procedencia (9/9) e instrumento
 (7/9) siguen bloqueando, y son lo siguiente.
+
+---
+
+## Deriva de este documento frente al código (2026-09-18)
+
+Este documento es el de diseño y **ya no describe el generador**. Lo que cambió, para que se pueda
+auditar el código contra algo cierto:
+
+| Aquí dice | El código hace | Juicio |
+|---|---|---|
+| eje **`mapeo`** (`m` = ¿el mapeo cue→elección es conocido?), control `m = fijo` | eje **`hidden`** (¿la bondad va también en el canal 2 visible?), control = la respuesta escrita en la puerta | **Mejora, no registrada.** «El oráculo lo sabe» no es una propiedad del mundo; «está escrito en la puerta» sí. |
+| «usa `procedural_layout` y `opportunity_lifecycle`» (§Los ejes) | la docstring del módulo declara que **no usa ninguno de los dos**: la repetición la dan las estaciones | El código tiene razón. |
+| la tabla de ejes no menciona presupuesto metabólico | `delay` y `sequence` alargaban el pasillo y con él la vida — reparado el 2026-09-18 | Ver cartografía §34.6. |
+
+## Lo que la ronda adversarial del 2026-09-18 corrigió del diseño
+
+**Ashby no rechaza esta tarea.** S.5/2 rechaza una *definición candidata* de «adaptativo», no el
+paradigma experimental: la derivación del segundo lazo del propio Ashby corre sobre una tarea
+cue→respuesta correcta (el gato de Thorndike, S.7/4). **Seis de los siete ejes son propiedades de
+entorno que Ashby nombra y analiza él mismo** — `delay` S.8/15, `hidden` S.7/4, `sequence` S.5/12,
+`risk` S.8/14, `novelty` y `inversion` S.8/10 (donde produce su segundo entorno invirtiendo la
+polaridad de un conmutador del Homeostato). Sólo `distractors` queda flojo. La alineación es
+**retroactiva** —los ejes salieron de los pasaportes y nunca citaron a Ashby— pero existe.
+
+**Lo que sí queda prohibido es la métrica, no el mundo.** La clave del experimentador sobrevive en
+`correct_side` → `Score.correct` → `accuracy`. La física ya cobra en energía contra un umbral. Es
+un arreglo de instrumentación, no un reemplazo de sustrato.
+
+**Y el sustrato tiene un techo que no es del generador.** El motor lleva **una** variable esencial
+(`AgentState.energy`). Los ejes que el corpus sostiene —`drive_count`, `perturbation_magnitude`,
+`recovery_window`, `decomposability`, `setpoint_drift`— necesitan una segunda variable regulada y un
+operador de perturbación, y eso es cambio de motor, no de generador. Detalle y locators en
+`docs/REVISION_GENERADOR_MUNDOS_01.md` §4.

@@ -37,9 +37,24 @@ def test_control_differs_from_demanding_in_exactly_its_axis(cap):
 
 
 def test_a_set_of_capabilities_merges_by_the_most_demanding_value():
-    d = gen.demand_for(["EPMEM-A1", "LTMEM-A1", "PLAST-A1", "HOMEO-A1"])
-    assert d.delay == 5 and d.distractors == 3 and d.inversion == 0.3 and d.risk
-    assert d.hidden is True   # HOMEO pide hidden=False pero cualquiera que lo pida gana
+    d = gen.demand_for(["EPMEM-A1", "LTMEM-A1", "PLAST-A1"])
+    assert d.delay == 5 and d.distractors == 3 and d.inversion == 0.3
+    assert d.hidden is True
+
+
+def test_a_pinned_axis_cannot_be_merged_away():
+    """HOMEO-A1 necesita `hidden=False` para que `modulation` signifique algo:
+    si las puertas no se distinguen a la vista, el organismo no puede elegir la
+    segura y la métrica mide una moneda. Antes, la fusión por máximo se lo
+    llevaba en silencio y un test lo daba por bueno."""
+    with pytest.raises(ValueError, match="incompatibles"):
+        gen.demand_for(["EPMEM-A1", "HOMEO-A1"])
+    # Sola sigue funcionando, y con las puertas distinguibles.
+    w = gen.world_for(["HOMEO-A1"], seed=3)
+    st = w.stations[0]
+    up = w.scenario["objects"][st.up_id]["channels"][:3]
+    down = w.scenario["objects"][st.down_id]["channels"][:3]
+    assert up != down
 
 
 def test_control_of_one_capability_in_a_set_keeps_the_others_on():
@@ -48,11 +63,31 @@ def test_control_of_one_capability_in_a_set_keeps_the_others_on():
     assert c.demand.inversion is None and c.demand.delay == 5
 
 
-def test_same_seed_same_station_content_when_the_axis_does_not_touch_it():
-    d = gen.world_for(["EPMEM-A1"], seed=9)
-    c = gen.control_for(["EPMEM-A1"], "EPMEM-A1", seed=9)
+@pytest.mark.parametrize("cap", CAPS)
+@pytest.mark.parametrize("seed", [0, 3, 9])
+def test_same_seed_same_station_content_when_the_axis_does_not_touch_it(cap, seed):
+    """Esto sólo probaba EPMEM-A1, uno de los tres ejes que no consumían azar
+    de más, y por eso pasaba. Generalizado, fallaba en `distractors`,
+    `sequence`, `risk` y `novelty`: el eje corría el flujo compartido y
+    regeneraba `designated`, que ningún eje debe tocar."""
+    d = gen.world_for([cap], seed=seed)
+    c = gen.control_for([cap], cap, seed=seed)
     assert [s.designated for s in d.stations] == [s.designated for s in c.stations]
-    assert [s.cue_values for s in d.stations] == [s.cue_values for s in c.stations]
+
+
+@pytest.mark.parametrize("cap", CAPS)
+def test_demanding_and_control_have_the_same_metabolic_budget(cap):
+    """«Difieren en exactamente una dimensión» tiene que valer también en la
+    física. `delay` y `sequence` alargan el pasillo y con él la vida: EPMEM
+    gastaba 19.80 de 20.00 iniciales y su control 10.20, así que el brazo
+    exigente moría por caminar y el contraste de memoria era un contraste de
+    viabilidad. `axis_difference` no podía verlo: compara el `Demand`, no el
+    mundo."""
+    d = gen.world_for([cap], seed=0)
+    c = gen.control_for([cap], cap, seed=0)
+    assert d.duration == c.duration
+    assert d.economy.step_energy_cost == c.economy.step_energy_cost
+    assert d.economy.initial_energy == c.economy.initial_energy
 
 
 def test_distractors_need_room():
@@ -154,3 +189,20 @@ def test_a_combined_world_needs_every_faculty_at_once():
     assert mean(accs["full"]) == 1.0
     for fac in ("memory", "order", "inversion"):
         assert mean(accs[fac]) <= 0.8, (fac, accs[fac])
+
+
+def test_score_records_viability_not_only_accuracy():
+    """Un cadáver no puede puntuar mejor que un superviviente sin que se note.
+    `life_score` recibía la traza con `terminated` y la energía de cada paso y
+    devolvía sólo aciertos; medido sobre 420 vidas de oráculo, 7 vidas muertas
+    puntuaban accuracy 1.0."""
+    w = gen.world_for(["LEARN-A1"], seed=0)
+    s = orc.life_score(w, orc.FULL, seed=0)
+    assert s.viability is not None
+    assert s.died is False and s.viability.survived
+    assert s.viability.steps_lived > 0
+    assert s.viability.min_energy <= s.viability.final_energy + 1e-9
+
+    # Sin traza no se puede saber, y la puntuación lo dice en vez de suponerlo.
+    bare = gen.score(w, [])
+    assert bare.viability is None and bare.died is None

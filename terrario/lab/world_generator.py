@@ -181,12 +181,39 @@ def demanding_world_id(capability_id: str) -> str | None:
     return f"{SEMANTICS_VERSION} · eje {axis} · {generate(demand, seed=0, stations=1).describe().split(' · ', 2)[2]}"
 
 
+#: Ejes que una capacidad necesita CLAVADOS, más allá de su eje exigente, para
+#: que su endpoint signifique algo. No son «menos exigencia»: son precondición
+#: de la medida, y por eso `merge` no puede pisarlos con su máximo.
+#:
+#: HOMEO-A1 mide `Score.modulation` = P(segura | energía baja) − P(segura |
+#: energía alta). Con `hidden=True` las dos puertas son idénticas en los
+#: canales que el organismo ve, así que no puede elegir la segura aunque quiera
+#: y la métrica mide una moneda al aire. Medido: componer HOMEO-A1 con
+#: EPMEM-A1 volvía ambas puertas [0.5, 0.1, 0.5] frente a [0.5, 0.1, 0.9] y
+#: [0.5, 0.1, 0.1] cuando HOMEO va sola.
+PINNED: dict[str, Mapping[str, Any]] = {
+    "HOMEO-A1": {"hidden": False},
+}
+
+
 def demand_for(capabilities: Iterable[str]) -> Demand:
     caps = list(capabilities)
     unknown = [c for c in caps if c not in DEMAND_OF]
     if unknown:
         raise KeyError(f"sin exigencia declarada: {unknown}; hay {sorted(DEMAND_OF)}")
-    return merge(DEMAND_OF[c][1] for c in caps)
+    merged = merge(DEMAND_OF[c][1] for c in caps)
+    broken = [(cap, ax, want, getattr(merged, ax))
+              for cap in caps for ax, want in PINNED.get(cap, {}).items()
+              if getattr(merged, ax) != want]
+    if broken:
+        detail = "; ".join(f"{cap} necesita {ax}={want!r} y la fusión da {got!r}"
+                           for cap, ax, want, got in broken)
+        raise ValueError(
+            f"exigencias incompatibles en {sorted(set(caps))}: {detail}. "
+            "No es un eje que se pueda ceder: sin él el endpoint de esa "
+            "capacidad mide ruido. Componer este conjunto exige decidir a mano "
+            "qué endpoint se abandona, y eso no lo decide el generador.")
+    return merged
 
 
 # --- La clave de verdad ----------------------------------------------------
@@ -271,6 +298,23 @@ class GeneratedWorld:
                 f"{', '.join(on) if on else 'base'}")
 
 
+#: Un flujo de azar por propósito, para que encender un eje no desplace lo que
+#: otro decide. El orden de esta tupla es parte de la semántica del mundo.
+_PURPOSES = ("designated", "novel", "cues", "distractors", "doors")
+
+
+def _stream(seed: int, station: int, purpose: str) -> np.random.Generator:
+    """El azar de una estación es función de (semilla, estación, propósito).
+
+    Con un flujo único compartido, un eje que sortea de más corría el flujo y
+    regeneraba todo lo sorteado después: el control de `distractors`, de
+    `sequence`, de `risk` o de `novelty` cambiaba `designated`, que ningún eje
+    debería tocar. Medido antes de esta reparación: 40 sorteos frente a 16 en
+    LTMEM sobre 8 estaciones, y `designated` divergía en las semillas 0..5.
+    """
+    return np.random.default_rng([seed, station, _PURPOSES.index(purpose)])
+
+
 def _other(side: str) -> str:
     return "down" if side == "up" else "up"
 
@@ -278,15 +322,22 @@ def _other(side: str) -> str:
 # --- Generación -------------------------------------------------------------
 
 def generate(demand: Demand, *, seed: int, stations: int = 8,
-             economy: Economy = DEFAULT_ECONOMY) -> GeneratedWorld:
+             economy: Economy = DEFAULT_ECONOMY,
+             duration: int | None = None) -> GeneratedWorld:
     """Un mundo que exige `demand`, con su clave de verdad.
 
     La geometría es determinista dada la exigencia; lo que la semilla decide
     es el contenido de cada estación: lado señalado, valores de los cues,
     resultado de la puerta arriesgada, qué estaciones son novedosas.
+
+    `duration` fija la vida en vez de derivarla de la anchura. Existe porque
+    `delay` y `sequence` alargan el pasillo, y con `duration = 2 × ancho` la
+    vida --y por tanto el gasto metabólico-- se alargaba con ellos: el mundo
+    exigente de EPMEM gastaba 19.80 de una energía inicial de 20.00 y su
+    control 10.20. `control_for` la iguala a la del mundo exigente para que el
+    contraste sea de un solo eje también en la física, no sólo en el `Demand`.
     """
     _validate(demand)
-    rng = np.random.default_rng(seed)
 
     span = (demand.sequence - 1) * CUE_GAP + demand.delay
     pitch = span + VIEW_RADIUS + 1          # el cue siguiente no cabe en la ventana
@@ -301,8 +352,17 @@ def generate(demand: Demand, *, seed: int, stations: int = 8,
     for j in range(stations):
         start = 1 + j * pitch
         door_col = start + span
-        designated = "up" if rng.random() < 0.5 else "down"
-        novel = rng.random() < demand.novelty
+        # Un flujo por propósito y por estación. Con un flujo único, encender un
+        # eje consumía más azar y desplazaba TODO lo que se sorteaba después:
+        # el control de `distractors`, `sequence`, `risk` o `novelty` regeneraba
+        # `designated` y dejaba de ser el mismo mundo. Medido: 40 vs 16 sorteos
+        # en LTMEM. Aquí el contenido de una estación es función de (semilla,
+        # estación, propósito) y de nada más.
+        designated = "up" if _stream(seed, j, "designated").random() < 0.5 else "down"
+        novel = _stream(seed, j, "novel").random() < demand.novelty
+        cue_rng = _stream(seed, j, "cues")
+        dis_rng = _stream(seed, j, "distractors")
+        door_rng = _stream(seed, j, "doors")
 
         # cues: su orden a lo largo del pasillo es su orden en el tiempo
         if novel:
@@ -313,7 +373,7 @@ def generate(demand: Demand, *, seed: int, stations: int = 8,
             if demand.sequence == 1:
                 values = (0.9,) if designated == "up" else (0.1,)
             else:
-                pair = sorted(rng.choice(len(vocab), size=2, replace=False))
+                pair = sorted(cue_rng.choice(len(vocab), size=2, replace=False))
                 values = tuple(vocab[i] for i in (pair if designated == "up" else pair[::-1]))
             mark = MARK_CUE
         cue_ids = tuple(add((ROW_CUE, start + i * CUE_GAP), (v, mark, 0.5, CH3_INERT))
@@ -322,15 +382,15 @@ def generate(demand: Demand, *, seed: int, stations: int = 8,
         # distractores: en la fila opuesta, entre el último cue y las puertas
         dis_ids = tuple(
             add((ROW_ALT, door_col - demand.delay + 1 + i),
-                (float(rng.choice(CUE_VOCABULARY[1])), MARK_DISTRACTOR, 0.5, CH3_INERT))
+                (float(dis_rng.choice(CUE_VOCABULARY[1])), MARK_DISTRACTOR, 0.5, CH3_INERT))
             for i in range(demand.distractors))
 
         # puertas: iguales a la vista salvo que `hidden` sea False
         if novel:
-            d_ch3 = CH3_GOOD if rng.random() < 0.5 else CH3_BAD
-            o_ch3 = CH3_GOOD if rng.random() < 0.5 else CH3_BAD
+            d_ch3 = CH3_GOOD if door_rng.random() < 0.5 else CH3_BAD
+            o_ch3 = CH3_GOOD if door_rng.random() < 0.5 else CH3_BAD
         elif demand.risk:
-            d_ch3 = CH3_GOOD if rng.random() < 0.5 else CH3_BAD
+            d_ch3 = CH3_GOOD if door_rng.random() < 0.5 else CH3_BAD
             o_ch3 = CH3_SAFE
         else:
             d_ch3, o_ch3 = CH3_GOOD, CH3_BAD
@@ -344,7 +404,7 @@ def generate(demand: Demand, *, seed: int, stations: int = 8,
                            designated, d_ch3, o_ch3, novel))
 
     width = key[-1].door_column + VIEW_RADIUS + 2
-    duration = 2 * width
+    duration = 2 * width if duration is None else int(duration)
     inversion_step = (int(duration * demand.inversion)
                       if demand.inversion is not None else None)
 
@@ -417,14 +477,22 @@ def world_for(capabilities: Iterable[str], *, seed: int, stations: int = 8,
 
 def control_for(capabilities: Iterable[str], capability: str, *, seed: int,
                 stations: int = 8, economy: Economy = DEFAULT_ECONOMY) -> GeneratedWorld:
-    """El mismo mundo con el eje de `capability` apagado. Misma semilla ⇒ mismo
-    contenido de estación en todo lo que el eje no toca."""
+    """El mismo mundo con el eje de `capability` apagado.
+
+    Dos igualdades, y las dos se comprueban en `tests/test_world_generator.py`:
+    misma semilla ⇒ mismo contenido de estación en todo lo que el eje no toca
+    (lo garantiza `_stream`), y misma duración ⇒ mismo presupuesto metabólico
+    (lo garantiza fijar `duration` a la del mundo exigente). Sin la segunda,
+    apagar `delay` o `sequence` acortaba el pasillo y con él la vida, y el
+    contraste de memoria era a la vez un contraste de viabilidad.
+    """
     caps = list(capabilities)
     if capability not in caps:
         raise ValueError(f"{capability} no está en {caps}")
     axis, _ = DEMAND_OF[capability]
+    demanding = generate(demand_for(caps), seed=seed, stations=stations, economy=economy)
     world=generate(switch_off(demand_for(caps), axis), seed=seed,
-                   stations=stations, economy=economy)
+                   stations=stations, economy=economy, duration=demanding.duration)
     return _with_capability_provenance(world,tuple(sorted(set(caps))),control_axis=axis)
 
 
@@ -450,6 +518,42 @@ class Consumption:
 
 
 @dataclass(frozen=True)
+class Viability:
+    """Lo que le pasó al organismo, no a sus aciertos.
+
+    Ashby define la conducta adaptativa en S.5/3 como mantener las variables
+    esenciales dentro de límites fisiológicos, y la supervivencia en S.3/15
+    como «una línea de conducta que no saca ninguna variable esencial fuera de
+    los límites dados». Esta es la única variable esencial que el motor tiene
+    -- `AgentState.energy` -- y hasta ahora `Score` la tiraba: `life_score`
+    recibía los `StepOutcome` con `terminated` y energía por paso y devolvía
+    sólo aciertos. Medido sobre 420 vidas de oráculo, 7 vidas MUERTAS puntuaban
+    accuracy 1.0, y en el mismo mundo la semilla 2 moría en el paso 61 con
+    accuracy 1.0 mientras la 1 sobrevivía los 212 pasos con 0.6: la métrica
+    ponía al cadáver por encima del superviviente.
+    """
+
+    steps_lived: int
+    survived: bool
+    final_energy: float
+    min_energy: float
+    steps_below_threshold: int = 0
+
+
+def viability_from(world: "GeneratedWorld", outcomes: Sequence[Any]) -> Viability:
+    """La viabilidad de una vida, leída de su traza de energía."""
+    if not outcomes:
+        return Viability(0, True, float(world.economy.initial_energy),
+                         float(world.economy.initial_energy))
+    energies = [float(o.observation_t.agent_energy) * world.economy.max_energy
+                for o in outcomes]
+    last = outcomes[-1]
+    below = sum(1 for e in energies if e <= world.economy.low_energy)
+    return Viability(len(outcomes), not bool(last.terminated),
+                     energies[-1], min(energies), below)
+
+
+@dataclass(frozen=True)
 class Score:
     """Lo que el mundo puede decir de una vida, con la clave en la mano.
 
@@ -466,10 +570,19 @@ class Score:
     safe_when_low: tuple[int, int]
     safe_when_high: tuple[int, int]
     novel_decisions: int
+    #: None cuando la puntuación se calculó sin traza -- `score(world, cons)`
+    #: no la puede saber. `world_oracles.life_score` sí la rellena.
+    viability: Viability | None = None
 
     @property
     def accuracy(self) -> float | None:
         return self.correct / self.decisions if self.decisions else None
+
+    @property
+    def died(self) -> bool | None:
+        """None si nadie midió la viabilidad. Un `accuracy` alto con `died`
+        True no es un buen resultado: es una vida corta y afortunada."""
+        return None if self.viability is None else not self.viability.survived
 
     @staticmethod
     def _rate(pair: tuple[int, int]) -> float | None:

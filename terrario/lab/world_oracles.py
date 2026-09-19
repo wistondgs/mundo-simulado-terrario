@@ -219,9 +219,12 @@ def run_life(world: gen.GeneratedWorld, agent: Any, *, agent_seed: int = 0) -> l
 
 def life_score(world: gen.GeneratedWorld, faculties: Faculties = FULL, *,
                seed: int = 0) -> gen.Score:
+    """Aciertos Y viabilidad. La traza ya venía con `terminated` y la energía
+    de cada paso; hasta la reparación de 2026-09-18 esta función la tiraba."""
     oracle = Oracle(world, faculties, seed=seed)
     outcomes = run_life(world, oracle, agent_seed=seed)
-    return gen.score(world, gen.consumptions_from(world, outcomes))
+    base = gen.score(world, gen.consumptions_from(world, outcomes))
+    return replace(base, viability=gen.viability_from(world, outcomes))
 
 
 @dataclass(frozen=True)

@@ -2963,8 +2963,13 @@ runner), **4 latentes** (benchmarks), **11 históricos** — entre ellos `run_ex
 exigencia sobre **un eje** (`DEMAND_OF`); las exigencias se funden por el máximo (`merge`); el mundo
 resultante no se pasa sin todas. Con un elemento es el mundo de esa habilidad; con varios, el mundo
 varía para exigirlas juntas — la Fase 3 sin mundos nuevos. El control de una capacidad dentro de un
-conjunto es el mismo mundo con **su** eje apagado (`control_for`); `axis_difference` verifica que
-exigente y control difieren en exactamente una dimensión.
+conjunto es el mismo mundo con **su** eje apagado (`control_for`).
+
+> **Corrección del 2026-09-18.** Aquí decía que «`axis_difference` verifica que exigente y control
+> difieren en exactamente una dimensión». No lo verifica: compara el `Demand` —la especificación—
+> y nunca el mundo realizado. Durante un día certificó en espacio-de-`Demand` una propiedad que el
+> mundo no tenía. Lo que ahora sí la sostiene son `_stream` (contenido de estación) y la duración
+> pareada de `control_for` (presupuesto metabólico), cada una con su test. Ver §34.6.
 
 Siete ejes: `delay`, `hidden`, `distractors`, `sequence`, `risk`, `novelty`, `inversion`. `OFF` no
 coincide con `Demand()` en `hidden`: la base esconde la verdad, pero apagar el eje de LEARN es
@@ -3038,6 +3043,50 @@ una de conjunto `{EPMEM, TEMP, PLAST}` donde cada facultad amputada por separado
 `scripts/world_demand_check.py --semillas 8` reprodujo la matriz anterior con 64 decisiones por
 capacidad falsable; `tests/test_world_generator.py -q` pasó sus **32** pruebas y el guard confirmó
 que la raíz de datos viva de Terrario no cambió.
+
+## 34.6 · Lo que una ronda adversarial encontró, y lo que se reparó (2026-09-18)
+
+Quince agentes contra los PDF del corpus y contra el código. Encontraron **dos defectos críticos en
+la maquinaria** —la parte que la revisión previa había declarado sana— y corrigieron dos
+afirmaciones del analista. Detalle en `docs/REVISION_GENERADOR_MUNDOS_01.md`.
+
+| Defecto | Medida antes | Reparación | Medida después |
+|---|---|---|---|
+| **Un flujo de azar compartido.** Encender `distractors`, `sequence`, `risk` o `novelty` sorteaba de más, corría el flujo y regeneraba `designated`, que ningún eje debe tocar. El control de 4 de 7 ejes era **otro mundo** | 40 sorteos vs 16 (distractors), 24/16 (sequence), 24/16 (risk), 20/16 (novelty); `designated` divergía en 24 de 42 pares (capacidad × semilla) | `_stream(seed, station, purpose)`: el contenido de una estación es función de (semilla, estación, propósito) y de nada más | **0 de 42** pares divergentes |
+| **`duration = 2 × ancho`.** `delay` y `sequence` alargan el pasillo y con él la vida y el gasto. Todo contraste de memoria era también un contraste de viabilidad, con sesgo de un solo lado (el control nunca moría) | EPMEM 19.80/10.20 de 20.00 iniciales; TEMP 31.80/19.80. 0.175 del déficit de EPMEM era truncamiento metabólico | `generate(..., duration=)` y `control_for` fija la duración del control a la del exigente | EPMEM 19.80/**19.80**; TEMP 31.80/**31.80**; test por capacidad |
+| **`Score` sin canal de viabilidad.** `run_life` devolvía `terminated` y la energía de cada paso; `life_score` los descartaba en una línea | Sobre 420 vidas de oráculo, **7 vidas muertas puntuaban accuracy 1.0**; misma semilla muerta en el paso 61 con 1.0 frente a superviviente de 212 pasos con 0.6 | `Viability`, `viability_from()`, `Score.viability` / `Score.died` (`None` cuando nadie midió) | **0** vidas muertas con accuracy 1.0; las 11 muertes restantes, **todas en brazos amputados** |
+| **`merge` fundía `hidden` con `any()`.** HOMEO-A1 declara `hidden=False` como precondición de `modulation`: si las puertas no se distinguen a la vista, el organismo no puede elegir la segura | HOMEO sola: puertas `[0.5,0.1,0.9]` vs `[0.5,0.1,0.1]`. Compuesta con EPMEM: `[0.5,0.1,0.5]` vs `[0.5,0.1,0.5]`. Y un test lo ratificaba | `PINNED` declara los ejes que una capacidad necesita clavados; `demand_for` falla ruidosamente al componer un conjunto incompatible | Componer LEARN con HOMEO exige decidir a mano qué endpoint se abandona |
+
+**El veredicto científico sobrevive y mejora.** `scripts/world_demand_check.py` con 6 semillas tras
+las reparaciones:
+
+```
+capacidad  eje          facultad     completo  amputado  amp/ctrl  exige
+LEARN-A1   hidden       mapping      1.000     0.521     1.000     si   n=48
+EPMEM-A1   delay        memory       1.000     0.521     1.000     si   n=48
+LTMEM-A1   distractors  filter       1.000     0.381     1.000     si   n=48
+TEMP-A1    sequence     order        1.000     0.521     1.000     si   n=48
+HOMEO-A1   risk         homeostasis  1.000     0.000     1.000     si   n=48
+UNC-A1     novelty      —            1.000     —         —         —    n=38
+PLAST-A1   inversion    inversion    1.000     0.000     1.000     si   n=48
+```
+
+El brazo amputado de memoria sube de ~0.35 a **0.521 ≈ azar**, que es el número correcto: un
+oráculo sin memoria debe puntuar azar, no menos. Lo que le faltaba para llegar a azar era comida.
+
+**Lo que no se reparó, y por qué.** El motor tiene **exactamente una variable esencial**
+(`AgentState.energy`; `low_energy=14.0` es un cubo de puntuación, no un umbral fisiológico), así
+que ningún eje nuevo del generador puede subirla — y con N=1 el experimento de HEA-005 queda
+**indefinido**, no sólo mal medido. No hay operador de perturbación en ningún sitio, así que HEA-009
+sigue sin ser aplicable. Y `Score.accuracy` sigue siendo la métrica primaria de seis ejes, que es lo
+que Ashby S.5/2 sí prohíbe (`R-HEA-014-001` en corpus v2, locator `extracted_text/HEA-014.txt:5608-5662`):
+cambiarlo mueve los siete endpoints primarios PENDIENTE y es decisión de diseño, no reparación.
+
+**Verificación (2026-09-18):** `tests/test_world_generator.py` pasa **72** pruebas (eran 43; las
+nuevas generalizan la paridad de contenido a las siete capacidades y añaden paridad metabólica y
+viabilidad); `scripts/world_demand_check.py` reprodujo la matriz de arriba; el guard confirmó que la
+raíz de datos viva no cambió.
+
 
 `capability_passport.register` deriva `demanding_world` de `world_generator.demanding_world_id`;
 7 de 9 pasaportes tienen mundo (WM-A1 y PLAN-A1 no: el generador no declara exigencia para ellos,
