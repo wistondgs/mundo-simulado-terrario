@@ -50,6 +50,33 @@ class RuleEffect:
     transform_channels: np.ndarray | None = None  # replacement channel vector
 
 
+@dataclass(frozen=True)
+class EnergyApplication:
+    """Lo PEDIDO y lo SUFRIDO dejan de ser el mismo número.
+
+    Desde que `max_energy` es un techo de verdad, una regla que paga `+10` sobre
+    un organismo a `58/60` realiza `+2`, y sobre uno a `60/60` realiza `0`. Ese
+    cero no es un fallo: es **saciedad**, una consecuencia dependiente del
+    estado. Pero los dos números tienen dueños distintos:
+
+    - el **aprendiz** se entrena contra `realized`, porque es la consecuencia
+      que el organismo sufrió (`a4_advanced.py:635`);
+    - la **auditoría** conserva `requested`, porque es lo que la física quiso
+      producir, y sin él no se puede distinguir «la regla no disparó» de «la
+      regla disparó y el depósito estaba lleno».
+    """
+
+    requested: float
+    realized: float
+    energy_before: float
+    energy_after: float
+
+    @property
+    def clipped(self) -> bool:
+        """El techo mordió: hubo intención que la fisiología no admitió."""
+        return abs(self.realized - self.requested) > 1e-12
+
+
 @dataclass
 class Rule:
     """A single world rule: condition → effect."""
@@ -207,10 +234,26 @@ class RuleEngine:
 
         Returns the total energy delta for the agent.
         """
-        total_energy = 0.0
+        return self.apply_effects_detailed(
+            world, agent_id, target_object_id, effects).realized
+
+    def apply_effects_detailed(
+        self,
+        world: WorldStateManager,
+        agent_id: int,
+        target_object_id: int,
+        effects: list[RuleEffect],
+    ) -> EnergyApplication:
+        """Aplicar los efectos y devolver lo pedido Y lo realizado.
+
+        `apply_effects` conserva su contrato —un float— y devuelve lo
+        realizado, que es lo que el organismo sufrió. Quien necesite auditar la
+        diferencia usa esta ruta.
+        """
+        requested = 0.0
 
         for eff in effects:
-            total_energy += eff.energy_delta
+            requested += eff.energy_delta
 
             if eff.destroy_object and target_object_id in world._mutable_state().objects:
                 world.remove_object(target_object_id)
@@ -218,12 +261,17 @@ class RuleEngine:
             if eff.transform_channels is not None and target_object_id in world._mutable_state().objects:
                 world.set_object_channels(target_object_id, eff.transform_channels)
 
-        # Apply energy to agent
-        if total_energy != 0.0:
-            agent = world._mutable_state().agents[agent_id]
-            new_energy = agent.energy + total_energy
+        agent = world._mutable_state().agents[agent_id]
+        before = agent.energy
+
+        if requested != 0.0:
+            new_energy = before + requested
             world.set_agent_energy(agent_id, new_energy)
+            # La muerte se decide sobre lo SOLICITADO: el suelo no se recorta,
+            # y un organismo al que se le pide -100 muere aunque tuviera 5.
             if new_energy <= 0.0:
                 world.set_agent_alive(agent_id, False)
 
-        return total_energy
+        after = world._mutable_state().agents[agent_id].energy
+        return EnergyApplication(requested=requested, realized=after - before,
+                                 energy_before=before, energy_after=after)

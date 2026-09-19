@@ -363,17 +363,28 @@ def run_step(
     target_before = target.clone() if target is not None else None
 
     effects = rules.evaluate(world, 0, action, target)
-    energy_delta = rules.apply_effects(world, 0, target.object_id, effects) if target else 0.0
+    application = (rules.apply_effects_detailed(world, 0, target.object_id, effects)
+                   if target else None)
+    energy_delta = application.realized if application is not None else 0.0
+    requested_delta = application.requested if application is not None else 0.0
+    energy_before = (application.energy_before if application is not None
+                     else world._mutable_state().agents[0].energy)
 
     lifecycle_event = None
     if (lifecycle is not None and target_before is not None
             and target_before.object_id not in world._mutable_state().objects):
         lifecycle_event = lifecycle.consume(world, target_before, step)
 
-    energy_delta += world.apply_step_energy_cost(0)
+    # El coste de paso es igual pedido que realizado: sólo baja, y el suelo no
+    # se recorta. Lo único que el techo puede morder es el efecto de las reglas.
+    step_cost = world.apply_step_energy_cost(0)
+    energy_delta += step_cost
 
     consequence = physical.get(0, Consequence(energy_delta=energy_delta, events=[]))
     consequence.energy_delta = energy_delta
+    consequence.requested_energy_delta = requested_delta + step_cost
+    consequence.energy_before = energy_before
+    consequence.energy_after = world._mutable_state().agents[0].energy
     observation_t1 = world.get_observation(0, view_radius, channels)
     terminated = not world._mutable_state().agents[0].alive
     truncated = step + 1 >= max_steps

@@ -189,8 +189,18 @@ class Observation:
 
 @dataclass
 class Consequence:
+    #: Lo REALIZADO: la energía que el organismo efectivamente ganó o perdió.
+    #: Es el objetivo contra el que se entrena el predictor de consecuencias
+    #: (`a4_advanced.py:635`), porque es lo que le ocurrió de verdad.
     energy_delta: float
     events: list[str]  # agent-perceptible outcome signals only
     observer_events: list[str] = field(default_factory=list)
     new_observation: Observation | None = None
     done: bool = False
+    #: Lo PEDIDO: lo que las reglas quisieron producir, antes del techo
+    #: fisiológico. Difiere de `energy_delta` sólo cuando el depósito estaba
+    #: lleno; esa diferencia ES la saciedad, y sin ella no se puede distinguir
+    #: «la regla no disparó» de «disparó y no cupo». Auditoría, no aprendizaje.
+    requested_energy_delta: float | None = None
+    energy_before: float | None = None
+    energy_after: float | None = None

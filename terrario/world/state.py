@@ -156,6 +156,16 @@ class WorldStateManager:
         self._state.occupancy[obj.pos.x, obj.pos.y] += 1
 
     def set_agent_energy(self, agent_id: int, energy: float) -> None:
+        """`max_energy` es un techo fisiologico, no solo la escala del sensor.
+
+        Sin tope la energia crece sin limite --medido 1725.60 contra un techo de
+        60-- y `get_observation` la recorta a 1.0 (linea 110), con lo que el
+        organismo deja de percibir su propia variable esencial: el `drive` se
+        queda en cero el 99% de los pasos. El suelo NO se toca: la muerte la
+        deciden los llamadores sobre el valor solicitado, no sobre el guardado.
+        """
+        if self._max_energy > 0:
+            energy = min(energy, self._max_energy)
         self._state.agents[agent_id].energy = energy
 
     def set_agent_alive(self, agent_id: int, alive: bool) -> None:

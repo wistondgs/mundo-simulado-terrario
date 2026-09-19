@@ -420,7 +420,14 @@ def generate(demand: Demand, *, seed: int, stations: int = 8,
         "seed": seed,
         "view_radius": VIEW_RADIUS,
         "num_channels": NUM_CHANNELS,
-        "max_energy": e.max_energy,
+        # El techo no puede morder al oráculo perfecto. Estos mundos son
+        # INSTRUMENTOS: si el techo mordiera, las últimas estaciones valdrían
+        # menos que las primeras y la energía dejaría de ser una medida lineal
+        # del acierto. Medido con el techo plano de 60.0: un oráculo FULL sobre
+        # 8 estaciones cobraba [7.85 ×5, 7.50, 1.20, 1.20] de los 7.85
+        # declarados por acierto -- las tres últimas a una sexta parte.
+        # `Economy.max_energy` queda como suelo, no como techo efectivo.
+        "max_energy": max(e.max_energy, e.initial_energy + len(key) * e.gain),
         "step_energy_cost": e.step_energy_cost,
         "expose_time_fraction": True,
         "objects": objects,

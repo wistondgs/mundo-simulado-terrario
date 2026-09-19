@@ -223,12 +223,17 @@ class TestRuleEngine:
                 },
             ]
         })
+        # El agente del fixture nace EN el techo (100.0 de 100.0). Desde que
+        # `max_energy` es un techo de verdad, ahí no cabe ninguna ganancia, así
+        # que la premisa del test necesita margen para poder medir lo que mide:
+        # que el efecto energético de una regla se aplica.
+        world_mgr.set_agent_energy(0, 50.0)
         obj = world_mgr.state.objects[0]
         action = Action(action_type=ActionType.CONSUME, direction=Direction.RIGHT)
         effects = engine.evaluate(world_mgr, 0, action, obj)
         delta = engine.apply_effects(world_mgr, 0, obj.object_id, effects)
         assert delta == 5.0
-        assert world_mgr.state.agents[0].energy == 105.0
+        assert world_mgr.state.agents[0].energy == 55.0
 
     def test_apply_effects_destroy(self, world_mgr):
         engine = RuleEngine()

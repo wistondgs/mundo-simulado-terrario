@@ -47,10 +47,16 @@ class HomeostaticState:
         return 1.0 - self._energy
 
     def update(self, energy_delta: float) -> dict[str, Any]:
-        """Update internal energy level.
+        """Update internal energy level, in NORMALISED units.
+
+        `_energy` vive en [0,1]: es `energía / max_energy`. Un delta en unidades
+        absolutas del mundo no pertenece aquí --sumarlo fue el defecto D1--.
+        La autoridad sobre esta variable es `perceive`, que la fija desde
+        `observation.agent_energy`. Este método queda para fijar estados
+        normalizados en pruebas y para futuros sensores parciales.
 
         Args:
-            energy_delta: change in energy (positive = gain, negative = cost).
+            energy_delta: change in energy, NORMALISED (positive = gain).
 
         Returns:
             trace_info dict.

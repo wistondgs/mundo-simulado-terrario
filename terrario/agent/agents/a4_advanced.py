@@ -579,8 +579,22 @@ class A4Advanced(AgentInterface):
             self._step += 1
             return
 
-        # ── Update homeostasis ───────────────────────────────────────
-        self.homeostasis.update(consequence.energy_delta)
+        # ── Homeostasis: NO se actualiza aquí ────────────────────────
+        # `homeostasis._energy` es **estado interoceptivo sentido ahora**, y su
+        # única autoridad es `perceive` (línea 358), que lo toma de
+        # `observation.agent_energy` en unidades NORMALIZADAS [0,1].
+        #
+        # Aquí había `self.homeostasis.update(consequence.energy_delta)`, que
+        # sumaba energía **absoluta** a esa variable normalizada: con
+        # `max_energy = 60`, el coste de paso de 0.15 restaba 60× de más y una
+        # sola comida (+9.85) la saturaba a 1.0. Era inocuo sólo porque
+        # `perceive` lo pisaba antes de que nadie leyera, y porque `drive` no
+        # tenía consumidores. Dejarlo convertiría el primer lector de `drive`
+        # en un lector de basura.
+        #
+        # Aprender la consecuencia y sentir el estado son dos procesos: el
+        # segundo no debe reescribir retroactivamente la lectura del primero.
+        # Lo que este método sí hace con `consequence` es entrenar al predictor.
 
         # ── Write to episodic memory ─────────────────────────────────
         if self._use_episodic:
