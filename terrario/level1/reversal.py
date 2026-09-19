@@ -110,8 +110,13 @@ def world_digest(grid: Grid, rng: np.random.Generator) -> str:
     return h.hexdigest()
 
 
-def learner_digest(model: Any) -> str:
-    """`K*`: los suficientes estadísticos, sean del tipo que sean."""
+def statistics_digest(model: Any) -> str:
+    """Sólo los suficientes estadísticos. **Sin** el flag de congelación.
+
+    Existe separado porque `freeze_control` DEBE cambiar el flag y NO puede
+    cambiar nada más; con el flag dentro de la huella no se podría distinguir
+    «sólo se congeló» de «se congeló y además se movió algo».
+    """
     h = hashlib.sha256()
     for name in ("_belief", "_base", "_feature", "_value"):
         store = getattr(model, name, None)
@@ -121,8 +126,90 @@ def learner_digest(model: Any) -> str:
         for key in sorted(store, key=repr):
             h.update(repr(key).encode())
             h.update(repr(store[key]).encode())
+    return h.hexdigest()
+
+
+def learner_digest(model: Any) -> str:
+    """`K*` completo: estadísticos **más** el flag.
+
+    Ésta es la huella del `mapping_switch`: si el flag cambiara ahí, el switch
+    habría movido dos variables en el brazo congelado y dejaría de ser una
+    intervención única.
+    """
+    h = hashlib.sha256()
+    h.update(statistics_digest(model).encode())
     h.update(f"frozen={getattr(model, 'frozen', None)}".encode())
     return h.hexdigest()
+
+
+@dataclass(frozen=True)
+class EventAudit:
+    """Qué cambió y qué no en un evento de la frontera.
+
+    Un evento causal limpio mueve **una** variable. Estas huellas son lo que lo
+    demuestra en vez de afirmarlo.
+    """
+
+    name: str
+    step: int
+    world_before: str
+    world_after: str
+    learner_before: str
+    learner_after: str
+    statistics_before: str
+    statistics_after: str
+    detail: str = ""
+
+    @property
+    def world_intact(self) -> bool:
+        return self.world_before == self.world_after
+
+    @property
+    def learner_intact(self) -> bool:
+        return self.learner_before == self.learner_after
+
+    @property
+    def statistics_intact(self) -> bool:
+        return self.statistics_before == self.statistics_after
+
+
+def audit_mapping_switch(grid: Grid, rng: np.random.Generator, model: Any,
+                         step: int, apply: Callable[[], None]) -> EventAudit:
+    """El switch del mapeo: mundo, azar, estadísticos y flag deben sobrevivir.
+
+    `apply` sólo puede cambiar el mapeo. Si mueve cualquier otra cosa, las
+    huellas lo delatan y el resultado es `SWITCH_MUTATED_NON_TARGET_STATE`.
+    """
+    w0, k0, s0 = world_digest(grid, rng), learner_digest(model), statistics_digest(model)
+    apply()
+    return EventAudit("mapping_switch", step, w0, world_digest(grid, rng),
+                      k0, learner_digest(model), s0, statistics_digest(model))
+
+
+def audit_freeze_control(grid: Grid, rng: np.random.Generator, model: Any,
+                         step: int) -> EventAudit:
+    """`frozen: False → True`, y **nada más**.
+
+    Es una SEGUNDA intervención, exclusiva del brazo de control, y ocurre
+    DESPUÉS de la huella del switch. Si se hiciera dentro del mismo evento, para
+    ese brazo el switch movería dos variables y dejaría de ser limpio.
+
+    El organismo congelado representa *conocimiento adquirido sin capacidad
+    posterior de revisión*, no ignorancia: por eso aprende toda la fase A y se
+    congela justo aquí, no desde el principio.
+    """
+    w0, k0, s0 = world_digest(grid, rng), learner_digest(model), statistics_digest(model)
+    was = bool(getattr(model, "frozen", False))
+    model.frozen = True
+    return EventAudit("freeze_control", step, w0, world_digest(grid, rng),
+                      k0, learner_digest(model), s0, statistics_digest(model),
+                      detail=f"frozen {was} -> {model.frozen}")
+
+
+#: Tolerancia numérica de `FLOOR_VIOLATED`. Es precisión de coma flotante, no un
+#: umbral científico, y se declara antes de la corrida. Hoy observado y
+#: referencia coinciden bit a bit, pero no se usa igualdad exacta como contrato.
+FLOOR_TOLERANCE: float = 1e-9
 
 
 # --- el flujo por fases -------------------------------------------------------
