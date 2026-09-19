@@ -30,11 +30,28 @@ inhabilitada como evidencia confirmatoria.
 ```
 desarme              20260919
 Experimento 1        20260919 … 20260950
-REV confirmatorio    31415926 … 31415957        ← congeladas aquí
+quemada              31415926          ← ver la enmienda de abajo
+verificación         99999937          ← dedicada a comprobar implementación
+REV confirmatorio    31415927 … 31415958        ← congeladas aquí
 ```
 
 Disjunción verificada **incluidas las imágenes** de `+20 000 003` (banco) y
-`+10 000 003` (permutación): intersección vacía en los tres conjuntos.
+`+10 000 003` (permutación): intersección vacía entre los cinco conjuntos.
+
+### Enmienda 1 · semilla `31415926` quemada durante la verificación
+
+Al comprobar que las referencias independientes coinciden con `predict()` usé
+`31415926`, que era la primera confirmatoria, y **vi la dirección del efecto**:
+RASGOS `0.00438833` frente a CASOS `0.00774028` — precisamente lo que §14-nueva
+predice. La comprobación era de implementación, pero la mirada fue a la
+hipótesis.
+
+Reparación: `31415926` queda fuera del conjunto confirmatorio y la ventana se
+desplaza a `31415927 … 31415958`, manteniendo 32. Toda comprobación de
+implementación futura usa `99999937`, dedicada y disjunta.
+
+Se registra como desviación del preregistro en vez de corregirse en silencio,
+porque el conjunto confirmatorio se congeló *antes* y esto lo cambia *después*.
 
 ## 3 · §14-original · `REFUTED_PRE_RUN_BY_MECHANISTIC_AUDIT`
 
