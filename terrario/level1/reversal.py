@@ -518,3 +518,51 @@ def effective_dose(phase_b: Sequence[Transition], before: Mapping,
             cell[1] += 1
     rho = contradicting / len(phase_b) if phase_b else float("nan")
     return contradicting, rho, {k: (v[0], v[1]) for k, v in per_cell.items()}
+
+
+# --- ayudantes de gate --------------------------------------------------------
+
+#: REV-2 por semilla. **No es un umbral nuevo**: es el mismo `τ` ya congelado,
+#: reutilizado para no introducir una segunda constante científica por la puerta
+#: de atrás. Medido con `n_A = 2048`: CASOS 0.004884, RASGOS 0.000019.
+ACQUISITION_THRESHOLD: float = 0.05
+
+
+def acquired(brier_under_a: float, *,
+             threshold: float = ACQUISITION_THRESHOLD) -> bool:
+    """¿Adquirió `C_A` antes del switch? Se mide, nunca se asume.
+
+    El Experimento 1 usó más experiencia que 2048 transiciones, así que su
+    resultado no autoriza a dar por hecha la adquisición aquí. Un brazo que no
+    la satisfaga produce `PRECONDITION_FAILED`, y eso **no** es falta de
+    plasticidad: es una semilla que no llegó a la línea de salida.
+    """
+    return brier_under_a < threshold
+
+
+def floor_check(observed: float, reference: float,
+                *, tolerance: float = FLOOR_TOLERANCE) -> str:
+    """Las cuatro regiones del contrato del suelo.
+
+    `FLOOR_VIOLATED` no significa «el organismo superó su teoría». Significa que
+    la implementación, la instrumentación o el cálculo de la referencia son
+    inconsistentes entre sí, y por eso detiene la interpretación.
+    """
+    if observed < reference - tolerance:
+        return "FLOOR_VIOLATED"
+    if abs(observed - reference) <= tolerance:
+        return "CONSISTENT"
+    return "ABOVE_REFERENCE"
+
+
+def random_movement_rate(bank: Sequence[Observation], mapping: Mapping) -> float:
+    """El azar, calculado en cerrado en vez de muestreado.
+
+    Para una política uniforme, `P(no chocar) = #{d : o[m(d)] = 0} / 4`. Tenerlo
+    analítico permite comparar contra él sin que el resultado dependa de cuántas
+    veces se sorteó.
+    """
+    if not bank:
+        return float("nan")
+    return sum(sum(1 for d in Direction if outcome_under(o, d, mapping) == 1) / 4
+               for o in bank) / len(bank)
