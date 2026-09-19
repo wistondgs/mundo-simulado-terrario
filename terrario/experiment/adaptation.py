@@ -16,6 +16,10 @@ import numpy as np
 import torch
 
 from terrario.core.rng import RNGManager
+from terrario.agent.adaptive_freeze import (
+    ADAPTIVE_FINGERPRINT_VERSION, adaptive_components, adaptive_fingerprint,
+    regime_of,
+)
 from terrario.agent.device import device_status
 from terrario.experiment.config import ExperimentConfig
 from terrario.experiment.campaign import (
@@ -196,7 +200,18 @@ def _stable_hash(value: Any) -> str:
 
 
 def _adaptive_state_hash(agent: Any) -> str:
-    """Hash parameters plus mutable memory, excluding ordinary recurrent state."""
+    """La huella HISTÓRICA. Se conserva tal cual, y ya no decide nada.
+
+    Cubre parámetros + buffer episódico + `M`, y **no ve `_energy_baseline`**:
+    medido, se le puede sumar 42.0 y no se mueve. La frontera que el proyecto
+    adoptó en la cartografía §XXXVI es lo que ésta trazaba MÁS esa pieza, así
+    que como prueba de «no hubo adaptación» se satisfacía en vacío para ella --
+    la condición de parada 10 de OCF-G3.
+
+    Sigue aquí, sin tocar, porque la evidencia histórica se produjo con ella y
+    reescribirla sería reinterpretar esa evidencia. Lo nuevo usa
+    `adaptive_fingerprint`, y el registro dice cuál se usó.
+    """
     digest = hashlib.sha256()
     for name, value in sorted(agent.get_parameters().items()):
         digest.update(name.encode())
@@ -328,7 +343,8 @@ class AdaptationProtocolRunner:
                 "world_snapshot": primary_world.serialize(), "phase": "pre_transfer", "change_step": change_step,
             })
         before_transfer = {name: value.clone() for name, value in agent.get_parameters().items()}
-        adaptive_state_before_transfer = _adaptive_state_hash(agent)
+        adaptive_state_before_transfer = adaptive_fingerprint(agent)
+        adaptive_components_before_transfer = adaptive_components(agent)
         transfer_world, transfer_rules, transfer_scheduler = _phase_components(transfer)
         with ScientificObserver(str(run_root / "transfer"), self.observer_mode, {
             "hypothesis_id": "H-ADAPT-001", "protocol_version": PROTOCOL_VERSION, "variant_id": variant_id,
@@ -343,7 +359,8 @@ class AdaptationProtocolRunner:
             np.array_equal(value.detach().cpu().numpy(), after_transfer[name].detach().cpu().numpy())
             for name, value in before_transfer.items()
         )
-        adaptive_state_after_transfer = _adaptive_state_hash(agent)
+        adaptive_state_after_transfer = adaptive_fingerprint(agent)
+        adaptive_components_after_transfer = adaptive_components(agent)
         _, peak_memory = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         predictor = variant["agent_type"] in {"A3_WORLD_MODEL", "A4_ADVANCED"} and variant_id != "A4_NO_PREDICTION"
@@ -376,7 +393,16 @@ class AdaptationProtocolRunner:
             "updates": updates, "gradient_steps": updates if variant_id != "A0_RANDOM" else 0,
             "wall_seconds": time.perf_counter() - wall_start, "cpu_seconds": time.process_time() - cpu_start,
             "peak_tracemalloc_bytes": peak_memory, "transfer_parameters_unchanged": transfer_parameters_unchanged,
-            "transfer_adaptive_state_unchanged": adaptive_state_before_transfer == adaptive_state_after_transfer,
+            # Igualdad agregada Y por componente: la agregada sólo demuestra lo
+            # que la huella incluye, y ése fue exactamente el fallo anterior.
+            "transfer_adaptive_state_unchanged": (
+                adaptive_state_before_transfer == adaptive_state_after_transfer
+                and adaptive_components_before_transfer == adaptive_components_after_transfer),
+            "transfer_adaptive_components_changed": sorted(
+                name for name, value in adaptive_components_before_transfer.items()
+                if adaptive_components_after_transfer[name] != value),
+            "adaptive_fingerprint_version": ADAPTIVE_FINGERPRINT_VERSION,
+            "adaptive_regime": regime_of(agent).value,
             "numerical_health": numerical_health(primary_data, agent),
             "opportunity_contract": opportunity_contract,
             "checkpoint_ref": str(run_root / "primary" / "checkpoints" / f"step_{primary_data['num_steps']:08d}"),

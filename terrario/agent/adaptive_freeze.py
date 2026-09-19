@@ -33,6 +33,7 @@ y es lo que exige OCF-G3.4.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Callable, Iterable
 
 #: Las cuatro piezas de la frontera adoptada, con el sitio que las escribe.
@@ -176,3 +177,105 @@ def combine(freeze: AdaptiveFreeze | None, component: str, *,
     """
     allowed = True if freeze is None else freeze.allow(component)
     return allowed and all(also)
+
+
+# --- La frontera canónica ----------------------------------------------------
+#
+# Una sola semántica compartida por las cuatro rutas que la necesitan: la
+# congelación, la auditoría, la huella y la transferencia. Antes había dos
+# fronteras distintas con el mismo nombre -- `_adaptive_state_hash` cubría
+# parámetros + buffer + M, y la frontera adoptada en la cartografía §XXXVI era
+# eso MÁS `_energy_baseline`. La huella se satisfacía en vacío para esa pieza.
+
+#: Versión de la huella. La histórica cubre otra frontera y no se reinterpreta.
+ADAPTIVE_FINGERPRINT_VERSION = "terrario.agent.adaptive-fingerprint/ocf-1"
+LEGACY_ADAPTIVE_FINGERPRINT_VERSION = "terrario.experiment.adaptive-state-hash/legacy-0"
+
+#: Orden canónico. Fijo, para que la huella no dependa del orden de iteración.
+CANONICAL_ORDER: tuple[str, ...] = (
+    "parameters", "episodic_buffer", "longterm_M", "baseline")
+
+#: `M` es físicamente un `nn.Parameter` y está DENTRO del optimizador (medido:
+#: 58 parámetros, `M` entre ellos), así que la escriben dos rutas --
+#: `M.data.copy_()` en `memory.py` y `optimizer.step()`. Conceptualmente es una
+#: sola pieza y aparece una sola vez: `parameters` la excluye.
+_M_PARAMETER_NAME = "longterm_memory.M"
+
+
+def adaptive_components(agent: Any) -> dict[str, bytes]:
+    """Representación canónica del estado adaptativo, componente a componente.
+
+    Primero la representación, después el digest: así cada pieza se puede
+    comparar por separado y una huella agregada nunca es la única prueba.
+    """
+    import hashlib
+
+    out: dict[str, bytes] = {}
+
+    h = hashlib.sha256()
+    for name, value in sorted(agent.get_parameters().items()):
+        if name == _M_PARAMETER_NAME:
+            continue
+        h.update(name.encode())
+        h.update(value.detach().cpu().contiguous().numpy().tobytes())
+    out["parameters"] = h.digest()
+
+    buf = getattr(getattr(agent, "episodic_memory", None), "_buffer", None)
+    hb = hashlib.sha256()
+    for item in (buf or []):
+        hb.update(item["embedding"].detach().cpu().contiguous().numpy().tobytes())
+        hb.update(str((item["action"], item["energy_delta"], item["timestamp"])).encode())
+    out["episodic_buffer"] = hb.digest()
+
+    m = getattr(getattr(agent, "longterm_memory", None), "M", None)
+    out["longterm_M"] = (b"" if m is None else
+                         hashlib.sha256(m.detach().cpu().contiguous().numpy().tobytes()).digest())
+
+    # `_baseline_count` NO es contabilidad: es el denominador del paso de la
+    # media corrida, así que un contador distinto produce otra línea base, otra
+    # ventaja, otro gradiente y otros parámetros. Medido: contador 1 frente a
+    # 50, todo lo demás idéntico, un solo evento elegible -> línea base 0.175
+    # frente a 0.487254901961 y parámetros distintos. Las dos se congelan y se
+    # hashean juntas, atómicamente.
+    out["baseline"] = (f"{float(getattr(agent, '_energy_baseline', 0.0)):.17g}"
+                       f"|{int(getattr(agent, '_baseline_count', 0))}").encode()
+    return out
+
+
+def adaptive_fingerprint(agent: Any) -> str:
+    """La huella agregada, construida sobre la representación canónica."""
+    import hashlib
+
+    parts = adaptive_components(agent)
+    digest = hashlib.sha256()
+    digest.update(ADAPTIVE_FINGERPRINT_VERSION.encode())
+    for name in CANONICAL_ORDER:
+        digest.update(name.encode())
+        digest.update(parts[name])
+    return digest.hexdigest()
+
+
+# --- Régimen adaptativo, para la procedencia del protocolo -------------------
+
+class AdaptiveRegime(str, Enum):
+    """Bajo qué régimen corrió una ejecución. Explícito, nunca inferido.
+
+    `UNDECLARED` es para evidencia que no lo declaró: no se reinterpreta como
+    NORMAL, porque entonces la ausencia de dato y el dato se confundirían.
+    """
+
+    NORMAL = "NORMAL"
+    PARAMETRIC_FREEZE = "PARAMETRIC_FREEZE"
+    FULL_ADAPTIVE_FREEZE = "FULL_ADAPTIVE_FREEZE"
+    UNDECLARED = "UNDECLARED"
+
+
+def regime_of(agent: Any) -> AdaptiveRegime:
+    """El régimen efectivo de un agente vivo, leído de lo que gobierna."""
+    freeze = getattr(agent, "adaptive_freeze", None)
+    if freeze is not None and freeze.enabled:
+        return AdaptiveRegime.FULL_ADAPTIVE_FREEZE
+    config = getattr(agent, "config", {}) or {}
+    if not bool(config.get("learning_commit_enabled", True)):
+        return AdaptiveRegime.PARAMETRIC_FREEZE
+    return AdaptiveRegime.NORMAL

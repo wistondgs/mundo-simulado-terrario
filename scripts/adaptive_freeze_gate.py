@@ -38,7 +38,10 @@ if str(PROJECT_ROOT) not in sys.path:
 import torch  # noqa: E402
 import torch.nn.functional as F_  # noqa: E402
 
-from terrario.agent.adaptive_freeze import COMPONENTS  # noqa: E402
+from terrario.agent.adaptive_freeze import (  # noqa: E402
+    ADAPTIVE_FINGERPRINT_VERSION, COMPONENTS, adaptive_components,
+    adaptive_fingerprint, regime_of,
+)
 from terrario.agent.agents import create_agent  # noqa: E402
 from terrario.core.rng import RNGManager  # noqa: E402
 from terrario.core.types import Action  # noqa: E402
@@ -105,12 +108,13 @@ def digest(agent: Any, component: str) -> str:
 
 
 def adaptive_hash(agent: Any) -> str:
-    """Nivel 2: el agregado, construido de las mismas piezas."""
-    h = hashlib.sha256()
-    for piece in PIECES:
-        h.update(piece.encode())
-        h.update(digest(agent, piece).encode())
-    return h.hexdigest()[:16]
+    """Nivel 2: la huella canónica del proyecto, no una del arnés.
+
+    Antes el gate calculaba la suya y el repositorio tenía otra, con la misma
+    palabra. Ahora comprueba la que la ruta de transferencia usa de verdad: si
+    esa deja de cubrir una pieza, el gate lo nota.
+    """
+    return adaptive_fingerprint(agent)[:16]
 
 
 def snapshot(agent: Any) -> dict[str, str]:
@@ -353,49 +357,72 @@ def report(seed: int, steps: int) -> int:
     # que la huella incluye. Si omite una pieza de la frontera adoptada, el
     # criterio se satisface en vacío, que es exactamente el modo de fallo contra
     # el que se pidió comparar pieza por pieza Y agregado.
-    from terrario.experiment.adaptation import _adaptive_state_hash
+    def _canary(move) -> bool:
+        RNGManager.set_global_determinism(seed)
+        c = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
+        h0 = adaptive_fingerprint(c)
+        move(c)
+        return adaptive_fingerprint(c) != h0
 
-    RNGManager.set_global_determinism(seed)
-    canary = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
-    covers: dict[str, bool] = {}
-    h0 = _adaptive_state_hash(canary)
-    canary._energy_baseline = float(canary._energy_baseline) + 42.0
-    canary._baseline_count = int(canary._baseline_count) + 17
-    covers["energy_baseline"] = _adaptive_state_hash(canary) != h0
+    def _bump_param(c):
+        with torch.no_grad():
+            for prefix, module in c._parameter_modules():
+                for name, parameter in module.named_parameters():
+                    if f"{prefix}.{name}" != "longterm_memory.M":
+                        parameter.add_(1.0)
+                        return
 
-    RNGManager.set_global_determinism(seed)
-    canary = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
-    h0 = _adaptive_state_hash(canary)
-    canary.longterm_memory.M.data.add_(1.0)
-    covers["longterm_M"] = _adaptive_state_hash(canary) != h0
-
-    RNGManager.set_global_determinism(seed)
-    canary = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
-    h0 = _adaptive_state_hash(canary)
-    canary.episodic_memory.write(embedding=torch.zeros(BASE["latent_dim"]), action=1,
-                                 energy_delta=0.5, prediction_error=0.1, timestamp=0)
-    covers["episodic_buffer"] = _adaptive_state_hash(canary) != h0
-
+    covers = {
+        "parameters": _canary(_bump_param),
+        "episodic_buffer": _canary(lambda c: c.episodic_memory.write(
+            embedding=torch.zeros(BASE["latent_dim"]), action=1, energy_delta=0.5,
+            prediction_error=0.1, timestamp=0)),
+        "longterm_M": _canary(lambda c: c.longterm_memory.M.data.add_(1.0)),
+        "baseline value": _canary(lambda c: setattr(
+            c, "_energy_baseline", float(c._energy_baseline) + 42.0)),
+        "baseline count": _canary(lambda c: setattr(
+            c, "_baseline_count", int(c._baseline_count) + 17)),
+    }
     uncovered = [c for c, ok in covers.items() if not ok]
 
-    print("\n\nCONDICIÓN DE PARADA 10  ·  ¿`_adaptive_state_hash` cubre la frontera adoptada?\n")
-    for c in ("episodic_buffer", "longterm_M", "energy_baseline"):
+    print(f"\n\nCONDICIÓN DE PARADA 10  ·  ¿la huella canónica cubre la frontera?\n")
+    print(f"  versión: {ADAPTIVE_FINGERPRINT_VERSION}\n")
+    for c in sorted(covers):
         print(f"  {c:<22}{'la ve' if covers[c] else 'NO LA VE'}")
-    print("  parameters            (no comprobable por separado: `get_parameters()` "
-          "incluye M)")
+
+    # Especificidad: una huella que hashease A4 entero pasaría lo de arriba y
+    # no valdría nada. `M` aparte: comprobamos que no está doble contada.
+    RNGManager.set_global_determinism(seed)
+    spec = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
+    h0 = adaptive_fingerprint(spec)
+    spec._step += 7
+    spec.homeostasis._energy = 0.123
+    spec.last_prediction_error = 0.99
+    specific = adaptive_fingerprint(spec) == h0
+
+    RNGManager.set_global_determinism(seed)
+    dbl = create_agent("A4_ADVANCED", dict(BASE), seed=seed)
+    before_parts = adaptive_components(dbl)
+    dbl.longterm_memory.M.data.add_(1.0)
+    single_M = adaptive_components(dbl)["parameters"] == before_parts["parameters"]
+
+    print(f"\n  especificidad (mover `_step`, homeostasis y el error de predicción "
+          f"no la mueve): {'sí' if specific else 'NO'}")
+    print(f"  `M` contada una sola vez (moverla no mueve `parameters`): "
+          f"{'sí' if single_M else 'NO'}")
 
     passed = all(ok for _, ok in crit)
     print(f"\n\n  LEARNING_COMMIT_IS_COMPLETE_FREEZE = "
           f"{'NO' if (changed['episodic_buffer']['P'] or changed['longterm_M']['P']) else 'SÍ'}"
           f"   (se conserva la distinción ya medida)")
-    if uncovered:
+    if uncovered or not specific or not single_M:
         print(f"\n  OCF-G3 = ABIERTO POR CONDICIÓN DE PARADA 10")
-        print(f"  Los {len(crit)} criterios pasan, pero `_adaptive_state_hash` omite "
-              f"{', '.join(uncovered)},")
-        print(f"  que la frontera adoptada SÍ incluye. El criterio E se satisface en "
-              f"vacío para esa pieza.")
-        print(f"  No se repara aquí: cambiar esa huella toca `adaptation.py`, que está "
-              f"fuera de este alcance.")
+        if uncovered:
+            print(f"  La huella canónica omite: {', '.join(uncovered)}.")
+        if not specific:
+            print(f"  La huella se mueve con estado NO adaptativo: no es específica.")
+        if not single_M:
+            print(f"  `M` está doble contada.")
         return 2
     print(f"  OCF-G3 = {'PASA' if passed else 'NO PASA'}")
     return 0 if passed else 1

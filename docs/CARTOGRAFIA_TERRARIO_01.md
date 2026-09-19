@@ -3346,7 +3346,9 @@ Doce criterios en verde, incluida la ruta real (`run_step`, no sólo replay), pa
 auditoría-ON/OFF sobre acciones y energía, y regresión: NORMAL es idéntico campo por campo al A4
 previo a la infraestructura.
 
-**Pero el gate queda ABIERTO por condición de parada 10.** `_adaptive_state_hash`
+**Cerrado el 2026-09-18.** Lo que sigue describe por qué estuvo abierto y cómo se reparó.
+
+**Estuvo ABIERTO por condición de parada 10.** `_adaptive_state_hash`
 ([adaptation.py:198](terrario/experiment/adaptation.py:198)) **no ve `_energy_baseline`** —se le
 puede sumar 42.0 y no se mueve— mientras que la frontera adoptada en §XXXVI es «lo que esa huella
 ya trazaba **más `_energy_baseline`**». La huella agregada del proyecto no cubre la frontera que el
@@ -3355,3 +3357,69 @@ proyecto adoptó, así que el criterio de igualdad agregada se satisface en vac�
 declarar PASS mientras la omisión exista.
 
 Detalle en `docs/ORGANISM_CAUSAL_FOUNDATION_01.md`.
+
+
+## 37.3 · El cierre de OCF-G3 · frontera canónica y huella versionada
+
+**`_baseline_count` no era contabilidad.** Es el denominador del paso de la media corrida, así que
+un contador distinto produce otra línea base, otra ventaja, otro gradiente y otros parámetros.
+Medido con dos A4 idénticos en parámetros, `M` y buffer, con contador 1 frente a 50 y **un solo**
+evento elegible:
+
+```
+línea base después   0.175             frente a  0.487254901961
+parámetros           6cf413359ebf8a68  frente a  77b8a0d1525e480e
+M                    b1ff1646e45aef6e  frente a  3d4eb56de35ebf08
+```
+
+La pieza de la frontera es `baseline = (_energy_baseline, _baseline_count)`, atómica: se congela y
+se hashea junta.
+
+**`M` la escriben dos rutas.** Es `nn.Parameter` **y** está dentro del optimizador (medido: 58
+parámetros, `M` entre ellos), así que la mueven `M.data.copy_()` en `memory.py` y también
+`optimizer.step()`. Eso explica la tercera línea de la tabla de arriba. Conceptualmente es una sola
+pieza: `parameters` la excluye y `longterm_M` la lleva, una sola vez.
+
+**Frontera canónica final**, compartida por la congelación, la auditoría, la huella y la
+transferencia — antes había dos fronteras distintas con el mismo nombre:
+
+```
+CANONICAL_ORDER = ("parameters", "episodic_buffer", "longterm_M", "baseline")
+                    sin M                                          valor + contador
+```
+
+**Huella versionada.** `adaptive_fingerprint` construye primero la representación canónica y después
+el digest, e incluye su propia versión en el digest:
+`terrario.agent.adaptive-fingerprint/ocf-1`. `_adaptive_state_hash` se conserva **sin tocar** en
+`adaptation.py` con la etiqueta histórica: la evidencia antigua se produjo con ella y reescribirla
+sería reinterpretarla. La ruta de transferencia registra ahora `adaptive_fingerprint_version` y
+`adaptive_regime`, y compara **por componente Y agregado**, porque la agregada sólo demuestra lo que
+la huella incluye.
+
+**El consumidor real, antes y después.** Reproduciendo el cálculo de
+`transfer_adaptive_state_unchanged` sobre la misma mutación:
+
+| mutación | antes | ahora |
+|---|---|---|
+| sólo el valor del baseline | `True` — falso negativo | `False`, componente `baseline` |
+| sólo el contador | `True` — falso negativo | `False`, componente `baseline` |
+| los dos | `True` — falso negativo | `False`, componente `baseline` |
+
+**Régimen adaptativo explícito.** `AdaptiveRegime` distingue `NORMAL` / `PARAMETRIC_FREEZE` /
+`FULL_ADAPTIVE_FREEZE`, y `regime_of(agent)` lo lee **de lo que gobierna**, no de una etiqueta.
+`UNDECLARED` existe para que la evidencia histórica que no lo declaró no se lea como NORMAL: la
+ausencia de dato y el dato no pueden confundirse.
+
+**El control permanente.** `tests/test_adaptive_fingerprint.py`, 24 pruebas: cinco de sensibilidad
+(una pieza cada vez mueve la huella y mueve **exactamente un** componente), seis de especificidad
+(estado recurrente, `_step`, `homeostasis._energy`, `last_prediction_error`, `learner._step_count` y
+los gradientes **no** la mueven), y una que reproduce el fallo original — la histórica no lo ve, la
+nueva sí. Sin la mitad de especificidad, un digest que hasheara A4 entero pasaría la otra mitad y no
+serviría de nada.
+
+```
+OCF-G3 = PASA
+```
+
+La condición de parada 10 desaparece porque se reparó la huella, no porque se quitara el detector:
+el gate la sigue comprobando, ahora sobre las cinco piezas y con especificidad.

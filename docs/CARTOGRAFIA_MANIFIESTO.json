@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "65c877c",
+  "head": "f72d225",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -217,10 +217,11 @@
     },
     "XXXVII · Fundación causal del organismo · OCF-G1 y OCF-G3": {
       "files": {
-        "scripts/adaptive_freeze_gate.py": "d31cddcba7886d56d7dfb836065b09a3b500a86db2d9c164a2c7ae3f3543eb76",
+        "scripts/adaptive_freeze_gate.py": "2b7e37bccf3b22d6eb48c2da6341349ac9d5b9c788ac54d20926406ea04a2201",
         "scripts/state_authority_probe.py": "9edb25decbcbbf4cb483c5fac721d1f782c1885d0894c4c31e565f2be2f1f86b",
-        "terrario/agent/adaptive_freeze.py": "7f1862f4e501cf04bc15eb8323ca858a0d1c92885ccfb8f2d5c791bda7009652",
-        "terrario/experiment/adaptation.py": "92d074a86053ebb113bb43f6c92ace5a4170d9d61baa2a4e1bd6c923e212bb73"
+        "terrario/agent/adaptive_freeze.py": "7c401f0a8d8ee550bb5d9a1eaff6819d1ec2e33e8d20b1a3434e87de5c7bfaff",
+        "terrario/experiment/adaptation.py": "98e6ee21c25aa7eb65a90fbe4ee63ee92630943bf6b71b8dc9b61209746a16c0",
+        "tests/test_adaptive_fingerprint.py": "c318dc924bf3cd9690779ce433700d08de7ad20ccf6b31b599237ff2e47e6a59"
       }
     }
   }
