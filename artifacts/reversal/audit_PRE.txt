@@ -1,0 +1,104 @@
+========================================================================
+AGENTE DE NIVEL 1 · parámetros efectivos del experimento
+
+  parámetro                          valor
+  ----------------------------------------
+  grid_size                              7
+  wall_probability                    0.25
+  train_layouts                        128
+  train_steps_per_layout                64
+  test_layouts                         128
+  test_positions_per_layout             32
+  repetitions                           32
+  prior_alpha                          1.0
+  prior_beta                           1.0
+  q_learning_rate                      0.2
+  q_discount                           0.9
+
+  DERIVADO — esto es lo que hay que citar en un informe
+
+    repertorio motor           4 direcciones
+    espacio sensorial          16 situaciones (2^4)
+    celdas de una tabla        64 pares (situación, dirección)
+    transiciones por semilla   8192
+    muestras por celda         ~128
+
+    Con el espacio sensorial cubierto entero, un gate de
+    generalización sobre mundos nuevos NO puede fallar: hay que
+    retirar situaciones del entrenamiento para que signifique algo.
+
+========================================================================
+PASIVIDAD · ¿preguntar cambia al ser?
+
+  ok     aprende por casos      celdas 47 -> 47
+  ok     aprende por rasgos     celdas 36 -> 36
+  ok     td (techo externo)     celdas 12 -> 12
+  ok     contrato físico        0 violaciones en 256 transiciones
+
+========================================================================
+SUITE · 5 fallos ahora, 5 registrados
+
+  conocido   tests/test_agent_composition.py::test_every_offered_concept_is_a_key_the_agent_actually_reads
+  conocido   tests/test_agent_composition.py::test_the_catalogue_carries_what_a_person_needs_to_choose
+  conocido   tests/test_agent_composition.py::test_the_mix_reads_as_a_sentence_not_as_flags
+  conocido   tests/test_system_baseline_characterization.py::test_d2_d3_d4_a0_a1_a4_match_checked_in_behavior
+  conocido   tests/test_system_baseline_characterization.py::test_protected_source_and_historical_artifact_hashes_match_baseline
+
+  el conjunto de fallos no se movió
+
+========================================================================
+EXPERIMENTO 2 · contingencia sensorimotora del Agente de Nivel 1
+  4 semillas · 128×64 pasos de actividad motora basal · mundos de prueba disjuntos
+
+  ADQUISICIÓN — con las dieciséis situaciones disponibles
+    Brier, más bajo mejor. Referencias analíticas:
+      ignorante (siempre 1/2) = 0.250000     perfecto = 0.000000
+
+    brazo                            Brier    conducta   trayectoria
+    ----------------------------------------------------------------
+    aprende por casos             0.000086      1.0000        1.0000
+    aprende por rasgos            0.000001      1.0000             —
+    congelado                     0.250000      0.6076        0.5951
+    permutado                     0.242576      0.6745        0.3523
+    td (techo externo)                   —      1.0000             —
+    oráculo (techo físico)               —      1.0000             —
+
+
+  EL DISCRIMINADOR — los mismos seres, entrenados SIN ver cuatro
+    de las dieciséis situaciones, y medidos sólo sobre esas cuatro.
+
+    brazo                            Brier    conducta
+    --------------------------------------------------
+    aprende por casos             0.250000      0.6565
+    aprende por rasgos            0.000020      1.0000
+    td (techo externo)                   —      0.6565
+    congelado                            —      0.6565
+    oráculo (techo físico)               —      1.0000
+
+
+  CONTRASTES PAREADOS  ·  n = 4
+
+    contraste                              media                   IC95%   signo +
+    ------------------------------------------------------------------------------
+    Brier: congelado − casos           +0.249914  [+0.249893, +0.249928]      100%
+    Brier: permutado − casos           +0.242490  [+0.237722, +0.248097]      100%
+    Brier retirado: casos − rasgos     +0.249980  [+0.249978, +0.249981]      100%
+    conducta: casos − congelado        +0.392370  [+0.381945, +0.403512]      100%
+    conducta: td − congelado           +0.392370  [+0.381945, +0.403512]      100%
+    conducta retirada: rasgos − td     +0.343519  [+0.331396, +0.355642]      100%
+
+  GATE 0 · contrato físico: 0 violaciones en 32768 transiciones · oráculo = 1.000000
+
+  GATES
+
+    GATE_0_INTEGRIDAD_FISICA        PASA
+    GATE_1_ADQUISICION              PASA
+    GATE_2_DEPENDENCIA_CAUSAL       PASA
+    GATE_3_GENERALIZACION           PASA
+    GATE_4_USO_CONDUCTUAL           PASA
+    GATE_5_CONTROL_POSITIVO         PASA
+    GATE_6_USO_DE_LA_REGLA          PASA
+
+  ESTADO · PASA
+
+EXIT=0
