@@ -38,6 +38,7 @@ from terrario.level1.measurement import (  # noqa: E402
     Experiment, brier, motor_babbling, movement_rate,
     movement_rate_along_trajectory, situation_bank,
 )
+from terrario.level1.external import NearestNeighborForwardModel  # noqa: E402
 from terrario.level1.models import (  # noqa: E402
     ContingencyTable, FactoredContingency, TabularQ, oracle_policy,
 )
@@ -63,10 +64,12 @@ class SeedResult:
     # --- adquisición con las dieciséis observaciones disponibles -------------
     brier_cases: float
     brier_features: float
+    brier_external: float
     brier_frozen: float
     brier_permuted: float
     move_cases: float
     move_features: float
+    move_external: float
     move_frozen: float
     move_permuted: float
     move_td: float
@@ -77,8 +80,10 @@ class SeedResult:
     # --- el discriminador: entrenados SIN ver cuatro de las dieciséis --------
     held_brier_cases: float
     held_brier_features: float
+    held_brier_external: float
     held_move_cases: float
     held_move_features: float
+    held_move_external: float
     held_move_td: float
     held_move_frozen: float
     held_move_oracle: float
@@ -90,6 +95,11 @@ def run_seed(cfg: Experiment, seed: int) -> SeedResult:
 
     cases = ContingencyTable(**kw)
     features = FactoredContingency(**kw)
+    # El carril externo. Consume EL MISMO flujo, en el mismo bucle, y no toca
+    # nada de los demás: no consume azar al aprender y su lectura conductual
+    # abre su propio generador desde la misma semilla que el resto. Añadirlo no
+    # puede mover un número de los otros brazos, y hay un test que lo fija.
+    external = NearestNeighborForwardModel()
     frozen = ContingencyTable(**kw, frozen=True)
     permuted = ContingencyTable(**kw)
     td = TabularQ(learning_rate=cfg.q_learning_rate, discount=cfg.q_discount)
@@ -97,6 +107,7 @@ def run_seed(cfg: Experiment, seed: int) -> SeedResult:
     for tr in stream:
         cases.observe(tr.observation, tr.direction, tr.moved)
         features.observe(tr.observation, tr.direction, tr.moved)
+        external.observe(tr.observation, tr.direction, tr.moved)
         td.observe(tr)
 
     # Control negativo: la misma cantidad de experiencia y la misma marginal de
@@ -110,12 +121,14 @@ def run_seed(cfg: Experiment, seed: int) -> SeedResult:
     # El discriminador: los mismos seres, sin ver nunca cuatro observaciones.
     partial_cases = ContingencyTable(**kw)
     partial_features = FactoredContingency(**kw)
+    partial_external = NearestNeighborForwardModel()
     partial_td = TabularQ(learning_rate=cfg.q_learning_rate, discount=cfg.q_discount)
     for tr in stream:
         if tr.observation in HELD_OUT:
             continue
         partial_cases.observe(tr.observation, tr.direction, tr.moved)
         partial_features.observe(tr.observation, tr.direction, tr.moved)
+        partial_external.observe(tr.observation, tr.direction, tr.moved)
         partial_td.observe(tr)
 
     eval_seed = seed + EVAL_OFFSET
@@ -130,10 +143,12 @@ def run_seed(cfg: Experiment, seed: int) -> SeedResult:
         violations=violations,
         brier_cases=brier(cases, predict_bank)[0],
         brier_features=brier(features, predict_bank)[0],
+        brier_external=brier(external, predict_bank)[0],
         brier_frozen=brier(frozen, predict_bank)[0],
         brier_permuted=brier(permuted, predict_bank)[0],
         move_cases=movement_rate(cases.act, act_bank, eval_seed),
         move_features=movement_rate(features.act, act_bank, eval_seed),
+        move_external=movement_rate(external.act, act_bank, eval_seed),
         move_frozen=movement_rate(frozen.act, act_bank, eval_seed),
         move_permuted=movement_rate(permuted.act, act_bank, eval_seed),
         move_td=movement_rate(td.act, act_bank, eval_seed),
@@ -143,8 +158,10 @@ def run_seed(cfg: Experiment, seed: int) -> SeedResult:
         traj_permuted=movement_rate_along_trajectory(permuted.act, cfg, eval_seed),
         held_brier_cases=brier(partial_cases, predict_bank, only=HELD_OUT)[0],
         held_brier_features=brier(partial_features, predict_bank, only=HELD_OUT)[0],
+        held_brier_external=brier(partial_external, predict_bank, only=HELD_OUT)[0],
         held_move_cases=movement_rate(partial_cases.act, held_bank, eval_seed),
         held_move_features=movement_rate(partial_features.act, held_bank, eval_seed),
+        held_move_external=movement_rate(partial_external.act, held_bank, eval_seed),
         held_move_td=movement_rate(partial_td.act, held_bank, eval_seed),
         held_move_frozen=movement_rate(frozen.act, held_bank, eval_seed),
         held_move_oracle=movement_rate(oracle_policy, held_bank, eval_seed),
@@ -181,6 +198,7 @@ def main() -> int:
     for label, b, m, j in (
             ("aprende por casos", "brier_cases", "move_cases", "traj_cases"),
             ("aprende por rasgos", "brier_features", "move_features", None),
+            ("vecino más próximo (externo)", "brier_external", "move_external", None),
             ("congelado", "brier_frozen", "move_frozen", "traj_frozen"),
             ("permutado", "brier_permuted", "move_permuted", "traj_permuted"),
             ("td (techo externo)", None, "move_td", None),
@@ -196,6 +214,7 @@ def main() -> int:
     for label, b, m in (
             ("aprende por casos", "held_brier_cases", "held_move_cases"),
             ("aprende por rasgos", "held_brier_features", "held_move_features"),
+            ("vecino más próximo (externo)", "held_brier_external", "held_move_external"),
             ("td (techo externo)", None, "held_move_td"),
             ("congelado", None, "held_move_frozen"),
             ("oráculo (techo físico)", None, "held_move_oracle")):

@@ -7,6 +7,9 @@ objetos, memoria episódica, planificación-- queda deliberadamente fuera, porqu
 cualquiera de esas cosas sería una explicación alternativa del primer resultado.
 """
 
+from terrario.level1.external import (  # noqa: F401
+    NearestNeighborForwardModel,
+)
 from terrario.level1.models import (  # noqa: F401
     ContingencyTable, FactoredContingency, TabularQ, oracle_policy,
 )
