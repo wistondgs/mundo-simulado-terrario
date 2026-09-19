@@ -220,3 +220,61 @@ def test_between_pair_variance_is_reported():
         "N": [1.0, 100.0, 2.0], "F": [1.1, 100.2, 2.1],
     })
     assert components["between_fraction"] > 0.99   # la inicialización lo domina
+
+
+# --- El portador: theta separado de M ---------------------------------------
+
+def test_a_theta_transplant_leaves_M_at_birth():
+    """`set_parameters` copia por nombre TODO lo de `get_parameters()`, y `M`
+    está ahí dentro aunque el optimizador no la gobierne. Sin separar, un
+    transplante sólo permite concluir `(theta, M) -> capacidad`."""
+    from terrario.lab.causal_bench import Carrier, transplant
+
+    birth = snapshot()
+    donor = birth.twin("NORMAL", REGIME_INTERVENTIONS["NORMAL"])
+    _mutate_parameters(donor.specimen)
+    _mutate_longterm_M(donor.specimen)
+
+    host = transplant(donor, birth, Carrier.THETA)
+    host_digest = causal_state_digest(host.specimen)
+    donor_digest = causal_state_digest(donor.specimen)
+
+    assert host_digest["adaptive.parameters"] == donor_digest["adaptive.parameters"]
+    assert host_digest["adaptive.longterm_M"] == birth.digest["adaptive.longterm_M"]
+    assert host_digest["adaptive.longterm_M"] != donor_digest["adaptive.longterm_M"]
+
+
+def test_an_M_transplant_leaves_theta_at_birth():
+    from terrario.lab.causal_bench import Carrier, transplant
+
+    birth = snapshot()
+    donor = birth.twin("NORMAL", REGIME_INTERVENTIONS["NORMAL"])
+    _mutate_parameters(donor.specimen)
+    _mutate_longterm_M(donor.specimen)
+
+    host = transplant(donor, birth, Carrier.M)
+    host_digest = causal_state_digest(host.specimen)
+
+    assert host_digest["adaptive.longterm_M"] == causal_state_digest(
+        donor.specimen)["adaptive.longterm_M"]
+    assert host_digest["adaptive.parameters"] == birth.digest["adaptive.parameters"]
+
+
+def test_restore_is_symmetric_with_transplant():
+    """Devolver theta inicial conservando M aprendida es la inversa exacta de
+    transplantar theta conservando M inicial."""
+    from terrario.lab.causal_bench import Carrier, restore
+
+    birth = snapshot()
+    learned = birth.twin("NORMAL", REGIME_INTERVENTIONS["NORMAL"])
+    _mutate_parameters(learned.specimen)
+    _mutate_longterm_M(learned.specimen)
+    _mutate_baseline_value(learned.specimen)
+
+    undone = restore(learned, birth, Carrier.THETA)
+    undone_digest = causal_state_digest(undone.specimen)
+    learned_digest = causal_state_digest(learned.specimen)
+
+    assert undone_digest["adaptive.parameters"] == birth.digest["adaptive.parameters"]
+    assert undone_digest["adaptive.longterm_M"] == learned_digest["adaptive.longterm_M"]
+    assert undone_digest["adaptive.baseline"] == learned_digest["adaptive.baseline"]

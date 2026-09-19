@@ -1,0 +1,77 @@
+/home/wis/mundo simulado terrario/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:129: UserWarning: CUDA initialization: CUDA unknown error - this may be due to an incorrectly set up environment, e.g. changing env variable CUDA_VISIBLE_DEVICES after program start. Setting the available devices to be zero. (Triggered internally at ../c10/cuda/CUDAFunctions.cpp:108.)
+  return torch._C._cuda_getDeviceCount() > 0
+E2 sobre CAUSAL-CAPABILITY-BENCH-01 · 32 tríos · adquisición 300 pasos · probe a distancia 3
+  pair-000: 152 informativos · N=5 P=0 F=0 T=5 R=0 A0=1
+  pair-001: 185 informativos · N=43 P=110 F=121 T=5 R=19 A0=1
+  pair-002: 155 informativos · N=5 P=7 F=8 T=70 R=0 A0=0
+  pair-003: 170 informativos · N=1 P=3 F=15 T=0 R=7 A0=6
+  pair-004: 161 informativos · N=0 P=0 F=1 T=11 R=6 A0=5
+  pair-005: 174 informativos · N=47 P=0 F=0 T=6 R=1 A0=2
+  pair-006: 172 informativos · N=0 P=0 F=0 T=5 R=0 A0=0
+  pair-007: 187 informativos · N=57 P=11 F=11 T=0 R=64 A0=2
+  pair-008: 161 informativos · N=0 P=0 F=0 T=1 R=0 A0=4
+  pair-009: 177 informativos · N=4 P=9 F=11 T=0 R=1 A0=8
+  pair-010: 179 informativos · N=1 P=4 F=4 T=0 R=48 A0=7
+  pair-011: 22 informativos · N=0 P=2 F=2 T=4 R=0 A0=3
+  pair-012: 165 informativos · N=28 P=0 F=0 T=3 R=0 A0=5
+  pair-013: 31 informativos · N=3 P=7 F=7 T=1 R=4 A0=2
+  pair-014: 175 informativos · N=0 P=0 F=0 T=1 R=0 A0=6
+  pair-015: 25 informativos · N=1 P=4 F=4 T=10 R=11 A0=1
+  pair-016: 177 informativos · N=115 P=0 F=0 T=2 R=6 A0=4
+  pair-017: 181 informativos · N=0 P=0 F=0 T=0 R=0 A0=5
+  pair-018: 158 informativos · N=10 P=0 F=0 T=4 R=1 A0=6
+  pair-019: 175 informativos · N=13 P=6 F=7 T=0 R=0 A0=4
+  pair-020: 179 informativos · N=34 P=0 F=0 T=5 R=0 A0=7
+  pair-021: 181 informativos · N=4 P=0 F=75 T=15 R=0 A0=9
+  pair-022: 28 informativos · N=3 P=0 F=0 T=0 R=0 A0=0
+  pair-023: 124 informativos · N=2 P=0 F=5 T=58 R=1 A0=6
+  pair-024: 186 informativos · N=34 P=0 F=9 T=53 R=5 A0=1
+  pair-025: 29 informativos · N=5 P=0 F=0 T=0 R=1 A0=0
+  pair-026: 48 informativos · N=0 P=0 F=0 T=0 R=13 A0=2
+  pair-027: 32 informativos · N=5 P=11 F=7 T=2 R=3 A0=1
+  pair-028: 156 informativos · N=3 P=0 F=0 T=5 R=0 A0=0
+  pair-029: 185 informativos · N=0 P=5 F=3 T=0 R=0 A0=4
+  pair-030: 166 informativos · N=23 P=0 F=0 T=24 R=2 A0=3
+  pair-031: 178 informativos · N=6 P=5 F=5 T=24 R=0 A0=0
+
+
+RESULTADO  ·  32 tríos contrafactuales
+
+  brazo          consumos media   mediana   sobreviven   1er consumo
+  --------------------------------------------------------------------
+  NORMAL                  14.12       4.0        20/32            79
+  PARAMETRIC               5.75       0.0        12/32            74
+  FULL                     9.22       1.5        15/32            83
+  TRANSPLANT               9.81       3.5        17/32            81
+  RESTORE                  6.03       1.0        11/32            78
+  A0                       3.28       3.0        17/32            83
+
+
+  ADQUISICIÓN INTERNA  ·  ventaja CONSUME − MOVE
+
+  brazo               antes     después     cruza a favorable
+  -----------------------------------------------------------
+  NORMAL           +0.00099    +0.00951                 11/32
+  PARAMETRIC       +0.00099    +0.00217                  5/32
+  FULL             +0.00099    +0.00188                  5/32
+
+
+  ESTADÍSTICA PAREADA  ·  la unidad es el trío
+
+  estimando                     media  mediana                 IC95%   signo +  un par lo domina
+  ------------------------------------------------------------------------------------------------
+  Δ NORMAL − FULL               +4.91     +0.0       [-5.72, +16.16]       44%                no
+  Δ PARAMETRIC − FULL           -3.47     +0.0        [-8.66, -0.34]        6%                no
+  Δ NORMAL − PARAMETRIC         +8.38     +0.5       [-0.53, +18.47]       50%                no
+  Δ TRANSPLANT − FULL           +0.59     +1.5      [-10.12, +10.00]       56%                SÍ
+  Δ NORMAL − RESTORE            +8.09     +3.0       [+0.56, +17.22]       59%                no
+  Δ NORMAL − A0                +10.84     +3.0       [+3.53, +20.06]       56%                no
+
+  varianza entre pares 290.9 · dentro del par 223.4 · fracción entre pares 56.6%
+
+
+  NIVEL MÁXIMO DEMOSTRADO = F0
+    F1 modelo adquirido          no  (11/32 cruzan)
+    F2 persiste al probe         sí
+    F3 causa mejor conducta      no  (IC del estimando primario incluye el cero)
+    F4 adquisición autónoma      no evaluado en este protocolo (E2-C)

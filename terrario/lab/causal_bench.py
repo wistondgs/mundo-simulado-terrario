@@ -290,39 +290,87 @@ def clone_specimen(agent: Any) -> Any:
 
 # --- Transplante y restauración ---------------------------------------------
 
-def learned_parameters(arm: Arm) -> dict[str, torch.Tensor]:
-    return {k: v.clone() for k, v in arm.specimen.get_parameters().items()}
+#: `longterm_memory.M` ES un `nn.Parameter` y `get_parameters()` lo devuelve,
+#: pero NO lo gobierna el optimizador: se escribe con `M.data.copy_()`. Un
+#: transplante que use `set_parameters` tal cual mueve **theta Y M a la vez**, y
+#: entonces lo único concluible es `(theta, M) -> capacidad`, jamás
+#: `theta -> capacidad`. Justo la distinción que los tres brazos habían puesto
+#: en duda, porque `M` se movía sin aportar conducta.
+M_PARAMETER = "longterm_memory.M"
 
+
+class Carrier(StrEnum):
+    """Qué porción del estado aprendido se mueve en un transplante."""
+
+    THETA = "THETA"          # parámetros del optimizador, SIN M
+    M = "M"                  # sólo la memoria a largo plazo
+    THETA_AND_M = "THETA_AND_M"
+
+
+def _select(parameters: Mapping[str, torch.Tensor], carrier: Carrier
+            ) -> dict[str, torch.Tensor]:
+    if carrier is Carrier.THETA:
+        return {k: v.clone() for k, v in parameters.items() if k != M_PARAMETER}
+    if carrier is Carrier.M:
+        return {k: v.clone() for k, v in parameters.items() if k == M_PARAMETER}
+    return {k: v.clone() for k, v in parameters.items()}
+
+
+def learned_parameters(arm: Arm, carrier: Carrier = Carrier.THETA_AND_M
+                       ) -> dict[str, torch.Tensor]:
+    return _select(arm.specimen.get_parameters(), carrier)
+
+
+def transplant(donor: Arm, host_snapshot: BirthSnapshot, carrier: Carrier,
+               arm_id: str | None = None) -> Arm:
+    """Un gemelo INGENUO del mismo nacimiento recibe SÓLO `carrier`.
+
+    Todo lo demás -- buffer episódico, línea base, RNG, recurrente -- se queda
+    como nació. Con los tres portadores por separado la matriz distingue
+    portador paramétrico, portador memorial e interacción; con uno solo no
+    distingue nada.
+    """
+    arm_id = arm_id or f"TRANSPLANT_{carrier.value}"
+    host = host_snapshot.twin(arm_id, Intervention(
+        f"transplant.{carrier.value.lower()}", "parameters", Phase.PROBE,
+        {"carrier": "initial"}, {"carrier": carrier.value},
+        f"host ingenuo que recibe exclusivamente {carrier.value} del donante"))
+    host.specimen.adaptive_freeze = AdaptiveFreeze(enabled=True)
+    host.specimen.set_parameters(learned_parameters(donor, carrier))
+    return host
+
+
+def restore(arm: Arm, snapshot: BirthSnapshot, carrier: Carrier,
+            arm_id: str | None = None) -> Arm:
+    """La inversa, con la MISMA semántica: al aprendido se le devuelve sólo
+    `carrier` en su valor inicial, conservando el resto de lo adquirido.
+
+    Si al devolver theta desaparece la competencia y el transplante de theta la
+    hace aparecer en otro organismo, la evidencia causal es bidireccional.
+    """
+    arm_id = arm_id or f"RESTORE_{carrier.value}"
+    restored = clone_specimen(arm.specimen)
+    restored.set_parameters(_select(snapshot.prototype.get_parameters(), carrier))
+    restored.adaptive_freeze = AdaptiveFreeze(enabled=True)
+    return Arm(arm_id, restored, Intervention(
+        f"restore.{carrier.value.lower()}", "parameters", Phase.PROBE,
+        {"carrier": "learned"}, {"carrier": "initial"},
+        f"devuelve {carrier.value} inicial conservando el resto de lo adquirido"),
+        arm.birth, regime_of(restored))
+
+
+# --- Compatibilidad: el transplante de un solo portador ----------------------
 
 def transplant_parameters(donor: Arm, host_snapshot: BirthSnapshot,
                           arm_id: str = "TRANSPLANT") -> Arm:
-    """Un gemelo INGENUO del mismo nacimiento que recibe sólo los parámetros.
-
-    Todo lo demás -- memorias, línea base, RNG, recurrente -- se queda como
-    nació. Si la conducta del donante viaja con esto, la capacidad vive en los
-    parámetros; si no viaja, vive en otra parte o no persiste.
-    """
-    host = host_snapshot.twin(arm_id, REGIME_INTERVENTIONS["FULL"])
-    host.specimen.set_parameters(learned_parameters(donor))
-    return host
+    """Mueve theta Y M. Conserva el nombre histórico y dice lo que hace: con
+    esto sólo se puede concluir `(theta, M) -> capacidad`."""
+    return transplant(donor, host_snapshot, Carrier.THETA_AND_M, arm_id)
 
 
 def restore_parameters(arm: Arm, snapshot: BirthSnapshot,
                        arm_id: str = "RESTORE") -> Arm:
-    """Al organismo APRENDIDO se le devuelven sólo los parámetros del nacimiento.
-
-    Conserva sus memorias y su línea base adquiridas. Es la intervención
-    inversa del transplante, y juntas dan evidencia en los dos sentidos.
-    """
-    restored = clone_specimen(arm.specimen)
-    restored.set_parameters({k: v.clone()
-                             for k, v in snapshot.prototype.get_parameters().items()})
-    restored.adaptive_freeze = AdaptiveFreeze(enabled=True)
-    return Arm(arm_id, restored, Intervention(
-        "transplant.restore_initial_parameters", "parameters", Phase.PROBE,
-        {"parameters": "learned"}, {"parameters": "initial"},
-        "devuelve theta inicial conservando el resto del estado adquirido"),
-        arm.birth, regime_of(restored))
+    return restore(arm, snapshot, Carrier.THETA_AND_M, arm_id)
 
 
 # --- Estadística pareada -----------------------------------------------------
@@ -390,3 +438,64 @@ CAPABILITY_LEVELS = {
     "F3": "lo adquirido CAUSA mejor conducta",
     "F4": "el organismo consigue por sí mismo la experiencia y alcanza F3",
 }
+
+
+# --- El bundle no paramétrico ------------------------------------------------
+#
+# DISCOVERY-32 encontró que `theta` inicial servido con estado adaptativo no
+# paramétrico aprendido es PEOR que congelarlo todo: `Δ PARAMETRIC − FULL =
+# −3.47, IC95% [−8.66, −0.34]`, con sólo el 6% de los pares a favor, y
+# `Δ NORMAL − RESTORE = +8.09, IC95% [+0.56, +17.22]` dice lo mismo desde el
+# otro lado. Eso señala una interacción entre portadores, no una culpable.
+# Para saber si `M` sola reproduce el daño hace falta poder mover el bundle
+# aparte de `M`, y `set_parameters` no puede: el buffer y la línea base no son
+# `nn.Parameter`.
+
+NONPARAMETRIC_PIECES = ("longterm_M", "episodic_buffer", "baseline")
+
+
+def transplant_nonparametric(donor: Arm, host: Arm, *,
+                             pieces: Sequence[str] = NONPARAMETRIC_PIECES) -> Arm:
+    """Mover estado adaptativo que NO pasa por `set_parameters`.
+
+    `M` se mueve por tensor, el buffer episódico por copia profunda de su
+    contenido, y la línea base es el par `(valor, contador)` -- que va junto,
+    porque el contador es el denominador del paso de la media corrida y separar
+    uno del otro produce una media que nunca existió.
+    """
+    source, target = donor.specimen, host.specimen
+    if "longterm_M" in pieces:
+        with torch.no_grad():
+            target.longterm_memory.M.data.copy_(source.longterm_memory.M.data)
+    if "episodic_buffer" in pieces:
+        target.episodic_memory._buffer = copy.deepcopy(source.episodic_memory._buffer)
+        target.episodic_memory._write_idx = source.episodic_memory._write_idx
+    if "baseline" in pieces:
+        target._energy_baseline = float(source._energy_baseline)
+        target._baseline_count = int(source._baseline_count)
+    return host
+
+
+def carrier_matrix(donor: Arm, birth: BirthSnapshot) -> dict[str, Arm]:
+    """Los seis brazos que separan portador paramétrico, memorial e interacción.
+
+    Todos nacen del MISMO nacimiento ingenuo y quedan congelados. `M` viaja sola
+    en su brazo y nunca dentro de `THETA`, que es la corrección que hacía falta
+    antes de interpretar nada: `set_parameters` mueve `theta` Y `M` a la vez
+    porque `M` es `nn.Parameter`, y entonces lo único concluible sería
+    `(theta, M) -> capacidad`.
+    """
+    hosts: dict[str, Arm] = {}
+    hosts["BIRTH"] = birth.twin("BIRTH", REGIME_INTERVENTIONS["FULL"])
+    hosts["BIRTH"].specimen.adaptive_freeze = AdaptiveFreeze(enabled=True)
+    hosts["THETA"] = transplant(donor, birth, Carrier.THETA)
+    hosts["M"] = transplant(donor, birth, Carrier.M)
+    hosts["THETA_M"] = transplant(donor, birth, Carrier.THETA_AND_M)
+
+    nonparam = birth.twin("NONPARAM", REGIME_INTERVENTIONS["FULL"])
+    nonparam.specimen.adaptive_freeze = AdaptiveFreeze(enabled=True)
+    hosts["NONPARAM"] = transplant_nonparametric(donor, nonparam)
+
+    everything = transplant(donor, birth, Carrier.THETA, arm_id="FULL_LEARNED")
+    hosts["FULL_LEARNED"] = transplant_nonparametric(donor, everything)
+    return hosts
