@@ -42,14 +42,19 @@ class SandboxExecutionSpec:
     scenario_id:str; scenario_hash:str; world_definition_hash:str; world_seed:int; world_instance_hash:str
     difficulty_fingerprint:str; agent_reference:str; agent_seed:int; observer_mode:str; step_limit:int
     trace_level:str; device:str; classification:ExecutionClassification; config_hash:str; provenance:Mapping[str,Any]
-    #: Which concepts the organism is built from.  Empty means A4's defaults,
-    #: so an existing spec keeps the agent it always had.  It is part of the
-    #: spec -- and therefore of its hash -- because a different mix is a
-    #: different organism, not a different view of one.
+    #: Which concepts the organism is built from.  Empty means the defaults of
+    #: whichever agent `agent_reference` names, so an existing spec keeps the
+    #: agent it always had.  It is part of the spec -- and therefore of its
+    #: hash -- because a different mix is a different organism, not a different
+    #: view of one.
     agent_configuration:Mapping[str,Any]=MappingProxyType({})
     def __post_init__(self):
         if self.classification!=ExecutionClassification.ENGINEERING_SANDBOX: raise SandboxBoundaryError("sandbox accepts ENGINEERING_SANDBOX only")
-        object.__setattr__(self,"agent_configuration",MappingProxyType(validate_selection(self.agent_configuration)))
+        # Validated AGAINST the agent this spec runs, not against the catalogue at
+        # large: a concept the named organism does not read would be a choice that
+        # never reaches it, which is the same defect as a misspelling. Every path
+        # into the runtime builds a spec, so this is the one place that has to know.
+        object.__setattr__(self,"agent_configuration",MappingProxyType(validate_selection(self.agent_configuration,self.agent_reference)))
         if self.device!="cpu": raise SandboxValidationError("LAB-UI-02B sandbox is CPU-only")
         if not 1<=self.step_limit<=MAX_STEPS: raise SandboxValidationError(f"step_limit must be 1..{MAX_STEPS}")
         object.__setattr__(self,"provenance",MappingProxyType(dict(self.provenance)))

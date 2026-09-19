@@ -124,7 +124,7 @@ class Bench:
         base = replace(derive_sandbox(configuration_for(entry)), agent_reference="A4")
         spec = make_spec(base, compiled, 42, seed, steps + 1,
                          ExecutionClassification.ENGINEERING_SANDBOX,
-                         validate_selection(config))
+                         validate_selection(config, "A4"))
         # The agent seed does not determine the agent: module weights come from
         # the GLOBAL torch RNG. Seeded here so both arms of a pair start from the
         # same initial weights, which is the whole point of pairing.

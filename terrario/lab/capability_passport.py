@@ -85,8 +85,9 @@ class CapabilityPassport:
     intervention_purity: Purity
     known_dependencies: tuple[str, ...]
     known_confounders: tuple[str, ...]
-    #: La bandera de A4 que hoy la enciende. Es deuda declarada, no diseño: una
-    #: capacidad no debería ser sinónimo de una bandera interna de un espécimen.
+    #: La bandera del espécimen que hoy la enciende -- de A4 para casi todas, de
+    #: A5 para la curiosidad. Es deuda declarada, no diseño: una capacidad no
+    #: debería ser sinónimo de una bandera interna de un espécimen.
     composition_flag: str | None
     #: Mundo que satisface `required_world_property`, o None si ninguno existe.
     #: No se declara: `register` lo deriva de `world_generator.DEMAND_OF`, y que

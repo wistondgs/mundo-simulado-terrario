@@ -43,7 +43,9 @@ from dataclasses import replace
 
 import torch
 
-from terrario.lab.agent_composition import CONCEPTS, validate_selection
+from terrario.lab.agent_composition import (
+    architecture_of, concepts_for, default_of, validate_selection,
+)
 from terrario.lab.models import thaw
 from terrario.lab.run_measures import measure_run
 from terrario.lab.sandbox_runtime import (
@@ -54,6 +56,13 @@ from terrario.lab.world_registry import WorldScenarioRegistry, configuration_for
 
 SCHEMA = "terrario.lab.concept-screening/v1"
 CLASSIFICATION = "ENGINEERING_SANDBOX_NOT_EVIDENCE"
+
+#: The organism this campaign screens. Named once, because "what does this
+#: concept ship as" and "which concepts exist at all" are questions about an
+#: agent, and screening A4 against a concept only A5 reads would be an arm
+#: identical to the reference dressed as an ablation.
+AGENT = "A4"
+ARCHITECTURE = architecture_of(AGENT)
 
 
 #: Conjunctions the CORPUS declares, not combinations we picked.  2^9 = 512
@@ -175,11 +184,15 @@ def conditions(keys):
     that ships OFF -- entropy regularisation, say -- it means switching it on.
     Ablating something already absent would be a condition identical to the
     reference, which measures nothing and quietly wastes a third of a campaign.
+
+    What a concept ships as is asked of THIS campaign's agent, because it is not
+    the same answer for every organism: A5 ships curiosity on and A4 has no such
+    key at all.
     """
-    from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG
+    conceptos = {c.key: c for c in concepts_for(AGENT)}
     yield "completo", {}
     for key in keys:
-        encendido = bool(DEFAULT_CONFIG[key])
+        encendido = default_of(conceptos[key], ARCHITECTURE)
         prefijo = "sin" if encendido else "con"
         yield f"{prefijo}:{key}", {key: not encendido}
 
@@ -227,9 +240,10 @@ class Bench:
 
     def run(self, world, steps, seed, mix):
         compiled, entry = self.compiled(world)
-        config = replace(derive_sandbox(configuration_for(entry)), agent_reference="A4")
+        config = replace(derive_sandbox(configuration_for(entry)), agent_reference=AGENT)
         spec = make_spec(config, compiled, 42, seed, steps + 1,
-                         ExecutionClassification.ENGINEERING_SANDBOX, validate_selection(mix))
+                         ExecutionClassification.ENGINEERING_SANDBOX,
+                         validate_selection(mix, AGENT))
         # The agent seed does NOT determine the agent.  create_agent seeds a
         # torch.Generator that is used only for SAMPLING; module weights come
         # from nn.Module constructors reading the GLOBAL torch RNG, which
@@ -299,7 +313,7 @@ def main():
                              "de validación antes de comprometer la campaña entera")
     args = parser.parse_args()
 
-    keys = [c.key for c in CONCEPTS]
+    keys = [c.key for c in concepts_for(AGENT)]
     conjunciones = ()
     if args.conjunctions:
         conjunciones = tuple(CONJUNCTIONS) if args.conjunctions == "todas" else tuple(

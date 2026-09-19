@@ -122,7 +122,10 @@ class Bench:
     def run(self, world, steps, seed, agent_id, config):
         compiled, entry = self.compiled(world)
         base = replace(derive_sandbox(configuration_for(entry)), agent_reference=agent_id)
-        mix = validate_selection(config) if agent_id == "A4" else dict(config)
+        # Antes esto era `if agent_id == "A4"`, porque el validador sólo sabía de
+        # A4 y los brazos A0 tenían que rodearlo. Ahora valida contra el agente
+        # del brazo, así que el brazo A0 pasa por la misma puerta que los demás.
+        mix = validate_selection(config, agent_id)
         spec = make_spec(base, compiled, 42, seed, steps + 1,
                          ExecutionClassification.ENGINEERING_SANDBOX, mix)
         # Same reason as the screening: the agent seed does not determine the

@@ -64,7 +64,7 @@ lab/         (99)       laboratorio. → core, world, experiment, agent, observe
   sandbox_runtime.py  SandboxService
   api.py              superficie HTTP
   run_measures.py     las mallas de medición
-  agent_composition.py  catálogo de conceptos y validación
+  agent_composition.py  catálogo de conceptos del linaje A4 y validación por agente
   instrument_registry.py / instrument_calibration.py / measurement_status.py
   snapshot_bank.py / capability_exam.py / selector_isolation.py
   world_contracts.py / world_authoring.py / world_registry.py
@@ -152,7 +152,7 @@ runtime, deliberadamente — son bancos exógenos, no simulaciones.
 
 Sólo dos funciones lo hacen de principio a fin:
 `ExperimentController.run_episode` ([controller.py:196](terrario/experiment/controller.py:196)) y
-`SandboxService._step_runtime` ([sandbox_runtime.py:142](terrario/lab/sandbox_runtime.py:142)).
+`SandboxService._step_runtime` ([sandbox_runtime.py:177](terrario/lab/sandbox_runtime.py:177)).
 `world.advance_time()` lo invoca `PhysicsEngine.step` al final ([physics.py:83](terrario/world/physics.py:83)).
 
 ## 17 · Cuántos loops de simulación existen realmente
@@ -326,7 +326,7 @@ changes[{at_step, rules}]
 
 **Obligatorias** en el banco: `duration`, `max_energy`, `step_energy_cost`,
 `expose_time_fraction`. `SandboxService` levanta `WORLD_PHYSICS_NOT_DECLARED` si falta alguna
-([sandbox_runtime.py:108](terrario/lab/sandbox_runtime.py:108)) — una reparación previa: antes el
+([sandbox_runtime.py:113](terrario/lab/sandbox_runtime.py:113)) — una reparación previa: antes el
 banco inventaba la física por defecto.
 
 **Con default implícito**: `view_radius` → 2, `num_channels` → 4,
@@ -1218,7 +1218,7 @@ funcionales** de la misma variable; ninguna aporta información que la otra no t
 ## 322-325 · Qué ve A4 de su propia energía
 
 `perceive` hace **asignación directa**: `self.homeostasis._energy = observation.agent_energy`
-([a4_advanced.py:347](terrario/agent/agents/a4_advanced.py:347)).
+([a4_advanced.py:352](terrario/agent/agents/a4_advanced.py:352)).
 
 **Consecuencia que conviene fijar:** `HomeostaticState.update(energy_delta)`, llamado en `learn`,
 acumula deltas en `_energy` — y `perceive` **lo sobrescribe** en el paso siguiente. Como el orden
@@ -1645,7 +1645,7 @@ retira**.
 
 ## 459-465 · Schema
 
-`SandboxTraceStep` ([sandbox_runtime.py:56](terrario/lab/sandbox_runtime.py:56)), dataclass
+`SandboxTraceStep` ([sandbox_runtime.py:63](terrario/lab/sandbox_runtime.py:63)), dataclass
 congelado:
 
 | Campo | Parte |
@@ -2726,7 +2726,7 @@ físicamente vacíos en producción** y un solo punto de contacto con el ciclo e
 
 | Módulo | Líneas | Filas en producción | Consumidor real |
 |---|---|---|---|
-| `agent_composition.py` | 170 | — | ✅ `sandbox_runtime:10,50` + 4 scripts de experimento |
+| `agent_composition.py` | 319 | — | ✅ `sandbox_runtime:10,57` + 4 scripts de experimento |
 | `hypergraph/` | ~500 | 2 hipótesis, 146 borradores | sólo API HTTP / UI |
 | `theory/` | ~1400 | 1 snapshot, 146 borradores | sólo API HTTP / UI |
 | `referencegraph/` | **1293** | **0 en 22 tablas** | ninguno (fuera de tests y un benchmark sintético) |
@@ -2768,12 +2768,46 @@ TESTED → RETAINED/REVISED/REJECTED no existe.** Lo que hay son tres enums desc
   pero se aplica a **diseños de experimento**, no a conceptos.
 - `ScientificReadiness` — tabla hardcodeada por candidato.
 
-**`Concept`** ([agent_composition.py:32](terrario/lab/agent_composition.py:32)): `key, label,
-purpose, without_it, block, corpus_block`. Diez conceptos.
+**`Concept`** ([agent_composition.py:59](terrario/lab/agent_composition.py:59)): `key, label,
+purpose, without_it, block, corpus_block, introduced_by`. **Once conceptos, y no son de un solo
+agente**: diez los introduce A4 y uno —`use_curiosity`— lo introduce A5.
+
+**El catálogo es del LINAJE, no de un espécimen** (revisado el 2026-09-18). Antes cada `default`
+se resolvía contra `a4_advanced.DEFAULT_CONFIG`, lo que hacía que «concepto del que se puede
+componer un organismo» significase en realidad «clave que este ejemplar concreto lleva». A5 rompió
+esa lectura por el hecho de existir: es descendiente de A4 y difiere en una sola facultad, así que
+lo único que hace de A5 un organismo propio era lo único que el laboratorio no podía componer — y
+el catálogo reventaba con `KeyError: 'use_curiosity'` en cuanto alguien lo leía.
+
+La reparación no añade la clave a A4 (congelado, y en el manifiesto protegido) sino que cambia a
+quién se le pregunta:
+
+- `introduced_by` nombra la arquitectura que introduce la clave; los descendientes leen lo que lee
+  su ancestro, que es un hecho de la jerarquía de clases y no una segunda lista que mantener.
+- `DEFAULTS_OF` ([agent_composition.py:79](terrario/lab/agent_composition.py:79)) resuelve el
+  default contra la configuración por defecto de esa arquitectura. Ningún default se reescribe
+  aquí, así que la propiedad anti-deriva que motivó leer A4 sobrevive, apuntada al agente correcto.
+- `READS` ([agent_composition.py:94](terrario/lab/agent_composition.py:94)) declara qué lee cada
+  arquitectura. Para el linaje A4 es su propia config por defecto; A0 lee una sola clave
+  (`addressing_mode`, que le entrega la fábrica) y **A1, A2 y A3 no leen nada** — sus
+  constructores toman argumentos explícitos y la fábrica no les reenvía ninguna clave de
+  composición.
+- Ofrecer y componer son **por agente**: `catalogue(agent)` y `validate_selection(mix, agent)`
+  ([agent_composition.py:231](terrario/lab/agent_composition.py:231) y
+  [:267](terrario/lab/agent_composition.py:267)) rechazan lo que ese organismo no lee, con el mismo
+  criterio que una errata. `SandboxExecutionSpec.__post_init__`
+  ([sandbox_runtime.py:57](terrario/lab/sandbox_runtime.py:57)) es el cuello de botella: toda ruta
+  al runtime construye un spec, así que es el único sitio que necesita saberlo.
+
+El invariante que esto sostiene —«todo concepto ofrecido es una clave que el agente lee de
+verdad»— sólo se volvió comprobable al dar a A5 su propia `DEFAULT_CONFIG`
+([a5_cybernetic.py:43](terrario/agent/agents/a5_cybernetic.py:43)), que además saca
+`curiosity_scale` y `curiosity_floor_decay` de dentro de un `config.get(...)`: eran contenido
+científico que ninguna preinscripción podía fijar sin leer el constructor.
 
 **`corpus_block` es un `int` que ningún otro fichero lee** — `grep` da una sola línea, su
 declaración. Sin `reference_id`, sin `claim_id`, sin locator. El comentario más honesto del
-repositorio está justo ahí ([agent_composition.py:89](terrario/lab/agent_composition.py:89)):
+repositorio está justo ahí ([agent_composition.py:152](terrario/lab/agent_composition.py:152)):
 
 > `# Corpus block 0 -- meaning NONE. Every other concept here answers to a numbered block`
 > `# of the 64-block map; this one does not, and saying it did would be a fabricated citation.`
@@ -2871,10 +2905,10 @@ cortafuegos— pero significa que no se pueden correlacionar por identidad.
 
 | | Dónde | Qué pasa | ¿Cambia trayectoria? |
 |---|---|---|---|
-| **V1** | `capability_exam.py` vs `a4_advanced.py:347` | la lista `volatile` omitía `homeostasis._energy` (1.0→0.5) y `_trace` (0→40) | **sí en potencia** — energía → `exploration_bias` → temperatura → muestreo. **Medido: efecto nulo**, porque el examen nunca llama `decide()`. **Reparado**: el conjunto ahora se deriva. |
+| **V1** | `capability_exam.py` vs `a4_advanced.py:352` | la lista `volatile` omitía `homeostasis._energy` (1.0→0.5) y `_trace` (0→40) | **sí en potencia** — energía → `exploration_bias` → temperatura → muestreo. **Medido: efecto nulo**, porque el examen nunca llama `decide()`. **Reparado**: el conjunto ahora se deriva. |
 | **V2** | `experiment_learner_sample_efficiency.py` | `exam()` reimplementado sin guardián, y el `before` corría justo antes del entrenamiento | **medido: idéntico hasta el último dígito** en 3 semillas. **Reparado.** |
 | **V3** | [opportunities.py:195](terrario/world/opportunities.py:195) desde `controller.py:246` | `geometry()` muta `min_distance_during_lifetime` y `ever_visible` | **no** — pero la métrica depende de cuántas veces se llamó y con qué `view_radius` |
-| **V4** | [a4_advanced.py:774](terrario/agent/agents/a4_advanced.py:774) desde `controller.py:264` | `get_trace_events()` **vacía** `_trace` del agente y de 5 submódulos | **no** — pero un segundo observador vería cero eventos. Observar consume lo observado. |
+| **V4** | [a4_advanced.py:795](terrario/agent/agents/a4_advanced.py:795) desde `controller.py:264` | `get_trace_events()` **vacía** `_trace` del agente y de 5 submódulos | **no** — pero un segundo observador vería cero eventos. Observar consume lo observado. |
 | **V5** | [logger.py:183](terrario/observer/logger.py:183) | el logger escribe `None` en el objeto de traza del llamador | no (código muerto) |
 
 **El backpressure sí puede acortar una corrida.** Superar 16 MiB por frame o 2 GiB de traza lanza

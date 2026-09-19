@@ -152,7 +152,7 @@ class Bench:
         base = replace(derive_sandbox(configuration_for(entry)), agent_reference="A4")
         spec = make_spec(base, compiled, 42, seed, steps + 1,
                          ExecutionClassification.ENGINEERING_SANDBOX,
-                         validate_selection(config))
+                         validate_selection(config, "A4"))
         torch.manual_seed(seed)
         run = self.service.create(spec, base, compiled)
         self.service.run_bounded(run.run_id, steps)

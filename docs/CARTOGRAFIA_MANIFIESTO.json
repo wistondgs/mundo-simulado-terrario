@@ -2,20 +2,20 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-18",
-  "head": "721b6ef",
+  "head": "3dc875d",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
         "scripts/ablation_study.py": "0c0e936e9b8d2d7ae70878f9c9a23a958ad9c3779f84eddffc6fb63a4f420ad7",
-        "scripts/screen_concepts.py": "a50ab9ce2ede7d2ea0cec2fdd63cb46df68ccd18b3c2e863d7fd6c8c5c85e26f",
+        "scripts/screen_concepts.py": "835920c24fb033fb486e1fc14cc481ce01aab4c335d68d555b6d553479fbb050",
         "scripts/simulate_d4_signal.py": "537b73811863658abc824d06d73c74b5c7aaf5a76a5e9376cbd53e01b4da0a15",
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
+        "terrario/lab/api.py": "288a50bb2a30ad1ab228760d24be10ebbec779b5d6f963087dbe2ea7cce90a22",
         "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
-        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
+        "terrario/lab/sandbox_runtime.py": "5b7eb160d38c2d214dc84402bb28c0c9a85c3e8af874f9c6733a619accb51824",
         "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
@@ -36,7 +36,7 @@
       "files": {
         "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
+        "terrario/lab/sandbox_runtime.py": "5b7eb160d38c2d214dc84402bb28c0c9a85c3e8af874f9c6733a619accb51824",
         "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
@@ -100,7 +100,7 @@
     },
     "XIV · Homeostasis y viabilidad": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
+        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
         "terrario/agent/homeostasis.py": "923f93c1be4cc088363d5b91bb5fdeecd215b262de4e8e4a472b83c203bc1d21",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730"
       }
@@ -128,7 +128,7 @@
     "XIX · Traza, ScientificFrame y evidencia": {
       "files": {
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40"
+        "terrario/lab/sandbox_runtime.py": "5b7eb160d38c2d214dc84402bb28c0c9a85c3e8af874f9c6733a619accb51824"
       }
     },
     "XX · Checkpoints y persistencia": {
@@ -168,23 +168,25 @@
     },
     "XXXII · La capa de conocimiento": {
       "files": {
+        "terrario/agent/agents/a5_cybernetic.py": "01928a980b5010ba27419132316c62ab17bc1f5131b85d9166f022a932c7ba7d",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/agent_composition.py": "802ea30ee0bf3d18d5365c9e02773f99243c9bcb17a051a0cb2e5796e51c83bb",
+        "terrario/lab/agent_composition.py": "daa5c3896ac1220cbc72e5b642957f4b503c1da0225e22f1c3ba24a615bb3710",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/models.py": "7dd354ab73d2b18351d431dc775a8628b0d1d79622cfdee5a53eccab3f570429",
         "terrario/lab/referencegraph/domain.py": "2b67377a5e340c5e70beffbea5213949b8c0532d50cff30edab1a613a1aeaf0d",
         "terrario/lab/referencegraph/import_corpus.py": "01924070b0e4f4e44e0a939cc681badf617c0a970d913025f08d021c2f2f65fd",
         "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",
+        "terrario/lab/sandbox_runtime.py": "5b7eb160d38c2d214dc84402bb28c0c9a85c3e8af874f9c6733a619accb51824",
         "terrario/lab/theory/factory.py": "720e5be05e0dd78f4711c95693099704f7e3f1772889a8996db96ca634a1e52e",
         "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a"
       }
     },
     "XXXIII · Observación, traza e interfaz": {
       "files": {
-        "terrario/agent/agents/a4_advanced.py": "2f302fc0f2d25de204f021529ef8878013ba0611eee391d0c3efcedf04f47052",
+        "terrario/agent/agents/a4_advanced.py": "7f721dbb1f3b6ff6545909d54a3ae3990a1bef29e8759800a99e9b37b8f8e5ad",
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
+        "terrario/lab/api.py": "288a50bb2a30ad1ab228760d24be10ebbec779b5d6f963087dbe2ea7cce90a22",
         "terrario/lab/execution/observation.py": "de15907c0ba57b66b58dc326024fdca4b4a6e2e628f24035a579c7e327da11e2",
         "terrario/lab/metrics_observer.py": "31c97d2904e6f83d5b9b4ea4722d5bf4c39010721fa96e6cae46b0fd548d3a57",
         "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",

@@ -36,6 +36,20 @@ _AGENT_IDS = {
     "A5_CYBERNETIC": "A5_CYBERNETIC",
 }
 
+#: Every architecture this factory can build, once. `_AGENT_IDS` is a map of
+#: the names people type, so it says the same architecture several times.
+ARCHITECTURES = frozenset(_AGENT_IDS.values())
+
+
+def architecture_id(agent_reference: str) -> str | None:
+    """Which architecture a reference names, or None if no agent answers to it.
+
+    Exported because the composition catalogue has to ask "what does THIS
+    organism read" before offering a switch, and it should ask the factory
+    rather than keep a second table of aliases that can drift from this one.
+    """
+    return _AGENT_IDS.get(str(agent_reference).upper())
+
 
 def _parameter_hash(agent: Any) -> str:
     digest = hashlib.sha256()
@@ -58,8 +72,8 @@ def create_agent(
     """
     spec = dict(agent_spec) if isinstance(agent_spec, dict) else {"agent_id": agent_spec}
     requested_agent_id = str(spec.get("agent_id", ""))
-    architecture_id = _AGENT_IDS.get(requested_agent_id.upper())
-    if architecture_id is None:
+    architecture = architecture_id(requested_agent_id)
+    if architecture is None:
         raise AgentFactoryError(f"Unsupported agent '{requested_agent_id}'")
 
     try:
@@ -79,22 +93,22 @@ def create_agent(
     }
 
     try:
-        if architecture_id == "A0_RANDOM":
+        if architecture == "A0_RANDOM":
             agent = A0Random(generator=generator,
                 addressing_mode=str(agent_config.get("addressing_mode", "T0_DIRECTIONAL")))
-        elif architecture_id == "A1_REACTIVE":
+        elif architecture == "A1_REACTIVE":
             agent = A1Reactive(**common)
-        elif architecture_id == "A2_GRU":
+        elif architecture == "A2_GRU":
             agent = A2GRUBaseline(
                 **common,
                 hidden_dim=int(agent_config.get("hidden_dim", 256)),
             )
-        elif architecture_id == "A3_WORLD_MODEL":
+        elif architecture == "A3_WORLD_MODEL":
             agent = A3WorldModel(
                 **common,
                 hidden_dim=int(agent_config.get("hidden_dim", 256)),
             )
-        elif architecture_id == "A5_CYBERNETIC":
+        elif architecture == "A5_CYBERNETIC":
             agent = A5Cybernetic(config=agent_config, generator=generator)
         else:
             agent = A4Advanced(config=agent_config, generator=generator)
@@ -114,7 +128,7 @@ def create_agent(
     agent.agent_identity = {
         "requested_agent_id": requested_agent_id,
         "instantiated_agent_class": type(agent).__name__,
-        "architecture_id": architecture_id,
+        "architecture_id": architecture,
         "parameter_count": agent.parameter_count(),
         "device": str(target_device),
         "initial_parameters_hash": _parameter_hash(agent),
@@ -124,5 +138,5 @@ def create_agent(
 
 __all__ = [
     "A0Random", "A1Reactive", "A2GRUBaseline", "A3WorldModel", "A4Advanced", "A5Cybernetic",
-    "AgentFactoryError", "create_agent",
+    "ARCHITECTURES", "AgentFactoryError", "architecture_id", "create_agent",
 ]

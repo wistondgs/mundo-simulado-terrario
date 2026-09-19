@@ -22,20 +22,43 @@ from __future__ import annotations
 
 from typing import Any
 
-from terrario.agent.agents.a4_advanced import A4Advanced
+from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG as A4_DEFAULT_CONFIG, A4Advanced
 from terrario.agent.curiosity import IntrinsicPredictionError
 from terrario.core.contracts import Transition
+
+#: Lo que A5 lee: todo lo de su ancestro, más las tres claves de la curiosidad.
+#: Vivían dentro de `config.get(...)` en el constructor, y eso tenía dos costes
+#: que no son de estilo. Uno: `curiosity_scale` es contenido científico —su
+#: valor correcto es una pregunta empírica, lo dice el propio módulo— y un
+#: número que sólo existe en la firma de un constructor no se puede preinscribir;
+#: es la misma queja que A4 se hace a sí mismo sobre `homeostasis_threshold`.
+#: Dos: `use_curiosity` no EXISTÍA en ninguna configuración por defecto, así que
+#: el catálogo de composición no tenía dónde comprobar que la bandera que
+#: ofrecía la lee alguien. Declararlas aquí es lo que vuelve comprobable el
+#: invariante «todo concepto ofrecido es una clave que el agente lee de verdad».
+#:
+#: A4 permanece intacto: esto es un descendiente que añade claves, no una
+#: bandera nueva dentro del ancestro. Ese es justamente el motivo por el que A5
+#: es una clase y no un `if` dentro de A4.
+DEFAULT_CONFIG: dict[str, Any] = {
+    **A4_DEFAULT_CONFIG,
+    "use_curiosity": True,
+    "curiosity_scale": 1.0,
+    "curiosity_floor_decay": 0.01,
+}
 
 
 class A5Cybernetic(A4Advanced):
     """A4 cuyo lazo de predicción llega a la conducta en vez de a la libreta."""
 
     def __init__(self, config: dict[str, Any] | None = None, generator=None):
-        super().__init__(config=config, generator=generator)
-        self._use_curiosity: bool = bool(self.config.get("use_curiosity", True))
+        # A4 fusiona sobre SUS defaults, que no conocen la curiosidad; entregarle
+        # los de A5 ya fusionados deja `self.config` completo sin tocar al ancestro.
+        super().__init__(config={**DEFAULT_CONFIG, **(config or {})}, generator=generator)
+        self._use_curiosity: bool = bool(self.config["use_curiosity"])
         self.curiosity = IntrinsicPredictionError(
-            scale=float(self.config.get("curiosity_scale", 1.0)),
-            floor_decay=float(self.config.get("curiosity_floor_decay", 0.01)),
+            scale=float(self.config["curiosity_scale"]),
+            floor_decay=float(self.config["curiosity_floor_decay"]),
         )
 
     def _policy_reward(self, consequence: Transition) -> float:

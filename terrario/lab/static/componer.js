@@ -219,7 +219,9 @@ function pintarComparacion() {
 // ── Arranque ──────────────────────────────────────────────────────────────
 async function inicio() {
   try {
-    const catalogo = await api("GET", "/api/agent-concepts");
+    // Pedido POR AGENTE: esta pantalla corre un A4 (ver `correr`), así que ofrecer
+    // un concepto que A4 no lee sería ofrecer un interruptor desconectado.
+    const catalogo = await api("GET", "/api/agent-concepts?agent=A4");
     estado.conceptos = catalogo.concepts;
     estado.ajustes = catalogo.tunings;
     pintarConceptos(); pintarAjustes(); pintarResumen();
