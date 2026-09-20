@@ -5,6 +5,12 @@ Wis fijó como eje principal, con la evidencia del linaje que la sostiene.
 
 ---
 
+> **Ámbito.** El `CANON_PREMISAS_SER_TERRARIO.md` que acompaña a este documento
+> es **el rumbo del proyecto**, y su destinatario es el organismo de RNFE y
+> Genesis. **No gobierna los decimales de Terrario** y no es una restricción
+> vigente sobre 1.1–1.5. Se conserva aquí como dirección declarada, no como
+> contrato.
+
 ## 1 · La pregunta
 
 > ¿Cómo hago para que el cibernético **adquiera** una habilidad cognitiva sin que
