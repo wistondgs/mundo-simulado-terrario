@@ -1,6 +1,6 @@
 # `LEVEL1.4-CONJUNCTIVE-BINDING-01` · informe
 
-**`LEVEL14_STATUS = VERIFIED`** · los siete gates en las ocho líneas base.
+**`LEVEL14_STATUS = VERIFIED`** · los once gates del preregistro, en las ocho líneas base.
 
 Base `7ac43fb`, árbol propio, sin `terrario/level13/` en disco. Oráculo sellado en
 `3bdf6fb` **antes** de existir el código; auditoría previa en `4d…` del mismo
@@ -93,7 +93,36 @@ a certificar**, que es lo correcto.
 **Medido:** las 24 permutaciones de `ψ` dan el mismo valor, y ahora son 24
 contratos parametrizados en vez de 24 celdas de campaña.
 
-## 6 · Defectos hallados construyendo
+## 6 · Reconciliación del inventario de gates
+
+El preregistro sella once filas --`L14-0`, `L14-1`, `L14-2`, `L14-3`, `L14-4`,
+`L14-5`, `L14-6/7`, `L14-8`, `L14-9`, `L14-10`, `L14-11`--. La primera versión del
+guion evaluaba **siete**, y además usaba `L14-11` para las sondas cuando el
+preregistro le asigna ese número a la **pasividad**.
+
+Los cinco que faltaban **sí estaban verificados**, pero en contratos y no en el
+informe de ejecución, así que el inventario divergía y el siguiente que leyera
+habría heredado dos taxonomías. Reconciliado: el guion evalúa ahora las once
+filas con sus nombres y sus números sellados.
+
+| gate | dónde se verifica ahora | qué cambió |
+|---|---|---|
+| `L14-0` linaje | guion | — |
+| `L14-1` atributos | guion (`Q` y `H` se mueven en sus sondas) | **añadido al guion** |
+| `L14-2` ambigüedad | guion | — |
+| `L14-3` adquisición | guion | — |
+| `L14-4` marginales | guion (el gemelo `A`/`B` conserva los conjuntos) | **añadido al guion** |
+| `L14-5` sensibilidad conjunta | guion (absorbe los ceros de las sondas) | **ampliado** |
+| `L14-6/7` preservación | guion (huellas de `Q` y de `H` por separado) | **añadido al guion** |
+| `L14-8` atajos | guion | — |
+| `L14-9` necesidad | guion (binding intercambiado: `FULL` cambia, `UNBOUND` no) | **añadido al guion** |
+| `L14-10` sin identidad | guion | — |
+| `L14-11` pasividad | guion (huella del binder tras medir) | **recuperado su número** |
+
+**El resultado experimental no cambia**: los once pasan en las ocho líneas base,
+y ningún número medido se movió.
+
+## 7 · Defectos hallados construyendo
 
 **Escribí una aserción vacua.** `assert sin_asignar == sin_asignar` en el contrato
 de `BINDING_NOT_NECESSARY`: compara una lista consigo misma y no puede fallar.
@@ -114,7 +143,7 @@ que el que calcula, y por eso cada gate lleva su negativo.
 y conflacionaba las dos intervenciones. Reparada midiendo cada factor de forma
 invariante a la permutación.
 
-## 7 · Qué está permitido afirmar
+## 8 · Qué está permitido afirmar
 
 > El Agente Nivel 1.4 adquirió una correspondencia conjuntiva que le permitió
 > vincular una señal direccional y una evidencia de proximidad cualitativa como
@@ -134,7 +163,7 @@ razonamiento relacional, navegación, selección de objetivos, concepto general 
 «la misma cosa». Lo certificado es estrictamente **co-pertenencia conjuntiva
 momentánea**.
 
-## 8 · De qué tamaño y de qué clase
+## 9 · De qué tamaño y de qué clase
 
 La adquisición son `log₂(4!) = 4.585` bits: el contenido de `ψ`, no el concepto
 de binding. Y hay un límite que conviene repetir: **una vez conocida `ψ`, el
@@ -149,7 +178,7 @@ Lo que persiste entre ensayos es la ligadura `x ↔ ψ(x)` --un canal--, no la
 ligadura a un referente. Dos frecuencias de radio que se sabe que llevan la misma
 emisión: saber cuáles se emparejan no dice nada de qué se emite.
 
-## 9 · Ficheros y reproducción
+## 10 · Ficheros y reproducción
 
 ```
 terrario/level14/    carriers · scene · binding · inherited · agent · metrics · experiment

@@ -48,6 +48,9 @@ class SeedReport:
     info_eval: tuple[float, float] = (0.0, 0.0)
     index_accuracy: float = 0.0
     single_reference_brier: float = 0.0
+    marginals_preserved: bool = False
+    binding_necessary: bool = False
+    binder_passive: bool = False
     probe: dict[str, dict[str, float]] = field(default_factory=dict)
 
     @property
@@ -55,24 +58,37 @@ class SeedReport:
         return self.fingerprints_before == self.fingerprints_after
 
     def gates(self) -> dict[str, bool]:
+        """Los once del preregistro sellado, con sus nombres y sus números.
+
+        La primera versión evaluaba siete y además usaba `L14-11` para las sondas,
+        cuando el preregistro le asigna ese número a la pasividad. Los cinco que
+        faltaban sí estaban verificados --en contratos-- pero el inventario
+        divergía, y eso deja dos taxonomías al siguiente que lea.
+        """
         p = self.probe
         return {
             "L14-0 linaje": self.lineage_intact,
+            "L14-1 atributos": p["g"]["Q"] > 0.0 and p["s"]["H"] > 0.0,
             "L14-2 ambigüedad": (self.brier["UNBOUND"] == SEALED_BS_FLOOR
                                  and self.single_reference_brier == 0.0),
             "L14-3 adquisición": (
                 abs(self.brier["FULL_14"] - SEALED_BS_FULL) < 1e-12
                 and all(abs(self.brier[b] - SEALED_BS_FLOOR) < 1e-12
                         for b in ("UNBOUND", "FROZEN_BINDER", "SHUFFLED"))),
-            "L14-5 sensibilidad conjunta": (p["binding"]["readout"] > 0.0
-                                            and p["binding"]["C"] == 0.0),
+            "L14-4 marginales": self.marginals_preserved,
+            "L14-5 sensibilidad conjunta": (
+                p["binding"]["readout"] > 0.0 and p["binding"]["C"] == 0.0
+                and p["g"]["H"] == 0.0 and p["g"]["C"] == 0.0
+                and p["s"]["Q"] == 0.0 and p["s"]["C"] == 0.0
+                and p["binding"]["Q"] == 0.0 and p["binding"]["H"] == 0.0),
+            "L14-6/7 preservación": (
+                self.fingerprints_before.get("Q") == self.fingerprints_after.get("Q")
+                and self.fingerprints_before.get("H") == self.fingerprints_after.get("H")),
             "L14-8 atajos": abs(self.index_accuracy - 0.5) < 1e-12,
+            "L14-9 necesidad": self.binding_necessary,
             "L14-10 sin identidad": (self.info_acq == (0.0, 0.0)
                                      and self.info_eval == (0.0, 0.0)),
-            "L14-11 probes exactos": (p["g"]["H"] == 0.0 and p["g"]["C"] == 0.0
-                                      and p["s"]["Q"] == 0.0 and p["s"]["C"] == 0.0
-                                      and p["binding"]["Q"] == 0.0
-                                      and p["binding"]["H"] == 0.0),
+            "L14-11 pasividad": self.binder_passive,
         }
 
     @property
@@ -118,4 +134,37 @@ def run_seed(seed: int, *, psi: Psi | None = None,
     reporte.single_reference_brier = binding_brier(brazos["UNBOUND"],
                                                    single_reference_bank(psi))
     reporte.probe = three_factor_probe(brazos["FULL_14"], banco)
+
+    # L14-4 · el gemelo A/B conserva EXACTAMENTE los mismos conjuntos marginales
+    reporte.marginals_preserved = all(
+        ({d.cue for d in o.directions} == {d.cue for d in _swap(o).directions}
+         and {p.sensor for p in o.proximities}
+         == {p.sensor for p in _swap(o).proximities})
+        for o, _ in banco[:64])
+
+    # L14-9 · con el binding intercambiado, FULL cambia y UNBOUND no
+    obs = banco[0][0]
+    gemelo = _swap(obs)
+    perfil = lambda ag, e: [round(ag.bound_near_profile(e)[d], 12)
+                            for d in sorted(e.directions, key=lambda d: d.carrier.value)]
+    reporte.binding_necessary = (
+        perfil(brazos["FULL_14"], obs) != perfil(brazos["FULL_14"], gemelo)
+        and perfil(brazos["UNBOUND"], obs) == perfil(brazos["UNBOUND"], gemelo))
+
+    # L14-11 · medir no mueve el binder
+    huella = entrenado.digest()
+    binding_brier(brazos["FULL_14"], banco[:64])
+    readout_mse(brazos["FULL_14"], banco[:64])
+    reporte.binder_passive = entrenado.digest() == huella
+
     return reporte
+
+
+def _swap(obs):
+    """El gemelo A/B: mismos marginales, binding intercambiado."""
+    from terrario.level14.scene import BindingObservation, ProximityItem
+    ps = sorted(obs.proximities, key=lambda p: p.carrier.value)
+    return BindingObservation(
+        obs.directions,
+        frozenset((ProximityItem(ps[0].carrier, ps[1].sensor),
+                   ProximityItem(ps[1].carrier, ps[0].sensor))))
