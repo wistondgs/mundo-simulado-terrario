@@ -80,6 +80,36 @@ el binding es inútil sin la diana. Sigue siendo la tarea correcta, porque es la
 **Empate preregistrado:** las dos filas con `M OFF` valen lo mismo,
 `1361/14080`. No es un hallazgo: es que `ψ` no tiene dónde aplicarse.
 
+## 3 bis · ENMIENDA 1 · la tabla de §3 estaba mal ponderada
+
+**Defecto en el sello, no en la medición.** El cálculo de §3 ponderaba «acción
+alineada» al `1/2`, cuando sobre cuatro acciones ocurre en **una de cada cuatro**.
+Los cuatro valores salían casi al doble.
+
+Se descubrió porque la corrida discrepó del sello por un factor cercano a dos, y
+el sello hizo su trabajo **aun estando mal**: la discrepancia obligó a mirar.
+
+Tabla corregida, con la ponderación `1/4` y cuerpo y orientación ideales:
+
+```
+    M     ψ            BS_joint      exacto
+   ON    ON            0.018182      1345623/74008000
+   ON   OFF            0.024716      87/3520
+  OFF    ON            0.053054      747/14080
+  OFF   OFF            0.053054      747/14080
+
+mejora sólo M        0.028338
+mejora sólo ψ        0.000000        ← sigue siendo CERO EXACTO
+mejora conjunta      0.034872
+INTERACCIÓN          0.006534
+```
+
+**Lo que la enmienda no cambia:** la contribución marginal de `ψ` sigue siendo
+cero exacto, las dos filas con `M OFF` siguen empatando, y la interacción sigue
+siendo enteramente superaditiva. El error era de escala, no de estructura.
+
+Los valores de §3 quedan **retirados**. Esta tabla los sustituye.
+
 ## 4 · Se reúnen procedimientos, no artefactos
 
 ```
