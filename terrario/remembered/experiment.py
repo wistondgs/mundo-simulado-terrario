@@ -13,7 +13,10 @@ from pathlib import Path
 from typing import Any
 
 from terrario.level11.cue import ALL_CUES, CueSemantics, CueToken
+from terrario.level14.agent import Level14Agent
 from terrario.level14.carriers import CANONICAL_PSI
+from terrario.level14.metrics import binding_brier
+from terrario.level14.scene import evaluation_bank
 from terrario.remembered.agent import NoMemory, RememberedBindingAgent
 from terrario.remembered.core import reconstruct
 from terrario.remembered.memory import MemoryPhase, OneStepCueMemory
@@ -36,6 +39,7 @@ class SeedReport:
     memory_literal: bool
     memory_semantics: bool
     psi_intact: bool
+    psi_binding_brier: float
     binder_passive: bool
     invariance: float
     skip_tick: float
@@ -55,7 +59,9 @@ class SeedReport:
             "RB-1 linaje intacto": self.lineage_intact,
             "RB-2 M sin deriva": self.memory_literal,
             "RB-3 semántica de M": self.memory_semantics,
-            "RB-4 ψ intacta": self.psi_intact,
+            "RB-4 ψ intacta": (
+                self.psi_intact
+                and abs(self.psi_binding_brier - 1 / 84100) < 1e-12),
             "RB-5 coexistencia": len(self.joint) == 4,
             "RB-6 uso conjunto": all(
                 abs(self.joint[k] - SEALED[k]) < 1e-3 for k in ORDEN),
@@ -102,9 +108,14 @@ def run_seed(seed: int, *, semantics: CueSemantics | None = None) -> SeedReport:
 
     x0 = next(iter(CANONICAL_PSI))
     psi_ok = abs(organismo.association(x0, CANONICAL_PSI[x0]) - 0.85) < 1e-12
+    # `ψ` no sólo conserva su asociación: reproduce su DISCRIMINACIÓN RELACIONAL
+    # sobre este organismo. El organismo sirve de binder: expone `bind` y
+    # `association`, así que no hace falta destapar la pieza interna.
+    psi_bs = binding_brier(Level14Agent(organismo, organismo),
+                           evaluation_bank(CANONICAL_PSI))
     huella_psi = organismo.fingerprints()["psi"]
     invar = carrier_invariance(brazos[("ON", "ON")], semantics, O_PRESENT)
     pasivo = organismo.fingerprints()["psi"] == huella_psi
 
     return SeedReport(seed, antes, organismo.fingerprints(), unico, literal, ok,
-                      psi_ok, pasivo, invar, sin_tick, joint)
+                      psi_ok, psi_bs, pasivo, invar, sin_tick, joint)

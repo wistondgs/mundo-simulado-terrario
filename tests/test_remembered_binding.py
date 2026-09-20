@@ -106,6 +106,12 @@ def test_la_memoria_sigue_rechazando_lo_que_no_es_cuetoken(basura):
         OneStepCueMemory().write(basura)
 
 
+def test_psi_reproduce_su_discriminacion_relacional_sobre_este_organismo(reporte):
+    """`RB-4`. Conservar `C(ψ(x)|x) = 17/20` no basta: hay que comprobar que la
+    discriminación relacional del Nivel 1.4 sigue dando `1/84100` aquí."""
+    assert abs(reporte.psi_binding_brier - 1 / 84100) < 1e-12
+
+
 # --- RB-6, RB-7 · el factorial ------------------------------------------------------
 
 def test_los_cuatro_brazos_siguen_la_tabla_enmendada(reporte):
