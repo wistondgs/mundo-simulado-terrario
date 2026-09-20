@@ -1,0 +1,230 @@
+# Catálogo de capacidades · el linaje como grafo, no como lista.
+#
+# `requires` son capacidades (lo que el organismo necesita tener).
+# `inherits` son nodos (de qué árbol se forkea). No son lo mismo y confundirlos
+# es lo que esconde una fusión: 1.2 y 1.3 son hermanos, y una capacidad que
+# exija `proximity` y `one_tick_memory` a la vez no tiene dónde nacer.
+#
+# Los estados VERIFIED/FROZEN están tomados de commits reales. Los PROPOSED
+# vienen de la propuesta de fábrica y sus dependencias NO están adjudicadas.
+
+capabilities:
+
+  # ── verificado ──────────────────────────────────────────────────────────
+  - id: level1
+    name: "Agente de Nivel 1 · contingencia sensorimotora"
+    decimal: "1.0"
+    kind: decimal
+    status: FROZEN
+    acquires: sensorimotor
+    inherits: []
+    claim_max: >-
+      Adquirió la contingencia entre su acción y el movimiento de su cuerpo.
+    branch: experiment/level1-reversal-plasticity-01
+    worktree: /home/wis/causal-bench-01
+    seeds: level1
+    artifacts:
+      design: docs/AGENTE_NIVEL_1_ESPECIFICACION.md
+      implementation: de9a3ba
+      report: docs/HANDOFF_NIVEL_1_Y_1_1.md
+      frozen_at: d278f59
+    note: >-
+      Precede al ciclo de oráculo sellado. Los huecos que reporta `gaps` son
+      ciertos y no se rellenan hacia atrás.
+
+  - id: reversal
+    name: "Reversión del mapa motor · plasticidad sobre el Nivel 1"
+    kind: probe
+    status: FROZEN
+    requires: [sensorimotor]
+    inherits: [level1]
+    claim_max: >-
+      Reaprende tras invertir el mapa acción→movimiento; no adquiere capacidad
+      nueva, mide la plasticidad de la que ya tiene.
+    branch: experiment/level1-reversal-plasticity-01
+    worktree: /home/wis/causal-bench-01
+    seeds: level1
+    artifacts:
+      design: docs/REV_PREREGISTRO_01.md
+      audit: 83a96d8
+      oracle: 8ea75a5
+      implementation: 5c5cee3
+      report: docs/REV_PREREGISTRO_01.md
+      frozen_at: ba4ab7c
+
+  - id: level11
+    name: "Nivel 1.1 · orientación direccional"
+    decimal: "1.1"
+    kind: decimal
+    status: FROZEN
+    acquires: direction
+    requires: [sensorimotor]
+    inherits: [level1]
+    forbidden: [proximity, one_tick_memory, binding, reward]
+    claim_max: >-
+      Usa una señal externa para orientar su movimiento hacia una dirección
+      señalada.
+    branch: experiment/level1-reversal-plasticity-01
+    worktree: /home/wis/causal-bench-01
+    seeds: level11
+    artifacts:
+      oracle: 92a7e73
+      implementation: 8dd62e7
+      report: docs/LEVEL11_INFORME.md
+      frozen_at: ef67ee5
+
+  - id: level12
+    name: "Nivel 1.2 · proximidad cualitativa"
+    decimal: "1.2"
+    kind: decimal
+    status: FROZEN
+    acquires: proximity
+    requires: [sensorimotor, direction]
+    inherits: [level11]
+    forbidden: [one_tick_memory, binding, object_identity, reward]
+    claim_max: >-
+      Adquirió una distinción probabilística cerca/lejos que no puede acertar
+      siempre.
+    branch: experiment/level1-reversal-plasticity-01
+    worktree: /home/wis/causal-bench-01
+    seeds: level12
+    gate_sources:
+      oracle_doc: docs/LEVEL12_ORACULO_PREREGISTRADO.md
+      module: terrario/level12/experiment.py
+    artifacts:
+      audit: docs/LEVEL12_ENTREGABLE_PREVIO.md
+      oracle: 3697c5f
+      implementation: 7ac43fb
+      report: docs/LEVEL12_INFORME.md
+      frozen_at: 7ac43fb
+
+  - id: level13
+    name: "Nivel 1.3 · persistencia de una referencia un paso"
+    decimal: "1.3"
+    kind: decimal
+    status: VERIFIED
+    acquires: one_tick_memory
+    requires: [sensorimotor, direction]
+    inherits: [level11]
+    forbidden: [proximity, binding, object_identity, planning]
+    claim_max: >-
+      Usa en el paso siguiente una referencia que ya no está delante de él.
+    branch: experiment/level13-one-step-reference-persistence-01
+    worktree: /home/wis/level13-persistence-01
+    seeds: level13
+    gate_sources:
+      oracle_doc: docs/LEVEL13_ORACULO_PREREGISTRADO.md
+      module: terrario/level13/experiment.py
+    artifacts:
+      audit: 774a041
+      oracle: 09c1d80
+      implementation: 705239c
+      report: docs/LEVEL13_INFORME.md
+
+  - id: level14
+    name: "Nivel 1.4 · ligadura conjuntiva de dos referencias"
+    decimal: "1.4"
+    kind: decimal
+    status: VERIFIED
+    acquires: binding
+    requires: [sensorimotor, direction, proximity]
+    inherits: [level12]
+    forbidden: [one_tick_memory, object_identity, planning, reward]
+    claim_max: >-
+      Vincula una señal direccional y una evidencia de proximidad como
+      pertenecientes a la misma cosa, momentáneamente.
+    branch: experiment/level14-conjunctive-binding-01
+    worktree: /home/wis/level14-binding-01
+    seeds: level14
+    gate_sources:
+      oracle_doc: docs/LEVEL14_ORACULO_PREREGISTRADO.md
+      module: terrario/level14/experiment.py
+    artifacts:
+      audit: docs/LEVEL14_ENTREGABLE_PREVIO.md
+      oracle: 3bdf6fb
+      implementation: a4eef15
+      report: docs/LEVEL14_INFORME.md
+
+  - id: fusion_hm
+    name: "Composición · un organismo con las cuatro primeras capacidades"
+    kind: composition
+    status: VERIFIED
+    requires: [sensorimotor, direction, proximity, one_tick_memory]
+    inherits: [level12, level13]
+    claim_max: >-
+      Un solo núcleo sostiene proximidad y memoria de un paso, y las dos
+      participan en el mismo cálculo; la mejora conjunta supera la suma.
+    branch: experiment/organism-fusion-hm-01
+    worktree: /home/wis/organism-fusion-hm-01
+    seeds: fusion_hm
+    gate_sources:
+      oracle_doc: docs/ORGANISM_FUSION_HM_01_PREREGISTRADO.md
+      module: terrario/organism/experiment.py
+    artifacts:
+      oracle: 4028790
+      implementation: 141df74
+      report: docs/ORGANISM_FUSION_HM_01_INFORME.md
+    note: >-
+      No consume decimal y no adquiere nada. Existe porque 1.2 y 1.3 son
+      hermanos y ningún árbol tenía las cuatro.
+
+  # ── frontera · propuesto, dependencias sin adjudicar ─────────────────────
+  - id: change_detection
+    name: "Detección de cambio en la representación actual"
+    decimal: "1.5"
+    kind: decimal
+    status: PROPOSED
+    acquires: change_detection
+    requires: [sensorimotor, direction, proximity, one_tick_memory, binding]
+    forbidden: [representation_update, planning, object_identity, reward]
+    claim_max: >-
+      Detecta que la representación actual difiere de la anterior.
+    note: "Dependencias tomadas de la propuesta de fábrica; sin adjudicar."
+
+  - id: representation_update
+    name: "Actualización de la representación tras detectar el cambio"
+    kind: decimal
+    status: PROPOSED
+    acquires: representation_update
+    requires: [change_detection]
+    forbidden: [planning, reward]
+    note: "Dependencias tomadas de la propuesta de fábrica; sin adjudicar."
+
+  - id: multistep_memory
+    name: "Retención de una referencia más de un paso"
+    kind: decimal
+    status: PROPOSED
+    acquires: multistep_memory
+    requires: [sensorimotor, direction, one_tick_memory]
+    forbidden: [planning, object_identity]
+    note: "Dependencias tomadas de la propuesta de fábrica; sin adjudicar."
+
+  - id: relational_prediction
+    name: "Predicción de una relación entre dos referencias"
+    kind: decimal
+    status: PROPOSED
+    acquires: relational_prediction
+    requires: [sensorimotor, direction, proximity]
+    forbidden: [planning, reward]
+    note: "Dependencias tomadas de la propuesta de fábrica; sin adjudicar."
+
+  - id: multiple_references
+    name: "Más de dos referencias simultáneas"
+    kind: decimal
+    status: PROPOSED
+    acquires: multiple_references
+    requires: [sensorimotor, direction, proximity, binding]
+    forbidden: [object_identity, planning]
+    note: >-
+      La propuesta nombra `reference_selection` como dependiente de esta
+      capacidad sin definirla. Queda declarada para que la dependencia sea
+      verificable, no porque su diseño exista.
+
+  - id: reference_selection
+    name: "Selección de cuál de varias referencias usar"
+    kind: decimal
+    status: PROPOSED
+    acquires: reference_selection
+    requires: [multiple_references]
+    forbidden: [planning, reward]
+    note: "Dependencias tomadas de la propuesta de fábrica; sin adjudicar."

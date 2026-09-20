@@ -1,0 +1,23 @@
+# Universo de semillas por campaña. `ranges` son [inicio, fin) como `range`.
+# `offsets` genera las derivadas de esa misma campaña: son las que hacen que
+# dos bases disjuntas puedan colisionar igualmente.
+
+campaigns:
+  level1:
+    ranges: [[20260919, 20260951], [31415926, 31415959], [4242, 4243],
+             [5000, 5064], [7000, 7064], [99999937, 99999938]]
+    offsets: [10000003, 20000003]
+    note: "Incluye la semilla de desarrollo declarada 99999937 y la quemada en el reversal."
+  level11:
+    ranges: [[70000019, 70000083]]
+    note: "SEED_SPACE declarado en terrario/level11/__init__.py."
+  level12:
+    ranges: [[80000011, 80000019]]
+  level13:
+    ranges: [[90000011, 90000026]]
+    note: "Reservado 15, usadas 8 (90000011…90000018)."
+  level14:
+    ranges: [[100000011, 100000019]]
+    offsets: [7]
+  fusion_hm:
+    ranges: [[110000011, 110000019]]
