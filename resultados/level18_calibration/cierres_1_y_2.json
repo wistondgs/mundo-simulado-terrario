@@ -1,0 +1,48 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO",
+  "semillas": "150000011-150000026",
+  "base": "6cf55a4"
+ },
+ "cierre_2_distribucion_de_evaluacion": {
+  "H_bajo_p_ref_analitica_16_semillas": 0.3427,
+  "traza_16_semillas_8000_pasos": 0.3436,
+  "traza_16_semillas_30000_pasos": 0.3435,
+  "veredicto": "NO hay discrepancia de ponderacion. El 0.3156 era el subconjunto de 10 semillas. El estimador de trayectoria es consistente con p_ref.",
+  "numero_unico_de_evaluacion": 0.3427
+ },
+ "cierre_1_historia_O_vs_OA": {
+  "ruido_monte_carlo_estimado": 0.004,
+  "por_profundidad": {
+   "1": {
+    "H_solo_O": 0.306,
+    "H_O_y_A": 0.1689,
+    "gap_O": 0.0097,
+    "gap_OA": 0.1468,
+    "aporte_A": 0.1371
+   },
+   "2": {
+    "H_solo_O": 0.1856,
+    "H_O_y_A": 0.0721,
+    "gap_O": 0.1301,
+    "gap_OA": 0.2436,
+    "aporte_A": 0.1134
+   },
+   "4": {
+    "H_solo_O": 0.1144,
+    "H_O_y_A": 0.0189,
+    "gap_O": 0.2013,
+    "gap_OA": 0.2968,
+    "aporte_A": 0.0956
+   },
+   "8": {
+    "H_solo_O": 0.0753,
+    "H_O_y_A": 0.003,
+    "gap_O": 0.2404,
+    "gap_OA": 0.3127,
+    "aporte_A": 0.0722
+   }
+  },
+  "veredicto": "1.8 es GENUINAMENTE SENSORIOMOTORA: a L=1 el comando propio aporta 0.1371 de 0.1468, o sea el 93% de la desambiguacion de un paso"
+ }
+}
