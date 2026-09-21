@@ -26,56 +26,92 @@ def _uno(fn, *args, **kwargs) -> gates.GateResult:
 # L18-6 · el primero, y el que más importa
 # ===========================================================================
 
-def _mundos():
-    return ("W1", "W2", "W3")
+def _canonica(org):
+    """Bloques, no etiquetas: {z0,z1} y {z1,z0} son la MISMA organización."""
+    bloques = {}
+    for sonda, etiqueta in org.items():
+        bloques.setdefault(etiqueta, set()).add(sonda)
+    return frozenset(frozenset(b) for b in bloques.values())
 
 
-def _aprendiz_que_aprende():
-    """Su organización depende de la evidencia: cada mundo le deja otra cosa."""
-    coste = {("W1", "W1"): 0.20, ("W1", "W2"): 0.55, ("W1", "W3"): 0.60,
-             ("W2", "W1"): 0.58, ("W2", "W2"): 0.22, ("W2", "W3"): 0.57,
-             ("W3", "W1"): 0.61, ("W3", "W2"): 0.59, ("W3", "W3"): 0.19}
-    return (lambda w: w, lambda modelo, mundo: coste[(modelo, mundo)])
-
-
-def _aprendiz_con_particion_fija():
-    """Su organización NO depende de la evidencia: trasplanta sin coste."""
-    return (lambda w: "fija", lambda modelo, mundo: 0.40)
-
+#: tres organizaciones: A y B son la misma módulo etiqueta; C es distinta
+ORG_A = {"h1": "z0", "h2": "z0", "h3": "z1"}
+ORG_B = {"h1": "z9", "h2": "z9", "h3": "z7"}      # permutación de etiquetas de A
+ORG_C = {"h1": "z0", "h2": "z1", "h3": "z1"}
 
 LIMPIO = "def observe(self, previous, command, following):\n    return previous\n"
 
 
-def test_l18_6_pasa_cuando_la_organizacion_depende_de_la_evidencia():
-    ajustar, perdida = _aprendiz_que_aprende()
-    r = _uno(gates.gate_no_supplied_partition, ajustar, perdida, _mundos(), LIMPIO)
+def _puntuar(mapa):
+    """`refit_and_score`: reestima el contenido con evidencia del mundo visitado,
+    así que la pérdida depende de (forma de la organización, mundo)."""
+    return lambda org, mundo: mapa[(_canonica(org), mundo)]
+
+
+def test_l18_6_pasa_cuando_la_organizacion_no_es_intercambiable():
+    orgs = {"W1": ORG_A, "W2": ORG_C}
+    mapa = {(_canonica(ORG_A), "W1"): 0.20, (_canonica(ORG_C), "W1"): 0.55,
+            (_canonica(ORG_C), "W2"): 0.22, (_canonica(ORG_A), "W2"): 0.58}
+    r = _uno(gates.gate_no_supplied_partition, orgs, _canonica, _puntuar(mapa),
+             {frozenset(("W1", "W2"))}, LIMPIO)
     assert r.passed, r.evidence
 
 
 def test_l18_6_falla_con_una_particion_fijada_de_antemano():
-    """El falsificador fuerte: si la organización no depende de la evidencia,
-    trasplantarla no cuesta nada, y eso es que se la dimos nosotros."""
-    ajustar, perdida = _aprendiz_con_particion_fija()
-    r = _uno(gates.gate_no_supplied_partition, ajustar, perdida, _mundos(), LIMPIO)
+    """El falsificador fuerte: el oráculo dice que los mundos exigen
+    organizaciones distintas y el aprendiz produce la misma en los dos."""
+    orgs = {"W1": ORG_A, "W2": ORG_B}          # misma forma canónica
+    mapa = {(_canonica(ORG_A), "W1"): 0.20, (_canonica(ORG_A), "W2"): 0.20}
+    r = _uno(gates.gate_no_supplied_partition, orgs, _canonica, _puntuar(mapa),
+             {frozenset(("W1", "W2"))}, LIMPIO)
     assert not r.passed
-    assert "+0.0000" in r.evidence
+    assert "colapsadas" in r.evidence and "ninguna" not in r.evidence.split("colapsadas")[1][:20]
 
 
-def test_l18_6_falla_si_una_sola_pareja_trasplanta_gratis():
-    """No basta la media: se exige que TODA transferencia duela."""
-    coste = {("W1","W1"):0.20,("W1","W2"):0.55,("W1","W3"):0.60,
-             ("W2","W1"):0.19,("W2","W2"):0.22,("W2","W3"):0.57,   # <- mejora ajena
-             ("W3","W1"):0.61,("W3","W2"):0.59,("W3","W3"):0.19}
-    r = _uno(gates.gate_no_supplied_partition, lambda w: w,
-             lambda m, w: coste[(m, w)], _mundos(), LIMPIO)
+def test_l18_6_falla_si_el_trasplante_estructural_no_cuesta():
+    orgs = {"W1": ORG_A, "W2": ORG_C}
+    mapa = {(_canonica(ORG_A), "W1"): 0.20, (_canonica(ORG_C), "W1"): 0.19,
+            (_canonica(ORG_C), "W2"): 0.22, (_canonica(ORG_A), "W2"): 0.58}
+    assert not _uno(gates.gate_no_supplied_partition, orgs, _canonica,
+                    _puntuar(mapa), {frozenset(("W1", "W2"))}, LIMPIO).passed
+
+
+def test_l18_6_NO_castiga_transferir_entre_mundos_que_comparten_estructura():
+    """Dos mundos pueden necesitar legítimamente la misma partición. Un buen
+    aprendiz la transfiere gratis y eso NO debe contar en su contra."""
+    orgs = {"W1": ORG_A, "W2": ORG_B, "W3": ORG_C}   # W1≡W2 por etiquetas
+    mapa = {(_canonica(ORG_A), "W1"): 0.20, (_canonica(ORG_A), "W2"): 0.21,
+            (_canonica(ORG_A), "W3"): 0.60,
+            (_canonica(ORG_C), "W3"): 0.19, (_canonica(ORG_C), "W1"): 0.55,
+            (_canonica(ORG_C), "W2"): 0.56}
+    incompatibles = {frozenset(("W1", "W3")), frozenset(("W2", "W3"))}
+    r = _uno(gates.gate_no_supplied_partition, orgs, _canonica, _puntuar(mapa),
+             incompatibles, LIMPIO)
+    assert r.passed, r.evidence
+    assert "exentos por estructura compartida 1" in r.evidence
+
+
+def test_l18_6_la_permutacion_de_etiquetas_no_es_otra_organizacion():
+    assert _canonica(ORG_A) == _canonica(ORG_B)
+    assert _canonica(ORG_A) != _canonica(ORG_C)
+
+
+def test_l18_6_falla_si_el_banco_no_discrimina():
+    """Sin ni un par verdaderamente incompatible el gate NO ES EVALUABLE."""
+    orgs = {"W1": ORG_A, "W2": ORG_C}
+    r = _uno(gates.gate_no_supplied_partition, orgs, _canonica,
+             _puntuar({}), set(), LIMPIO)
     assert not r.passed
+    assert "NO EVALUABLE" in r.evidence
 
 
 @pytest.mark.parametrize("constante", sorted(gates.FORBIDDEN_CONSTANTS))
 def test_l18_6_falla_ante_cualquier_constante_de_conteo_de_estados(constante):
-    ajustar, perdida = _aprendiz_que_aprende()
-    fuente = f"{constante} = 24\n" + LIMPIO
-    r = _uno(gates.gate_no_supplied_partition, ajustar, perdida, _mundos(), fuente)
+    orgs = {"W1": ORG_A, "W2": ORG_C}
+    mapa = {(_canonica(ORG_A), "W1"): 0.20, (_canonica(ORG_C), "W1"): 0.55,
+            (_canonica(ORG_C), "W2"): 0.22, (_canonica(ORG_A), "W2"): 0.58}
+    r = _uno(gates.gate_no_supplied_partition, orgs, _canonica, _puntuar(mapa),
+             {frozenset(("W1", "W2"))}, f"{constante} = 24\n" + LIMPIO)
     assert not r.passed
     assert constante in r.evidence
 
@@ -120,6 +156,16 @@ def test_l18_4_distingue_coma_flotante_de_evidencia_fabricada():
 
     C2 = C.copy(); C2[0, 0, 0] += 1e-4          # un diezmilésimo de conteo
     assert not _uno(gates.gate_mass_conservation, C, [C2]).passed
+
+
+def test_l18_4_la_regla_esta_definida_cuando_la_masa_heredada_es_cero():
+    """Una tolerancia puramente relativa no está definida en M = 0."""
+    C = np.zeros((2, 2, 2))
+    assert _uno(gates.gate_mass_conservation, C, [np.zeros((2, 2, 2))]).passed
+    casi = np.zeros((2, 2, 2)); casi[0, 0, 0] = 1e-13
+    assert _uno(gates.gate_mass_conservation, C, [casi]).passed      # redondeo
+    algo = np.zeros((2, 2, 2)); algo[0, 0, 0] = 1e-6
+    assert not _uno(gates.gate_mass_conservation, C, [algo]).passed  # fabricación
 
 
 # ===========================================================================

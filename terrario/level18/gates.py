@@ -210,9 +210,16 @@ def gate_efference_purity(report: GateReport, efference_type) -> None:
 #: pasar ninguna fabricación con significado.
 MASS_RTOL = 1e-9
 
+#: Suelo absoluto, para que la regla esté definida cuando la masa heredada es 0.
+#: Es del orden del redondeo numérico, NO de una fracción de conteo: con float64
+#: y magnitudes de orden 1 el epsilon es ~2e-16, así que 1e-12 deja cuatro
+#: órdenes de margen y sigue nueve órdenes por debajo de un solo conteo.
+MASS_ATOL = 1e-12
+
 
 def gate_mass_conservation(report: GateReport, inherited_counts, per_state_counts,
-                           rtol: float = MASS_RTOL) -> None:
+                           rtol: float = MASS_RTOL,
+                           atol: float = MASS_ATOL) -> None:
     """L18-4 · `Σ_z C_0(o,a,o'|z) = C_17(o,a,o')`.
 
     Separar, fusionar o crear estado puede **redistribuir** evidencia heredada;
@@ -223,12 +230,13 @@ def gate_mass_conservation(report: GateReport, inherited_counts, per_state_count
     for counts in per_state_counts:
         total += np.asarray(counts, dtype=float)
     absolute = np.abs(total - inherited)
-    relative = absolute / np.maximum(np.abs(inherited), 1.0)
-    worst_abs, worst_rel = float(absolute.max()), float(relative.max())
-    ok = worst_rel <= rtol
+    allowed = np.maximum(atol, rtol * np.abs(inherited))
+    worst_abs = float(absolute.max())
+    worst_excess = float((absolute - allowed).max())
+    ok = worst_excess <= 0.0
     report.add("L18-4", "crear, separar o fusionar estado no fabrica evidencia", ok,
-               f"|Σ_z C_0 − C_17| absoluto {worst_abs:.3e} · relativo "
-               f"{worst_rel:.3e} (tolerancia {rtol:.0e}) · estados "
+               f"|Σ_z C_0 − C_17| absoluto {worst_abs:.3e} · exceso sobre "
+               f"max({atol:.0e}, {rtol:.0e}·|M|) = {worst_excess:+.3e} · estados "
                f"{len(list(per_state_counts))}")
 
 
@@ -250,40 +258,75 @@ def gate_incremental_invariant(report: GateReport, predict_18, predict_17,
 # G2 · que la partición no la hayamos puesto nosotros
 # ===========================================================================
 
-def gate_no_supplied_partition(report: GateReport, fit_on, loss_of,
-                               worlds, learner_source: str,
-                               margin: float = 0.0) -> None:
-    """L18-6 · el gate que Wis afiló, y el que hay que escribir primero.
+def gate_no_supplied_partition(report: GateReport, organizations, canonical,
+                               refit_and_score, truly_incompatible,
+                               learner_source: str) -> None:
+    """L18-6 · el primero, el más afilado, y el que más fácil daría un PASS falso.
 
-    La afirmación NO es «produce distinto número de estados»: eso lo satisface
-    cualquier mecanismo arbitrario. Es que las organizaciones resultantes **no
-    sean intercambiables** — y eso se prueba trasplantando:
+    Dos maneras de engañarse, las dos cerradas aquí:
 
-        organización de W_i evaluada en W_i   debe batir a
-        organización de W_j evaluada en W_i        para todo j ≠ i
+    **1 · No se trasplanta el contenido, sólo la ORGANIZACIÓN.** Mover partición
+    *más* conteos *más* distribuciones de `W_i` a `W_j` casi siempre duele —
+    aunque la organización latente sea la misma— porque los mundos tienen
+    estadísticas distintas. Eso no demuestra nada. Así que la partición de `W_i`
+    se instala en `W_j` y su contenido predictivo se **reestima con evidencia
+    exclusivamente de `W_j`** (`refit_and_score`). Sólo entonces la diferencia
+    es atribuible a la organización.
 
-    Un aprendiz con partición fijada de antemano, o cuya organización no dependa
-    de la evidencia, trasplanta **sin coste** y cae aquí.
+    **2 · «Toda transferencia debe doler» es falso.** Dos mundos pueden necesitar
+    legítimamente la misma partición, y un buen aprendiz debería transferirla
+    gratis. Castigarlo por descubrir estructura compartida sería un error. La
+    propiedad correcta es condicional:
+
+        Π*_{W_i} ≢ Π*_{W_j}   ⇒   el trasplante estructural duele
+
+    `truly_incompatible` lo aporta el **oráculo**, que sí conoce las estructuras
+    verdaderas; el aprendiz jamás lo ve. Y las particiones se comparan por su
+    forma canónica —bloques, no etiquetas— así que `{z0,z1}` y `{z1,z0}` son la
+    misma organización.
+
+    Si el banco no contiene ni un solo par verdaderamente incompatible, el gate
+    **no es evaluable** y falla: no se puede certificar con un banco que no
+    discrimina.
     """
     constants = assigned_constants(learner_source) & FORBIDDEN_CONSTANTS
-    models = {w: fit_on(w) for w in worlds}
-    penalties = []
-    for home in worlds:
-        own = loss_of(models[home], home)
-        for other in worlds:
-            if other == home:
-                continue
-            penalties.append(loss_of(models[other], home) - own)
-    penalties = np.asarray(penalties, dtype=float)
-    transplant_hurts = bool(penalties.size and penalties.mean() > margin
-                            and (penalties > 0).all())
-    ok = transplant_hurts and not constants
+    worlds = list(organizations)
+    formas = {w: canonical(organizations[w]) for w in worlds}
+
+    if not truly_incompatible:
+        report.add("L18-6",
+                   "misma arquitectura · mundos distintos ⇒ organización NO intercambiable",
+                   False,
+                   "NO EVALUABLE: el banco no contiene ningún par verdaderamente "
+                   "incompatible, así que no puede discriminar")
+        return
+
+    colapsadas = [tuple(sorted(par)) for par in truly_incompatible
+                  if formas[list(par)[0]] == formas[list(par)[1]]]
+
+    penalizaciones = []
+    for par in truly_incompatible:
+        i, j = tuple(par)
+        for casa, visitante in ((j, i), (i, j)):
+            propia = refit_and_score(organizations[casa], casa)
+            ajena = refit_and_score(organizations[visitante], casa)
+            penalizaciones.append(ajena - propia)
+    penalizaciones = np.asarray(penalizaciones, dtype=float)
+
+    exentos = [tuple(sorted((a, b))) for k, a in enumerate(worlds)
+               for b in worlds[k + 1:] if frozenset((a, b)) not in truly_incompatible]
+
+    duele = bool(penalizaciones.size and (penalizaciones > 0).all())
+    ok = duele and not colapsadas and not constants
     report.add("L18-6",
                "misma arquitectura · mundos distintos ⇒ organización NO intercambiable",
                ok,
-               f"penalización media del trasplante {penalties.mean():+.4f} · "
-               f"positiva en {int((penalties > 0).sum())}/{penalties.size} · "
-               f"constantes prohibidas: {sorted(constants) or 'ninguna'}")
+               f"pares incompatibles {len(truly_incompatible)} · trasplante "
+               f"estructural duele en {int((penalizaciones > 0).sum())}/"
+               f"{penalizaciones.size} · penalización media "
+               f"{penalizaciones.mean():+.4f} · particiones colapsadas "
+               f"{colapsadas or 'ninguna'} · exentos por estructura compartida "
+               f"{len(exentos)} · constantes prohibidas {sorted(constants) or 'ninguna'}")
 
 
 def gate_no_oracle_leakage(report: GateReport, learner_source: str) -> None:
