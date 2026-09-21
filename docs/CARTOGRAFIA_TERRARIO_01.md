@@ -4915,7 +4915,7 @@ la nueva se comparan sin que ninguna tenga su parámetro registrado.
 
 **La precondición, en cambio, es sólida y no hace falta inferirla.** El
 organismo de las cinco capacidades `B+Q+H+M+ψ` existe en
-`organism-remembered-binding-01 · terrario/remembered/core.py` y su campaña
+el árbol `organism-remembered-binding-01`, paquete `remembered`, `core.py` y su campaña
 corre hoy con diez gates en verde, un solo núcleo por identidad de objeto y las
 cinco huellas intactas. Con un resultado que conviene retener: **ψ sola aporta
 cero exacto** —`RB-7 dependencia total`—, así que ψ necesita a M.
