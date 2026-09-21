@@ -5248,3 +5248,147 @@ Dos de tres. Es la segunda sección no vigilada que se encuentra desfasada
 3. **K2** · Si los 74 módulos «sólo tests» de ese árbol son laboratorio
    deliberado —como `lab/genesis`— o integración pendiente. Es la misma
    pregunta del Atlas 05, ahora a escala de árbol.
+
+---
+
+# XLVI · La capa de evidencia · un perímetro muy bien guardado alrededor de una sala vacía
+
+Lectura del 2026-09-21, hecha para responder **qué función debe cumplir el
+hipergrafo** en la genealogía RNE → Genesis → Terrario. La pregunta se contestó
+sola al abrir los ficheros: no hay que inventarle una función, hay que ocupar el
+hueco que tres subsistemas señalan desde fuera sin que ninguno entre.
+
+§32.4 ya había dicho que el hipergrafo teórico «es un almacén de estructura, no
+de conocimiento acumulado». Esto mide la otra mitad: **dónde está el
+conocimiento acumulado, y resulta que en ningún sitio**.
+
+## 46.1 · Nadie es dueño de la evidencia, y dos lo dicen en código
+
+`EvidenceGraph` aparece en seis módulos del árbol y **en todos en forma de
+prohibición o de descargo**:
+
+| dónde | qué dice |
+|---|---|
+| [operational.py:61](terrario/lab/hypergraph/operational.py:61) | `forbidden_outputs = ("EVIDENCE_GRAPH",)`, con su `raise` en [:72](terrario/lab/hypergraph/operational.py:72) |
+| [operational.py:127](terrario/lab/hypergraph/operational.py:127) | «a sealed raw artifact is **not** EvidenceGraph evidence» |
+| [referencegraph/api.py:4](terrario/lab/referencegraph/api.py:4) | «exposes no route that writes the EvidenceGraph» |
+| [crossgraph/relations.py:5](terrario/lab/crossgraph/relations.py:5) | una relación de evidencia «may only ever be introduced by an explicit EvidenceGraph declaration» |
+| [evidence_publication.py:5](terrario/lab/evidence_publication.py:5) | «never modifies the historical projection» |
+| [d2_operational.py:257](terrario/lab/d2_operational.py:257) | «not an agent run, an experimental result, or EvidenceGraph input» |
+
+Y cinco ficheros de prueba existen **sólo** para prohibir la escritura
+—`test_workspace_firewall.py`, `test_scientific_live_observability.py`,
+`test_reference_graph_core.py`, `test_scientific_execution_gate.py`,
+`test_sandbox_runtime.py`—, con `add_evidence(` en su lista de símbolos vetados.
+
+**El cortafuegos es correcto**: que una ejecución no pueda ascenderse a sí misma
+a evidencia es justo lo que impide el fraude por entusiasmo. Lo que falta no es
+permiso. Es que **hay muro y no hay puerta**.
+
+## 46.2 · Qué contiene de hecho la capa de evidencia
+
+Un solo escritor real en todo el árbol
+([build_theory_snapshot.py:36](scripts/build_theory_snapshot.py:36)), que añade
+**un nodo escrito a mano**: `H-ADAPT-001`.
+
+Medido sobre el snapshot vigente `theory-f59dbb6d6ee3850c`:
+
+```
+nodos de evidencia    141
+aristas               136        135 UNRESOLVED · 1 UNTESTED_HYPOTHESIS
+
+de dónde salen        EvidenceRecord   45      corridas de humo del lab
+                      Metric           45      sus métricas
+                      h_adapt_001…     33
+                      default          10      A4_ADVANCED · seed-42
+                      test              7      test_change · test_mini · test_multi
+                      H-ADAPT-001       1      escrito a mano
+```
+
+**Ninguna campaña del linaje aparece.** Barrido sobre el JSON entero:
+`level1`, `level12`, `level13`, `level14`, `level16`, `level17`, `level18`,
+`fusion`, `l12-`, `l13-`, `causal-bench` y las semillas `8000001x` dan **cero
+coincidencias**.
+
+Es decir: la capa de evidencia contiene corridas de humo con `seed-42` y ninguna
+de las diez campañas selladas, que son la única evidencia real que el proyecto
+tiene. Y el 99 % de sus aristas son `UNRESOLVED`.
+
+## 46.3 · La disciplina que hace falta ya existe, apuntando a otro sitio
+
+`validate_bindings` ([theory_operational.py:185](terrario/lab/hypergraph/theory_operational.py:185))
+es lo mejor construido del repositorio y es **exactamente** un verificador de
+identidad: rechaza una ligadura si el candidato no coincide, si la procedencia
+no resuelve, si la fuente no es evidencia válida, si la revisión del claim o de
+la fuente no coincide, si el locator no coincide, si el claim no resuelve al
+registro declarado, y —cuando la versión empieza por `sha256:`— **abre el PDF
+real y compara el hash**.
+
+Siete ejes, y ninguno se cree nada.
+
+Esa disciplina apunta hoy al **corpus**: verifica que una afirmación resuelve a
+su fuente. Nadie la apunta a la **evidencia**: que un gate resuelve a la
+propiedad que dice evaluar.
+
+Y el propio borde lo declara: `corroboration_status`
+([:111](terrario/lab/hypergraph/theory_operational.py:111)) nace `"NOT_CLAIMED"`
+y el único otro valor que alguien escribe es
+`"STRUCTURAL_COMPOSITION_NOT_CORROBORATION"`
+([:273](terrario/lab/hypergraph/theory_operational.py:273)). **Existe para
+declarar que no hay corroboración.**
+
+Detalle que §32.4 no tenía: `corroboration_status` y `relation_type **no están
+validados**. `__post_init__` ([:113](terrario/lab/hypergraph/theory_operational.py:113))
+comprueba `origin`, los padres, la regla de composición y los roles duplicados,
+y a esos dos campos no los mira. Son cadenas libres en una dataclass cuyos demás
+campos son fail-closed.
+
+El tipado fuerte sí existe —`RelationStrength`
+([theory/models.py:25](terrario/lab/theory/models.py:25)), cinco niveles de
+`CONTEXTUAL_COOCCURRENCE` a `EXPLICIT_CAUSAL_CLAIM`— pero se deriva de filas CSV
+del corpus ([ingestion.py:50](terrario/lab/theory/ingestion.py:50)) y no toca el
+hipergrafo.
+
+## 46.4 · Los dos modos de fallo ya están medidos, y son simétricos
+
+No es una preocupación anticipada. Las dos formas en que un identificador se
+separa de lo que nombra ya ocurrieron, una en cada árbol:
+
+| | Terrario · fusión `F-9` | Genesis · `no_interference` |
+|---|---|---|
+| qué pasó | la propiedad **sí** se verificaba; el número nombraba **otra** | el identificador nombra una propiedad que **nadie** computa |
+| cómo se veía | nueve filas, `F-0`…`F-9`: parecía faltar una sola | `NOT NULL` en el esquema, y el organismo lo afirma |
+| quién avisaba | nadie | el propio registro: *«NO CONFIAR EN ESTE VALOR»* |
+| clase | gate ejecutado ≠ gate bien identificado | gate declarado ≠ gate ejecutado |
+
+**Ninguno de los dos es detectable por un grafo que enlace «experimento →
+PASS».** En el primero el `PASS` era verdadero y la etiqueta falsa; en el
+segundo no hay medición que enlazar y el ledger enlaza igual.
+
+## 46.5 · La función, dicha en una frase
+
+> **Sostener la ligadura verificable entre la identidad de una afirmación y lo
+> que de hecho se evaluó — en qué versión, bajo qué contexto — de modo que la
+> ligadura se pueda volver a comprobar en vez de creerla.**
+
+No es «almacenar conocimiento» ni «visualizar la teoría». Es la misma función
+que `validate_bindings` cumple para el corpus, ejercida sobre la evidencia; y es
+la única que hace falsables los dos fallos de §46.4.
+
+De ahí se sigue qué relaciones necesita —y son las que §32.4 midió ausentes:
+el **contexto** (mundo, régimen, organismo, versión de instrumento, semillas),
+las **dependencias tipadas** que `RelationStrength` ya sabe expresar, y una
+forma de primera clase de decir **`NO_COMPUTADO`**, que hoy es un comentario en
+mayúsculas dentro de un `record`.
+
+## 46.6 · Lo que no se sabe
+
+1. **K2** · Si los 141 nodos de evidencia actuales deben migrarse o descartarse.
+   Son corridas de humo con `seed-42`; nadie ha decidido si el snapshot es
+   histórico que se conserva o basura que se barre.
+2. **K2** · Qué pasa con el cortafuegos el día que exista la puerta. Hoy los
+   cinco tests prohíben el símbolo `add_evidence(`; una puerta legítima los
+   rompe, y no está escrito cuál sería el criterio de admisión.
+3. **K1** · Si Genesis debería tener hipergrafo o basta su cadena de hashes. El
+   ledger de evidencia ([lab/genesis/evidence/ledger.py](../../Desarrollo/RNE_v16-genesis-v2/lab/genesis/evidence/ledger.py))
+   encadena y verifica, pero encadena **eventos**, no ligaduras claim↔medición.

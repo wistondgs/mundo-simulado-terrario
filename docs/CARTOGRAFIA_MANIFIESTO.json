@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "7b25815",
+  "head": "efc3971",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -379,6 +379,19 @@
         "terrario/lab/crossgraph/d2trace.py": "126bd828267ca4841c622aee13f63fcbac29bc9a890a652aff03503ee1fc4f92",
         "terrario/world/scenario.py": "d2328e28938582f7a2a423c8e55f154a4953d4e900e2c4cef6620ba781dad136",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
+      }
+    },
+    "XLVI · La capa de evidencia · un perímetro muy bien guardado alrededor de una sala vacía": {
+      "files": {
+        "scripts/build_theory_snapshot.py": "ba8f5f07b4fa3d3fbb95590dcccef3eedac6c2fde1369b80898d2b09bdc2a445",
+        "terrario/lab/crossgraph/relations.py": "ea4501c8286c03ab33a0cab3777e259edb3714fdbdf93d227c52a3f9c779424f",
+        "terrario/lab/d2_operational.py": "08a5975c6171a75db4415ad21b6926ae52119c346338ad11e2780ed9e2264a94",
+        "terrario/lab/evidence_publication.py": "115bb1d166b4ddb1cb0b8bba6014abcbf9ed84d3d1595f1ca99c40e02cf06a3c",
+        "terrario/lab/hypergraph/operational.py": "9b35fc3ef1e21b2d531c45f309f1e71deacaa00b08de436d06bebbf73291cb6f",
+        "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
+        "terrario/lab/referencegraph/api.py": "f20c976ebc1b44c6b28ad54939b6bf6f40b95b7636c361a2339c10348fb6a5d9",
+        "terrario/lab/theory/ingestion.py": "cbda44b6c2ce6c40d5cbe72a0e5a74caec095481cc99da3baaeb639a9cd6b1aa",
+        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a"
       }
     }
   }
