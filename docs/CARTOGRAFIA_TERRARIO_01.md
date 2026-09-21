@@ -4156,3 +4156,225 @@ irreducible puede quedarse mirando la estática. Está dicho, no impedido. **K3.
    temperatura.
 5. **K3** · Cómo acotar la curiosidad frente al ruido irreducible sin dinámica
    inversa. El proyecto no tiene evidencia interna para fijarlo.
+
+---
+
+# XLI · Atlas 03 · El sistema experimental
+
+Lectura del 2026-09-21 sobre `1cf9b8f`. Cubre el punto 7 del contrato: mundos,
+runners, preregistro, lesiones, controles, métricas, gates, CAS, ledger y
+semillas. Las secciones §III, §IV, §V, §XVIII–§XXII contestaron preguntas sobre
+estas piezas el 17-09; esta sección **lee el mecanismo** y las corrige donde
+hace falta.
+
+## 41.1 · Cuántas rutas pueden avanzar un timestep · y cuáles son la misma física
+
+Hay **un paso compuesto** —`run_step`
+([transition.py:316](terrario/world/transition.py:316))— y **cuatro sitios que
+llaman a la física en crudo**. No es lo mismo:
+
+| Ruta | Llama | Contrato de acción | Lifecycle | Coste de paso | RNG exógeno |
+|---|---|---|---|---|---|
+| `ExperimentController` ([:200](terrario/experiment/controller.py:200)) | `run_step` | sí | sí | sí | `world_seed + step` |
+| `SandboxService` ([:178](terrario/lab/sandbox_runtime.py:178)) | `run_step` | sí | sí | sí | `world_seed + step` |
+| oráculos y 4 guiones de campaña | `run_step` | sí | sí | sí | `world_seed + step` |
+| **`CausalRuntime.step`** ([causal.py:129](terrario/lab/causal.py:129)) | `physics.step` | **no** | **no** | sí | **`agent_seed + tick`** |
+| **`verify_reproducibility.py`** ([:55](scripts/verify_reproducibility.py:55)) | `physics.step` | **no** | **no** | **no** | propio |
+
+Las dos primeras dicen en un comentario que la secuencia ya no vive en ellas y
+que lo que queda es instrumentación —su esquema de traza y sus hashes—, que es
+lo único que puede diferir entre superficies. **Eso es cierto y verificable.**
+Las dos últimas son otra cosa.
+
+## 41.2 · El contrato de acción · por qué T0 es un control que no cambió
+
+`apply_action_contract` ([:245](terrario/world/transition.py:245)) es, bajo T0,
+**un no-op por construcción**: devuelve la acción que el agente emitió, así que
+una corrida T0 es byte-idéntica a una anterior a Action Contract v2. Eso
+importa: T0 es el brazo de control, y un control que cambiara en silencio haría
+la comparación sin sentido.
+
+Bajo T1 sólo una resolución `VALID` escribe `target_id`; cualquier otra cosa lo
+deja en `-1` con la dirección ya fijada en `NONE` por el agente, de modo que un
+objetivo irresoluble **no consume nada** en vez de convertirse silenciosamente
+en el vecino. La procedencia registra intención, resolución y ejecución por
+separado.
+
+`find_target` ([:59](terrario/world/transition.py:59)) es la resolución
+compartida, y su docstring cuenta su propia historia: fue extraída de dos
+implementaciones carácter por carácter equivalentes, y un tercer llamante
+alcanzaba el método privado del controlador para no escribir una tercera copia.
+
+## 41.3 · El banco causal diverge, y su declaración de alcance no lo cubre
+
+`CausalRuntime` **no es un duplicado descuidado**: declara su estrechez y la
+comprueba. `capability` ([causal.py:120](terrario/lab/causal.py:120)) devuelve
+`NOT_FORKABLE` salvo que el agente sea `A0_RANDOM`, el escenario sea
+`d0_differences.yaml` y no haya `opportunity_lifecycle`.
+
+Pero la cualificación enumera agente, mundo y lifecycle, y **no mira el modo de
+direccionamiento**. Medido en vivo:
+
+```
+A0Random(addressing_mode="T1_ENTITY").decide()  →  CONSUME
+    target_id = -1 · direction = NONE · selector_value = 3
+DIRECTION_DELTA[NONE] = (0, 0)
+```
+
+Sin `apply_action_contract`, `find_target` mira **la propia celda del
+organismo**, donde no hay objeto. Es decir: **bajo T1, en el banco causal, un
+organismo no puede consumir nunca**, y la corrida se clasificaría igualmente
+`EXACT_FORKABLE`. No sería una resolución errónea —no aparece un objetivo
+fantasma— sino un organismo paralizado que parecería un T1 que rinde mal.
+
+Hoy **nadie construye el banco con T1**: `grep` sobre el árbol no devuelve un
+solo sitio. Es un hueco latente, no un resultado contaminado. Cerrarlo cuesta
+una línea en `capability`.
+
+Y la segunda divergencia: el banco siembra el RNG **global**
+([causal.py:109](terrario/lab/causal.py:109),
+`RNGManager.set_global_determinism(agent_seed)`) y deriva sus sorteos exógenos
+de `agent_seed + tick`, que es exactamente la semántica que `run_step` canonizó
+fuera —«ataría los shocks exógenos futuros a qué agente corre»—. Hoy es inerte
+porque `Physics.step` no consume su RNG, y deja de serlo el día que lo consuma.
+
+## 41.4 · El guion que verifica la reproducibilidad no verifica el paso real
+
+`verify_reproducibility.py` no llama a `run_step`: llama a `physics.step`
+([:55](scripts/verify_reproducibility.py:55)) y **reimplementa la búsqueda de
+objetivo en línea** —una cuarta copia, la que `find_target` documenta que existía
+para evitarse—. No aplica el contrato de acción, no tiene lifecycle y **no aplica
+el coste de paso**.
+
+Verifica, con rigor, la reproducibilidad de una tubería que ninguna campaña
+ejecuta.
+
+## 41.5 · El test de paridad compara la ruta consigo misma
+
+`tests/test_world_runtime_parity.py` está bien construido: agente guionizado
+—para que una divergencia no confunda «las físicas difieren» con «los agentes
+difieren»—, y el fallo nombra el primer paso y el primer campo que divergen.
+
+Pero `_trayectoria` ([:88](tests/test_world_runtime_parity.py:88)) **ejecuta
+`run_step` las dos veces**. Prueba el determinismo de la ruta autoritativa, no
+la paridad entre superficies. Su propio encabezado dice que existe porque «un
+nivel superado bajo una superficie y reprobado bajo la otra no es un nivel
+superado» — y las superficies que podrían diverger son precisamente las que no
+compara.
+
+**No existe hoy ninguna prueba que enfrente `run_step` contra
+`CausalRuntime.step`.**
+
+## 41.6 · RNG · dos disciplinas opuestas en el mismo repositorio
+
+**`RNGManager`** ([rng.py:33](terrario/core/rng.py:33)) deriva sus sub-semillas
+llamando `randint` tres veces seguidas sobre el maestro:
+
+```python
+self.world_seed    = self._python_rng.randint(0, 2**31 - 1)
+self.agent_seed    = self._python_rng.randint(0, 2**31 - 1)
+self.observer_seed = self._python_rng.randint(0, 2**31 - 1)
+```
+
+Son **dependientes del orden de llamada**: insertar un cuarto subsistema entre
+el mundo y el agente cambiaría retroactivamente todas las semillas de agente.
+
+**`OpportunityLifecycle._stream`**
+([opportunities.py:42](terrario/world/opportunities.py:42)) hace lo contrario, y
+su docstring dice por qué: `blake2b(f"{seed}:{kind}:{key}:{generation}")`, «una
+clave sobre la identidad, nunca sobre cuántas llamadas vinieron antes», de modo
+que la variante de la oportunidad 7 es la misma independientemente del historial.
+
+El ciclo de oportunidades ya resolvió el problema que el gestor de RNG todavía
+tiene. **K1: nadie ha comprobado si alguna semilla publicada depende de ese
+orden.**
+
+## 41.7 · Las cuatro lecturas que no pueden fundirse · y esta vez se adoptaron
+
+`measurement_status.py` es una defensa **estructural**, no una advertencia:
+
+```
+0.0            hubo soporte, se calculó, dio cero
+NOT_EVALUABLE  no existe soporte — el denominador está vacío
+MISSING        falta un campo que el cálculo necesita
+INVALID        el dato está y viola el contrato que dice cumplir
+```
+
+`float(reading)` **levanta** salvo que sea OK; `reading.value` es `None` salvo
+que sea OK; y no hay método que convierta una lectura no-OK en número
+([:41](terrario/lab/measurement_status.py:41)). `ratio()`
+([:83](terrario/lab/measurement_status.py:83)) devuelve `NOT_EVALUABLE` con
+denominador vacío en vez de dividir, «porque esa única línea es donde nace casi
+todo cero falso».
+
+**Y está adoptado**, que es lo que lo distingue del resto de la capa: nueve
+consumidores, entre ellos `evidence_admission`, `capability_exam`,
+`metric_result_sealing` y los cuatro guiones de experimento.
+
+## 41.8 · La última puerta · admisión de evidencia
+
+`evidence_admission` ([:40](terrario/lab/evidence_admission.py:40)) es el único
+sitio donde se pregunta si un número puede convertirse en evidencia, y lo
+pregunta **otra vez** aunque el preregistro y el runtime ya lo hicieran: «una
+puerta que confía en quien la llama es documentación, no una puerta».
+
+Sus cuatro no-acciones están escritas como lo que son —cada una fue una vía por
+la que entró un hallazgo falso—:
+
+```
+no recalcula una métrica      no modifica una Reading
+no imputa la ausencia         no reinterpreta INVALID
+```
+
+Sólo los roles `PRIMARY` exigen instrumento canónico: una lectura diagnóstica
+puede ser tosca, lo que no puede es ser un hallazgo.
+
+## 41.9 · Preregistro · siete estados y una contabilidad de exposición
+
+`ALLOWED_TRANSITIONS` ([domain.py:640](terrario/lab/preregistration/domain.py:640))
+es una máquina estricta:
+
+```
+DRAFT → READY_FOR_REVIEW → REVIEW_IN_PROGRESS → REVIEWED
+REVIEWED → DRAFT | PREREGISTERED_LOCKED
+PREREGISTERED_LOCKED → SUPERSEDED | WITHDRAWN        (ambos terminales)
+```
+
+`SeedCommitment` ([:246](terrario/lab/preregistration/domain.py:246)) sella
+cuatro familias de semillas —mundo, agente, aleatorización, reemplazo— **cada
+una con su hash**, y `SeedPartition` las reparte en seis particiones, entre
+ellas `CONFIRMATORY_TEST` y `HOLDOUT`, con `exception_reason` cuando se sale de
+la norma.
+
+`ExposureStatus` ([:91](terrario/lab/preregistration/domain.py:91)) lleva la
+contabilidad de contaminación: `UNEXPOSED`, `PREEXPOSED`, `POSTLOCK_EXPOSED`,
+`CONTAMINATION_REVIEW_REQUIRED`. **Y está vivo**: 45 filas en
+`exposure_records`, junto a 141 preregistros sellados, 708 entradas de cadena de
+auditoría y 1 664 eventos de ejecución científica.
+
+Ésta es la parte del laboratorio que **sí se usa**, y la diferencia con la capa
+de conocimiento —42 de 72 tablas vacías— es la distinción más útil que da este
+volumen: lo que toca el ciclo experimental tiene filas; lo que no, no.
+
+## 41.10 · «Replay» no es re-ejecución
+
+`OfflineReplay` ([replay.py:11](terrario/lab/replay.py:11)) es **un cursor sobre
+una línea de tiempo grabada** —`forward`, `backward`, `reset`, `jump`—. No
+vuelve a simular nada.
+
+El contrato de conocimiento lista «replay» entre las rutas de ejecución. No lo
+es. La única pieza que re-ejecuta para comparar es
+`verify_reproducibility.py`, y §41.4 dice qué ejecuta realmente.
+
+## 41.11 · Lo que no se sabe
+
+1. **K1** · Si alguna semilla ya publicada depende del orden de llamada de
+   `RNGManager`. Comprobable reconstruyendo las sub-semillas de una campaña.
+2. **K2** · Si `run_step` y `CausalRuntime.step` producen la misma trayectoria
+   bajo T0 con el mismo guion. Es un test de veinte líneas y hoy no existe.
+3. **K2** · Qué mide de menos `verify_reproducibility.py` frente al paso real:
+   sin coste de paso, el criterio de terminación difiere.
+4. **K2** · Cuántas de las 141 ejecuciones selladas corrieron por la ruta
+   `SandboxService` y cuántas por `ExperimentController`. La distinción importa
+   porque §XXI ya documentó que la semántica efectiva del sandbox no ejecuta
+   `OpportunityLifecycle`.

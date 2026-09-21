@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "7051d7f",
+  "head": "1cf9b8f",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -280,6 +280,22 @@
         "terrario/agent/curiosity.py": "a0a702233bab5fb88dc77b5288742f066f7cce2e5ed94fee109899d627a9df6b",
         "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
+      }
+    },
+    "XLI · Atlas 03 · El sistema experimental": {
+      "files": {
+        "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
+        "terrario/core/rng.py": "e16c2248157df4846c31a320d833b429ff7a996698b40bcb1bda68480dedc4c5",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
+        "terrario/lab/causal.py": "703005f09b03b7eb9d327aac2d1c620b8e3901277847f1778a3ca43c64cbef8d",
+        "terrario/lab/evidence_admission.py": "faa2abdc9d64c527f49fb30f1adc632a8676f91c0d73f413d0c0b9f9e2f02462",
+        "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
+        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
+        "terrario/lab/replay.py": "5196fc90bfbfbc01e94dcfc324f1dc557059c45a1c23e775e60d0946d63d39a5",
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
+        "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
+        "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
+        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
       }
     }
   }
