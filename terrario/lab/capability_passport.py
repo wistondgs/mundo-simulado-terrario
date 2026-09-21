@@ -829,9 +829,12 @@ def _learn_a1_v2() -> CapabilityPassport:
         # `OnlineLearner` construye el Adam sobre los módulos aprendibles.
         supplied=(
             ElementRef(ElementKind.MECHANISM, "online-gradient-update", "1"),
-            ElementRef(ElementKind.PARAMETER, "learning-rate"),
-            ElementRef(ElementKind.PARAMETER, "gradient-clip"),
-            ElementRef(ElementKind.PARAMETER, "update-frequency"),
+            # Los nombres son los del código, no una paráfrasis: así la
+            # correspondencia entre lo que el pasaporte dice que damos y lo
+            # que la implementación lee es comprobable y no una lectura.
+            ElementRef(ElementKind.PARAMETER, "learning_rate"),
+            ElementRef(ElementKind.PARAMETER, "grad_clip"),
+            ElementRef(ElementKind.PARAMETER, "update_frequency"),
         ),
         # VERIFIED_FROM_EXPERIMENT · `experiment_capability_acquisition.py`
         # aísla exactamente esto: los gemelos L y F reciben experiencia

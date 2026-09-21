@@ -74,7 +74,11 @@ def test_las_dos_capacidades_bloqueadas_lo_declaran_como_impureza():
     """WorldModel y Planner comparten intervención; medido, no supuesto."""
     assert REGISTRY["WM-A1"].intervention_purity is Purity.IMPURE
     assert REGISTRY["PLAN-A1"].intervention_purity is Purity.IMPURE
-    puras = {cid for cid, p in REGISTRY.items() if p.intervention_purity is Purity.PURE}
+    # Sobre la población v1, que es de la que habla. Un pasaporte v2 derivado
+    # hereda la pureza de su origen y contarlo aparte volvería a hacer de esto
+    # un censo, que es justo lo que no afirma.
+    puras = {cid for cid, p in REGISTRY.items()
+             if p.intervention_purity is Purity.PURE and not p.is_v2}
     assert len(puras) == 7, f"se esperaban 7 puras, hay {len(puras)}: {sorted(puras)}"
 
 

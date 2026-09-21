@@ -5671,3 +5671,54 @@ para conectar era que un pasaporte v2 respondiera sin ambigüedad qué se
 proporciona, qué debe adquirirse, qué mecanismo formal se pretende y qué código
 lo implementa. Lo responde **sobre fixtura**; sobre un registro productivo,
 todavía no.
+
+## 47.6 · El puente · una capacidad formalizada dirige código real
+
+Auditoría de integración del 2026-09-21 sobre `34a61b6`, y el enlace que
+faltaba, que resultó ser **uno solo**.
+
+**Casi todo estaba, como dato.** `LEARN-A1` resuelve a su registro de
+operacionalización, y ese registro no sólo nombra el algoritmo: guarda una
+**ruta de importación** —`terrario.agent.agents.a4_advanced:A4Advanced.learn`—
+y el endpoint. Lo que no existía era la función que la recorre.
+
+```
+Q1  consumidor de CapabilityPassport que configure agente   ABSENT
+Q2  consumidor de AlgorithmBinding                          DESCRIPTIVE_ONLY
+Q3  función capability_id → algoritmo/módulo                ABSENT      ← el enlace
+Q4  el catálogo en la construcción del agente               DESCRIPTIVE_ONLY
+Q5  OnlineLearner instanciado en ejecución real             VERIFIED · a4_advanced.py:292
+Q7  endpoint ligado a ejecución                             VERIFIED · run_measures.py:488
+Q8  los estados del pasaporte bloquean alguna ruta          DESCRIPTIVE_ONLY
+```
+
+`capability_bridge.py` lo cierra, y su cuidado entero está en **por dónde no
+resuelve**: la clave es `(algorithm_id, algorithm_version)` y **no** el
+`operationalization_id`. Un pasaporte v2 no tiene ese id a propósito —§47.5—,
+así que llegar a la implementación por ese registro devolvería justo lo que la
+migración rechazó. Qué algoritmo realiza una ruta es un hecho sobre el
+algoritmo; de qué claims desciende una capacidad es una decisión humana. Lee lo
+primero y nunca lo segundo.
+
+Medido antes de construirlo: **cinco algoritmos, cero conflictos de
+implementación**, y el índice se niega si dos registros discrepan en vez de
+elegir uno.
+
+**Corre de punta a punta**, sin que nadie reescriba qué algoritmo corresponde:
+
+```
+LEARN-A1-V2 → online-gradient-update v1 → OnlineLearner v1
+            → terrario.agent.agents.a4_advanced:A4Advanced.learn  (función real)
+            → {use_online_learning, learning_rate, grad_clip, update_frequency}
+            → conversion_aprendizaje
+```
+
+Y la correspondencia se comprueba contra la fuente, no se afirma: las tres
+claves que el pasaporte dice suministrar son las tres que la implementación lee
+en [a4_advanced.py:294](terrario/agent/agents/a4_advanced.py:294). Un pasaporte
+que prometiera `learning_rate` frente a un código que lee `lr` sería un contrato
+que nadie puede ejecutar, y ninguna de las dos partes se quejaría.
+
+**Lo que este puente NO hace**, dicho porque la tentación es leerlo de más: no
+construye un agente, no ejecuta nada, no toca el algoritmo ni el experimento.
+Demuestra direccionamiento y correspondencia para **una** capacidad.
