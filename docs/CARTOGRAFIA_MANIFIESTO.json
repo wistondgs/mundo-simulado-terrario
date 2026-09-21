@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "34a61b6",
+  "head": "173b694",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -404,6 +404,8 @@
     "XLVII · El contrato de construcción de capacidad · v2, y por qué v1 no se tocó": {
       "files": {
         "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
+        "terrario/lab/capability_operationalization.py": "02b5abb68347e725bb417bf57e8a8a07b3b43cc6bfde3975b24ea457220ad47b",
         "terrario/lab/capability_passport.py": "ac473aef3866add9b27630381c52b1287bc670010ae819fd0f8e5cacc5f70f5a",
         "terrario/lab/capability_plan.py": "8808d40e4a095352fd609b10c098146be91cdee55cdfff6eaa528d85856cef52",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",

@@ -5722,3 +5722,45 @@ que nadie puede ejecutar, y ninguna de las dos partes se quejaría.
 **Lo que este puente NO hace**, dicho porque la tentación es leerlo de más: no
 construye un agente, no ejecuta nada, no toca el algoritmo ni el experimento.
 Demuestra direccionamiento y correspondencia para **una** capacidad.
+
+Y tres nombres que conviene no mezclar, porque yo los mezclé al reportar: son
+**tres** tipos y la frontera es nítida —`AlgorithmBinding` es identidad
+algorítmica ([:167](terrario/lab/capability_operationalization.py:167)),
+`ImplementationBinding` es **la ruta importable**
+([:173](terrario/lab/capability_operationalization.py:173)) y `EndpointBinding`
+es el endpoint ([:178](terrario/lab/capability_operationalization.py:178))—.
+
+## 47.7 · Materialización · sólo lo suministrado llega a la configuración
+
+`capability_materialization.py` es donde el esquema podía destruirse en vez de
+sólo describirse: si lo que el organismo debía adquirir llega como parámetro, la
+corrida termina, produce números y no mide nada. Exactamente uno de los cuatro
+campos v2 puede materializarse.
+
+```
+supplied              PUEDE       es lo que significa suministrar
+acquisition_target    NUNCA       escribirlo es entregar la respuesta
+non_claims            NUNCA       un límite de alcance no es un parámetro
+formalization_ref     describe y resuelve; no configura
+```
+
+Y `supplied` autoriza **claves, nunca valores**. Un parámetro autorizado que la
+base no define se rechaza en vez de rellenarse: el pasaporte no es el sitio
+donde se decide cuánto vale una tasa de aprendizaje. Medido: la configuración
+materializada tiene **las mismas 29 claves** que la base, ni una más.
+
+**Las dos rutas construyen el mismo agente, bit a bit.** Con
+`torch.manual_seed` previo, `_parameter_hash` coincide entre la ruta manual y la
+dirigida por capacidad, y el aprendiz sale con los tres parámetros vivos.
+
+**Y ahí apareció algo que no es de esta ruta.** Sin ese `torch.manual_seed`,
+dos construcciones idénticas con la misma `seed` dan parámetros **distintos**,
+incluso siendo la primera de un proceso nuevo: `create_agent` recibe un
+`generator` que no gobierna la inicialización de los módulos, y el determinismo
+lo aporta el llamante —`experiment_capability_acquisition.py:210` sí siembra;
+[controller.py:319](terrario/experiment/controller.py:319) **no**—. Una firma
+que acepta `seed` promete lo que no cumple.
+
+**Clasificación:** la ruta dirigida es **ingeniería**. Un pasaporte v2 no
+promueve una corrida, y que `NO_CORPUS_PROVENANCE` no bloquee la
+materialización es correcto para ingeniería y no dice nada sobre certificación.
