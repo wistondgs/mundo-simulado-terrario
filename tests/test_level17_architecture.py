@@ -151,3 +151,42 @@ def test_actuar_e_invertir_son_consistentes():
     cableado = ActuatorWiring.sampled(SEMILLA)
     for comando in CommandToken:
         assert cableado.command_for(cableado.actuate(comando)) is comando
+
+
+# --- el baseline que desconfunde --------------------------------------------
+
+def test_no_action_ve_las_mismas_transiciones_y_no_el_comando():
+    """`NO-ACTION` parte de `M_0^W` y sigue aprendiendo `P(o'|o)` en la fase A."""
+    from terrario.level17.life import live_two_phase
+    vida = live_two_phase(SEMILLA, 256, 512, post_steps=128)
+    assert vida.no_action.updates == 512
+    assert vida.no_action.frozen
+    assert vida.inherited.updates == 256
+    # partió del mismo sitio, pero ya no es el mismo modelo
+    assert vida.no_action.fingerprint() != vida.inherited.fingerprint()
+    assert vida.acquired.inherited_fingerprint == vida.inherited.fingerprint()
+
+
+def test_en_el_mundo_gemelo_la_ventaja_contra_no_action_no_es_positiva():
+    """Fixture del control: sin información de acción, más parámetros no compran.
+
+    Contra `M_0^W` congelado la ventaja SÍ sale positiva (+0.075 a T_17=1024),
+    y ésa es exactamente la confusión que este brazo existe para deshacer.
+    """
+    import terrario.level17.life as modulo
+    from terrario.level17.efference import EfferenceCopy
+    from terrario.level17.twin import MarginalisedBody, twin_stream
+
+    real = modulo.build_world
+    ventajas = []
+    try:
+        modulo.build_world = lambda s: MarginalisedBody(real(s), twin_stream(s))
+        for seed in range(150000011, 150000019):
+            vida = modulo.live_two_phase(seed, 512, 1024, post_steps=256)
+            perdida = lambda f: -np.mean([np.log(f(a, k, c)) for a, k, c in vida.post])
+            ventajas.append(
+                perdida(lambda a, k, c: vida.no_action.probability(a, c))
+                - perdida(lambda a, k, c: vida.acquired.probability(a, EfferenceCopy(k), c)))
+    finally:
+        modulo.build_world = real
+    assert np.mean(ventajas) < 0.0, np.mean(ventajas)
