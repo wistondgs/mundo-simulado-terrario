@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "2e622f2",
+  "head": "77c890e",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -141,6 +141,24 @@
       "files": {
         "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
         "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
+      }
+    },
+    "XXVI · Qué es A4, sin los nombres": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/agents/a5_cybernetic.py": "e77441eab03fe5ac2cae943ec4fda8e304218d7b9a132a3e80af730f2e0f25a4",
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf"
+      }
+    },
+    "XXVII · Causalidad del comportamiento actual": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/agents/a5_cybernetic.py": "e77441eab03fe5ac2cae943ec4fda8e304218d7b9a132a3e80af730f2e0f25a4",
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
+        "terrario/agent/world_model.py": "a7dca349d233a569002373734dd6f4162cb6458fb1c71736584525626412414b",
+        "terrario/observer/checkpoints.py": "ee917bfc74a818f449be970edcbed86d8db08f56242e8b38f89034af5139b40e"
       }
     },
     "XXX · Las preguntas más importantes": {

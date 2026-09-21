@@ -2011,6 +2011,12 @@ de datos regenerables; `.git` pesa 339 MB. El arreglo no destructivo es añadir 
 
 # XXVI · Qué es A4, sin los nombres
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17. Solapa
+> con §XL (Atlas 02), que se cita en vez de repetirse. Comprobadas sus
+> afirmaciones: **tres no se sostienen**, y una de ellas cambia la taxonomía de
+> qué aprende y qué sólo acumula. Las mediciones de corrida quedan como
+> **K1 · medido el 2026-09-17**.
+
 ## 606 · El algoritmo, despojado
 
 > **A4 es un actor-crítico sin crítico.**
@@ -2019,7 +2025,9 @@ de datos regenerables; `.git` pesa 339 MB. El arreglo no destructivo es añadir 
 > hidden de 256. Dos memorias —una búsqueda por coseno sobre un buffer circular y una matriz con
 > atención— producen 128 + 128. Los cuatro se concatenan en un vector de 640.
 >
-> Sobre ese vector, un `Linear(640→25)` produce logits. Un ensemble de cinco MLP los sesga en 0.1
+> Sobre ese vector, un `Linear(640→256) → ReLU → Linear(256→25)` produce logits
+> ([policy.py:28](terrario/agent/policy.py:28)). ⚠ **Corrección 1 de 3**: decía
+> «un `Linear(640→25)`», y la cabeza tiene dos capas con 256 en medio. Un ensemble de cinco MLP los sesga en 0.1
 > por su varianza. La temperatura es `1 + (1 − energía normalizada)`.
 >
 > En paralelo, un MLP de dos capas predice el siguiente estado, el delta energético y la
@@ -2040,8 +2048,24 @@ de datos regenerables; `.git` pesa 339 MB. El arreglo no destructivo es añadir 
 | [608] simbólicos | ninguno |
 | [609] reglas manuales | `plan_prob = 0.5`, `−10.0·done`, `+0.1·varianza`, `temperature = 1 + bias`, umbral homeostático 0.5 |
 | [610] heurísticas | random shooting, top-k por coseno, escritura con puerta sigmoide |
-| [611] **aprenden** (gradiente) | encoder, temporal core, world model, incertidumbre, policy head, proyecciones de LT memory |
-| [612] **sólo acumulan estado** | buffer episódico, matriz `M`, `_hidden`, homeostasis, `_energy_baseline` |
+| [611] **aprenden** (gradiente) | encoder, temporal core, world model, incertidumbre, policy head, **y la memoria de largo plazo entera, `M` incluida** ⚠ |
+| [612] **sólo acumulan estado** | buffer episódico, `_hidden`, homeostasis, `_energy_baseline` |
+
+> ⚠ **Corrección 2 de 3, y es la que cambia la taxonomía.** `M` no «sólo
+> acumula»: es un `nn.Parameter`
+> ([memory.py:156](terrario/agent/memory.py:156)) y `longterm_memory` está en
+> los módulos del optimizador
+> ([a4_advanced.py:846](terrario/agent/agents/a4_advanced.py:846)). Verificado
+> ejecutando: `M.requires_grad = True` y `M` aparece en los `param_groups` del
+> Adam.
+>
+> **`M` cambia por dos vías independientes**: el gradiente, porque la lectura
+> por atención alimenta las pérdidas; y la escritura con puerta de `learn()`,
+> bajo `no_grad`. Eso explica sin misterio lo que §XXXVI midió: con el
+> optimizador suprimido `‖ΔM‖` seguía siendo 25.02 — lo que quedaba era la
+> segunda vía. Las dos están cubiertas por la frontera adoptada
+> (`parameters` y `longterm_M` son componentes distintos), pero esta tabla las
+> daba por una sola.
 | [613] planifican | `Planner`, y sólo por sorteo |
 | [614] seleccionan | `policy_head.sample`, `torch.multinomial`, y la moneda del planner |
 
@@ -2050,8 +2074,11 @@ de datos regenerables; `.git` pesa 339 MB. El arreglo no destructivo es añadir 
 [615-616] **No existe ninguna creencia con confianza asociada.** Lo más cercano es la varianza del
 ensemble, que no está calibrada y cuyo «alto» no tiene significado numérico declarado.
 [617] **No existe ninguna hipótesis** en el agente. Las hipótesis viven en el laboratorio.
-[618] `prediction_error = |energy_pred − energy_delta|`, calculado en `learn` bajo `no_grad` y
-**registrado, nunca consumido**.
+[618] `prediction_error = |energy_pred − energy_delta|`, calculado en `learn` bajo `no_grad`.
+⚠ **Corrección 3 de 3**: «registrado, nunca consumido» es cierto **en A4** y
+falso en A5 desde `fd725e3`, donde lo consume `_policy_reward`
+([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)). Ver §XXVII,
+misma corrección.
 [619] **No hay actualización bayesiana** de ningún tipo.
 [620] **No hay MDL** en `terrario/agent/`.
 [621] **No hay EIG.** La exploración es la varianza del ensemble sumada a los logits con
@@ -2063,7 +2090,13 @@ menciona, describe algo que el código no hace.
 
 [623] **Programado explícitamente**: todo lo enumerado arriba.
 **Emergente**: el colapso de la política, el uso de PUSH como medio principal de locomoción
-(158 de 300 pasos), y el papel del planner como fuente de exploración.
+(158 de 300 pasos · **K1 · medido el 2026-09-17**), y el papel del planner como
+fuente de exploración.
+
+Verificado hoy de la lista de §606: no hay propagación a través del tiempo —
+`_hidden` se desprende en cada paso
+([a4_advanced.py:409](terrario/agent/agents/a4_advanced.py:409))—, y el Adam es
+uno solo sobre seis módulos.
 
 [624] **Qué puede decidir A4 que A0 no puede representar**: condicionar la acción al contenido
 perceptivo. A0 sortea uniformemente; A4 tiene una distribución que **depende del estado**. Es una
@@ -2109,6 +2142,14 @@ dio `G ≈ 0`.
 
 # XXVII · Causalidad del comportamiento actual
 
+> **Reverificada el 2026-09-21.** Esta sección estuvo **ciega** desde el
+> 2026-09-17: no citaba ninguna ruta, así que el gate no podía invalidarla, y
+> una de sus filas llevaba tres días siendo falsa. Comprobadas sus 26
+> afirmaciones contra el árbol: **22 se sostienen, 4 no.** Las cuatro están
+> corregidas abajo y marcadas. Las mediciones de corrida que no se pueden
+> repetir barato se conservan como **K1 · medido el 2026-09-17**, sin ascender
+> a hecho de hoy.
+
 ## 631-635 · Las cinco trayectorias, función a función
 
 **[631] Comida beneficiosa**
@@ -2151,14 +2192,24 @@ baseline en ~1.0 en vez de ~0.
 [637] **Memoria**: todas por igual; el buffer episódico escribe en cada paso sin filtro.
 [638] **World model**: una comida, por el mismo motivo (`energy_target` ±1 en vez de −0.06).
 [639] **Política**: una comida.
-[640] **Estado del planner**: ninguna — **el planner no tiene estado persistente**.
+[640] **Estado del planner**: ninguna experiencia lo altera — pero ⚠ **corrección
+3 de 4**: decir que «no tiene estado persistente» es demasiado fuerte. `Planner`
+guarda `self._generator` ([policy.py:95](terrario/agent/policy.py:95)), y cada
+`plan()` consume sorteos de él, así que **el resultado de planificar depende de
+cuántas veces se planificó antes**. No es estado que la experiencia escriba; sí
+es estado que la historia de llamadas mueve.
 
 ## 641-645 · El primer cambio interno
 
 [641] El primer cambio que podría explicar una decisión futura distinta es la **escritura en el
 buffer episódico**, que ocurre antes que cualquier paso del optimizador y **sin depender de él**.
-[642] Sobrevive el timestep. [643] Sobrevive el episodio (capacidad 1000 > 1200 pasos con
-sobrescritura mínima). [644] **NO sobrevive al checkpoint** [490].
+[642] Sobrevive el timestep. [643] ⚠ **Corrección 4 de 4**: la capacidad es
+**1000** ([a4_advanced.py:98](terrario/agent/agents/a4_advanced.py:98)) y el
+episodio de D4T son **1200 pasos**, así que `1000 < 1200`: con una escritura por
+paso, **las ~200 primeras entradas se sobrescriben** —un 17 %—. No es
+«sobrescritura mínima», y la comparación estaba al revés.
+[644] **NO sobrevive al checkpoint**, verificado: `save` extrae únicamente
+`agent.get_parameters()` ([checkpoints.py:72](terrario/observer/checkpoints.py:72)).
 [645] Lo lee `_build_state` en la decisión siguiente, vía `episodic_memory.read(latent, k=5)`.
 
 ## 646 · La cadena `write → storage → read → efecto`
@@ -2170,8 +2221,15 @@ sobrescritura mínima). [644] **NO sobrevive al checkpoint** [490].
 | paramétrico | `Adam.step` | pesos | todo forward | **sí**, en principio |
 | recurrente | `decide` | `_hidden` | `_build_state` | **sí** |
 | homeostático | `perceive` | `_energy` | temperatura | **sí** |
-| `prediction_error` | `learn` | `last_prediction_error` | **nadie** | **no** |
-| `energy_delta` y `prediction_error` en el episodio | `episodic.write` | buffer | **nadie los lee** | **no** |
+| `prediction_error` | `learn` | `last_prediction_error` | **`A5._policy_reward`** | **sí** ⚠ |
+| `energy_delta` y `prediction_error` en el episodio | `episodic.write` ([memory.py:33](terrario/agent/memory.py:33)) | buffer | **nadie los lee** ([memory.py:97](terrario/agent/memory.py:97)) | **no** |
+
+> ⚠ **Corrección 1 de 4.** La fila decía «read: nadie · efecto: no», y es falsa
+> desde `fd725e3`: `A5Cybernetic._policy_reward`
+> ([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)) lo lee y lo
+> suma a la recompensa — la superficie causal entera de CURIO-A1. Para A4 la
+> fila original sigue siendo cierta; lo que cambió es que el linaje tiene dos
+> organismos y la tabla describía uno.
 
 ## 647-649 · Lo escrito y nunca leído
 
@@ -2180,18 +2238,27 @@ sobrescritura mínima). [644] **NO sobrevive al checkpoint** [490].
   almacenan y la recuperación es **puramente por coseno del embedding**. Cuatro de los cinco
   campos son inertes.
 - `HomeostaticState._energy` acumulado por `update()`: lo sobrescribe `perceive`.
-- `last_prediction_error` y `_last_prediction`: sólo trace.
+- `last_prediction_error` y `_last_prediction`: sólo trace **en A4**. ⚠
+  **Corrección 2 de 4**: en A5 `last_prediction_error` llega a la recompensa.
 - `Planner` `all_rollouts` y `best_score`: sólo trace.
 
 [648] **Salidas calculadas que nunca influyen en acciones**: `next_state_head` fuera del rollout
 interno, `done_head` fuera de la puntuación del planner, `prediction_error`, y **la varianza del
-ensemble cuando `use_uncertainty=False`** —se sigue construyendo el módulo—.
+ensemble cuando `use_uncertainty=False`**: el módulo se construye igual
+([a4_advanced.py:188](terrario/agent/agents/a4_advanced.py:188)) y además se
+**congela**, poniendo `requires_grad_(False)` en todos sus parámetros. Y
+`next_state_head` ([world_model.py:39](terrario/agent/world_model.py:39)) sólo
+se consume dentro del rollout del planner.
 
 [649] **Módulos conectados nominalmente y sin efecto causal efectivo hoy**:
 - `energy_head` **sobre la conducta**: su salida entra al planner, pero su dispersión (0.0035) es
   2.4 veces menor que la del `done_head` ponderado, y ambas son ruido.
-- `SSMCore`: ocupa 256 de 640 dimensiones y ninguna tarea exige historia.
+  **K1 · medido el 2026-09-17**, no repetido hoy.
+- `SSMCore`: ocupa **256 de 640** dimensiones —verificado: `128 + 256 + 128 + 128`
+  ([a4_advanced.py:98](terrario/agent/agents/a4_advanced.py:98))— y ninguna tarea
+  exige historia.
 - `INSPECT`: 53 de 300 pasos gastados en una operación sin efecto alguno.
+  **K1 · medido el 2026-09-17**, no repetido hoy.
 
 ---
 
