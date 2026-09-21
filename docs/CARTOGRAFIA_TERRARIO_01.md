@@ -6048,3 +6048,49 @@ los ausentes piden adquirirse.
 `PSI_USEFUL` es el control que impide que esto sea un detector universal de
 dificultad: su dependencia de M está medida, acotada y soportada, **no genera
 techo y no genera pregunta**.
+
+## 48.7 · `A3a` · descompositor por discrepancia de firma
+
+El descompositor **no sabe** que existe `PREDSTATE`, ni que 1.8 ocurrió, ni que
+`EVSENS` es algo. Si lo supiera sería una tabla de consulta con modales de
+derivación, y el proyecto ya vio lo convincentes que resultan.
+
+Compara estructura y emite **roles abstractos**:
+
+```
+NEW_EVIDENCE_SENSITIVITY · STATE_UPDATE_WITH_NEW_EVIDENCE
+HISTORY_CONDITIONAL_DISAMBIGUATION
+```
+
+Resolverlos contra el catálogo es **otra capa**, y mantenerlas separadas es el
+diseño entero. Un rol que no resuelve a nada sigue siendo un hallazgo: dice que
+el inventario no tiene palabra para algo que la estructura exige.
+
+**Tres reglas, y las tres estructurales:**
+
+1. un argumento que lo requerido tiene y lo realizado no —o tiene sin
+   participación causal— exige sensibilidad a él;
+2. ese argumento llegando junto a otros exige su **combinación**, porque variar
+   con algo no es plegarlo dentro de un estado;
+3. y si la firma es **recursiva** —su salida vuelve a entrar—, arrastrar estado
+   no vale nada salvo que la historia acumulada separe situaciones.
+
+**La tercera dispara por recursión, no por el caso de 1.8**, y hay dos pruebas
+que lo fijan: una firma no recursiva a la que le falta un argumento produce las
+dos primeras y no ésta. Ésa es la diferencia entre derivar y recordar.
+
+**Los nombres de los argumentos no llevan nada; los roles sí.** Renombrarlos
+todos conservando roles da una derivación idéntica, que es lo que impide que el
+descompositor se ate al vocabulario de una campaña.
+
+Siete casos sintéticos antes que el real, entre ellos el que más importa: un
+argumento **de más** en lo realizado no inventa requisito. Un mecanismo puede
+tomar más de lo que necesita, y fabricar un precursor por generosidad llenaría
+el grafo de exigencias que nadie hizo.
+
+Y una prueba que falló primero por su propia explicación: el guardián que
+comprueba que el módulo nunca nombra una capacidad cazaba los nombres en el
+**docstring**, donde se explica qué no debe saber. Ahora mira el código con
+docstrings y comentarios quitados por AST — nombrar algo para prohibirlo no es
+saberlo. Es el modo de fallo «guardas de texto que cazan su documentación» que
+el proyecto ya tenía catalogado.
