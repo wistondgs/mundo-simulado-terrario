@@ -4727,3 +4727,105 @@ mal.
 4. **K3** · Para 1.8, qué familia de particiones sería la correcta. La evidencia
    interna dice cuál **no** es —action-only— y cuánta información deja fuera; no
    dice cuál elegir.
+
+---
+
+# XLIV · Atlas 07 · Autoridad sobre afirmaciones científicas · lado Terrario
+
+Lectura del 2026-09-21. **§XXXV y §XXXVI ya fijaron la autoridad instrumental**
+y se citan sin repetirse. Esta sección contesta la pregunta que las atraviesa:
+cuando código, canon, campaña, ledger e informe discrepan, **qué fuente manda
+sobre qué clase de afirmación**. El lado Genesis va en §IX de
+`CARTOGRAFIA_GENESIS_01.md`, porque allí es donde su gate puede vigilarlo.
+
+## 44.1 · Qué está realmente arbitrado en código, y qué sólo declarado
+
+| Clase de afirmación | Autoridad | ¿Arbitrada en código? |
+|---|---|---|
+| **qué significa científicamente una métrica** | `instrument_registry` | **sí** — `assert_admissible` ([:345](terrario/lab/instrument_registry.py:345)) falla cerrado con tres códigos distintos |
+| **si un número puede ser evidencia** | `evidence_admission.admit_evidence` ([:111](terrario/lab/evidence_admission.py:111)) | **sí**, y vuelve a preguntarlo aunque el preregistro ya preguntara |
+| **qué valor tiene una lectura ausente** | `measurement_status.Reading` | **sí** — `float()` levanta salvo OK |
+| **qué se prometió medir** | preregistro sellado | **sí** — máquina de siete estados, `PREREGISTERED_LOCKED` sólo a terminales |
+| **qué escribe un parámetro adaptativo** | un único punto materializador | **sí**, en el otro árbol (§III de Genesis) |
+| **qué gates tiene una campaña** | el oráculo sellado | **no** — la divergencia oráculo↔informe no la detecta nada; se halló leyendo (§XXXIX) |
+| **qué afirma el mapa sobre el código** | la cartografía | **parcial** — hash del fichero y cita de línea; que la línea diga lo que la prosa afirma, no |
+| **qué capacidad está demostrada** | — | **no** — dos contabilidades que no se tocan (§XLIII) |
+
+La regla que emerge no es «el código manda»: es más fina.
+
+> **El código manda sobre lo que un artefacto ES. El oráculo sellado manda sobre
+> lo que una campaña PROMETIÓ. Y ninguno de los dos manda sobre el otro.** La
+> incoherencia aparece cuando un tercero —un informe, una sección del mapa— narra
+> ambos y nadie comprueba que coincidan.
+
+## 44.2 · Una autoridad puede estar construida, probada e inalcanzable
+
+§XXXVI lo documenta y conviene subirlo aquí porque es el caso general:
+`PR-INSTRUMENT-001` se emitía desde cuatro sitios
+([validation.py:47](terrario/lab/preregistration/validation.py:47)) sin estar en
+`RULES`, y `_finding` hace `RULE_BY_ID[rule_id]`
+([:49](terrario/lab/preregistration/validation.py:49)) — así que la regla
+lanzaba `KeyError` en lugar de devolver un hallazgo bloqueante.
+
+Falla ruidoso, no permisivo: nada inseguro pasó. Pero **el gate disparaba
+exactamente cuando un endpoint primario no tiene instrumento**, que es lo
+primero que hace cualquier preregistro confirmatorio, de modo que era
+inalcanzable en la práctica. Sobrevivió porque los 28 tests de la autoridad la
+ejercitan **directamente** y ninguno recorría la ruta de validación.
+
+**Lección transferible:** una autoridad se verifica por la ruta que la invoca,
+no por sus propios tests. `assert_reportable`
+([:255](terrario/lab/instrument_registry.py:255)) sigue siendo el ejemplo
+contrario y sigue sin llamadores de producción (§XXXI, hallazgo 17).
+
+## 44.3 · Por qué se pudo cerrar en estricto · el ledger estaba vacío
+
+`0 scientific_results · 0 empirical_evidence · 0 artefactos METRIC_RESULT`
+sobre 238 trazas selladas (§35.1). **Nunca se publicó evidencia científica**, así
+que endurecer la frontera no rompió ningún carril ni exigió certificar nada
+retroactivamente.
+
+Eso es un hecho de autoridad, no una anécdota: **el proyecto pudo elegir su
+regla estricta porque todavía no había resultados que la regla invalidara.** Esa
+ventana se cierra sola con el primer resultado publicado.
+
+## 44.4 · Divergencia legítima frente a incoherencia real
+
+La distinción que este volumen debía dar, con los casos que el Atlas ya midió:
+
+**Divergencia legítima** — dos cosas distintas que comparten nombre o ámbito, y
+el sistema lo dice:
+
+| Caso | Por qué es legítima |
+|---|---|
+| dos márgenes llamados igual (supervisor vs episodio) | §IV de Genesis nombra los dos y dice cuál decide qué |
+| contrato de acción T0 = no-op | deliberado: el control debía quedar byte-idéntico |
+| endpoints `PENDIENTE-*` | declaran el hueco en vez de sustituirlo por una métrica parecida |
+| 1.5 congelado sólo como diseño | con condición de descongelación escrita |
+| aislamiento de `lab/genesis` | **K2**: indeterminado, no incoherente |
+
+**Incoherencia real** — dos afirmaciones sobre lo mismo y una es falsa:
+
+| Caso | Qué falla |
+|---|---|
+| inventario de gates de 1.2, 1.3 y la fusión | el oráculo sella N y el informe reporta M |
+| §XXVII sobre `prediction_error` | el mapa afirma lo contrario de lo que hace el código desde `fd725e3` |
+| `use_curiosity` en el catálogo de A4 | `catalogue()` levanta `KeyError`; tres pruebas en rojo |
+| `PR-INSTRUMENT-001` | regla emitida y no registrada |
+| `no_interference` en el ledger de Genesis | el ledger persiste una afirmación que nadie computó (§IX allí) |
+
+**El criterio que las separa:** una divergencia es legítima cuando el sistema
+**puede nombrar las dos cosas y decir cuál aplica**. Es incoherencia cuando las
+dos pretenden ser la misma y ninguna instancia decide. No es cuestión de
+gravedad — `PENDIENTE-*` es un hueco grande y sano; una renumeración de gate es
+pequeña y enferma.
+
+## 44.5 · Lo que no se sabe
+
+1. **K2** · Cuántas secciones del mapa afirman cosas ya falsadas, como §XXVII.
+   Sólo se sabe leyéndolas; el hash no lo ve y la cita de línea tampoco.
+2. **K2** · Si algún informe de campaña contradice su oráculo en algo que no sea
+   el inventario de gates. Nadie ha cruzado valores medidos contra valores
+   sellados fuera de 1.4.
+3. **K1** · Qué pasa con la regla estricta de admisión el día que exista el
+   primer resultado publicado. Hoy no hay ninguno que la ponga a prueba.

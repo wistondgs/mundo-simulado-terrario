@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "b171098",
+  "head": "d5e22bd",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -305,6 +305,13 @@
         "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c"
+      }
+    },
+    "XLIV · Atlas 07 · Autoridad sobre afirmaciones científicas · lado Terrario": {
+      "files": {
+        "terrario/lab/evidence_admission.py": "faa2abdc9d64c527f49fb30f1adc632a8676f91c0d73f413d0c0b9f9e2f02462",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
+        "terrario/lab/preregistration/validation.py": "8e2c871ba09bcf14321adcd0ce768727012a14aba84303499b3e11d1def342f8"
       }
     }
   }

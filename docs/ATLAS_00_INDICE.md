@@ -33,7 +33,7 @@ contrario sería la primera afirmación falsa del documento.
 | **04** | **Capacidades demostradas** | 1.0–1.8 en ocho worktrees · los diez pasaportes · qué está demostrado y qué sólo contabilizado | Terrario + 8 worktrees | **HECHO** · §XLIII + `ATLAS_04_CAPACIDADES.md` |
 | **05** | **Genesis** | `lab/genesis/` · qué entra, qué transforma, qué produce, quién lo consume | genesis-v2 | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VII + `ATLAS_05_GENESIS.md` |
 | **06** | **RNE / RNFE** | qué persiste · qué puede cambiar · retención · qué tendría que aceptar para integrar una capacidad | genesis-v2 `runtime/` | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VIII + `ATLAS_06_RNE.md` |
-| 07 | **Evidencia, canon y autoridad** | experimento→resultado→almacenamiento→teoría→hipergrafo→siguiente pregunta · qué manda ante contradicción · qué gates están activos | los cuatro | pendiente |
+| **07** | **Evidencia, canon y autoridad** | qué fuente manda sobre qué clase de afirmación · divergencia legítima vs incoherencia | Terrario + genesis-v2 | **HECHO** · §XLIV + `CARTOGRAFIA_GENESIS_01.md` §IX + `ATLAS_07_AUTORIDAD.md` |
 | 08 | **Estado del repositorio** | vivo · roto · incompleto · huérfano · duplicado · sólo documentado | los cuatro | pendiente |
 
 La **arquitectura global ejecutable** —la relación real entre Terrario, Genesis
