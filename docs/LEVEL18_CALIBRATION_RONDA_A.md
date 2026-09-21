@@ -1,4 +1,29 @@
-# Nivel 1.8 · Informe final de calibración
+# Nivel 1.8 · Calibración RONDA A — cerrada sin presupuesto
+
+> **CERRADA.** Este documento se llamó «final» durante unas horas y el nombre era
+> falso: es la primera ronda de calibración, y no seleccionó presupuesto.
+> Se conserva entera —los cinco `T`, los 16 pares, el fallo literal de (a) y la
+> operacionalización defectuosa de (c)— porque el fallo es el dato.
+
+```
+C18 aprendido · SEÑAL                       POSITIVA
+ventaja más allá de DEPTH-1                 PRESENTE EN MEDIA · 12/16 vidas
+estabilidad entre vidas exigida por §10     NO
+regla de cobertura (c)                      OPERACIONALIZACIÓN DEFECTUOSA
+presupuesto seleccionado                    NINGUNO
+confirmatorio 180000011…180000074           CERRADO · semillas vírgenes
+```
+
+**Adjudicado por el humano el 2026-09-20**, tras ver estos resultados y en su
+contra: «sd» significa desviación estándar entre vidas, no error estándar ni
+CI95. 4096 **no se rescata** reinterpretando el símbolo — pasaría por 0,0002, y
+elegir la lectura favorable después de mirar es precisamente la libertad que este
+protocolo existe para eliminar. La regla sellada resultó exigir un tamaño de
+efecto pareado `d ≥ 2`; no se cumplió; la ronda se cierra.
+
+La corrección de (a) y (c) es **prospectiva**: Enmienda 04, sobre vidas nuevas.
+
+---
 
 **Veredicto de la regla sellada: `T_18` NO SELECCIONADO.**
 Ningún peldaño de la escalera, ni el peldaño de agotamiento, cumple las tres
