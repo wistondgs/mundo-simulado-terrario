@@ -5424,3 +5424,55 @@ como deuda.
 Consecuencia para §46.5: de las siete condiciones, las que hoy bloquean a las
 diez campañas no son las epistemológicas sino **las de archivo**. Un validador
 independiente que re-ejecuta no verifica la evidencia: produce otra.
+
+## 46.8 · El carril de archivo existe, se ejercitó 141 veces y se detuvo antes del resultado
+
+Medido el 2026-09-21. Corrige la impresión que dejaba §46.2 —que no hay
+infraestructura de evidencia—: **la hay, completa, y el problema es que se usa
+en un mundo y la ciencia ocurre en el otro.**
+
+```
+.terrario/terrario.db     preregistraciones ..... 141   componentes ...... 1.410
+                          ejecuciones ........... 141   artefactos ......... 476
+                          manifiestos de blob . 1.480   eventos .......... 1.664
+                          scientific_results ...... 0
+                          empirical_evidence ...... 0
+```
+
+El sellado del protocolo está construido y verificado:
+[commitments.py](terrario/lab/preregistration/commitments.py) escribe **diez
+roles** al CAS —`scientific_question`, `causal_design`, `protocol`,
+`metrics_and_endpoints`, `observer`,
+`seeds_partitions_randomization_replication`, `analysis`, `policies`,
+`environment_and_software`, `validation_policy`— cada uno con `cas_sha256` y
+`content_sha256`, y `verify` ([:106](terrario/lab/preregistration/commitments.py:106))
+falla con código por rol. La construcción se autocomprueba: si el canónico y el
+digest divergen, levanta.
+
+El lado del resultado también:
+[metric_result_sealing.py:58](terrario/lab/metric_result_sealing.py:58) sella con
+`execution_plan_hash`, `preregistration_root_hash`, **`hypothesis_revision`** y
+`trace_blob_hash`.
+
+Y **la puerta ya existe**:
+[evidence_admission.py](terrario/lab/evidence_admission.py) resuelve el
+instrumento, exige reportabilidad y lo compara contra el preregistrado con tres
+códigos de deriva. Se niega a recomputar la métrica, a modificar una lectura, a
+imputar ausencia y a reinterpretar `INVALID`.
+
+**Y ninguna campaña lo toca.** Verificado en las siete —1.2, 1.3, 1.4, fusión,
+1.6, 1.7, 1.8—: cero módulos importan `ArtifactRepository`, `register_blob`,
+`seal_metric_result`, `admit_evidence` o `content_hash`. Las campañas sellan
+commiteando un markdown y **transcriben** los valores sellados a constantes
+—`SEALED = {("ON","ON"): float(F(1,55)), …}`— sin que nada compruebe la
+transcripción contra el documento.
+
+**Lo que no existe en ninguno de los dos mundos es el manifiesto de gates.** El
+carril sella métricas y endpoints; las campañas evalúan gates. Un endpoint es
+qué se mide; un gate es qué queda certificado si el número cae del lado bueno.
+Hoy el nombre del gate y lo que certifica se escriben **juntos y al correr**, así
+que ni siquiera el linaje B puede contradecirse: nada compara esa pareja contra
+el sello.
+
+Análisis completo en
+[INFORME_ARCHIVO_CIENTIFICO_01.md](docs/INFORME_ARCHIVO_CIENTIFICO_01.md).
