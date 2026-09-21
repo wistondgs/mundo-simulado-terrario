@@ -4908,10 +4908,17 @@ que superó al piloto: «la magnitud exacta del paso constante **no consta en la
 evidencia textual preservada aquí**».
 
 Consecuencia para el hallazgo principal de 1.5 —que los 21 fallos atribuidos a
-barreras de coordinación eran del optimizador y no de la tarea—: la
-**dirección** se sostiene, porque cambió sólo la regla y las tasas saltaron
-treinta puntos; la **magnitud** no se puede comprobar, porque la regla vieja y
-la nueva se comparan sin que ninguna tenga su parámetro registrado.
+barreras de coordinación eran del optimizador y no de la tarea—: **no cambió
+sólo la regla**. Medido entre los dos pilotos, cambiaron además la rejilla de
+presupuestos —`20k·100k·400k` frente a `10k·20k·100k`—, la estructura de
+repetición —40 por régimen frente a 20 por celda y semilla— y las semillas, que
+en el piloto viejo **no están registradas**.
+
+A presupuesto compartido de 100k el salto es real —`78·70·78 %` frente a
+`60/60·59/60·60/60`— y va en una dirección. Pero atribuirlo al paso constante
+es una afirmación causal que el contraste no identifica. La **retirada** de los
+21 fallos como propiedad del problema se sostiene por sí sola; la atribución
+positiva al optimizador, no.
 
 **La precondición, en cambio, es sólida y no hace falta inferirla.** El
 organismo de las cinco capacidades `B+Q+H+M+ψ` existe en
