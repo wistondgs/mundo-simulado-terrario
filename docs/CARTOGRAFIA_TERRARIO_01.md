@@ -3918,3 +3918,241 @@ no son un almacén roto: son el esquema de una capa que nunca ingirió.**
 5. **Si la recuperación episódica tiene efecto conductual** dado el aplanamiento
    del softmax descrito en §39.8. Medible con una lesión: fijar los pesos a
    uniformes y comparar.
+
+---
+
+# XL · Atlas 02 · El organismo · runtime y linaje A0–A5
+
+Lectura del 2026-09-21 sobre `7051d7f`. Cubre los puntos 2 y 3 del contrato de
+conocimiento: el lazo `percepción → estado → decisión → acción → consecuencia →
+aprendizaje`, y qué hereda, qué cambia y qué ejecuta cada organismo del linaje.
+
+`terrario/agent/` son 3 403 líneas. Se leyeron enteras las que deciden conducta.
+
+## 40.1 · El paso autoritativo · quién hace qué y en qué orden
+
+`run_step` ([world/transition.py:316](terrario/world/transition.py:316)) es el
+único sitio donde el organismo y el mundo se tocan. El orden exacto:
+
+```
+ 1  observation_t = world.get_observation(0, view_radius, channels)
+ 2  agent.perceive(observation_t)
+ 3  targets = perceive_slot_table(...)   →  agent.offer_targets(targets[0])
+ 4  action = agent.decide()
+ 5  action, provenance = apply_action_contract(...)   ← la acción se REESCRIBE
+ 6  scheduler.check(world, step)         ·  lifecycle.advance(world, step)
+ 7  physics.step(world, {0: action}, RNGManager(world_seed + step))
+ 8  find_target → rules.evaluate → rules.apply_effects  ⇒ energy_delta
+ 9  lifecycle.consume(...) si el objetivo desapareció
+10  energy_delta += world.apply_step_energy_cost(0)
+11  consequence ← physical[0]; observation_t1; terminated; truncated
+12  transition = Transition(obs_t, str(agent.get_internal_state()), action, …)
+13  if learning_enabled: agent.learn(transition)
+```
+
+Tres cosas que sólo se ven leyendo:
+
+* **El paso 5 reescribe lo que el organismo decidió.** Lo intentado y lo
+  resuelto viajan separados —`action` y `provenance`—, que es lo que impide que
+  «eligió mal» y «eligió bien y el actuador falló» colapsen en el mismo fallo.
+* **El RNG de la física es `world_seed + step`**, derivado del mundo y no del
+  agente, así que un cambio de agente no mueve los sorteos exógenos. Hoy es
+  inerte porque `Physics.step` no lo consume, y el propio docstring dice que
+  canonizarlo ahora es gratis y después no lo sería.
+* **`str(agent.get_internal_state())`**: el estado interno entra en la
+  `Transition` como **cadena**, no como estructura. Queda registrado y no queda
+  consultable.
+
+**Hay un segundo lazo.** `lab/causal.py:134` monta su propio
+`perceive → decide → learn` para el banco contrafactual. No es un duplicado
+accidental —necesita intervenir entre decidir y transicionar— pero es una
+segunda ruta que puede divergir de la autoritativa, y ninguna prueba compara las
+dos hoy. **K1.**
+
+## 40.2 · A4 por dentro · de la observación al logit
+
+**Percepción** ([a4_advanced.py:354](terrario/agent/agents/a4_advanced.py:354)).
+`encoder.encode_observation(observation.channels)` — Conv(C→32→64→64, stride 2)
+→ Linear → LayerNorm → `e_t` de 128. Y una línea que importa:
+
+```python
+self.homeostasis._energy = observation.agent_energy     # :358
+```
+
+La energía entra **escribiendo el atributo privado** del homeostato, no por un
+método. Es el snapshot PRE del paso, y no existe el POST equivalente: `learn()`
+llama a `homeostasis.update(energy_delta)` 88 líneas después, así que el valor
+que la política usó y el que el aprendizaje usa no son el mismo y nadie guarda
+el primero.
+
+**El estado** ([:315](terrario/agent/agents/a4_advanced.py:315)):
+
+```
+s_t = concat( e_t 128 , h_t 256 , memoria_episódica 128 , memoria_largo_plazo 128 )
+    = 640  con DEFAULT_CONFIG
+```
+
+**Un módulo ablacionado contribuye ceros, no desaparece.** La forma de `s_t` es
+invariante bajo ablación, y por eso una ablación no cambia el número de
+parámetros de nada aguas abajo. Es la decisión que hace comparables los brazos.
+
+**La decisión** ([:397](terrario/agent/agents/a4_advanced.py:397)):
+
+```
+h_t ← temporal_core(e_t, h_{t-1})            (detached; SSM por defecto)
+s_t ← _build_state(e_t, h_t)
+logits ← policy_head(s_t)                    Linear(640,256) → ReLU → Linear(256,25)
+temperature ← 1 + homeostasis.exploration_bias      :427
+logits ← logits + 0.1 · varianza_del_ensemble       :439   ← «curiosidad» en logits
+acción ← planner con probabilidad 0.5, si no muestreo de la política   :536
+```
+
+## 40.3 · El planner no planifica · es tiro aleatorio a cara o cruz
+
+`Planner.plan` ([policy.py:98](terrario/agent/policy.py:98)) **no busca**:
+
+* muestrea `num_candidates = 10` secuencias **aleatorias** de largo
+  `horizon = 5`;
+* las despliega por el modelo del mundo;
+* puntúa `score = energía_total − 10.0 · Σ P(done)`
+  ([policy.py:149](terrario/agent/policy.py:149));
+* devuelve la **primera acción** de la mejor secuencia.
+
+Diez muestras aleatorias sobre 25⁵ ≈ 9,8 millones de secuencias posibles. Y
+encima **se usa a cara o cruz**: `plan_prob = 0.5`
+([:536](terrario/agent/agents/a4_advanced.py:536)), así que la mitad de los
+pasos la acción viene de la política. `use_planner=True` no significa
+«planifica»: significa «planifica la mitad de las veces, con diez tiros».
+
+Que éste sea, medido, uno de los dos únicos módulos que mueven la conducta
+(+6,7 comidas) dice algo sobre el resto, no sobre la potencia del planner.
+
+El despliegue además arrastra un supuesto que nadie ha comprobado: el modelo del
+mundo predice `next_state` de **640 dimensiones**, incluidos los contextos de
+memoria, que durante el rollout imaginario no se pueden actualizar. **K2: cuánto
+se degrada la predicción a lo largo del horizonte 5 no está medido.**
+
+## 40.4 · El aprendizaje · REINFORCE con línea base corrida
+
+En `learn()` ([:577](terrario/agent/agents/a4_advanced.py:577)), por orden:
+
+1. `homeostasis.update(energy_delta)` — el POST.
+2. Escritura episódica, si `adaptive_freeze.allow("episodic_buffer")`.
+3. Escritura en memoria de largo plazo: `longterm_memory.write(h, h)` — **clave
+   y valor son el mismo vector**.
+4. Error de predicción, **calculado aunque el aprendizaje esté apagado**: es una
+   métrica del observador y no debe depender de si habrá actualización.
+5. Pérdida del modelo del mundo contra `next_state_target`, construido con
+   `_build_state` bajo `no_grad`.
+6. Política: `advantage = r − baseline`, con la línea base corrida
+   `baseline += (r − baseline)/n`, y `loss = −log π(a|s) · advantage`.
+   `log π` se **recalcula** con grafo fresco para no hacer doble backward.
+7. Entropía, apagada por defecto, con coeficiente declarado como contenido
+   científico y no como constante.
+8. `learner.step(...)` — un solo Adam sobre todos los módulos.
+
+**El aprendizaje se puede apagar en cuatro sitios distintos, y no significan lo
+mismo:**
+
+| Interruptor | Qué suprime |
+|---|---|
+| `learning_enabled` (llamante, [transition.py:386](terrario/world/transition.py:386)) | que `learn()` se llame siquiera |
+| `use_online_learning` | todo el bloque de pérdidas |
+| `learning_commit_enabled` | **sólo** `optimizer.step()`; el resto del estado adquirido sigue cambiando |
+| `full_adaptive_freeze` | las cuatro piezas de la frontera adoptada |
+
+La frontera está declarada en un solo sitio
+([adaptive_freeze.py:39](terrario/agent/adaptive_freeze.py:39)):
+`A = { θ, EpisodicBuffer, M, energy_baseline }`, cada una con el fichero que la
+escribe. Y el mecanismo **bloquea la escritura antes de que ocurra** en vez de
+revertirla después, porque `escribir → leer → revertir` no equivale a
+`no escribir → leer` aunque terminen con el mismo hash. Además **registra los
+intentos**: congelado sin que nadie intentara escribir no es evidencia de nada.
+
+## 40.5 · Homeostasis · un solo punto de contacto, y una salida que nadie consume
+
+`HomeostaticState` no es una red: dos propiedades sobre un escalar.
+
+```
+drive             = max(0, threshold − energy)        homeostasis.py:34
+exploration_bias  = 1 − energy                        homeostasis.py:42
+```
+
+**`exploration_bias` llega a la conducta por un único sitio**: la temperatura de
+muestreo ([:427](terrario/agent/agents/a4_advanced.py:427)). **`drive` se
+calcula, se registra en la traza y no se consume en ninguna parte.** Es un
+output calculado y no consumido, de los que el contrato de conocimiento pide
+localizar, y el propio comentario del código lo dice.
+
+Consecuencia que conviene tener escrita: la presión de viabilidad del organismo
+no elige **qué** hacer, sólo **cuánto** desordena la elección. Un organismo
+hambriento explora más; no busca comida.
+
+## 40.6 · El linaje · qué añade cada organismo
+
+| | Percepción | Estado temporal | Modelo del mundo | Mem. episódica | Mem. largo plazo | Incertidumbre | Planner | Aprende |
+|---|---|---|---|---|---|---|---|---|
+| **A0** random | — | — | — | — | — | — | — | no |
+| **A1** reactivo | encoder | — | — | — | — | — | — | REINFORCE |
+| **A2** GRU | encoder | GRU | — | — | — | — | — | REINFORCE |
+| **A3** modelo | encoder | GRU | sí | — | — | — | — | REINFORCE + WM |
+| **A4** completo | encoder | SSM/GRU | sí | sí | sí | ensemble 5 | sí | REINFORCE + WM + ensemble |
+| **A5** cibernético | *hereda A4 entero* | | | | | | | **+ recompensa intrínseca** |
+
+A0–A4 son **clases hermanas** que reimplementan el lazo cada una: A1, A2 y A3 no
+heredan de A4 ni entre sí, sólo de `AgentInterface`. A5 sí hereda: es
+`class A5Cybernetic(A4Advanced)` y **sobrescribe un solo método**.
+
+**A5 es la intervención causal más limpia del repositorio, y por construcción.**
+Toda la superficie causal de la capacidad cabe en
+[a5_cybernetic.py:41](terrario/agent/agents/a5_cybernetic.py:41):
+
+```python
+extrinsic = super()._policy_reward(consequence)      # = energy_delta
+if not self._use_curiosity: return extrinsic          # ⇒ A5 es A4, bit a bit
+return extrinsic + self.curiosity.signal(self.last_prediction_error)
+```
+
+A4 deja `_policy_reward` inerte a propósito —devuelve exactamente lo que
+sustituyó— para que un descendiente no tenga que duplicar 187 líneas y dejar que
+la copia derive.
+
+## 40.7 · «Curiosidad» son dos cosas distintas con el mismo nombre
+
+Y conviene no confundirlas nunca más:
+
+| | Dónde entra | Qué es | Ablacionable |
+|---|---|---|---|
+| **A4** | en los **logits**: `logits + 0.1·varianza` ([:439](terrario/agent/agents/a4_advanced.py:439)) | bono de exploración por incertidumbre del ensemble, coeficiente fijo 0.1, comentado como «curiosity» | sólo con `use_uncertainty` |
+| **A5 · CURIO-A1** | en la **recompensa**: `_policy_reward` | error de la propia predicción, con línea base corrida ([curiosity.py:52](terrario/agent/curiosity.py:52)) | `use_curiosity` |
+
+La distinción no es estética: el pasaporte de CURIO-A1 declara que sumar la
+señal a los logits haría que `purity_check` la llamara PURE **por construcción**
+y el gate pasaría en vacío. A4 ya hace exactamente eso con otra cantidad.
+
+El mecanismo de A5 es `scale · (error − suelo)`, con
+`suelo += (error − suelo)·max(decay, 1/n)`: lo que motiva es **predecir peor de
+lo habitual**, no predecir mal en general —sin el suelo, un organismo que
+predice mal en todas partes recibe la misma señal en todas partes, que es no
+tener dirección—. `None` vale cero y no un valor imputado: no saber cuánto se
+equivocó no es equivocarse poco.
+
+**Confusor declarado y sin resolver en el propio módulo:** no hay dinámica
+inversa (`CLM-0125`), así que un organismo curioso en un mundo con ruido
+irreducible puede quedarse mirando la estática. Está dicho, no impedido. **K3.**
+
+## 40.8 · Lo que no se sabe · K1, K2, K3
+
+1. **K1** · El segundo lazo de `lab/causal.py` frente al autoritativo de
+   `run_step`: nadie compara sus semánticas. Es la clase exacta de divergencia
+   que ya costó tres resultados.
+2. **K2** · Degradación del modelo del mundo a lo largo del horizonte 5, con
+   contextos de memoria que el rollout no puede actualizar.
+3. **K2** · Qué fracción de las acciones proviene del planner y qué fracción de
+   la política en una corrida real. Es `plan_prob = 0.5` en el código, pero el
+   planner sólo entra si `use_planner ∧ use_world_model`, y no está contado.
+4. **K2** · Si `drive` cambiaría algo al consumirse. Hoy es inerte y por tanto
+   la hipótesis «regulación homeostática» se apoya en un único canal, la
+   temperatura.
+5. **K3** · Cómo acotar la curiosidad frente al ruido irreducible sin dinámica
+   inversa. El proyecto no tiene evidencia interna para fijarlo.

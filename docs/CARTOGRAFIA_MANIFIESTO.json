@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "8e530a0",
+  "head": "7051d7f",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -270,6 +270,16 @@
         "terrario/lab/theory/snapshot.py": "c9cf314fcc671c8962105d157c2dea22ed93617e30f0c0da2802d00abb83d767",
         "terrario/lab/theory/store.py": "800faf980f08a2f9c0cd05794d4bf8749e683332e6b3ba9e5368ea7f9aebfb0b",
         "tests/test_agent_composition.py": "c9cac527a7076a07ce213732a911257f64746241dc3916f02118790a202b5c49"
+      }
+    },
+    "XL · Atlas 02 · El organismo · runtime y linaje A0–A5": {
+      "files": {
+        "terrario/agent/adaptive_freeze.py": "7f1862f4e501cf04bc15eb8323ca858a0d1c92885ccfb8f2d5c791bda7009652",
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/agents/a5_cybernetic.py": "e77441eab03fe5ac2cae943ec4fda8e304218d7b9a132a3e80af730f2e0f25a4",
+        "terrario/agent/curiosity.py": "a0a702233bab5fb88dc77b5288742f066f7cce2e5ed94fee109899d627a9df6b",
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
+        "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
     }
   }
