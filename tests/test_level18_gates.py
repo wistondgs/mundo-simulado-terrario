@@ -373,3 +373,27 @@ def test_un_alcance_que_no_cuadra_es_fatal():
     ledger = _ledger_completo()
     with pytest.raises(LedgerIncomplete, match="alcances"):
         gates.verify_ledger(ledger, expected_scopes={"L18-10": {"seed:1", "seed:2"}})
+
+
+# ===========================================================================
+# L18-16 · el gate que la Enmienda 01 añadió · BASELINE-PARITY
+# ===========================================================================
+
+def test_l18_16_pasa_cuando_el_comparador_sigue_aprendiendo():
+    assert _uno(gates.gate_baseline_parity, 4096, 4096, "c17", "c17", False).passed
+
+
+def test_l18_16_falla_si_el_comparador_se_congela():
+    """El falsificador de la Enmienda 01. Contra un C_17 congelado el mecanismo
+    'ganaba' +0.23 nats habiendo creado CERO estados."""
+    r = _uno(gates.gate_baseline_parity, 4096, 4096, "c17", "c17", True)
+    assert not r.passed
+    assert "congelado True" in r.evidence
+
+
+def test_l18_16_falla_si_no_reciben_las_mismas_oportunidades():
+    assert not _uno(gates.gate_baseline_parity, 1024, 4096, "c17", "c17", False).passed
+
+
+def test_l18_16_falla_si_no_parten_del_mismo_C17():
+    assert not _uno(gates.gate_baseline_parity, 4096, 4096, "c17", "otro", False).passed

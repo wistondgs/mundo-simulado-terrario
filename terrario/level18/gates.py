@@ -22,8 +22,10 @@ import numpy as np
 PACKAGE = pathlib.Path(__file__).parent
 TERRARIO = PACKAGE.parent
 
-#: Los dieciséis. Que el runner ejecute menos es fatal, no una nota al pie.
-REQUIRED_GATES = tuple(f"L18-{i}" for i in range(16))
+#: Los diecisiete. Que el runner ejecute menos es fatal, no una nota al pie.
+#: Eran dieciséis hasta la Enmienda 01: faltaba `BASELINE-PARITY`, que 1.7 sí
+#: tenía y que no se trasladó. Añadirlo endurece el contrato.
+REQUIRED_GATES = tuple(f"L18-{i}" for i in range(17))
 
 #: Capacidades posteriores. No están en el disco; el gate lo prueba.
 LATER_CAPABILITIES = ("level11", "level12", "level13", "level14",
@@ -444,3 +446,29 @@ def gate_passivity_replay(report: GateReport, before, after, replays) -> None:
                passive and deterministic,
                f"huella intacta tras evaluar: {passive} · "
                f"{len(replays)} replays, {len(set(replays))} hash distinto(s)")
+
+
+def gate_baseline_parity(report: GateReport, baseline_updates: int,
+                         model_updates: int, baseline_start: str,
+                         model_start: str, baseline_frozen: bool) -> None:
+    """L18-16 · el gate que faltaba, y sin el cual el endpoint no es identificable.
+
+    `C17-ONLY` y `C18` parten del **mismo** snapshot de `C_17`, reciben las mismas
+    transiciones de la fase A y tienen las mismas oportunidades de actualización.
+    La única diferencia permitida es la capacidad de organizar `Z`.
+
+    Congelar el comparador al acabar la fase predecesora hace que el endpoint sume
+    *beneficio del estado* más *beneficio de más evidencia*. Medido: contra un
+    `C_17` congelado el mecanismo «ganaba» +0.23 nats **habiendo creado cero
+    estados**. Ese es exactamente el confundido que 1.7 necesitó `NO-ACTION` para
+    quitar, y 1.8 lo heredó sin el gate que lo detecta.
+    """
+    same_start = baseline_start == model_start
+    same_chances = baseline_updates == model_updates
+    ok = same_start and same_chances and not baseline_frozen
+    report.add("L18-16",
+               "C17-ONLY y C18: mismo origen, mismas muestras, sólo difieren en Z",
+               ok,
+               f"mismo C_17 de partida {same_start} · actualizaciones "
+               f"{baseline_updates} vs {model_updates} · comparador congelado "
+               f"{baseline_frozen}")
