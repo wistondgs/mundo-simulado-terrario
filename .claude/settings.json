@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/cartografia_hook.py\" --sesion",
+            "timeout": 120,
+            "statusMessage": "Comprobando la cartografía (G1)"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/cartografia_hook.py\" --edicion",
+            "timeout": 20,
+            "statusMessage": "Cartografía: ¿esto invalida alguna sección?"
+          }
+        ]
+      }
+    ]
+  }
+}

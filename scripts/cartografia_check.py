@@ -57,9 +57,15 @@ MANIFEST = PROJECT_ROOT / "docs" / "CARTOGRAFIA_MANIFIESTO.json"
 #: Sólo se vigilan rutas del árbol real. Un fichero citado que no existe se
 #: reporta aparte: puede ser una cita equivocada o un fichero borrado, y ambas
 #: cosas invalidan la sección igual que un hash movido.
+#:
+#: `theory_snapshots/`, `docs/handoff/` y `.csv` entraron el 2026-09-21. Sin
+#: ellos el corpus era invisible para este guardián por construcción: creció de
+#: 42 a 101 PDFs y ninguna sección quedó obsoleta. El resto de `docs/` sigue
+#: fuera a propósito --la cartografía vive ahí y se vigilaría a sí misma--.
 REFERENCE = re.compile(
-    r"\b((?:terrario|tests|scripts|scenarios|configs|knowledge)/[\w./-]+"
-    r"\.(?:py|yaml|yml|json|md))"
+    r"\b((?:terrario|tests|scripts|scenarios|configs|knowledge"
+    r"|theory_snapshots|docs/handoff)/[\w./ -]*?[\w.-]+"
+    r"\.(?:py|yaml|yml|json|md|csv))"
 )
 
 

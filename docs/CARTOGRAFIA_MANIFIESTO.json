@@ -1,8 +1,8 @@
 {
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
-  "written_at": "2026-09-18",
-  "head": "65c877c",
+  "written_at": "2026-09-21",
+  "head": "bbaa3e5",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -176,7 +176,8 @@
         "terrario/lab/referencegraph/import_corpus.py": "01924070b0e4f4e44e0a939cc681badf617c0a970d913025f08d021c2f2f65fd",
         "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",
         "terrario/lab/theory/factory.py": "720e5be05e0dd78f4711c95693099704f7e3f1772889a8996db96ca634a1e52e",
-        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a"
+        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
+        "theory_snapshots/theory-f59dbb6d6ee3850c/SOURCE_PROVENANCE_v0.3.csv": "f67efa05504975a8fbb792686b98076208a5abd733d5f51a76e57a518add7309"
       }
     },
     "XXXIII · Observación, traza e interfaz": {
@@ -221,6 +222,29 @@
         "scripts/state_authority_probe.py": "9edb25decbcbbf4cb483c5fac721d1f782c1885d0894c4c31e565f2be2f1f86b",
         "terrario/agent/adaptive_freeze.py": "7f1862f4e501cf04bc15eb8323ca858a0d1c92885ccfb8f2d5c791bda7009652",
         "terrario/experiment/adaptation.py": "92d074a86053ebb113bb43f6c92ace5a4170d9d61baa2a4e1bd6c923e212bb73"
+      }
+    },
+    "XXXVIII · Corpus, teoría, hipergrafo, memoria y composición · relectura del 2026-09-21": {
+      "files": {
+        "docs/handoff/HEA_CLAIMS_EXTRAIDOS_v1.csv": "32a364df227a166989f36d619af057189f0057594e48afd74afdf64caa4ef42a",
+        "docs/handoff/HEA_CONCEPTOS_EXTRAIDOS_v1.csv": "a4499716cec0b2d7354c93953db32007560cc19bea9a2140073eb2c2387f8c72",
+        "docs/handoff/HEA_CONCEPTOS_SIN_DEFINICION_v1.csv": "32dcf704a3394401c86235b705651dd9c64c405298ac7a8ceb30362364cd380d",
+        "scripts/cartografia_check.py": "4c3faa3b7b47b7db1ec4a1aba4007513d6b985f2f9c5bbcbc5c188b0120e1497",
+        "scripts/cartografia_hook.py": "536998b606b05b380651f871b0e6ea501648ae548112cd3c6e4863a36c1968dc",
+        "scripts/experiment_capability_acquisition.py": "8ea633c806b9a345133c2e5ff3b8983a332c556bd1133b4d1531387209c98ecf",
+        "scripts/experiment_t0_vs_t1.py": "61b4ad525dd301771e906c4f286bf3b4b34ca789cc9def7ed465fc3b875ddb9a",
+        "scripts/passport_check.py": "3236d4d3a16132e660ab292baae53e9599a87de690d58a3167f43189db40e511",
+        "terrario/lab/agent_composition.py": "493515cb170809549f7dffeb1ec00cba5f8cd1b7508d741838092899386c0da4",
+        "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
+        "terrario/lab/capability_operationalization.py": "02b5abb68347e725bb417bf57e8a8a07b3b43cc6bfde3975b24ea457220ad47b",
+        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
+        "terrario/lab/persistence/migrations.py": "e4163a995919195a4d11374b80bd91103f2f044f50bfa819a9fef61f1dee120a",
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
+        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
+        "terrario/lab/theory/store.py": "800faf980f08a2f9c0cd05794d4bf8749e683332e6b3ba9e5368ea7f9aebfb0b",
+        "tests/test_capability_operationalization.py": "2ac29520a17332ab07a75c9c9df977f5cd5b0342d36209818d83644866f9506e",
+        "theory_snapshots/theory-f59dbb6d6ee3850c/ingestion_summary.json": "ab842e21a3c0ee0487944eb7ed3f6aa5fbe7bc03fc379909099d42102fe73104"
       }
     }
   }

@@ -2722,6 +2722,11 @@ WAL con `synchronous=FULL`; `BEGIN IMMEDIATE`. Sin downgrade.
 
 # XXXII · La capa de conocimiento
 
+> **Parcialmente superada por §XXXVIII** (relectura del 2026-09-21): las cifras
+> del corpus, el estado de la citabilidad de conceptos y el catálogo de
+> composición se releyeron allí. El veredicto estructural de esta sección se
+> sostiene.
+
 Mapeo del 2026-09-17. Cubre `terrario/lab/hypergraph/`, `terrario/lab/crossgraph/`,
 `terrario/lab/referencegraph/`, `terrario/lab/theory/`, `terrario/lab/agent_composition.py`,
 `knowledge/`, `theory_snapshots/`.
@@ -3355,3 +3360,240 @@ proyecto adoptó, así que el criterio de igualdad agregada se satisface en vac�
 declarar PASS mientras la omisión exista.
 
 Detalle en `docs/ORGANISM_CAUSAL_FOUNDATION_01.md`.
+
+---
+
+# XXXVIII · Corpus, teoría, hipergrafo, memoria y composición · relectura del 2026-09-21
+
+Releído contra `bbaa3e5`. **Sustituye a §XXXII** en las cifras del corpus, en el
+estado de la citabilidad de conceptos y en el catálogo de composición; el
+veredicto estructural de §XXXII —contratos tipados de alta calidad, dos
+subsistemas vacíos, un solo punto de contacto con el ciclo experimental— se
+sostiene entero y no se repite aquí.
+
+**Lo que cambia respecto al 17-09:** el corpus físico creció ×2,4 sin que el
+snapshot se enterara; un concepto ya es citable por contrato aunque nadie lo
+cite todavía; el catálogo de composición tiene un concepto más.
+
+## 38.1 · Tamaño real de la capa, recontado
+
+| Subsistema | Ficheros | Líneas | Filas en producción |
+|---|---:|---:|---|
+| `terrario/lab/theory/` | 8 | 1 549 | 1 snapshot en disco, **cero tablas** |
+| `terrario/lab/hypergraph/` | 5 | 564 | vive dentro del snapshot |
+| `terrario/lab/crossgraph/` | 10 | 2 130 | **0 filas en 9 tablas** `cross_*` |
+| `terrario/lab/referencegraph/` | 7 | 1 743 | **0 filas en 22 tablas** `ref_*` |
+| `terrario/lab/persistence/` | 8 | 2 319 | 30 tablas con filas, ninguna de esta capa |
+| `agent_composition.py` + familia `capability_*` | 6 | 1 865 | — |
+
+`.terrario/terrario.db` tiene **72 tablas, 42 vacías**. Las 30 con filas son
+todas de ejecución y preregistro —`artifacts` 441, `blob_manifests` 1 480,
+`scientific_execution_events` 1 664, `preregistration_components` 1 410—. Las
+`ref_*` y las `cross_*` están **enteras a cero**, y también lo están
+`empirical_evidence` y `empirical_evidence_links`: la tabla donde se adjuntaría
+evidencia a una hiperarista existe y nunca recibió una fila.
+
+## 38.2 · El corpus físico · creció y el snapshot no se enteró
+
+```
+/home/wis/Documentos/teoria de la inteligencia/
+  101 PDFs en 10 subdirectorios
+     acquisition_v0.4                          28
+     doc estudios cientificos                  29
+     hea_corpus_v2_complete_bundle             15
+     homeostatic_enactive_agency_corpus_v0.1   15
+     documents_v0.3                            11
+     otros cinco                                3
+```
+
+El snapshot `theory-f59dbb6d6ee3850c` declara **44 fuentes**
+([ingestion_summary.json](theory_snapshots/theory-f59dbb6d6ee3850c/ingestion_summary.json)).
+§XXXII contó 42 PDFs el 17-09 en la raíz de esa carpeta; hoy hay 101 repartidos
+en subdirectorios versionados. **El corpus creció ×2,4 y nada lo ingirió.**
+
+No es un fallo del importador: `referencegraph/import_corpus.py` consume
+`manifest/CORPUS_MANIFEST.jsonl`, que **sigue sin existir en ningún sitio del
+disco**, y por eso las 22 tablas `ref_*` siguen a cero. Son dos sistemas
+paralelos que nunca se tocaron, y ahora divergen también en tamaño.
+
+## 38.3 · Lo que el snapshot sí contiene, contado
+
+```
+44 fuentes · 189 claims · 283 conceptos raw · 224 candidatos canónicos
+206 relaciones · 8 hiperaristas · 12 ambigüedades · 12 conflictos
+1 035 nodos de teoría · 956 aristas · 141 nodos de evidencia · 136 aristas
+```
+
+Los 283 conceptos son **dos capas con propiedades distintas**, y mezclarlas es
+lo que hace parecer al corpus más rico de lo que es:
+
+| Capa | Filas | Nombres normalizados distintos | Con definición del autor | Mencionados en algún claim |
+|---|---:|---:|---:|---:|
+| `CONCEPTS_RAW_v0.1.csv` | 224 | 187 | 224 | **56** |
+| `CONCEPTS_RAW_PATCH_v0.3.csv` | 59 | 59 | **0** | 17 |
+
+Las 59 filas del parche **no tienen ni una definición del autor**. No son
+conceptos citables: son nombres.
+
+## 38.4 · Citabilidad de un concepto · el contrato existe, el uso no
+
+`d1485b4` cerró la mitad de L-1 que faltaba. El esquema sólo sabía direccionar
+claims, y por eso un concepto del corpus —la curiosidad adaptativa de Oudeyer—
+existía como fila y **ninguna capacidad podía apuntarle**.
+
+`CorpusConceptReference`
+([capability_operationalization.py:84](terrario/lab/capability_operationalization.py:84))
+no es un puntero sino una **cadena**:
+
+```
+concepto  →  claim que lo menciona, con locator  →  fuente [TI-XXXX]
+```
+
+El eslabón del medio es lo que la hace verificable: un concepto no tiene sitio
+en un documento que un tercero pueda abrir, y el claim sí. La validación rechaza
+un concepto ausente de su claim declarado y uno cuya definición del autor esté
+vacía —el guardián que habría rechazado la capa v0.3 entera—.
+
+El segundo arreglo del mismo commit: `snapshot_root()` leía el id de una
+constante del módulo
+([capability_operationalization.py:26](terrario/lab/capability_operationalization.py:26)),
+así que una referencia que declarara un segundo snapshot miraba dentro del
+primero, encontraba su manifiesto y fallaba con «corpus snapshot manifest hash
+mismatch» —un mensaje que acusa al corpus de corrupción cuando el defecto era no
+haber ido al directorio correcto—. Ahora resuelve desde la referencia. **El
+laboratorio puede tener más de un corpus.**
+
+**Y nadie cita todavía por esa cadena.** `grep` sobre todo el árbol: las únicas
+apariciones de `CorpusConceptReference` son su propia declaración y
+[su test](tests/test_capability_operationalization.py:84). Las
+operacionalizaciones reales siguen citando sólo claims
+([capability_operationalization.py:186](terrario/lab/capability_operationalization.py:186)).
+El contrato está construido y sin estrenar, que es el mismo patrón que §XXXII
+documentó para `crossgraph/d2trace.py`.
+
+**El techo no es del código, es del corpus:** de 187 nombres normalizados en la
+capa v0.1, **56** aparecen en algún claim. Los otros 131 no son citables hasta
+que alguien extraiga un claim que los mencione.
+
+## 38.5 · El brazo documental · el corpus que la puerta no vigila
+
+Desde el 18-09 hay un segundo lugar donde vive conocimiento extraído, y no es
+código ni base de datos:
+
+| Fichero | Filas |
+|---|---:|
+| `docs/handoff/HEA_CLAIMS_EXTRAIDOS_v1.csv` | 176 |
+| `docs/handoff/HEA_CONCEPTOS_EXTRAIDOS_v1.csv` | 115 |
+| `docs/handoff/HEA_CONCEPTOS_SIN_DEFINICION_v1.csv` | 71 |
+| `docs/INVENTARIO_CONCEPTOS_01.md` · `docs/ANALISIS_SELECCION_ORGANISMO_01.md` | — |
+
+Y aquí está el defecto de la propia cartografía: **G1 no los vigilaba.** El
+patrón de referencias de
+[cartografia_check.py](scripts/cartografia_check.py) sólo reconocía rutas bajo
+`terrario`, `tests`, `scripts`, `scenarios`, `configs` y `knowledge`, con
+extensiones `py|yaml|yml|json|md`. Ni `theory_snapshots/`, ni `docs/handoff/`,
+ni `.csv`. El corpus era, por construcción, invisible para el guardián del mapa:
+podía crecer ×2,4 sin que ninguna sección quedara obsoleta. Corregido en esta
+misma pasada.
+
+## 38.6 · Hipergrafo · sigue siendo estructura, no conocimiento
+
+Reverificado línea a línea; §32.4 se sostiene sin cambios:
+
+```
+relation_type         TESTABLE_CONJUNCTION | SEMANTIC_ROLE_COMPOSITION      (2)
+corroboration_status  NOT_CLAIMED | STRUCTURAL_COMPOSITION_NOT_CORROBORATION (2)
+```
+
+([theory_operational.py:107](terrario/lab/hypergraph/theory_operational.py:107),
+[:111](terrario/lab/hypergraph/theory_operational.py:111),
+[:270](terrario/lab/hypergraph/theory_operational.py:270),
+[:273](terrario/lab/hypergraph/theory_operational.py:273))
+
+El segundo valor de `corroboration_status` existe **para declarar que no hay
+corroboración**, y las dos tablas que guardarían la que hubiera están vacías.
+No existen `REQUIERE / REGULA / HABILITA / COMPENSA`: el tipado fuerte de
+relaciones vive en `RelationStrength`
+([theory/models.py:25](terrario/lab/theory/models.py:25)) y se aplica a CSV de
+auditoría, no al hipergrafo.
+
+## 38.7 · La memoria · dos cosas distintas con el mismo nombre
+
+**La del organismo** está en §XI y no se repite: episódica indexada por
+`_last_latent`, largo plazo leída por `hidden`. Lo único que conviene traer aquí
+es la consecuencia para esta capa: **ninguna de las dos toca `s_t`**, y por eso
+ampliar el estado no contamina las claves de memoria.
+
+**La del laboratorio** es otra cosa, y está partida en tres sitios que no se
+hablan:
+
+| Dónde | Qué guarda | Formato |
+|---|---|---|
+| `.terrario/terrario.db` | ejecución, preregistro, artefactos | SQLite, 1 143 líneas de DDL en [persistence/migrations.py](terrario/lab/persistence/migrations.py) |
+| `theory_snapshots/theory-*/` | el conocimiento: 1 035 nodos, 956 aristas | CSV + `theory_graph.json` |
+| `docs/handoff/*.csv` | claims y conceptos extraídos a mano | CSV, sin esquema |
+
+`TheoryGraphStore` **no persiste en base de datos**: es un objeto en memoria con
+`save()`/`load()` a JSON
+([theory/store.py:85](terrario/lab/theory/store.py:85)). La base reservó 31
+tablas para esta capa y las 31 están vacías. La memoria del conocimiento es un
+directorio de ficheros; la de la ejecución es la base. No hay puente.
+
+## 38.8 · Composición de habilidades · el único punto conectado
+
+`agent_composition.py` sigue siendo la pieza de esta capa que **sí** toca el
+ciclo experimental, y ahora son **once** conceptos, no diez: `fd725e3` añadió
+`use_curiosity` —«convierte el error de su propia predicción en motivo para
+actuar»— con bloque de corpus 28
+([agent_composition.py:70](terrario/lab/agent_composition.py:70)).
+
+```
+use_temporal · use_episodic_memory · use_longterm_memory · use_world_model
+use_uncertainty · use_curiosity · use_planner · use_online_learning
+use_entropy_regularization · use_factored_action · use_homeostasis
+```
+
+Consumidores reales de `validate_selection`, que es lo que hace que una
+selección de capacidades sea un contrato y no un diccionario:
+
+| Consumidor | Línea |
+|---|---|
+| `terrario/lab/sandbox_runtime.py` | [:52](terrario/lab/sandbox_runtime.py:52) |
+| `terrario/lab/api.py` | [:428](terrario/lab/api.py:428) |
+| `scripts/experiment_capability_acquisition.py` | [:155](scripts/experiment_capability_acquisition.py:155) |
+| `scripts/experiment_t0_vs_t1.py` | [:125](scripts/experiment_t0_vs_t1.py:125) |
+
+**`corpus_block` sigue sin tener lector.** Es un `int` en
+[agent_composition.py:39](terrario/lab/agent_composition.py:39) y las otras dos
+apariciones en todo el árbol son prosa que dice que nadie lo lee
+([capability_passport.py:160](terrario/lab/capability_passport.py:160),
+[passport_check.py:84](scripts/passport_check.py:84)). Es decir: el enlace
+concepto→corpus del catálogo de composición sigue siendo un número sin
+referencia, **mientras al lado existe `CorpusConceptReference`, que es
+exactamente la cadena que le falta y que nadie ha conectado**.
+
+Ésa es la costura más corta de toda la capa: once conceptos con un entero
+huérfano, y a dos ficheros de distancia el contrato verificable que lo
+sustituiría.
+
+## 38.9 · La puerta, ahora automática
+
+G1 dejó de depender de acordarse. `scripts/cartografia_hook.py` ata el
+comprobador a dos momentos del arnés (`.claude/settings.json`):
+
+* **al abrir sesión** ejecuta el gate real —1,8 s— y mete su veredicto en el
+  contexto, de modo que ninguna sesión empieza sin saber qué secciones
+  envejecieron;
+* **después de cada `Edit`/`Write`** mira sólo el manifiesto y nombra la sección
+  que ese fichero acaba de dejar obsoleta. Milisegundos, sin importar `terrario`.
+
+La autoridad sigue siendo [cartografia_check.py](scripts/cartografia_check.py);
+el hook no decide nada por su cuenta y jamás rompe el turno —cualquier excepción
+sale como silencio—, porque un hook que rompe el turno se desactiva y entonces
+no comprueba nada.
+
+**Lo que este mecanismo NO arregla, y conviene tener escrito:** el manifiesto se
+regenera con `--write`, y `--write` no puede comprobar que alguien haya releído.
+Si se regenera después de cambiar el código sin reescribir el texto, el gate se
+pone verde sobre prosa vieja. El hash prueba que el fichero no cambió desde la
+última vez que se dijo «lo leí»; no prueba que se leyera.
