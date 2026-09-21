@@ -22,13 +22,17 @@ Three rules produce roles, and each is structural:
    has without causal participation, demands sensitivity to it;
 2. that argument arriving alongside others demands their combination, because
    varying with something is not the same as folding it into a state;
-3. and if the signature is **recursive** -- its output feeds back as an input
-   -- carrying state forward is only worth anything if the accumulated history
-   separates cases, so disambiguation becomes a candidate too.
+3. and if the signature is recursive **and the construct requires that two
+   admissible histories with the same present remain distinguishable**,
+   disambiguation becomes a candidate too.
 
-The third fires on recursion and not on 1.8: a non-recursive signature missing
-an argument produces the first two and not the third.  That is the difference
-between deriving and remembering.
+The third rule used to fire on recursion alone, and that was an
+over-derivation.  `Z' = Z + O` is recursive and accumulates history without
+demanding that two histories stay apart; deriving a precursor from it would
+populate the graph with a requirement the specification never made.  So the
+signature says what enters and leaves, a `FunctionalConstraint` says which
+differences those variables must preserve, and only the second licenses this
+role.
 
 Argument **names carry nothing**.  Roles do.  Renaming every argument while
 preserving roles produces an identical derivation, which is what stops the
@@ -68,6 +72,22 @@ class OutputRole(StrEnum):
 RECURSIVE_PAIRS: dict[OutputRole, ArgumentRole] = {
     OutputRole.NEXT_STATE: ArgumentRole.PRIOR_STATE,
 }
+
+
+class FunctionalConstraint(StrEnum):
+    """What differences the variables must preserve, beyond who enters.
+
+    A signature fixes arity and roles.  It cannot say that two admissible
+    histories sharing a present must lead to different futures -- that is a
+    property of the construct, and it is what separates "there is state" from
+    "the state has to distinguish".
+    """
+
+    #: Exists h1, h2 with the same observable present and different required
+    #: future.  Collapsing them loses the construct.
+    HISTORY_DISTINGUISHABILITY = "HISTORY_DISTINGUISHABILITY"
+    #: The output must vary within a single step, not only across them.
+    WITHIN_STEP_SENSITIVITY = "WITHIN_STEP_SENSITIVITY"
 
 
 class FunctionalRole(StrEnum):
@@ -112,9 +132,12 @@ class FunctionalSignature:
     output: OutputRole
     arguments: tuple[Argument, ...]
     causal_participation: frozenset[ArgumentRole] | None = None
+    #: Lo que la firma no puede decir: qué diferencias deben preservarse.
+    constraints: frozenset[FunctionalConstraint] = frozenset()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "arguments", tuple(self.arguments))
+        object.__setattr__(self, "constraints", frozenset(self.constraints))
         roles = [a.role for a in self.arguments]
         if len(set(roles)) != len(roles):
             raise SignatureError(f"{self.label}: two arguments share one role")
@@ -246,16 +269,17 @@ def decompose(required: FunctionalSignature,
                     f"does {required.output.value} depend on the combination of "
                     f"{role.value} and {junto}, rather than on either alone?")))
 
-    # La tercera regla dispara por RECURSIÓN, no por este caso. Un estado que
-    # se arrastra sólo vale algo si la historia acumulada separa situaciones;
-    # una firma no recursiva a la que le falta un argumento pide las dos
-    # primeras y no ésta.
-    if faltantes and required.is_recursive:
+    # La tercera regla NO dispara por recursión sola, y ésa fue una
+    # sobreafirmación corregida: `Z' = Z + O` es recursiva y acumula historia
+    # sin exigir que dos historias sigan distinguibles. Hace falta además que
+    # el constructo lo pida, y eso vive en las restricciones, no en la firma.
+    if (faltantes and required.is_recursive
+            and FunctionalConstraint.HISTORY_DISTINGUISHABILITY in required.constraints):
         candidatos.append(RoleCandidate(
             FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION, faltantes[0],
-            rationale=("the signature is recursive: carrying state forward is "
-                       "worth nothing unless the accumulated history separates "
-                       "situations that the new argument distinguishes"),
+            rationale=("the construct requires two admissible histories with "
+                       "the same present to remain distinguishable, and a "
+                       "recursive state that collapses them loses it"),
             falsification_question=(
                 "do two histories that differ only in the past separate, once "
                 "the new argument participates?")))

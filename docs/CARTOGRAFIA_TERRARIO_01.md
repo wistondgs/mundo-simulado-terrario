@@ -6079,6 +6079,23 @@ el inventario no tiene palabra para algo que la estructura exige.
 que lo fijan: una firma no recursiva a la que le falta un argumento produce las
 dos primeras y no ésta. Ésa es la diferencia entre derivar y recordar.
 
+**`A3a.1` corrigió que eso todavía era demasiado.** La recursión sola no exige
+desambiguación: `Z' = Z + O` arrastra historia sin pedir que dos historias
+sigan distinguibles, y derivar un precursor de ahí habría poblado el grafo con
+una exigencia que la especificación nunca hizo. Comprobado antes de tocarlo: el
+caso fallaba.
+
+Así que la firma y las **restricciones funcionales** quedan separadas —una dice
+qué entra y sale, la otra qué diferencias deben preservarse— y la tercera regla
+pide `recursión ∧ HISTORY_DISTINGUISHABILITY`. Para 1.8 la restricción sale de
+su **oráculo sellado**, que pregunta por «una representación interna que
+desambigüe situaciones perceptualmente idénticas cuyas consecuencias ante la
+misma acción son distintas»: mismo presente, futuro requerido distinto.
+
+Tres controles nuevos: recursiva sin la restricción no la pide, con ella sí, y
+la restricción sin recursión no añade nada —un estado que no se arrastra no
+puede fallar en mantener historias aparte—.
+
 **Los nombres de los argumentos no llevan nada; los roles sí.** Renombrarlos
 todos conservando roles da una derivación idéntica, que es lo que impide que el
 descompositor se ate al vocabulario de una campaña.

@@ -10,9 +10,12 @@ from __future__ import annotations
 import pytest
 
 from terrario.lab.signature_decomposer import (
-    Argument, ArgumentRole, DiscrepancyKind, FunctionalRole, FunctionalSignature,
-    OutputRole, SignatureError, decompose, resolve_against_catalogue,
+    Argument, ArgumentRole, DiscrepancyKind, FunctionalConstraint, FunctionalRole,
+    FunctionalSignature, OutputRole, SignatureError, decompose,
+    resolve_against_catalogue,
 )
+
+DISTINGUIBLE = frozenset({FunctionalConstraint.HISTORY_DISTINGUISHABILITY})
 
 X = ArgumentRole.PRIOR_STATE
 Y = ArgumentRole.ACTION
@@ -112,10 +115,50 @@ def test_a_non_recursive_signature_does_not_demand_disambiguation():
     assert FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION not in d.roles
 
 
+# --- A3a.1 · la recursión sola no exige desambiguación ------------------------------
+
+def test_r1_recursive_but_history_irrelevant_demands_no_disambiguation():
+    """`Z' = Z + O` is recursive and accumulates history without requiring that
+    two histories stay apart.
+
+    Deriving a precursor from recursion alone would populate the graph with a
+    requirement the specification never made -- which is the over-derivation
+    this control exists to catch, and it did catch it."""
+    d = decompose(
+        FunctionalSignature("Z' = F(Z, O)", OutputRole.NEXT_STATE,
+                            (Argument("Z", X), Argument("O", Z))),
+        FunctionalSignature("Z' = F(Z)", OutputRole.NEXT_STATE, (Argument("Z", X),)))
+    assert set(d.roles) == {FunctionalRole.NEW_EVIDENCE_SENSITIVITY,
+                            FunctionalRole.STATE_UPDATE_WITH_NEW_EVIDENCE}
+    assert FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION not in d.roles
+
+
+def test_r2_recursive_and_history_must_separate_demands_it():
+    """Same signature, one constraint more: two admissible histories sharing a
+    present must lead to different futures."""
+    d = decompose(
+        FunctionalSignature("Z' = F(Z, O)", OutputRole.NEXT_STATE,
+                            (Argument("Z", X), Argument("O", Z)),
+                            constraints=DISTINGUIBLE),
+        FunctionalSignature("Z' = F(Z)", OutputRole.NEXT_STATE, (Argument("Z", X),)))
+    assert FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION in d.roles
+
+
+def test_the_constraint_alone_without_recursion_demands_nothing_extra():
+    """State that does not carry forward cannot fail to keep histories apart."""
+    d = decompose(_sig("req", X, Y, Z, output=OutputRole.PREDICTION),
+                  _sig("real", X, Y, output=OutputRole.PREDICTION))
+    con = FunctionalSignature("req", OutputRole.PREDICTION,
+                              (Argument("a", X), Argument("b", Y), Argument("c", Z)),
+                              constraints=DISTINGUIBLE)
+    otra = decompose(con, _sig("real", X, Y, output=OutputRole.PREDICTION))
+    assert set(d.roles) == set(otra.roles)
+
+
 def test_a_recursive_signature_does():
     d = decompose(_sig("req", X, Y, Z, output=OutputRole.NEXT_STATE),
                   _sig("real", X, Y, output=OutputRole.NEXT_STATE))
-    assert FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION in d.roles
+    assert FunctionalRole.HISTORY_CONDITIONAL_DISAMBIGUATION not in d.roles
 
 
 def test_a_recursive_signature_with_nothing_missing_demands_nothing():
@@ -132,9 +175,14 @@ def test_signatures_producing_different_things_are_refused():
 
 # --- la aceptación real, sin ninguna condición especial para PREDSTATE -------------------------
 
+#: La restricción sale del oráculo sellado, no de nosotros: pregunta por «una
+#: representación interna que desambigüe situaciones perceptualmente idénticas
+#: cuyas consecuencias ante la misma acción son distintas» --mismo presente,
+#: futuro requerido distinto--.
 REQUERIDA = FunctionalSignature(
     "Z_{t+1} = F(Z_t, A_t, O_{t+1})", OutputRole.NEXT_STATE,
-    (Argument("Z_t", X), Argument("A_t", Y), Argument("O_{t+1}", Z)))
+    (Argument("Z_t", X), Argument("A_t", Y), Argument("O_{t+1}", Z)),
+    constraints=DISTINGUIBLE)
 REALIZADA = FunctionalSignature(
     "Z_{t+1} = F(Z_t, A_t)", OutputRole.NEXT_STATE,
     (Argument("Z_t", X), Argument("A_t", Y)))
