@@ -2,7 +2,8 @@
 
 **Qué es.** Una serie de informes de lectura de implementación —no de
 documentación, no de nombres— hasta cubrir el programa entero. Cada volumen se
-deposita como sección de `docs/CARTOGRAFIA_TERRARIO_01.md` y se entrega como un
+deposita como sección de la cartografía **del árbol que describe** —para que su
+gate pueda vigilarlo— y se entrega como informe en `docs/` de Terrario y se entrega como un
 informe general. Un volumen sólo se da por hecho cuando afirma mecanismos con
 `fichero:línea` verificado y con lo no resuelto declarado como K2/K3 en vez de
 rellenado.
@@ -30,8 +31,8 @@ contrario sería la primera afirmación falsa del documento.
 | **02** | **El organismo** | runtime percepción→estado→decisión→acción→consecuencia→aprendizaje · linaje A0–A5 | Terrario | **HECHO** · §XL + `ATLAS_02_ORGANISMO.md` |
 | **03** | **Sistema experimental** | mundos · runners · preregistro · lesiones · controles · métricas · gates · CAS · ledger · semillas | Terrario | **HECHO** · §XLI + `ATLAS_03_SISTEMA_EXPERIMENTAL.md` |
 | **04** | **Capacidades demostradas** | 1.0–1.8 en ocho worktrees · los diez pasaportes · qué está demostrado y qué sólo contabilizado | Terrario + 8 worktrees | **HECHO** · §XLIII + `ATLAS_04_CAPACIDADES.md` |
-| 05 | **Genesis** | qué existe en código hoy · qué recibe de Terrario · qué produce · cuánto de «génesis de capacidades» está operativo | genesis-v2 | reconocido · `lab/genesis/` 19 861 líneas, 70 tests |
-| 06 | **RNE / RNFE** | CI-VERDAD · CADENA-CAUSAL · Retention Ledger · integración · reparaciones abiertas | genesis-v2 `runtime/` (277 fich) | reconocido |
+| **05** | **Genesis** | `lab/genesis/` · qué entra, qué transforma, qué produce, quién lo consume | genesis-v2 | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VII + `ATLAS_05_GENESIS.md` |
+| 06 | **RNE / RNFE** | CI-VERDAD · CADENA-CAUSAL · Retention Ledger · integración · reparaciones abiertas | genesis-v2 `runtime/` | parcial · §I–§VI de `CARTOGRAFIA_GENESIS_01.md` ya lo cubren |
 | 07 | **Evidencia, canon y autoridad** | experimento→resultado→almacenamiento→teoría→hipergrafo→siguiente pregunta · qué manda ante contradicción · qué gates están activos | los cuatro | pendiente |
 | 08 | **Estado del repositorio** | vivo · roto · incompleto · huérfano · duplicado · sólo documentado | los cuatro | pendiente |
 
