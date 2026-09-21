@@ -1,0 +1,49 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO",
+  "semillas": "150000011-150000026 (calibracion de 1.7)",
+  "base": "6cf55a4 \u00b7 cierre congelado de 1.7",
+  "advertencia": "ninguna semilla confirmatoria de 1.7 (170...) fue usada"
+ },
+ "pregunta": "a que presupuesto queda escasez real que seleccionar",
+ "T_P": 4096,
+ "por_presupuesto": {
+  "64": {
+   "C_OA": 0.6,
+   "N_min": 0.0,
+   "N_mediana": 0.62,
+   "contextos_nunca_visitados": 22.12
+  },
+  "128": {
+   "C_OA": 0.7932,
+   "N_min": 0.0,
+   "N_mediana": 1.94,
+   "contextos_nunca_visitados": 13.0
+  },
+  "256": {
+   "C_OA": 0.9201,
+   "N_min": 0.0,
+   "N_mediana": 4.62,
+   "contextos_nunca_visitados": 5.62
+  },
+  "512": {
+   "C_OA": 0.9865,
+   "N_min": 1.0,
+   "N_mediana": 9.19,
+   "contextos_nunca_visitados": 1.12
+  },
+  "1024": {
+   "C_OA": 1.0,
+   "N_min": 4.12,
+   "N_mediana": 20.25,
+   "contextos_nunca_visitados": 0.0
+  },
+  "4096": {
+   "C_OA": 1.0,
+   "N_min": 39.25,
+   "N_mediana": 80.44,
+   "contextos_nunca_visitados": 0.0
+  }
+ },
+ "lectura": "a T=1024 el uniforme de S0 ya alcanza C_OA=1.000 y cero contextos sin visitar: no queda nada que seleccionar. La escasez real vive en T<=256."
+}

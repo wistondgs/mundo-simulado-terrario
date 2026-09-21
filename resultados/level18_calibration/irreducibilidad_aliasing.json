@@ -1,0 +1,32 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO",
+  "semillas": "150000011-150000026 (calibracion de 1.7)",
+  "base": "6cf55a4 \u00b7 cierre congelado de 1.7",
+  "advertencia": "ninguna semilla confirmatoria de 1.7 (170...) fue usada"
+ },
+ "definicion": "H(O'|O,A) bajo p_ref; suelo que ningun contador puede bajar",
+ "por_semilla": {
+  "150000011": 0.425369,
+  "150000012": 0.063013,
+  "150000013": 0.455132,
+  "150000014": 0.284092,
+  "150000015": 0.423185,
+  "150000016": 0.44076,
+  "150000017": 0.19887,
+  "150000018": 0.439688,
+  "150000019": 0.433217,
+  "150000020": -0.0,
+  "150000021": 0.231049,
+  "150000022": 0.401864,
+  "150000023": 0.474461,
+  "150000024": 0.483319,
+  "150000025": 0.331538,
+  "150000026": 0.398268
+ },
+ "resumen": {
+  "media": 0.342739,
+  "min": -0.0,
+  "max": 0.483319
+ }
+}

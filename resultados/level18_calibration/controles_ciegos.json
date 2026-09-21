@@ -1,0 +1,92 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO",
+  "semillas": "150000011-150000026 (calibracion de 1.7)",
+  "base": "6cf55a4 \u00b7 cierre congelado de 1.7",
+  "advertencia": "ninguna semilla confirmatoria de 1.7 (170...) fue usada"
+ },
+ "pregunta": "cuanta de la ganancia se logra SIN contenido aprendido",
+ "resumen": {
+  "ganancia_sqrt_ciego_pct": -24.5,
+  "ganancia_plano_ciego_pct": -70.1,
+  "ganancia_optimo_pct": 56.4
+ },
+ "lectura": "ambos controles ciegos son PEORES que el uniforme de S0; toda la ganancia exige K(o,a), que es propiedad del mundo y debe aprenderse",
+ "por_semilla": {
+  "150000011": {
+   "sqrt_ciego": 1.2096,
+   "plano_ciego": 1.5584,
+   "optimo": 0.4906
+  },
+  "150000012": {
+   "sqrt_ciego": 1.3389,
+   "plano_ciego": 1.8182,
+   "optimo": 0.0909
+  },
+  "150000013": {
+   "sqrt_ciego": 1.4264,
+   "plano_ciego": 2.4063,
+   "optimo": 0.4949
+  },
+  "150000014": {
+   "sqrt_ciego": 1.1541,
+   "plano_ciego": 1.3968,
+   "optimo": 0.3597
+  },
+  "150000015": {
+   "sqrt_ciego": 1.1175,
+   "plano_ciego": 1.3209,
+   "optimo": 0.506
+  },
+  "150000016": {
+   "sqrt_ciego": 1.2984,
+   "plano_ciego": 2.0,
+   "optimo": 0.5368
+  },
+  "150000017": {
+   "sqrt_ciego": 1.2496,
+   "plano_ciego": 1.6471,
+   "optimo": 0.2622
+  },
+  "150000018": {
+   "sqrt_ciego": 1.228,
+   "plano_ciego": 1.5992,
+   "optimo": 0.4856
+  },
+  "150000019": {
+   "sqrt_ciego": 1.2549,
+   "plano_ciego": 1.7143,
+   "optimo": 0.4978
+  },
+  "150000021": {
+   "sqrt_ciego": 1.1381,
+   "plano_ciego": 1.3333,
+   "optimo": 0.3333
+  },
+  "150000022": {
+   "sqrt_ciego": 1.1474,
+   "plano_ciego": 1.425,
+   "optimo": 0.5476
+  },
+  "150000023": {
+   "sqrt_ciego": 1.2309,
+   "plano_ciego": 1.6111,
+   "optimo": 0.5114
+  },
+  "150000024": {
+   "sqrt_ciego": 1.2957,
+   "plano_ciego": 2.0335,
+   "optimo": 0.5502
+  },
+  "150000025": {
+   "sqrt_ciego": 1.2712,
+   "plano_ciego": 1.7679,
+   "optimo": 0.4071
+  },
+  "150000026": {
+   "sqrt_ciego": 1.3143,
+   "plano_ciego": 1.8897,
+   "optimo": 0.4611
+  }
+ }
+}
