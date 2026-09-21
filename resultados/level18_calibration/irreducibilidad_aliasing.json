@@ -28,5 +28,12 @@
   "media": 0.342739,
   "min": -0.0,
   "max": 0.483319
+ },
+ "CORRECCION_2026_09_20": {
+  "afirmacion_anterior": "H(O'|O,A)=0.3427 nats son irreducibles; ningun contador puede bajar de ahi",
+  "por_que_era_incompleta": "lo son para un aprendiz SIN MEMORIA. La rejilla es determinista dada la celda.",
+  "H_dado_la_celda": 0.0,
+  "celdas_por_observacion": 2.21,
+  "lectura": "los 0.3427 nats no son ruido del mundo: son el precio del aliasing, y caen a CERO para lo que pueda distinguir situaciones que comparten observacion"
  }
 }

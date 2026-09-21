@@ -260,3 +260,121 @@ habíamos supuesto puede estar invertido.
 | I | métricas de experiencia conseguida | `CONTROL…` §5.1 · vector, no escalar |
 | J | qué gates se heredan / adaptan / desaparecen / nacen | `CONTROL…` §6 |
 | K | **veredicto** | §7.4 · **NO ADJUDICABLE** |
+
+---
+
+# 9 · Segunda adjudicación adversarial · la reentrada local
+
+Tres escalones, tras el veredicto de §7. Las tres candidatas que quedaban:
+persistencia local, reentrada local, y retorno con estado latente.
+
+## 9.1 · La física ya permite volver, y es gratis
+
+```
+desplazamientos reversibles en UN paso      1.0000
+fracción de actos que desplazan             0.6240
+```
+
+Todo desplazamiento se deshace aplicando la dirección opuesta. **La capacidad
+física de volver existe y cuesta exactamente un paso.** No hay nada que adquirir
+ahí.
+
+## 9.2 · Pero el impuesto excede la ganancia
+
+```
+techo de asignación alcanzable (§7)          razón 0.6936
+reentrada tras CADA muestra · coste 2.00×    razón efectiva 1.3872   ← 38.7 % PEOR
+punto de equilibrio                          coste < 1.4418×
+amortización necesaria                       2.26 muestras por vuelta
+```
+
+Muestrear y volver cuesta dos pasos donde antes costaba uno. Para que la reentrada
+**perfecta y gratuita** empate con no hacer nada, habría que volver como mucho una
+vez cada 2.26 muestras — es decir, **saber cuándo vale la pena volver**, que es otra
+capacidad más, no ésta.
+
+## 9.3 · Y el readout de vuelta ya está en C17
+
+El token de regreso se obtiene de `argmax_b P(o | o', b)`, que es un readout
+determinista de `C17`. Igual que `K̂`: **no es adquisición nueva.**
+
+## 9.4 · El aliasing rompe la vuelta
+
+```
+el readout devuelve a la misma OBSERVACIÓN     0.9211
+el readout devuelve a la misma CELDA           0.7866
+brecha atribuible al aliasing                  0.1346
+```
+
+**Una de cada cinco veces el ser cree que volvió y no volvió.** Y no puede saberlo:
+la observación es todo lo que tiene.
+
+## 9.5 · Veredicto de la reentrada
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  LA REENTRADA LOCAL TAMPOCO ES ADJUDICABLE                       │
+│  el impuesto la mata · el readout ya está en C17 · el aliasing   │
+│  hace que «volver» no signifique volver                          │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# 10 · **CORRECCIÓN** · los 0.3427 nats no eran irreducibles
+
+En §5 escribí que `H(O'|O,A) = 0.3427` nats son irreducibles y que ningún contador
+puede bajar de ahí. **Es incompleto, y el matiz que faltaba cambia la dirección
+entera.**
+
+```
+H(O'|O,A)   el aprendiz sin memoria no puede reducirlo     0.3427 nats
+H(O'|C,A)   si supiera en qué CELDA está                   0.0000 nats
+celdas por observación                                     2.21
+```
+
+La rejilla es **determinista** dada la celda y la dirección. Los 0.3427 nats no son
+ruido del mundo: **son el precio del aliasing**, y caen a **cero** para lo que pueda
+distinguir situaciones que comparten observación.
+
+Son irreducibles *para un aprendiz sin memoria*, no *en absoluto*. Llamarlos
+irreducibles sin esa cláusula fue un error mío, y es el mayor de esta fase: escribí
+como suelo del mundo lo que era el techo de una arquitectura.
+
+## 10.1 · Y esa distinción **no** es un readout de C17
+
+```
+C17 = P(O'|O,A) está DEFINIDO sobre el espacio ya aliasado.
+Marginaliza sobre las celdas: la multiplicidad latente no es información
+que su representación pueda expresar, ni siquiera en principio.
+```
+
+Es la primera candidata que **pasa** el filtro que tumbó a `K̂` y a la reentrada.
+
+## 10.2 · Lo que queda sobre la mesa, sin proponerlo como diseño
+
+De las tres que enumeraste, la medición selecciona la tercera:
+
+```
+persistencia local      la física ya la da · nada que adquirir
+reentrada local         readout de C17 · y el impuesto la mata
+retorno con ESTADO LATENTE   ← única que exige contenido fuera de C17
+```
+
+La pregunta que queda formulada, y **no contestada**:
+
+> ¿Cuál es la capacidad mínima que permite al organismo distinguir dos situaciones
+> que le presentan la misma observación?
+
+Con dos avisos:
+
+```
+· el MECANISMO sería suministrado, como la tabla de 1.6 y la de 1.7. Lo que
+  debe ser adquirido es el CONTENIDO: cuántas situaciones esconde cada
+  observación en ESTE mundo, y cómo se distinguen. Eso sí varía por mundo.
+
+· 0.3427 nats de media es el tamaño del premio, y es grande: comparable al
+  I(O;O') = 0.8536 que fue toda la adquisición de 1.6.
+```
+
+**No lo propongo como 1.8.** Lo dejo formulado y medido para que lo adjudiques.
