@@ -28,7 +28,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Mapping
 
-from terrario.lab.ceiling_probe import BlockerClass, CeilingProbe
+from terrario.lab.developmental_signal import (
+    BlockerClass, DesignHold, ObservedCeiling, observed_ceilings,
+)
 
 SCHEMA_VERSION = "terrario.lab.question-type/v1"
 
@@ -55,29 +57,35 @@ class DerivedQuestion:
     candidate_dimensions: tuple[str, ...]
     selection: Selection
     why: str
+    #: De qué señal developmental viene, y de qué clase. Un techo observado y
+    #: una congelación por diseño llevan a preguntas distintas y la respuesta
+    #: no debe ocultar cuál de las dos la originó.
+    provenance: str = ""
     schema_version: str = SCHEMA_VERSION
 
     def as_record(self) -> Mapping[str, Any]:
         return {"schema_version": self.schema_version, "target": self.target,
                 "question_type": self.question_type.value, "question": self.question,
                 "candidate_dimensions": list(self.candidate_dimensions),
-                "selection": self.selection.value, "why": self.why}
+                "selection": self.selection.value, "why": self.why,
+                "provenance": self.provenance}
 
 
-def derive_question(target: str, probes: tuple[CeilingProbe, ...],
-                    gap) -> DerivedQuestion:
+def derive_question(target: str, signals: tuple, gap) -> DerivedQuestion:
     """From the state of the graph, not from a table of good ideas.
 
     `gap` is a `GapReport`.  Its `lesion_candidates` already carry the one
     thing that distinguishes a lesion from an acquisition: whether the
     capability is present.
     """
-    del_target = [p for p in probes if p.target_capability == target]
+    del_target = [s for s in signals if s.target_capability == target]
 
     # 1 · Una familia que no puede expresar el constructo hace prematura
     #     cualquier pregunta sobre precursores: ningún precursor rescata a un
-    #     mecanismo incapaz de enunciar la cosa.
-    familia = next((p for p in del_target
+    #     mecanismo incapaz de enunciar la cosa. Sólo un techo OBSERVADO puede
+    #     afirmarlo: una capacidad que nunca se intentó no observó familia
+    #     alguna.
+    familia = next((p for p in observed_ceilings(tuple(del_target))
                     if p.blocker_class is BlockerClass.FAMILY_CANNOT_EXPRESS), None)
     if familia is not None:
         dimensiones = tuple(sorted(familia.candidate_missing_precursors))
@@ -88,8 +96,9 @@ def derive_question(target: str, probes: tuple[CeilingProbe, ...],
             target=target, question_type=QuestionType.FAMILY_PROBE,
             question=pregunta, candidate_dimensions=dimensiones,
             selection=Selection.UNRESOLVED if len(dimensiones) != 1 else Selection.RESOLVED,
-            why=(f"{familia.probe_id}: {familia.observed_blocker[:90]}… · "
-                 f"no precursor repairs a family that cannot state the construct"))
+            why=(f"{familia.signal_id}: {familia.rationale[:90]}… · "
+                 f"no precursor repairs a family that cannot state the construct"),
+            provenance=f"ObservedCeiling:{familia.signal_id}")
 
     # 2 · Una capacidad presente con necesidad sin adjudicar pide lesión, no
     #     adquisición. Preguntar si se puede adquirir algo que ya está sería
@@ -102,7 +111,9 @@ def derive_question(target: str, probes: tuple[CeilingProbe, ...],
                       f"or scaffolding? remove it and look"),
             candidate_dimensions=candidatos,
             selection=Selection.RESOLVED if len(candidatos) == 1 else Selection.UNRESOLVED,
-            why="precursor present, necessity unadjudicated")
+            why="precursor present, necessity unadjudicated",
+            provenance=next((f"{type(s).__name__}:{s.signal_id}" for s in del_target
+                             if s.candidate_lesions), "ledger"))
 
     # 3 · Sólo entonces, adquirir. Y sin elegir cuál si nada los ordena.
     if gap.tied_candidates:

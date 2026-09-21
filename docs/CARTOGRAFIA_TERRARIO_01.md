@@ -5978,9 +5978,27 @@ Y el control que faltaba en el plan: **existe una fixtura donde la evidencia
 SÍ ordena los candidatos** y el empate se resuelve a uno solo. Sin ella, una
 regla que siempre empata no discrimina nada y pasa todas las pruebas.
 
-## 48.6 · `CeilingProbe` y derivación de clase de pregunta · `U2` y `U3`
+## 48.6 · Señal developmental y clase de pregunta · `U2`, `U2.1` y `U3`
 
-**Un techo es una lectura, no un resultado.** Una campaña produce dos cosas que
+**Un techo es una lectura, no un resultado — y hay dos clases de lectura.**
+`U2.1` las separó tras notarse que el primer modelo aceptaba 1.5 como techo
+sólo porque su campo de resultado no estaba vacío:
+
+```
+1.8   hubo ejecución  → FAMILY_MISMATCH   → ObservedCeiling
+1.5   NO hubo         → FROZEN_BY_DESIGN  → DesignHold
+```
+
+Escribir las dos como «alcanzó un techo» pondría al mismo nivel un experimento
+que ocurrió y uno que no, y el segundo heredaría en silencio la autoridad del
+primero. `ObservedCeiling` rechaza una marca de no-ejecución como origen;
+`DesignHold` rechaza un desenlace de campaña disfrazado de decisión. El censo
+de techos observados **excluye** las congelaciones, así que el ledger no puede
+decir que 1.5 chocó con nada.
+
+Y la procedencia viaja hasta la pregunta: `PREDSTATE ← ObservedCeiling:OC-18`,
+`SELECTION ← DesignHold:DH-15`.
+ Una campaña produce dos cosas que
 el proyecto confundía: el resultado científico de 1.8 es `FAMILY_MISMATCH`, y
 su lectura developmental es que faltaba un peldaño antes. El objeto guarda las
 dos y no sustituye ninguna.
