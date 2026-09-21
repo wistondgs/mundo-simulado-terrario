@@ -4893,6 +4893,33 @@ produce el organismo.
 Es la entrada más sana del inventario: una capacidad que no se descarta, no se
 finge y dice qué haría falta para volver.
 
+**Auditado forensemente el 2026-09-21**, y hay que matizar dos cosas de la ficha
+de arriba. Detalle en
+[AUDITORIA_FORENSE_NIVEL_15_01.md](docs/AUDITORIA_FORENSE_NIVEL_15_01.md).
+
+**«CAMPAÑA no ejecutada» es cierto del confirmatorio y falso del piloto.** Hubo
+dos pilotos de coaprendizaje, y el segundo produjo `529/540 = 97,96 %` de
+llegada a clase. Sus semillas —`20260920`, `777`, `31337`— quedan **BURNED**.
+
+**Y el piloto es irreproducible.** Barrido sobre los nueve árboles: cero
+ficheros `.py` contienen esas semillas ni marca alguna de `level15`. El
+parámetro que produjo el salto tampoco consta, y lo declara el propio documento
+que superó al piloto: «la magnitud exacta del paso constante **no consta en la
+evidencia textual preservada aquí**».
+
+Consecuencia para el hallazgo principal de 1.5 —que los 21 fallos atribuidos a
+barreras de coordinación eran del optimizador y no de la tarea—: la
+**dirección** se sostiene, porque cambió sólo la regla y las tasas saltaron
+treinta puntos; la **magnitud** no se puede comprobar, porque la regla vieja y
+la nueva se comparan sin que ninguna tenga su parámetro registrado.
+
+**La precondición, en cambio, es sólida y no hace falta inferirla.** El
+organismo de las cinco capacidades `B+Q+H+M+ψ` existe en
+`organism-remembered-binding-01 · terrario/remembered/core.py` y su campaña
+corre hoy con diez gates en verde, un solo núcleo por identidad de objeto y las
+cinco huellas intactas. Con un resultado que conviene retener: **ψ sola aporta
+cero exacto** —`RB-7 dependencia total`—, así que ψ necesita a M.
+
 ## 43.5 · Sistema 2 · linaje B · 1.6 → 1.8 · un reinicio deliberado
 
 `9b0d39b` lo dice en el asunto: «**Seal the Level 1.6 oracle on a tree where
