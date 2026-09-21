@@ -6277,6 +6277,14 @@ Dos negativas más en el constructor: una señal sobre una decisión no puede
 preceder a la decisión, y no se puede observar el desenlace de una alternativa
 que nadie puede provocar. Nueve en total.
 
+### Una laguna declarada, no rellenada
+
+Si no llega **nada** atribuible a la retención, el crédito no está diferido:
+está **ausente**, y llamarlo diferido diría que basta esperar. Hoy no sale
+ningún rol en ese caso —`DELAYED_CREDIT_TO_RETENTION` exige atribuibilidad—, y
+el hueco se nombra en lugar de llenarse: inventar aquí el rol que falta sería
+justo la sobreafirmación que esta unidad existe para no cometer.
+
 **Lo que no se sabe.** Si `DIRECT_RETENTION_CREDIT_AVAILABLE` debería además
 cancelar la demora cuando el instrumento se usa de verdad. Hoy coexisten a
 propósito: decir que existe un instrumento no es decir que se usó.

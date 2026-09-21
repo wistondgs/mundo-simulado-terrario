@@ -550,3 +550,19 @@ def test_roles_come_back_ordered_by_nothing_the_derivation_chose():
     assert list(r.roles) == sorted(r.roles, key=lambda k: k.value)
     assert set(r.pressures) | set(r.controls) | set(r.coordination_requirements) \
         | set(r.instruments) == set(r.roles)
+
+
+def test_a_credit_that_can_never_be_assigned_is_not_merely_delayed():
+    """A declared gap, written down rather than filled.
+
+    With nothing attributable arriving, the credit is not late -- it is
+    absent, and calling it delayed would say that waiting is enough.  No role
+    comes out for that today.  Inventing one here is exactly the
+    over-assertion this unit exists to avoid, so the hole is named instead."""
+    sin_atribucion = dataclasses.replace(
+        T6, label="T6-sin-atribucion",
+        feedback_is_attributable_to_that_retention=False)
+    r = derive_roles(sin_atribucion)
+    assert CREDITO not in r.roles
+    assert INSTRUMENTO not in r.roles
+    assert set(derive_roles(T6).roles) - set(r.roles) == {CREDITO}

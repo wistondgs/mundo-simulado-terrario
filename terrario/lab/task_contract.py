@@ -401,8 +401,15 @@ def derive_roles(contract: TaskContract) -> TaskRoleDerivation:
     # mucho despues, o no se sabe que parte del resultado se debe a la
     # retencion, el problema temporal sigue entero. Esa conjuncion se afirmo
     # antes de tiempo y se retiro.
+    #
+    # Y hace falta que llegue ALGO atribuible. Un credito que no se puede
+    # asignar nunca no esta diferido: esta ausente, y llamarlo diferido dice
+    # que basta esperar. Que hoy no salga ningun rol en ese caso es una
+    # laguna declarada, no un juicio: inventar aqui el rol que falta seria
+    # justo la sobreafirmacion que esta unidad existe para no cometer.
     if contract.retention_credit_delay > 0 and contract.encoder_adaptive \
-            and contract.performance_depends_on_encoder:
+            and contract.performance_depends_on_encoder \
+            and contract.feedback_is_attributable_to_that_retention:
         anotar(DerivedRoleKind.DELAYED_CREDIT_TO_RETENTION,
                f"a signal attributable to the retention arrives "
                f"{contract.retention_credit_delay} apart from the decision it "
