@@ -58,6 +58,30 @@ FILAS = [
      "test_l17_12_falla_si_evaluar_incrementa_un_contador", "la huella o el contador se mueven"),
     ("L17-12", "el replay es determinista",
      "test_l17_12_falla_si_el_replay_no_es_determinista", "dos replays distintos"),
+    # --- V2 · la defensa estructural contra otro D-4
+    ("META",   "el runner ejecuta L17-8",
+     "test_un_runner_sin_L17_8_es_fatal", "LedgerIncomplete"),
+    ("META",   "el runner ejecuta LOS TRECE",
+     "test_un_runner_al_que_le_falte_cualquier_gate_es_fatal", "LedgerIncomplete"),
+    ("META",   "la nula es de 32 exactas",
+     "test_una_nula_que_no_sea_de_32_es_fatal", "31/33/8/48 -> fatal"),
+    ("META",   "la nula no mezcla vidas",
+     "test_una_nula_de_32_pero_mezclada_entre_vidas_es_fatal", "mezcla vidas"),
+    ("META",   "todas las vidas tienen nula",
+     "test_si_solo_algunas_vidas_tienen_nula_es_fatal", "una vez por vida"),
+    ("L17-8",  "la permutación conserva P_L(O,A)",
+     "test_una_permutacion_que_no_conserva_Counter_OA_no_es_estratificada",
+     "Counter((O,A)) roto por la global"),
+    ("L17-1",  "un B roto muere antes de vivir",
+     "test_un_B_estructuralmente_roto_muere_en_L17_1_antes_de_vivir",
+     "WORLD_PAIR_CONSTRUCTION_FAIL"),
+    ("L17-8",  "un aprendiz que fuga en consulta",
+     "test_un_aprendiz_que_mira_la_consecuencia_lo_captura_L17_8",
+     "WORLD_B_OR_MODEL_NULL_FAIL"),
+    ("L17-9",  "la baraja identidad, por su causa",
+     "test_la_baraja_identidad_falla_por_SHUFFLE_NOT_DESTRUCTIVE", "destructiva False"),
+    ("META",   "los trece salen del runner, no de un script",
+     "test_el_runner_ejecuta_los_trece_dentro_de_la_ruta", "13/13 en el ledger"),
 ]
 
 
@@ -70,7 +94,7 @@ def main() -> None:
         nombre = prueba
         completado = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/test_level17_gates.py",
-             "-k", nombre, "-q", "--no-header"],
+             "tests/test_level17_v2_reparacion.py", "-k", nombre, "-q", "--no-header"],
             capture_output=True, text=True)
         verde = completado.returncode == 0 and " no tests ran" not in completado.stdout
         if not verde:
