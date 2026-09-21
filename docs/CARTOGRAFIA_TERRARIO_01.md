@@ -4846,10 +4846,35 @@ Organismos descendientes del Agente de Nivel 1, cada uno con oráculo sellado
 | 1.4 | ligadura conjuntiva de dos referencias | VERIFIED | `level14-binding-01` |
 | fusión | *ninguna* — composición B+Q+H+M | VERIFIED | `organism-fusion-hm-01` |
 
-**Deuda conocida y no saldada** (§XXXIX): 1.2, 1.3 y la fusión tienen el
+~~**Deuda conocida y no saldada** (§XXXIX): 1.2, 1.3 y la fusión tienen el
 inventario de gates divergente entre el oráculo sellado y el informe de
-ejecución. Ningún valor medido se mueve; lo que diverge es la taxonomía. Sólo
-1.4 fue reconciliado.
+ejecución.~~
+
+**Saldada el 2026-09-21.** Los tres reconciliados, y con el mismo resultado que
+1.4: **nada estaba sin verificar**; lo que divergía era la taxonomía.
+
+| campaña | sello | guion antes | dónde estaban las que faltaban | ahora |
+|---|---|---|---|---|
+| 1.2 · `3ef016c` | 12 | 10 (y la cabecera decía 11, y el informe «los diez **evaluables**») | `L12-1` y `L12-9`, en contratos | 12 |
+| 1.3 · `32d400f` | 14 | 11 | `L13-1`, `L13-2` y `L13-10`, en contratos | 14 |
+| fusión · `a1f180b` | 10 | 9 | `F-2` en contratos; `F-9` en contratos **sin número** | 10 |
+
+**La fusión no era una ausencia, era una usurpación.** El guion usaba `F-9` para
+«el tick hace falta», y el sello le asigna ese número a la **pasividad**; omitir
+el tick es una de las seis fixturas negativas obligatorias. Ascenderla no añadió
+rigor: le quitó el sitio a otra cosa y dejó la pasividad fuera del inventario
+con su número aparentemente cubierto. Quien contara nueve filas y viera
+`F-0`…`F-9` habría concluido que faltaba una. El número robado había llegado
+también a los contratos.
+
+Y destapó lo de siempre al abrirlo: la mitad de `F-9` que nada comprobaba era
+«cero RNG nuevo en las métricas» —hoy por AST—, y la fixtura falsa de `L12-9`
+estaba **duplicada**, una copia en contratos y ninguna en el guion.
+
+**Ningún número medido se movió en ninguna de las tres**, verificado por diff
+contra la corrida previa: 1.2 difiere en dos líneas añadidas, 1.3 en tres, la
+fusión en la línea de `F-2`, el nombre de `F-9` y el bloque nuevo de fixturas.
+Cada fila añadida lleva su mutante.
 
 ## 43.4 · 1.5 · congelado, y con condición de descongelación escrita
 
@@ -4943,10 +4968,10 @@ experimento no falsó la hipótesis — midió otra cosa.
 |---|---|---|---|---|---|
 | contingencia sensorimotora (1.0) | sí | sellado | gates propios | reversión | **demostrada en su mundo** |
 | orientación direccional (1.1) | sí | sellado | gates propios | control negativo | **demostrada** |
-| proximidad cualitativa (1.2) | sí | sellado | gates propios | sí | demostrada · inventario divergente |
-| memoria de un paso (1.3) | sí | sellado | gates propios | tick omitido | demostrada · inventario divergente |
+| proximidad cualitativa (1.2) | sí | sellado | gates propios | sí | **demostrada y reconciliada** |
+| memoria de un paso (1.3) | sí | sellado | gates propios | tick omitido | **demostrada y reconciliada** |
 | ligadura conjuntiva (1.4) | sí | sellado | gates propios | 12 fixtures | **demostrada y reconciliada** |
-| composición B+Q+H+M | sí | sellado | gates propios | factorial 2×2 | **interacción superaditiva** |
+| composición B+Q+H+M | sí | sellado | gates propios | factorial 2×2 | **interacción superaditiva · reconciliada** |
 | memoria selectiva (1.5) | **no** | no | — | — | **CONGELADO · sólo diseño** |
 | regularidad temporal (1.6) | sí | sellado | K-SOMBRA | 3 brazos | **POSITIVO** |
 | contingencia de acción (1.7) | sí | sellado | gemelo A/B | 4 controles | **POSITIVO** |
@@ -5087,7 +5112,7 @@ el sistema lo dice:
 
 | Caso | Qué falla |
 |---|---|
-| inventario de gates de 1.2, 1.3 y la fusión | el oráculo sella N y el informe reporta M |
+| ~~inventario de gates de 1.2, 1.3 y la fusión~~ **saldado** (§43.3) | el oráculo sellaba N y el informe reportaba M |
 | §XXVII sobre `prediction_error` | el mapa afirma lo contrario de lo que hace el código desde `fd725e3` |
 | `use_curiosity` en el catálogo de A4 | `catalogue()` levanta `KeyError`; tres pruebas en rojo |
 | `PR-INSTRUMENT-001` | regla emitida y no registrada |
@@ -5104,8 +5129,11 @@ pequeña y enferma.
 1. **K2** · Cuántas secciones del mapa afirman cosas ya falsadas, como §XXVII.
    Sólo se sabe leyéndolas; el hash no lo ve y la cita de línea tampoco.
 2. **K2** · Si algún informe de campaña contradice su oráculo en algo que no sea
-   el inventario de gates. Nadie ha cruzado valores medidos contra valores
-   sellados fuera de 1.4.
+   el inventario de gates. Sigue abierto, y ahora acotado: al reconciliar 1.2,
+   1.3 y la fusión se cruzó la **taxonomía** de gates contra el sello en las
+   cuatro campañas del linaje A, y ningún **valor** medido resultó contradicho.
+   Lo que nadie ha cruzado es el resto: umbrales, tamaños de banco, semillas
+   declaradas y afirmaciones de alcance.
 3. **K1** · Qué pasa con la regla estricta de admisión el día que exista el
    primer resultado publicado. Hoy no hay ninguno que la ponga a prueba.
 
