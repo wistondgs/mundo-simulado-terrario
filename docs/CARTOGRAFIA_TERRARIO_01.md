@@ -5439,7 +5439,9 @@ en un mundo y la ciencia ocurre en el otro.**
                           empirical_evidence ...... 0
 ```
 
-El sellado del protocolo está construido y verificado:
+El sellado del protocolo está construido y **verificado contra sí mismo** —lo
+almacenado es íntegro; que pueda volver a producirse es otra pregunta, y la
+respuesta está en §47—:
 [commitments.py](terrario/lab/preregistration/commitments.py) escribe **diez
 roles** al CAS —`scientific_question`, `causal_design`, `protocol`,
 `metrics_and_endpoints`, `observer`,
@@ -5476,3 +5478,94 @@ el sello.
 
 Análisis completo en
 [INFORME_ARCHIVO_CIENTIFICO_01.md](docs/INFORME_ARCHIVO_CIENTIFICO_01.md).
+
+---
+
+# XLVII · La identidad científica dejó de derivarse del registro
+
+Medido el 2026-09-21 sobre `.terrario/terrario.db`. Corrige la lectura que
+dejaba §46.8 —«el sellado está construido y verificado»—: lo está, y aun así
+**347 de 433 versiones almacenadas no se pueden volver a producir a partir de lo
+que se guardó.**
+
+## 47.1 · El hecho
+
+```
+                              se re-deriva   no    bloqueados
+  Preregistration  borrador         0        144        —
+  Preregistration  bundle           0        141       141
+  ExperimentDraft  borrador        85         62         —
+  WorldDraft       borrador         1          0         —
+```
+
+Los 141 bloqueados son **todos** los que hay. `TrialMatrix` (146 versiones)
+queda fuera porque no tiene códec en
+[codecs.py](terrario/lab/persistence/codecs.py): nunca se relee a objeto, así
+que no puede enfermar de esto.
+
+La integridad de lo almacenado es perfecta y las dos verificaciones existentes
+son correctas: `service.verify` compara `content_hash` del manifiesto
+**almacenado** contra el `scientific_hash` **almacenado**
+([service.py:188](terrario/lab/preregistration/service.py:188)), y
+`CommitmentBuilder.verify` compara los blobs del CAS contra los hashes del
+índice ([commitments.py:106](terrario/lab/preregistration/commitments.py:106)).
+Ninguna de las dos comprueba lo que aquí falla, porque no es lo que verifican:
+**que el hash sellado pueda volver a salir del payload sellado.**
+
+## 47.2 · Dos causas, y la segunda es la que manda
+
+**A · un contrato creció.** `MetricCommitment`
+([domain.py:179](terrario/lab/preregistration/domain.py:179)) ganó seis campos
+con valor por defecto —`instrument_ref` en las 285 versiones,
+`specification_hash`, `calibration_report_id`, `calibration_report_hash`,
+`calibration_seed_set` y `confirmatory_seed_set` en 116—. El códec los
+materializa al releer y el payload canónico cambia. Le pasa también a
+`ExperimentDraft`: `hypothesis_mapping` en 60 versiones, `agent_config` en 2.
+
+Todas las divergencias son claves **añadidas**: ni un solo valor almacenado
+discrepa del reconstruido. Lo que se perdió es la función de identidad, no el
+dato.
+
+**B · el manifiesto raíz no se deriva sólo del registro.** El décimo componente,
+`validation_policy`, sale de `policy_snapshot()`
+([commitments.py:69](terrario/lab/preregistration/commitments.py:69)), que lee
+el conjunto de reglas del código vivo. Y ese conjunto se movió tres veces bajo
+la misma cadena `preregistration-policy-1.0`: 58 bundles se sellaron sin
+`PR-CL7-001` ni `PR-INSTRUMENT-001`, 83 sin `PR-INSTRUMENT-001`, hoy están las
+dos. Los 141 bundles fallan por las dos causas a la vez.
+
+**La causa B es la que descarta congelar un códec por versión**, que era la otra
+salida posible: un códec reconstruye lo que está guardado, y esta entrada no lo
+está. La primera salida ya estaba descartada por otro motivo —las 285 versiones
+llevan la misma cadena `terrario.lab.preregistration/v1`, así que no hay
+discriminante que congelar—.
+
+## 47.3 · Dónde muerde
+
+La enmienda. `add_postlock_record`
+([service.py:340](terrario/lab/preregistration/service.py:340)) exige un padre
+**bloqueado**, lo relee con el códec y le aplica el delta: el hijo nace con seis
+campos que el protocolo bloqueado nunca comprometió, y el `AmendmentRecord` que
+documenta el cambio no los menciona. El registro de gobernanza del cambio es
+incompleto por construcción.
+
+## 47.4 · Qué se hizo: declararlo, no repararlo
+
+Ni un hash almacenado, ni un registro histórico, ni un módulo de producción se
+tocaron. La discontinuidad queda declarada registro a registro en
+[reconstruccion_ledger.json](tests/fixtures/reconstruccion_ledger.json) —las 347
+filas con su hash almacenado, su hash recomputado y su forma de divergencia,
+más la superficie de los 30 contratos que entran en una identidad almacenada— y
+vigilada por [reconstruccion_check.py](scripts/reconstruccion_check.py) y
+[test_reconstruccion_contrato.py](tests/test_reconstruccion_contrato.py).
+
+El guardián tiene dos mitades y la que importa es la que **no** necesita base de
+datos: los árboles de trabajo no llevan `.terrario/`, y es en ellos donde se
+escriben los contratos. La superficie clavada salta el día en que se añade el
+campo; la mitad con datos salta donde la historia puede moverse. Los siete modos
+de rotura están probados contra su mutante, y un mutante real —un campo más en
+`MetricCommitment`— levanta las 285 filas de preregistro del acta.
+
+El acta es un fichero vigilado por este gate: re-declararla con `--write`
+invalida esta sección, que es justo lo que se quiere. Veredicto completo en
+[INFORME_RECONSTRUCCION_PREREGISTRO_01.md](docs/INFORME_RECONSTRUCCION_PREREGISTRO_01.md).

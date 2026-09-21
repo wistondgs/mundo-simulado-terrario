@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "6467337",
+  "head": "ac6a06e",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -395,6 +395,17 @@
         "terrario/lab/referencegraph/api.py": "f20c976ebc1b44c6b28ad54939b6bf6f40b95b7636c361a2339c10348fb6a5d9",
         "terrario/lab/theory/ingestion.py": "cbda44b6c2ce6c40d5cbe72a0e5a74caec095481cc99da3baaeb639a9cd6b1aa",
         "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a"
+      }
+    },
+    "XLVII · La identidad científica dejó de derivarse del registro": {
+      "files": {
+        "scripts/reconstruccion_check.py": "c061c01d00922fdbbd274239b972bc9a10f2f52a84d770aa93a3c7ea7ec10157",
+        "terrario/lab/persistence/codecs.py": "9609d03e5d2b1c44b905ec98d20507595a64275f5d69e4673c23c44d26c3d682",
+        "terrario/lab/preregistration/commitments.py": "fb7f0d404d80c2a08bf9ce8656eb65736f17c672b65f64e8858f654ea0b7f6cd",
+        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
+        "terrario/lab/preregistration/service.py": "1ebea5a8a6be0554ab2df6ba510d2f1b3ee09a879226bfa1ea6d9e38492fed52",
+        "tests/fixtures/reconstruccion_ledger.json": "86dc4938368ea2420e9cd91ae17a9f63b5316f1f03822d7c105d073edae7149b",
+        "tests/test_reconstruccion_contrato.py": "27c70920751a27e3f3ecb6f12ac42a89f2bb2f0e532e20d6ed0e8e58fe886471"
       }
     }
   }
