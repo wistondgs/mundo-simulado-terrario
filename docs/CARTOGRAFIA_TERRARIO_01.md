@@ -5392,3 +5392,35 @@ mayúsculas dentro de un `record`.
 3. **K1** · Si Genesis debería tener hipergrafo o basta su cadena de hashes. El
    ledger de evidencia ([lab/genesis/evidence/ledger.py](../../Desarrollo/RNE_v16-genesis-v2/lab/genesis/evidence/ledger.py))
    encadena y verifica, pero encadena **eventos**, no ligaduras claim↔medición.
+
+## 46.7 · Dos hechos de código que decide el contrato de admisión
+
+Medidos el 2026-09-21 al enfrentar el criterio de admisión contra 1.6, 1.8,
+`F-9` y `no_interference`. El análisis vive en
+[INFORME_CONTRATO_ADMISION_01.md](docs/INFORME_CONTRATO_ADMISION_01.md); aquí
+quedan sólo los dos hechos del árbol, que son los que el gate puede vigilar.
+
+**Primero: los dos linajes representan un gate de forma distinta, y la
+diferencia es exactamente la que decide el caso `F-9`.**
+
+```
+linaje A   1.2 · 1.3 · 1.4 · fusión      def gates(self) -> dict[str, bool]
+linaje B   1.6 · 1.7 · 1.8               GateResult(name, certifies, passed, evidence)
+```
+
+`GateResult` —en el árbol `level16-sensory-change-01`, paquete `level16`,
+`gates.py:49`— lleva **qué certifica** y **con qué evidencia**, por gate y en máquina. Un par
+`nombre → bool` no puede desmentirse a sí mismo; por eso «`F-9` pasividad» y
+«`F-9` el tick» pudieron ocupar la misma fila en el linaje A y no habrían podido
+en el B.
+
+**Segundo: ninguna campaña congela artefactos.** Verificado sobre el historial
+de los tres árboles: no hay datos crudos commiteados. La reproducibilidad es por
+**re-ejecución determinista**, no por lectura de lo congelado, y la
+reconciliación de 1.6 lo dice de su propia campaña —«no existía archivo de
+artefactos \[…] las 16 huellas de trayectoria nunca se commitearon»—, dejándolo
+como deuda.
+
+Consecuencia para §46.5: de las siete condiciones, las que hoy bloquean a las
+diez campañas no son las epistemológicas sino **las de archivo**. Un validador
+independiente que re-ejecuta no verifica la evidencia: produce otra.
