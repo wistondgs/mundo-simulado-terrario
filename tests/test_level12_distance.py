@@ -31,7 +31,7 @@ from terrario.level12.reference import (
 )
 from terrario.level12.stream import (
     DistanceObservation, DistanceTrainingRecord, build_stream, factorial_pairs,
-    train_distance,
+    stream_with_false_factorization, train_distance,
 )
 
 SEMILLA = 80000011
@@ -317,26 +317,13 @@ def test_la_accion_no_cambia_al_variar_el_sensor(agente):
 # --- factorización falsa ---------------------------------------------------------
 
 def _stream_con_factorizacion_falsa(seed: int):
-    """Para dos de las cuatro señales se invierte la emisión: `P(D|s,g) ≠ P(D|s)`.
+    """La MISMA fixture que evalúa `L12-9` en el guion de campaña.
 
-    Cerrado: la marginal sobre `g` iguala las dos filas, así que el modelo
-    marginal no se degrada, **se anula** --exactamente `1/4`-- mientras el
-    contextual conserva todo. No es un umbral elegido: es un factor.
+    Vivía aquí duplicada. Dos definiciones del mismo mundo falso son dos gates
+    con el mismo número: si una se toca y la otra no, el contrato y el informe
+    dejan de hablar de lo mismo sin que nada lo señale.
     """
-    base = build_stream(seed, SEM)
-    rng = np.random.default_rng([seed, 99])
-    invertidos = {CueToken.C2, CueToken.C3}
-    nuevos = []
-    for r in base.records:
-        if r.view.cue in invertidos:
-            fila = EMISSION[r.reference.delta][::-1]
-            token = ProximityToken(int(rng.choice(4, p=fila)))
-            r = DistanceTrainingRecord(
-                DistanceObservation(r.view.observation, r.view.cue, token),
-                r.truth, r.reference)
-        nuevos.append(r)
-    base.records = nuevos
-    return base
+    return stream_with_false_factorization(seed, SEM)
 
 
 def test_la_fixture_falsa_anula_el_modelo_marginal():
@@ -390,3 +377,16 @@ def test_las_semillas_del_nivel_12_no_pisan_las_anteriores():
         | set(range(31415927, 31415959)) | set(range(70000019, 70000034))
     nuevas = set(range(80000011, 80000019))
     assert not (nuevas & usadas)
+
+
+# --- L12-9 · el gate de falsabilidad tiene que poder caer ------------------------
+
+def test_el_gate_de_falsabilidad_cae_en_el_mundo_nominal(monkeypatch):
+    """Si `L12-9` aprobara también con el mundo nominal, no estaría detectando
+    la factorización falsa: estaría midiendo que el contextual es flexible."""
+    from terrario.level12 import experiment
+
+    monkeypatch.setattr(experiment, "stream_with_false_factorization",
+                        lambda seed, semantics: build_stream(seed, semantics))
+    marginal_bs, _ = experiment._false_factorization(SEMILLA, SEM)
+    assert abs(marginal_bs - BS_IGNORANT) > experiment.FALSE_FIXTURE_TOLERANCE

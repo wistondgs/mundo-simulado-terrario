@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""`LEVEL1.2-QUALITATIVE-DISTANCE-01` · la campaña y sus once gates.
+"""`LEVEL1.2-QUALITATIVE-DISTANCE-01` · la campaña y sus doce gates.
 
     OMP_NUM_THREADS=2 python -u scripts/level12_qualitative_distance.py
 

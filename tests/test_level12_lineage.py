@@ -168,3 +168,25 @@ def test_la_semilla_reproduce_exactamente(core):
     assert a.posteriors["FULL_12"] == b.posteriors["FULL_12"]
     assert a.brier["FULL_12"] == b.brier["FULL_12"]
     assert a.fingerprint_after == b.fingerprint_after
+
+
+# --- L12-1 · el gate de observabilidad tiene que poder caer ---------------------
+
+def test_un_campo_de_mas_en_la_vista_suspende_el_contrato(monkeypatch):
+    """`L12-1` se sostiene sobre la forma del tipo. Si añadir un campo no lo
+    hiciera caer, el gate estaría comprobando que el fichero existe."""
+    from terrario.level12 import experiment
+    from terrario.level12.stream import DistanceObservation
+
+    assert experiment._observability_closed()
+    monkeypatch.setitem(DistanceObservation.__dataclass_fields__, "truth", None)
+    assert not experiment._observability_closed()
+
+
+def test_un_parametro_de_mas_en_predict_suspende_el_contrato(monkeypatch):
+    from terrario.level12 import experiment
+    from terrario.level12.proximity import QualitativeDistanceModel
+
+    monkeypatch.setattr(QualitativeDistanceModel, "predict_near",
+                        lambda self, sensor, cue=None: 0.5)
+    assert not experiment._observability_closed()

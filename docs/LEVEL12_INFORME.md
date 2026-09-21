@@ -1,6 +1,6 @@
 # `LEVEL1.2-QUALITATIVE-DISTANCE-01` · informe
 
-**`LEVEL12_STATUS = VERIFIED`** · los diez gates evaluables en las ocho semillas.
+**`LEVEL12_STATUS = VERIFIED`** · los doce gates en las ocho semillas.
 
 Rama `experiment/level1-reversal-plasticity-01` · guion
 `scripts/level12_qualitative_distance.py` · oráculo sellado en
@@ -164,7 +164,37 @@ muestra que lo justificaba.
 Ambos umbrales se sellaron con su cálculo: `0.1480` está a `8.6 ×` el exceso
 esperado; `0.10` está a `4.57 σ` del token más ruidoso.
 
-## 9 · Defectos hallados construyendo
+## 9 · Reconciliación del inventario de gates
+
+El preregistro sella doce filas --`L12-0` … `L12-11`--. La primera versión del
+guion evaluaba **diez**, y el informe lo decía como «los diez gates
+**evaluables**»: una palabra que reconocía la brecha sin cerrarla.
+
+Los dos que faltaban **sí estaban verificados**, en contratos y no en el informe
+de ejecución, así que el inventario divergía y el siguiente que leyera habría
+heredado dos taxonomías --tres, en realidad: la cabecera del guion decía
+«once»--.
+
+| gate | dónde estaba | dónde se verifica ahora |
+|---|---|---|
+| `L12-1` observabilidad | `tests/test_level12_lineage.py` · la vista no tiene verdad ni geometría, y `predict_near` sólo recibe el sensor | **añadido al guion**, por la forma de los tipos |
+| `L12-9` falsabilidad | `tests/test_level12_distance.py` · la fixture de factorización falsa | **añadido al guion**, con la misma fixture |
+
+La fixture falsa estaba **duplicada**: una copia en el fichero de contratos y
+ninguna en el guion. Ahora vive en `terrario/level12/stream.py` y las dos la
+importan, porque dos definiciones del mismo mundo falso son dos gates con el
+mismo número.
+
+**El resultado experimental no cambia**: los doce pasan en las ocho semillas, y
+la salida del guion difiere de la anterior en exactamente dos líneas añadidas
+--mayor desviación `0.0612`, peor `BS_pop` `0.146614`, separación `0.1437`,
+cobertura `40`: idénticos--.
+
+Cada fila añadida trae su mutante, porque un gate que sólo puede pasar no es un
+gate: un campo de más en la vista, un parámetro de más en `predict_near`, y el
+mundo nominal en lugar del falso hacen caer lo que les toca.
+
+## 10 · Defectos hallados construyendo
 
 **Escribí un contrato que no podía fallar.** `test_reconstruir_verifica_antes_de_
 congelar` lanzaba la excepción a mano en vez de ejercitar `reconstruct`: habría
@@ -187,7 +217,7 @@ empataba con el brazo que controlaba--. Hay contrato para las dos cosas: que
 barajar el sensor lleve `H → ½`, y que reordenar registros deje los posteriors
 **idénticos hasta `1e-12`**.
 
-## 10 · Qué está permitido afirmar
+## 11 · Qué está permitido afirmar
 
 > El Agente Nivel 1.2 adquirió una distinción probabilística entre dos clases
 > cualitativas de proximidad a partir de evidencia sensorial ambigua generada por
@@ -210,7 +240,7 @@ motivación.
 acción, y hay contrato que lo comprueba variando `s` sobre las `16 × 4`
 situaciones. Que CERCA/LEJOS decidiera qué hacer sería otra adquisición.
 
-## 11 · Ficheros y reproducción
+## 12 · Ficheros y reproducción
 
 ```
 terrario/level12/     962 líneas   reference · proximity · inherited · agent ·
@@ -230,7 +260,7 @@ OMP_NUM_THREADS=2 "$PY" -u scripts/level12_qualitative_distance.py
 OMP_NUM_THREADS=2 "$PY" -m pytest tests/test_level12_*.py -q --no-header -p no:cacheprovider
 ```
 
-## 12 · De qué clase es este hito
+## 13 · De qué clase es este hito
 
 Como en 1.1, la factorización se la suministramos nosotros: el organismo no
 descubrió que cuerpo, dirección y proximidad se combinan multiplicativamente.

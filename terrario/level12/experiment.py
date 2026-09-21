@@ -24,8 +24,9 @@ from terrario.level12.agent import Level12Agent
 from terrario.level12.inherited import reconstruct
 from terrario.level12.metrics import (
     ACCURACY_ORACLE, BS_IGNORANT, BS_JOINT_ORACLE, BS_ORACLE, ORACLE,
-    balanced_accuracy, body_association, body_association_envelope, confusion,
-    delta_sensor_separation, direction_class_table, joint_population_brier,
+    ContextualDistanceModel, balanced_accuracy, body_association,
+    body_association_envelope, confusion, delta_sensor_separation,
+    direction_class_table, empirical_brier, joint_population_brier,
     max_oracle_deviation, population_brier, single_variable_probe,
 )
 from terrario.level12.proximity import (
@@ -33,7 +34,8 @@ from terrario.level12.proximity import (
 )
 from terrario.level12.reference import DistanceTruth
 from terrario.level12.stream import (
-    MIN_INFORMATIVE, N_DISTANCE, build_stream, train_distance,
+    MIN_INFORMATIVE, N_DISTANCE, DistanceObservation, build_stream,
+    stream_with_false_factorization, train_distance,
 )
 
 #: Umbrales congelados en el preregistro. Derivados de la distribución muestral,
@@ -41,6 +43,10 @@ from terrario.level12.stream import (
 #: campañas aunque el aprendiz fuera exacto.
 BS_TOLERANCE = 0.1480
 DEVIATION_TOLERANCE = 0.10
+#: `L12-9` · la fixture falsa anula el modelo marginal y el contextual lo
+#: recupera entero. Los dos valores son cerrados --`1/4` y `8/55`--, así que la
+#: tolerancia sólo absorbe el muestreo de 2048 ensayos.
+FALSE_FIXTURE_TOLERANCE = 0.02
 ENVELOPE_PERMUTATIONS = 10_000
 ENVELOPE_PERCENTILE = 99.9
 
@@ -93,6 +99,9 @@ class SeedReport:
     balanced_acc: dict[str, float] = field(default_factory=dict)
     joint: dict[str, tuple[float, float]] = field(default_factory=dict)
     probe: dict[str, Any] = field(default_factory=dict)
+    observability_closed: bool = False
+    false_marginal_bs: float = 0.0
+    false_contextual_bs: float = 0.0
 
     @property
     def inherited_intact(self) -> bool:
@@ -103,9 +112,18 @@ class SeedReport:
         return self.align_before == self.align_after
 
     def gates(self) -> dict[str, bool]:
+        """Las doce del preregistro sellado, con sus nombres y sus números.
+
+        La primera versión evaluaba diez. `L12-1` y `L12-9` sí estaban
+        verificados --el primero en `tests/test_level12_lineage.py`, el segundo
+        en `tests/test_level12_distance.py`-- pero no aparecían en el informe de
+        ejecución, y un inventario que no coincide con su sello deja dos
+        taxonomías al siguiente que lea. Ningún número medido cambia por esto.
+        """
         p = self.probe["FULL_12"]
         return {
             "L12-0 linaje": self.inherited_intact,
+            "L12-1 observabilidad": self.observability_closed,
             "L12-2 cobertura": self.informative_minimum >= MIN_INFORMATIVE,
             "L12-3 adquisición": (
                 self.brier["FULL_12"] < self.brier["FROZEN_DISTANCE"]
@@ -117,6 +135,10 @@ class SeedReport:
             "L12-6 cuerpo": self.body_stat <= self.body_envelope,
             "L12-7 integración": p.zeros_exact(),
             "L12-8 motor": self.motor_preserved,
+            "L12-9 falsabilidad": (
+                abs(self.false_marginal_bs - BS_IGNORANT) <= FALSE_FIXTURE_TOLERANCE
+                and abs(self.false_contextual_bs - BS_ORACLE)
+                <= FALSE_FIXTURE_TOLERANCE),
             "L12-10 pasividad": self.physics_violations == 0,
             "L12-11 sensor↔δ": self.delta_separation >= 0.10,
         }
@@ -161,6 +183,10 @@ def run_seed(seed: int, *, semantics: CueSemantics | None = None) -> SeedReport:
             stream, rng=np.random.default_rng([seed, 25]),
             permutations=ENVELOPE_PERMUTATIONS), ENVELOPE_PERCENTILE)))
 
+    reporte.observability_closed = _observability_closed()
+    reporte.false_marginal_bs, reporte.false_contextual_bs = (
+        _false_factorization(seed, semantics))
+
     for nombre, agente in brazos.items():
         reporte.brier[nombre] = population_brier(agente.predict_near)
         reporte.posteriors[nombre] = agente.proximity.posteriors()
@@ -170,3 +196,45 @@ def run_seed(seed: int, *, semantics: CueSemantics | None = None) -> SeedReport:
         reporte.probe[nombre] = single_variable_probe(agente)
 
     return reporte
+
+
+# ── L12-1 y L12-9 ────────────────────────────────────────────────────────────
+
+def _observability_closed() -> bool:
+    """`L12-1` · `predict` no alcanza `truth`, `δ`, `p` ni `r`.
+
+    Se comprueba por la forma de los tipos, que es donde está la garantía:
+    `DistanceObservation` no tiene dónde guardar la verdad, y `predict_near`
+    sólo recibe el sensor. Puede fallar --basta añadir un campo o un
+    parámetro--, que es lo que lo hace gate y no declaración.
+    """
+    import inspect
+
+    campos = set(DistanceObservation.__dataclass_fields__)
+    if campos != {"observation", "cue", "sensor"}:
+        return False
+    firma = inspect.signature(QualitativeDistanceModel.predict_near)
+    return list(firma.parameters) == ["self", "sensor"]
+
+
+def _false_factorization(seed: int,
+                         semantics: CueSemantics) -> tuple[float, float]:
+    """`L12-9` · en un mundo donde `P(D|s,g) ≠ P(D|s)`, el modelo marginal se
+    anula en `1/4` y el contextual recupera `8/55`.
+
+    Sin este par el gate composicional aprobaría por ausencia de prueba: no
+    habría ningún mundo en el que supiera decir que no.
+    """
+    falso = stream_with_false_factorization(seed, semantics)
+
+    marginal = QualitativeDistanceModel()
+    train_distance(falso, marginal)
+
+    contextual = ContextualDistanceModel()
+    for r in falso.records:
+        contextual.observe(r.view.sensor, r.view.cue, r.truth)
+    bs_ctx = sum((contextual.predict(r.view.sensor, r.view.cue)
+                  - (1.0 if r.truth is DistanceTruth.NEAR else 0.0)) ** 2
+                 for r in falso.records) / len(falso.records)
+
+    return empirical_brier(marginal.predict_near, falso.records), bs_ctx

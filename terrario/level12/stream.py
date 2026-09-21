@@ -155,3 +155,34 @@ def train_distance(stream: DistanceStream, model, *,
         vistos = [vistos[i] for i in idx]
     for r, sensor_visto in zip(stream.records, vistos, strict=True):
         model.observe(sensor_visto, r.truth)
+
+
+def stream_with_false_factorization(seed: int,
+                                    semantics: CueSemantics) -> DistanceStream:
+    """La fixture negativa de `L12-9` · para dos de las cuatro señales se
+    invierte la emisión, de modo que `P(D|s,g) ≠ P(D|s)`.
+
+    Cerrado: la marginal sobre `g` iguala las dos filas, así que el modelo
+    marginal no se degrada, **se anula** --exactamente `1/4`-- mientras el
+    contextual conserva todo. No es un umbral elegido: es un factor.
+
+    Vive aquí, y no en el fichero de contratos, porque el guion de campaña
+    necesita evaluar `L12-9` con la MISMA fixture que el contrato. Dos copias
+    serían dos gates con el mismo número.
+    """
+    from terrario.level12.reference import EMISSION
+
+    base = build_stream(seed, semantics)
+    rng = np.random.default_rng([seed, 99])
+    invertidos = {CueToken.C2, CueToken.C3}
+    nuevos = []
+    for r in base.records:
+        if r.view.cue in invertidos:
+            fila = EMISSION[r.reference.delta][::-1]
+            token = ProximityToken(int(rng.choice(4, p=fila)))
+            r = DistanceTrainingRecord(
+                DistanceObservation(r.view.observation, r.view.cue, token),
+                r.truth, r.reference)
+        nuevos.append(r)
+    base.records = nuevos
+    return base
