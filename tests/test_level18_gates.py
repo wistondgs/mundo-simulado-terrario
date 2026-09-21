@@ -469,3 +469,173 @@ def test_l18_17_falla_ante_cualquier_umbral_humano_de_fusion(constante):
              MASA.copy(), f"{constante} = 3\n" + LIMPIO)
     assert not r.passed
     assert constante in r.evidence
+
+
+# ===========================================================================
+# L18-18 · el tiempo causal de Z
+# ===========================================================================
+
+def _paso(before=0, after=1, sum_=1.0, scored=0.5, coordinate=0.5, recomputed=None):
+    return {"before": before, "after": after, "sum": sum_, "scored": scored,
+            "coordinate": coordinate,
+            "recomputed": after if recomputed is None else recomputed}
+
+
+def _pasos_sanos(n=8):
+    return [_paso(before=i % 3, after=(i + 1) % 3) for i in range(n)]
+
+
+def test_l18_18_pasa_sobre_un_recorrido_honesto():
+    informe = GateReport()
+    gates.gate_causal_time_of_state(informe, _pasos_sanos())
+    assert informe.results[-1].passed
+
+
+def test_l18_18_sin_pasos_no_certifica_nada():
+    informe = GateReport()
+    gates.gate_causal_time_of_state(informe, [])
+    assert not informe.results[-1].passed
+
+
+def test_l18_18_detecta_la_fuga_del_futuro():
+    """Si la distribución no suma 1 antes de revelar O_t+1, algo la condicionó."""
+    malos = _pasos_sanos()
+    malos[3] = _paso(before=1, after=2, sum_=0.87)
+    informe = GateReport()
+    gates.gate_causal_time_of_state(informe, malos)
+    assert not informe.results[-1].passed
+
+
+def test_l18_18_detecta_el_estado_desalineado():
+    malos = _pasos_sanos()
+    malos[2] = _paso(before=0, after=1, recomputed=7)
+    informe = GateReport()
+    gates.gate_causal_time_of_state(informe, malos)
+    assert not informe.results[-1].passed
+
+
+def test_l18_18_detecta_el_automata_absorbente():
+    """El defecto de `acb6b14`: entrar en un estado y no salir jamás."""
+    informe = GateReport()
+    gates.gate_causal_time_of_state(
+        informe, [_paso(before=4, after=4) for _ in range(8)])
+    assert not informe.results[-1].passed
+
+
+# ===========================================================================
+# L18-19 · puntuar no aprende
+# ===========================================================================
+
+_ANTES = {"updates": 4096, "splits": 16, "merges": 12, "states": (0, 1, 2),
+          "routing": 44, "prior": "abc", "evidence": "def"}
+
+
+def test_l18_19_pasa_cuando_puntuar_no_toca_nada():
+    informe = GateReport()
+    gates.gate_score_is_not_update(informe, _ANTES, dict(_ANTES), 2048)
+    assert informe.results[-1].passed
+
+
+def test_l18_19_sin_pasos_puntuados_seria_vacio():
+    informe = GateReport()
+    gates.gate_score_is_not_update(informe, _ANTES, dict(_ANTES), 0)
+    assert not informe.results[-1].passed
+
+
+def test_l18_19_detecta_cualquier_aprendizaje_durante_el_scoring():
+    for campo, nuevo in (("updates", 4097), ("splits", 17), ("merges", 13),
+                         ("states", (0, 1, 2, 3)), ("routing", 45),
+                         ("prior", "otro"), ("evidence", "otro")):
+        despues = dict(_ANTES)
+        despues[campo] = nuevo
+        informe = GateReport()
+        gates.gate_score_is_not_update(informe, _ANTES, despues, 2048)
+        assert not informe.results[-1].passed, campo
+
+
+# ===========================================================================
+# El ledger · las seis clases que faltaban
+# ===========================================================================
+
+RUNNER = "terrario.level18.campaign.run"
+VIDAS = (11, 12)
+
+
+def _contrato(**cambios):
+    base = {"runner": RUNNER, "lives": VIDAS, "once": ("L18-0",),
+            "per_life": tuple(n for n in gates.REQUIRED_GATES if n != "L18-0"),
+            "completed": True}
+    base.update(cambios)
+    return gates.CampaignContract(**base)
+
+
+def _ledger_contractual():
+    entradas = [GateEntry("L18-0", "campaign", True, "ok", None, RUNNER)]
+    for vida in VIDAS:
+        for nombre in gates.REQUIRED_GATES:
+            if nombre != "L18-0":
+                entradas.append(
+                    GateEntry(nombre, f"seed:{vida}", True, "ok", vida, RUNNER))
+    return entradas
+
+
+def test_el_ledger_contractual_verifica():
+    gates.verify_ledger(_ledger_contractual(), _contrato())
+
+
+def test_una_vida_que_falta_es_fatal():
+    sin_vida = [e for e in _ledger_contractual() if e.life != 12]
+    with pytest.raises(LedgerIncomplete, match="falta la vida 12"):
+        gates.verify_ledger(sin_vida, _contrato())
+
+
+def test_una_semilla_inesperada_es_fatal():
+    intruso = _ledger_contractual() + [
+        GateEntry("L18-1", "seed:99", True, "ok", 99, RUNNER)]
+    with pytest.raises(LedgerIncomplete, match="no está en el contrato"):
+        gates.verify_ledger(intruso, _contrato())
+
+
+def test_un_gate_duplicado_en_la_misma_vida_es_fatal():
+    doble = _ledger_contractual() + [
+        GateEntry("L18-1", "seed:11", True, "ok", 11, RUNNER)]
+    with pytest.raises(LedgerIncomplete, match="aparece 2 veces"):
+        gates.verify_ledger(doble, _contrato())
+
+
+def test_un_gate_de_campana_repetido_es_fatal():
+    doble = _ledger_contractual() + [
+        GateEntry("L18-0", "campaign", True, "ok", None, RUNNER)]
+    with pytest.raises(LedgerIncomplete, match="de campaña y aparece 2 veces"):
+        gates.verify_ledger(doble, _contrato())
+
+
+def test_un_resultado_parcial_es_fatal():
+    for roto in (GateEntry("L18-1", "seed:11", None, "ok", 11, RUNNER),
+                 GateEntry("L18-1", "seed:11", True, "", 11, RUNNER)):
+        parcial = [e for e in _ledger_contractual()
+                   if not (e.name == "L18-1" and e.life == 11)] + [roto]
+        with pytest.raises(LedgerIncomplete, match="resultado parcial"):
+            gates.verify_ledger(parcial, _contrato())
+
+
+def test_una_procedencia_que_no_es_la_ruta_congelada_es_fatal():
+    """`D-4` exacto: el número era correcto y el gate corrió fuera de la ruta."""
+    ajeno = [e for e in _ledger_contractual()
+             if not (e.name == "L18-1" and e.life == 11)]
+    ajeno.append(GateEntry("L18-1", "seed:11", True, "ok", 11,
+                           "scripts/lo_calculo_despues.py"))
+    with pytest.raises(LedgerIncomplete, match="procedencia"):
+        gates.verify_ledger(ajeno, _contrato())
+
+
+def test_una_campana_no_completada_no_emite_veredicto():
+    with pytest.raises(LedgerIncomplete, match="sin declararse completa"):
+        gates.verify_ledger(_ledger_contractual(), _contrato(completed=False))
+
+
+def test_un_contrato_que_no_cubre_los_gates_es_fatal():
+    incompleto = _contrato(per_life=tuple(
+        n for n in gates.REQUIRED_GATES if n not in ("L18-0", "L18-19")))
+    with pytest.raises(LedgerIncomplete, match="no cubre"):
+        gates.verify_ledger(_ledger_contractual(), incompleto)

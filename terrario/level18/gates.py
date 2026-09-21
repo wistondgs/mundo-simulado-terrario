@@ -27,7 +27,7 @@ TERRARIO = PACKAGE.parent
 #: tenía y no se trasladó; la Enmienda 02 añadió `REFINEMENT-REVERSIBILITY`,
 #: porque el oráculo prometía fusión y nada la certificaba. Los dos endurecen el
 #: contrato y ninguno de los dos es pre-código: la cronología se conserva.
-REQUIRED_GATES = tuple(f"L18-{i}" for i in range(18))
+REQUIRED_GATES = tuple(f"L18-{i}" for i in range(20))
 
 #: Capacidades posteriores. No están en el disco; el gate lo prueba.
 LATER_CAPABILITIES = ("level11", "level12", "level13", "level14",
@@ -59,8 +59,22 @@ class GateResult:
 class GateEntry:
     name: str
     scope: str
-    passed: bool
+    passed: bool | None
     evidence: str
+    #: La vida a la que pertenece, o `None` si el gate es de campaña.
+    life: int | None = None
+    #: Quién lo ejecutó. Un gate sin procedencia no demuestra haber corrido.
+    provenance: str = ""
+
+
+@dataclass(frozen=True)
+class CampaignContract:
+    """Lo que la campaña PROMETIÓ ejecutar, escrito antes de ejecutarlo."""
+    runner: str
+    lives: tuple[int, ...]
+    per_life: tuple[str, ...]
+    once: tuple[str, ...]
+    completed: bool
 
 
 @dataclass
@@ -79,22 +93,78 @@ class LedgerIncomplete(RuntimeError):
     """La defensa estructural contra otro `D-4`."""
 
 
-def verify_ledger(ledger, expected_scopes=None) -> None:
-    """Obligatorio antes de emitir veredicto. Fatal ante cualquier hueco."""
+def verify_ledger(ledger, contract=None, expected_scopes=None) -> None:
+    """Obligatorio antes de emitir veredicto. Fatal ante cualquier hueco.
+
+    Nueve clases de hueco, porque `D-4` demostró que «los tests están verdes» no
+    prueba que la campaña ejecutara nada:
+
+        1 gate requerido ausente          6 semilla inesperada
+        2 gate desconocido                7 resultado parcial
+        3 alcance incorrecto              8 procedencia incorrecta
+        4 gate duplicado                  9 campaña terminada sin cumplir el contrato
+        5 vida faltante
+    """
     executed = {e.name for e in ledger}
     missing = set(REQUIRED_GATES) - executed
-    if missing:
+    if missing:                                                        # 1
         raise LedgerIncomplete(
             f"el runner no ejecutó {sorted(missing)}; así falló 1.7 exactamente")
     unknown = executed - set(REQUIRED_GATES)
-    if unknown:
+    if unknown:                                                        # 2
         raise LedgerIncomplete(f"gates no reconocidos: {sorted(unknown)}")
-    if expected_scopes is not None:
+    if expected_scopes is not None:                                    # 3
         for name, scopes in expected_scopes.items():
             got = {e.scope for e in ledger if e.name == name}
             if got != set(scopes):
                 raise LedgerIncomplete(
                     f"{name}: alcances {sorted(got)}, se esperaban {sorted(scopes)}")
+    if contract is None:
+        return
+
+    promised = set(contract.per_life) | set(contract.once)
+    if promised != set(REQUIRED_GATES):                                # 9 (contrato)
+        raise LedgerIncomplete(
+            "el contrato no cubre los gates requeridos: falta "
+            f"{sorted(set(REQUIRED_GATES) - promised)}, sobra "
+            f"{sorted(promised - set(REQUIRED_GATES))}")
+    if not contract.completed:                                         # 9
+        raise LedgerIncomplete(
+            "la campaña terminó sin declararse completa: resultado no emitible")
+
+    for entry in ledger:
+        if entry.passed is None or not entry.evidence:                 # 7
+            raise LedgerIncomplete(
+                f"{entry.name} en {entry.scope}: resultado parcial "
+                f"(passed={entry.passed!r}, evidencia={entry.evidence!r})")
+        if entry.provenance != contract.runner:                        # 8
+            raise LedgerIncomplete(
+                f"{entry.name} en {entry.scope}: procedencia {entry.provenance!r}, "
+                f"se esperaba {contract.runner!r} · un gate evaluado fuera de la "
+                "ruta congelada no es un gate preregistrado")
+        if entry.life is not None and entry.life not in contract.lives:  # 6
+            raise LedgerIncomplete(
+                f"{entry.name}: semilla {entry.life} no está en el contrato")
+
+    for name in contract.once:                                         # 4
+        found = [e for e in ledger if e.name == name]
+        if len(found) != 1:
+            raise LedgerIncomplete(
+                f"{name} es de campaña y aparece {len(found)} veces")
+        if found[0].life is not None:
+            raise LedgerIncomplete(
+                f"{name} es de campaña y se registró contra la vida {found[0].life}")
+    for name in contract.per_life:
+        by_life: dict[int | None, int] = {}
+        for entry in ledger:
+            if entry.name == name:
+                by_life[entry.life] = by_life.get(entry.life, 0) + 1
+        for life in contract.lives:                                    # 5
+            if life not in by_life:
+                raise LedgerIncomplete(f"{name}: falta la vida {life}")
+            if by_life[life] != 1:                                     # 4
+                raise LedgerIncomplete(
+                    f"{name}: la vida {life} aparece {by_life[life]} veces")
 
 
 # --- escáner sintáctico · nunca texto ---------------------------------------
@@ -515,3 +585,55 @@ def gate_refinement_reversibility(report: GateReport, episodes, dangling_routes,
                f"{len(refuted_alive)} · justificados deshechos {len(justified_undone)} "
                f"· rutas colgantes {len(dangling_routes)} · exceso de masa "
                f"{excess:+.3e} · constantes prohibidas {sorted(constants) or 'ninguna'}")
+
+
+# ===========================================================================
+# G5 · el tiempo causal del estado · gates que nacen del defecto de medición
+# ===========================================================================
+
+def gate_causal_time_of_state(report: GateReport, steps) -> None:
+    """`L18-18` · predecir usa `(Z_t, O_t, A_t)`; `Z_{t+1}` se calcula DESPUÉS.
+
+    El defecto que esto persigue no era hipotético: durante horas el scoring
+    puntuó un árbol de 30 estados desde su raíz porque nadie avanzaba `Z`, y 81
+    tests siguieron verdes. La fuga inversa sería peor: si `Z_{t+1}` ya hubiese
+    absorbido `O_{t+1}`, puntuar con él sería predecir el futuro con el futuro.
+
+    Cada paso debe traer la distribución COMPLETA calculada antes de revelar
+    `O_{t+1}` --si suma 1, el valor puntuado no pudo depender del resultado--
+    y el estado siguiente recomputado por separado.
+    """
+    if not steps:
+        report.add("L18-18", "tiempo causal de Z", False,
+                   "ningún paso auditado: no se puede certificar nada")
+        return
+    leaks = [i for i, s in enumerate(steps) if abs(s["sum"] - 1.0) > 1e-9]
+    misaligned = [i for i, s in enumerate(steps)
+                  if s["scored"] != s["coordinate"] or s["after"] != s["recomputed"]]
+    moved = sum(1 for s in steps if s["after"] != s["before"])
+    passed = not leaks and not misaligned and moved > 0
+    report.add(
+        "L18-18", "predecir usa sólo (Z_t, O_t, A_t) y Z_{t+1} se calcula después",
+        passed,
+        f"{len(steps)} pasos · distribuciones que no suman 1: {len(leaks)} · "
+        f"desalineados: {len(misaligned)} · transiciones reales: {moved} "
+        f"({100 * moved / len(steps):.1f}%)")
+
+
+def gate_score_is_not_update(report: GateReport, before, after, scored: int) -> None:
+    """`L18-19` · puntuar no aprende.
+
+    Avanzar el estado es necesario para recorrer una secuencia; aprender de ella
+    no lo es. Puntuar no puede incrementar cuentas, crear estados, separar,
+    fusionar, cambiar routing, prior ni evidencia.
+    """
+    if scored <= 0:
+        report.add("L18-19", "puntuar no aprende", False,
+                   "no se puntuó ningún paso: la comprobación sería vacía")
+        return
+    changed = sorted(k for k in before if before[k] != after.get(k))
+    report.add(
+        "L18-19", "puntuar no incrementa cuentas ni altera la organización",
+        not changed,
+        f"{scored} pasos puntuados · campos alterados: "
+        f"{changed if changed else 'ninguno'}")

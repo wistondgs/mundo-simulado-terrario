@@ -35,6 +35,21 @@ CONTINGENCY = 1024          # P1 · heredado sellado de 1.7
 POST = 2048                 # banco de evaluación
 
 
+class ObservationHistoryModel(PredictiveStateModel):
+    """O-HISTORY-ONLY · el mismo mecanismo, ciego al comando.
+
+    Séptimo brazo de §7: estado construido SÓLO de observaciones. Se implementa
+    tapándole el comando en la firma de entrada, no reescribiendo el mecanismo,
+    para que la diferencia causal sea exactamente «usa la copia eferente o no».
+    """
+
+    def _advance(self, command: int, after: int) -> None:
+        self._here = self._next_state(self._here, 0, after)
+
+    def observe(self, previous, efference, following) -> None:
+        super().observe(previous, EfferenceCopy(ALL_COMMANDS[0]), following)
+
+
 class MergeDisabledModel(PredictiveStateModel):
     """El brazo lesionado. Separa igual; no puede deshacer nada."""
 
@@ -105,8 +120,13 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
     depth_evidence = {a: np.zeros_like(table) for a in range(4)}
     oracle_prior = {index[c]: table / len(ordered) for c in ordered}
     oracle_evidence = {index[c]: np.zeros_like(table) for c in ordered}
+    flat = np.full_like(table, table.sum() / table.size)
     learner = (PredictiveStateModel if merge else MergeDisabledModel)(table)
     learner.begin()
+    observation_only = ObservationHistoryModel(table)      # O-HISTORY-ONLY
+    observation_only.begin()
+    lesioned_prior = PredictiveStateModel(flat)            # C17-LESION
+    lesioned_prior.begin()
 
     # --- P2 · T_18 · sólo aquí nace 1.8 ---------------------------------------
     last = 0
@@ -123,6 +143,8 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
         after = OBSERVATION_INDEX[following]
         baseline.observe(observation, EfferenceCopy(command), following)
         learner.observe(observation, EfferenceCopy(command), following)
+        observation_only.observe(observation, EfferenceCopy(command), following)
+        lesioned_prior.observe(observation, EfferenceCopy(command), following)
         depth_evidence[last][before, action, after] += 1
         oracle_evidence[index[standing]][before, action, after] += 1
         last = action
@@ -176,6 +198,18 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
 
     l_full = loss(acquired)
 
+    def tracking(model):
+        def fn(obs, command, nxt, previous_action, situation):
+            value = model.probability(obs, EfferenceCopy(command), nxt)
+            model.follow(EfferenceCopy(command), nxt)
+            return value
+        return fn
+
+    observation_only.begin()
+    l_observation_only = loss(tracking(observation_only))
+    lesioned_prior.begin()
+    l_c17_lesion = loss(tracking(lesioned_prior))
+
     # --- lectura congelada de la organización ---------------------------------
     learner.begin()
     readout = []
@@ -214,6 +248,8 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
         "l_depth1": loss(supplied(depth_prior, depth_evidence, "depth")),
         "l_full": l_full,
         "l_oracle": loss(supplied(oracle_prior, oracle_evidence, "oracle")),
+        "l_observation_only": l_observation_only,
+        "l_c17_lesion": l_c17_lesion,
         "states": len(states), "max_states": max_states,
         "occupied": len({z for _o, z, _c in readout}),
         "splits": learner.refinements, "merges": learner.collapses,
