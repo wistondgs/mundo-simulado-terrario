@@ -23,8 +23,22 @@ from __future__ import annotations
 from typing import Any
 
 from terrario.agent.agents.a4_advanced import A4Advanced
+from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG as A4_DEFAULT_CONFIG
 from terrario.agent.curiosity import IntrinsicPredictionError
 from terrario.core.contracts import Transition
+
+
+#: A5 es A4 más una cosa, y su configuración lo dice igual: la de su ancestro
+#: más las tres claves de CURIO-A1. Existe como constante --y no sólo como
+#: `.get(clave, valor)` dentro de `__init__`-- porque el catálogo de
+#: composición necesita poder preguntar qué lee cada organismo. Cuando no podía,
+#: ofreció `use_curiosity` sobre A4, que no la lee.
+DEFAULT_CONFIG: dict[str, Any] = {
+    **A4_DEFAULT_CONFIG,
+    "use_curiosity": True,
+    "curiosity_scale": 1.0,
+    "curiosity_floor_decay": 0.01,
+}
 
 
 class A5Cybernetic(A4Advanced):
@@ -32,10 +46,12 @@ class A5Cybernetic(A4Advanced):
 
     def __init__(self, config: dict[str, Any] | None = None, generator=None):
         super().__init__(config=config, generator=generator)
-        self._use_curiosity: bool = bool(self.config.get("use_curiosity", True))
+        self._use_curiosity: bool = bool(
+            self.config.get("use_curiosity", DEFAULT_CONFIG["use_curiosity"]))
         self.curiosity = IntrinsicPredictionError(
-            scale=float(self.config.get("curiosity_scale", 1.0)),
-            floor_decay=float(self.config.get("curiosity_floor_decay", 0.01)),
+            scale=float(self.config.get("curiosity_scale", DEFAULT_CONFIG["curiosity_scale"])),
+            floor_decay=float(
+                self.config.get("curiosity_floor_decay", DEFAULT_CONFIG["curiosity_floor_decay"])),
         )
 
     def _policy_reward(self, consequence: Transition) -> float:

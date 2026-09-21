@@ -13,7 +13,8 @@ import pytest
 
 from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG
 from terrario.lab.agent_composition import (
-    CONCEPTS, CompositionError, catalogue, describe_selection, validate_selection,
+    AGENT_CONFIGS, CONCEPTS, CompositionError, catalogue, concepts_for,
+    config_for, describe_selection, validate_selection,
 )
 from terrario.lab.api import LabAPI
 
@@ -33,20 +34,63 @@ def _run(api, mix, steps=2, world="D2"):
 
 
 def test_every_offered_concept_is_a_key_the_agent_actually_reads():
-    # A catalogue that drifts from the code would offer switches that do
-    # nothing, which is exactly the confusion this is meant to end.
-    for concept in CONCEPTS:
-        assert concept.key in DEFAULT_CONFIG
-        assert concept.purpose and concept.without_it, concept.key
+    # Un catálogo que derive del código ofrecería interruptores que no hacen
+    # nada, que es exactamente la confusión que esto viene a terminar. Ahora se
+    # comprueba POR AGENTE, porque el linaje tiene más de uno: ofrecer
+    # `use_curiosity` --que es de A5-- sobre A4 fue precisamente el fallo.
+    for agent in AGENT_CONFIGS:
+        config = config_for(agent)
+        for concept in concepts_for(agent):
+            assert concept.key in config, (agent, concept.key)
+            assert concept.purpose and concept.without_it, concept.key
+
+
+def test_ningun_concepto_pertenece_a_un_agente_que_no_existe():
+    """Un concepto que ningún organismo lee no es ofrecible por nadie."""
+    ofrecidos = {c.key for agent in AGENT_CONFIGS for c in concepts_for(agent)}
+    assert {c.key for c in CONCEPTS} == ofrecidos
+
+
+def test_un_concepto_de_otro_organismo_se_rechaza_en_vez_de_ignorarse():
+    """La fixture negativa del defecto que esto repara.
+
+    `use_curiosity` la lee A5 y no A4. Aceptarla para A4 no cambiaba nada y no
+    avisaba -- el peor modo de fallo que puede tener una pantalla de
+    composición, y el que su propia cabecera declara.
+    """
+    with pytest.raises(CompositionError, match="use_curiosity"):
+        validate_selection({"use_curiosity": True}, "A4")
+    assert validate_selection({"use_curiosity": True}, "A5") == {"use_curiosity": True}
+
+
+def test_un_agente_sin_conceptos_no_acepta_ninguno():
+    """A0 no lee ninguna clave; ofrecerle una es un error, no un no-op."""
+    assert concepts_for("A0_RANDOM") == ()
+    with pytest.raises(CompositionError, match="use_planner"):
+        validate_selection({"use_planner": False}, "A0_RANDOM")
+
+
+def test_un_agente_desconocido_falla_cerrado():
+    with pytest.raises(CompositionError, match="unknown agent"):
+        catalogue("A9_INVENTADO")
 
 
 def test_the_catalogue_carries_what_a_person_needs_to_choose():
-    body = catalogue()
-    assert len(body["concepts"]) == len(CONCEPTS)
+    body = catalogue("A4")
+    assert body["agent"] == "A4"
+    assert len(body["concepts"]) == len(concepts_for("A4"))
     for entry in body["concepts"]:
         # Not just an identifier: a label, what it is for, and what is lost.
         assert entry["label"] and entry["purpose"] and entry["without_it"]
         assert entry["default"] == bool(DEFAULT_CONFIG[entry["key"]])
+
+
+def test_el_catalogo_de_A5_es_el_de_A4_mas_su_adquisicion():
+    """A5 es A4 más una cosa, y su catálogo lo dice igual."""
+    a4 = {c["key"] for c in catalogue("A4")["concepts"]}
+    a5 = {c["key"] for c in catalogue("A5")["concepts"]}
+    assert a5 - a4 == {"use_curiosity"}
+    assert a4 - a5 == set()
 
 
 def test_a_chosen_mix_reaches_the_running_organism(tmp_path):

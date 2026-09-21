@@ -1910,18 +1910,27 @@ métricas, tests) requiere leer `lab/evidence_publication.py` y las fixtures de 
 vez de descartarla en silencio. Tres familias de clave:
 
 ```
-_KEYS          los 11 use_*      deben ser bool     ⚠ eran 10
-_TUNING_KEYS   2 numéricos       validados contra [minimum, maximum]
-_CHOICE_KEYS   addressing_mode   validado contra dominio enumerado
+_KEYS          11 use_* en el linaje   ·  10 los lee A4, 11 los lee A5
+_TUNING_KEYS   2 numéricos             validados contra [minimum, maximum]
+_CHOICE_KEYS   addressing_mode         validado contra dominio enumerado
 ```
 
-⚠ **Corrección.** Medido hoy: `_KEYS` tiene **11**, no 10
-([agent_composition.py:146](terrario/lab/agent_composition.py:146)). El
-undécimo es `use_curiosity`, y **no es una entrada más**: A4 no lo lee —es de
-A5—, así que `validate_selection` lo **acepta** y lo pasa a un organismo que lo
-ignora, y `catalogue()` levanta `KeyError`. La descripción «fail-closed» de
-esta sección sigue siendo cierta para las claves desconocidas y **falsa para
-ésta**, que es conocida y no debería estar. Ver §XXXIX.
+⚠ **Corregido en el código, no sólo en el mapa (2026-09-21).** Esta sección
+decía «los 10 `use_*`» y al reverificarla resultaron 11, porque `use_curiosity`
+—que es de A5— se ofrecía sobre A4, que no la lee: `catalogue()` levantaba
+`KeyError` y `validate_selection` la aceptaba en silencio.
+
+**El catálogo es ahora por agente y se DERIVA de la configuración que cada
+organismo lee** ([agent_composition.py:146](terrario/lab/agent_composition.py:146)):
+
+```
+concepts_for("A4")          10 conceptos      concepts_for("A5")   11
+concepts_for("A0_RANDOM")    0                 un agente desconocido → falla cerrado
+validate_selection(…, "A4") rechaza use_curiosity nombrando a su dueño
+```
+
+La deriva no puede repetirse porque ya no hay una lista que mantener: un
+concepto se ofrece si y sólo si esa configuración contiene su clave.
 
 [546] **Las ablaciones NO eliminan módulos: los dejan construidos y cortan su ruta.**
 [547] Los downstream reciben **ceros** de la misma dimensión.
@@ -2185,7 +2194,7 @@ ensemble, que no está calibrada y cuyo «alto» no tiene significado numérico 
 [618] `prediction_error = |energy_pred − energy_delta|`, calculado en `learn` bajo `no_grad`.
 ⚠ **Corrección 3 de 3**: «registrado, nunca consumido» es cierto **en A4** y
 falso en A5 desde `fd725e3`, donde lo consume `_policy_reward`
-([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)). Ver §XXVII,
+([a5_cybernetic.py:68](terrario/agent/agents/a5_cybernetic.py:68)). Ver §XXVII,
 misma corrección.
 [619] **No hay actualización bayesiana** de ningún tipo.
 [620] **No hay MDL** en `terrario/agent/`.
@@ -2334,7 +2343,7 @@ paso, **las ~200 primeras entradas se sobrescriben** —un 17 %—. No es
 
 > ⚠ **Corrección 1 de 4.** La fila decía «read: nadie · efecto: no», y es falsa
 > desde `fd725e3`: `A5Cybernetic._policy_reward`
-> ([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)) lo lee y lo
+> ([a5_cybernetic.py:68](terrario/agent/agents/a5_cybernetic.py:68)) lo lee y lo
 > suma a la recompensa — la superficie causal entera de CURIO-A1. Para A4 la
 > fila original sigue siendo cierta; lo que cambió es que el linaje tiene dos
 > organismos y la tabla describía uno.
@@ -3881,7 +3890,7 @@ cabecera declara el peor posible, ocurriendo en el módulo que lo declara.
 **La causa no es un descuido de tipeo, es una categoría.** `fd725e3` construyó
 la curiosidad como **A5**, un descendiente, no como un interruptor de A4: «A5 is
 A4's descendant, not A4 with a flag… turn `use_curiosity` off and A5 is A4». La
-clave la lee [a5_cybernetic.py:35](terrario/agent/agents/a5_cybernetic.py:35).
+clave la lee [a5_cybernetic.py:49](terrario/agent/agents/a5_cybernetic.py:49).
 El catálogo modela **un** organismo y el linaje ya tiene **dos**.
 
 Las dos salidas no son equivalentes y ninguna es una reparación mecánica:
@@ -3894,6 +3903,25 @@ Las dos salidas no son equivalentes y ninguna es una reparación mecánica:
 
 Es una decisión de modelo, no un arreglo, y por eso queda declarada aquí en vez
 de tomada.
+
+> **Tomada y reparada el 2026-09-21**, por la primera vía: el catálogo es por
+> agente. El hallazgo de arriba se conserva tal cual —es lo que se midió— y
+> esto es lo que se hizo con él:
+>
+> * `A5` declara su propia `DEFAULT_CONFIG`, que es la de A4 más las tres
+>   claves de CURIO-A1, y su `__init__` lee de ella en vez de repetir los
+>   valores por defecto en tres `.get`.
+> * `concepts_for(agente)` **deriva** el catálogo de la configuración que ese
+>   organismo lee, así que la lista no se mantiene a mano y la deriva no puede
+>   volver.
+> * `validate_selection(selección, agente)` rechaza una clave **conocida pero
+>   ajena**, nombrando a su dueño, en vez de aceptarla y no hacer nada.
+> * `GET /api/agent-concepts?agent=…` sirve el linaje entero: A4 diez
+>   conceptos, A5 once, A0 cero.
+> * Y el radio del defecto: `scripts/screen_concepts.py` armaba sus mezclas con
+>   **todos** los conceptos, así que desde `fd725e3` venía tamizando un
+>   interruptor que A4 ignora —una condición que no cambiaba nada y consumía
+>   celdas de campaña—. Ahora toma los de A4.
 
 ## 39.2 · Estado científico de las capacidades · calculado, no declarado
 
@@ -4362,7 +4390,7 @@ heredan de A4 ni entre sí, sólo de `AgentInterface`. A5 sí hereda: es
 
 **A5 es la intervención causal más limpia del repositorio, y por construcción.**
 Toda la superficie causal de la capacidad cabe en
-[a5_cybernetic.py:41](terrario/agent/agents/a5_cybernetic.py:41):
+[a5_cybernetic.py:57](terrario/agent/agents/a5_cybernetic.py:57):
 
 ```python
 extrinsic = super()._policy_reward(consequence)      # = energy_delta
@@ -4898,7 +4926,7 @@ La tabla `write → storage → read → efecto` de §XXVII declara:
 | `prediction_error` | `learn` | `last_prediction_error` | **nadie** | **no** |
 
 **Falso desde `fd725e3`.** `A5Cybernetic._policy_reward`
-([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)) lo lee y lo
+([a5_cybernetic.py:68](terrario/agent/agents/a5_cybernetic.py:68)) lo lee y lo
 suma a la recompensa — el valor lo escribe `learn()`
 ([a4_advanced.py:615](terrario/agent/agents/a4_advanced.py:615)) para ESE paso,
 antes de llegar ahí—. Es la superficie causal entera de CURIO-A1. La fila

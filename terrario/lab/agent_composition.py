@@ -24,7 +24,28 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from terrario.agent.agents.a4_advanced import DEFAULT_CONFIG
+from terrario.agent.agents.a5_cybernetic import DEFAULT_CONFIG as A5_DEFAULT_CONFIG
 from terrario.core.action_contract import IMPLEMENTED_MODES
+
+#: Qué lee cada organismo del linaje. **El catálogo se deriva de aquí**, no de
+#: una lista escrita a mano: un concepto se ofrece para un agente si y sólo si
+#: ese agente lee su clave. Cuando no era así, `use_curiosity` --que es de A5--
+#: se ofrecía sobre A4, `catalogue()` levantaba `KeyError` y
+#: `validate_selection` la aceptaba para un organismo que la ignora. Derivarlo
+#: hace estructural lo que antes era disciplina.
+#: Claves canónicas, no alias: la tabla de alias es de la factoría y no se
+#: duplica aquí --dos tablas de nombres derivan, y ya sabemos cómo acaba eso--.
+#: A0…A3 no leen ninguna clave `use_*`; su entrada vacía no es un hueco por
+#: rellenar, es la afirmación de que no componen nada.
+AGENT_CONFIGS: dict[str, Mapping[str, Any]] = {
+    "A0_RANDOM": {},
+    "A1_REACTIVE": {},
+    "A2_GRU": {},
+    "A3_WORLD_MODEL": {},
+    "A4_ADVANCED": DEFAULT_CONFIG,
+    "A5_CYBERNETIC": A5_DEFAULT_CONFIG,
+}
+DEFAULT_AGENT = "A4"
 
 CATALOGUE_SCHEMA = "terrario.lab.agent-composition/v1"
 
@@ -37,6 +58,10 @@ class Concept:
     without_it: str
     block: str
     corpus_block: int
+    #: El organismo que INTRODUCE el concepto. No es quién puede usarlo: un
+    #: descendiente hereda los módulos de su ancestro, y eso se resuelve
+    #: mirando su configuración, no esta etiqueta.
+    agent: str = "A4"
 
 
 class CompositionError(ValueError):
@@ -70,7 +95,7 @@ CONCEPTS: tuple[Concept, ...] = (
     Concept("use_curiosity", "Curiosidad",
             "Convierte el error de su propia predicción en motivo para actuar.",
             "Sólo se mueve si algo externo le paga; sin pago externo, no tiene hacia dónde.",
-            "exploración", 28),
+            "exploración", 28, agent="A5"),
     Concept("use_planner", "Planificación",
             "Imagina varias secuencias de acciones y compara sus consecuencias antes de moverse.",
             "Actúa paso a paso, sin anticipar la secuencia.",
@@ -121,14 +146,42 @@ _KEYS = {c.key for c in CONCEPTS}
 _TUNING_KEYS = {t["key"] for t in TUNINGS}
 
 
-def catalogue() -> Mapping[str, Any]:
+def config_for(agent: str) -> Mapping[str, Any]:
+    """La configuración que ese organismo lee, resolviendo alias por la factoría.
+
+    Fail-closed ante un agente desconocido: si la factoría no sabe construirlo,
+    esto no puede decir qué lee.
+    """
+    from terrario.agent.agents import _AGENT_IDS
+    canonical = _AGENT_IDS.get(agent)
+    if canonical is None or canonical not in AGENT_CONFIGS:
+        raise CompositionError(
+            f"unknown agent {agent!r}; known: {sorted(AGENT_CONFIGS)}")
+    return AGENT_CONFIGS[canonical]
+
+
+def concepts_for(agent: str = DEFAULT_AGENT) -> tuple[Concept, ...]:
+    """Los conceptos que ESE organismo lee de verdad.
+
+    Derivado de su configuración, no de una lista: si un concepto deja de
+    existir en el agente deja de ofrecerse, y uno que pertenece a otro agente
+    no puede colarse.
+    """
+    config = config_for(agent)
+    return tuple(c for c in CONCEPTS if c.key in config)
+
+
+def catalogue(agent: str = DEFAULT_AGENT) -> Mapping[str, Any]:
     """Everything a screen needs to offer the choice, defaults included."""
+    config = config_for(agent)
+    offered = concepts_for(agent)
     return {
         "schema_version": CATALOGUE_SCHEMA,
-        "concepts": tuple({**c.__dict__, "default": bool(DEFAULT_CONFIG[c.key])} for c in CONCEPTS),
+        "agent": agent,
+        "concepts": tuple({**c.__dict__, "default": bool(config[c.key])} for c in offered),
         "tunings": TUNINGS,
-        "note": ("Cada concepto es un módulo que existe en el agente A4. Que exista no demuestra "
-                 "que haga lo que su nombre dice: para eso están los experimentos."),
+        "note": (f"Cada concepto es un módulo que existe en el agente {agent}. Que exista no "
+                 "demuestra que haga lo que su nombre dice: para eso están los experimentos."),
     }
 
 
@@ -143,13 +196,26 @@ CHOICES: dict[str, tuple[str, ...]] = {
 _CHOICE_KEYS = frozenset(CHOICES)
 
 
-def validate_selection(selection: Mapping[str, Any] | None) -> Mapping[str, Any]:
-    """Refuse an unknown or ill-typed key instead of silently dropping it."""
+def validate_selection(selection: Mapping[str, Any] | None,
+                       agent: str = DEFAULT_AGENT) -> Mapping[str, Any]:
+    """Refuse an unknown or ill-typed key instead of silently dropping it.
+
+    Y también una que es conocida pero **de otro organismo**. Aceptar
+    `use_curiosity` para A4 no cambiaba nada y no avisaba, que es precisamente
+    el peor modo de fallo que esta pantalla puede tener.
+    """
     if not selection:
         return {}
+    config = config_for(agent)
     unknown = sorted(set(selection) - _KEYS - _TUNING_KEYS - _CHOICE_KEYS)
     if unknown:
         raise CompositionError(f"unknown agent concept keys: {unknown}")
+    ajenas = sorted(k for k in selection if k in _KEYS and k not in config)
+    if ajenas:
+        duenos = {k: next(c.agent for c in CONCEPTS if c.key == k) for k in ajenas}
+        raise CompositionError(
+            f"{agent} no lee {ajenas}; pertenecen a "
+            f"{sorted(set(duenos.values()))}")
     clean: dict[str, Any] = {}
     for key, value in selection.items():
         if key in _CHOICE_KEYS:
@@ -171,11 +237,14 @@ def validate_selection(selection: Mapping[str, Any] | None) -> Mapping[str, Any]
     return clean
 
 
-def describe_selection(selection: Mapping[str, Any]) -> tuple[str, ...]:
+def describe_selection(selection: Mapping[str, Any],
+                       agent: str = DEFAULT_AGENT) -> tuple[str, ...]:
     """A plain-language summary of a mix, for the screen and for the trace."""
-    resolved = {**{c.key: bool(DEFAULT_CONFIG[c.key]) for c in CONCEPTS}, **dict(selection)}
-    on = [c.label for c in CONCEPTS if resolved.get(c.key)]
-    off = [c.label for c in CONCEPTS if not resolved.get(c.key)]
+    config = config_for(agent)
+    offered = concepts_for(agent)
+    resolved = {**{c.key: bool(config[c.key]) for c in offered}, **dict(selection)}
+    on = [c.label for c in offered if resolved.get(c.key)]
+    off = [c.label for c in offered if not resolved.get(c.key)]
     lines = [f"Con: {', '.join(on) if on else 'nada'}"]
     if off:
         lines.append(f"Sin: {', '.join(off)}")

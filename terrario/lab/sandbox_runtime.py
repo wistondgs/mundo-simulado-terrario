@@ -49,7 +49,7 @@ class SandboxExecutionSpec:
     agent_configuration:Mapping[str,Any]=MappingProxyType({})
     def __post_init__(self):
         if self.classification!=ExecutionClassification.ENGINEERING_SANDBOX: raise SandboxBoundaryError("sandbox accepts ENGINEERING_SANDBOX only")
-        object.__setattr__(self,"agent_configuration",MappingProxyType(validate_selection(self.agent_configuration)))
+        object.__setattr__(self,"agent_configuration",MappingProxyType(validate_selection(self.agent_configuration,self.agent_reference)))
         if self.device!="cpu": raise SandboxValidationError("LAB-UI-02B sandbox is CPU-only")
         if not 1<=self.step_limit<=MAX_STEPS: raise SandboxValidationError(f"step_limit must be 1..{MAX_STEPS}")
         object.__setattr__(self,"provenance",MappingProxyType(dict(self.provenance)))

@@ -16,7 +16,7 @@ worth one thing in D0 and another in D4T.  That is the finding, not the noise.
 
 Nothing here is evidence.  Every run is ENGINEERING_SANDBOX, the firewall
 refuses to publish it, and the report says so in its own body.  What it is for
-is deciding which of the 2^8 mixes deserve a preregistered experiment.
+is deciding which of the 2^10 mixes deserve a preregistered experiment.
 
 RESUMABLE BY DESIGN.  A campaign runs for hours and the power does go out, so
 every finished run is appended to a JSONL as it completes and a restart skips
@@ -43,7 +43,7 @@ from dataclasses import replace
 
 import torch
 
-from terrario.lab.agent_composition import CONCEPTS, validate_selection
+from terrario.lab.agent_composition import concepts_for, validate_selection
 from terrario.lab.models import thaw
 from terrario.lab.run_measures import measure_run
 from terrario.lab.sandbox_runtime import (
@@ -56,9 +56,11 @@ SCHEMA = "terrario.lab.concept-screening/v1"
 CLASSIFICATION = "ENGINEERING_SANDBOX_NOT_EVIDENCE"
 
 
-#: Conjunctions the CORPUS declares, not combinations we picked.  2^9 = 512
-#: mixes per world is both unaffordable and unprincipled; choosing at random is
-#: no better.  HYPERCAND-08 (LeCun) states a joint architecture and the corpus
+#: Conjunctions the CORPUS declares, not combinations we picked.  With the ten
+#: concepts A4 reads today that would be 2^10 = 1024 mixes per world, which is
+#: both unaffordable and unprincipled; choosing at random is no better.  The
+#: exponent has drifted twice already, so it is stated as what it depends on
+#: rather than as a constant.  HYPERCAND-08 (LeCun) states a joint architecture and the corpus
 #: records its own discriminating test as "component ablation with
 #: out-of-distribution control", with necessity explicitly NOT established.
 #: That turns "thousands of combinations" into a question with an author.
@@ -299,7 +301,11 @@ def main():
                              "de validación antes de comprometer la campaña entera")
     args = parser.parse_args()
 
-    keys = [c.key for c in CONCEPTS]
+    # Los conceptos DE A4, que es el organismo que este banco construye
+    # (`agent_reference="A4"` unas líneas más arriba). Tomarlos de `CONCEPTS`
+    # entero metía en el tamizado `use_curiosity`, que es de A5 y que A4 no
+    # lee: una condición que no cambiaba nada y consumía celdas de campaña.
+    keys = [c.key for c in concepts_for("A4")]
     conjunciones = ()
     if args.conjunctions:
         conjunciones = tuple(CONJUNCTIONS) if args.conjunctions == "todas" else tuple(
