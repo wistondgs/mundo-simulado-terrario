@@ -1,0 +1,62 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO \u00b7 NO DEMUESTRA C18",
+  "semillas": "150000011-150000026",
+  "base": "6cf55a4",
+  "metodo": "creencia sobre celdas compatibles calculada EXACTA; sin sesgo de estimador"
+ },
+ "techo_aliasing_nats": {
+  "bajo_p_ref_16_semillas": 0.3427,
+  "linea_base_de_esta_medicion_10_semillas": 0.3156,
+  "nota": "discrepancia por ponderacion y muestra; los % se dan contra 0.3427"
+ },
+ "G_hist_por_profundidad": {
+  "0": {
+   "H": 0.3156,
+   "G": 0.0,
+   "pct_techo": 0.0
+  },
+  "1": {
+   "H": 0.1689,
+   "G": 0.1468,
+   "pct_techo": 42.8
+  },
+  "2": {
+   "H": 0.0737,
+   "G": 0.242,
+   "pct_techo": 70.6
+  },
+  "4": {
+   "H": 0.0196,
+   "G": 0.2961,
+   "pct_techo": 86.4
+  },
+  "8": {
+   "H": 0.0028,
+   "G": 0.3129,
+   "pct_techo": 91.3
+  },
+  "16": {
+   "H": 0.0002,
+   "G": 0.3154,
+   "pct_techo": 92.0
+  }
+ },
+ "clases_predictivas": {
+  "celdas_por_observacion": 1.7,
+  "clases_por_observacion": 1.7,
+  "lectura": "no hay compresion: cada celda aliasada debe distinguirse"
+ },
+ "tratabilidad": {
+  "contextos_crudos_L8": 4500000000000000.0,
+  "creencias_realmente_vistas": {
+   "L1": 17.5,
+   "L2": 25.7,
+   "L4": 26.6,
+   "L8": 23.8
+  },
+  "celdas_del_mundo": 17.3,
+  "lectura": "la informacion de L=8 vive en ~24 creencias, no en 10^15 contextos"
+ },
+ "veredicto": "CASO C \u00b7 la historia contiene la informacion y ningun contexto fijo trivial basta; la adquisicion seria encontrar la particion"
+}

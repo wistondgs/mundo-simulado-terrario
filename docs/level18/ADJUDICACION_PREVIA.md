@@ -378,3 +378,108 @@ Con dos avisos:
 ```
 
 **No lo propongo como 1.8.** Lo dejo formulado y medido para que lo adjudiques.
+
+---
+
+# 11 · La pregunta decisiva · `G_hist > 0`
+
+`¿La historia sensoriomotora accesible contiene la información que O_t confunde?`
+
+Medida **exacta**, no estimada: la creencia sobre celdas compatibles con una
+historia se calcula, así que no hay sesgo de estimador de entropía con contextos
+profundos — que es donde este tipo de medición suele mentir.
+
+```
+   L    H(O'|H^L,O,A)    G_hist    % del techo 0.3427
+   0         0.3156      0.0000            0.0 %
+   1         0.1689      0.1468           42.8 %
+   2         0.0737      0.2420           70.6 %
+   4         0.0196      0.2961           86.4 %
+   8         0.0028      0.3129           91.3 %
+  16         0.0002      0.3154           92.0 %
+```
+
+**Declaración de discrepancia:** la línea base de esta medición es `0.3156` y no
+`0.3427`. La primera promedia sobre trayectoria con 10 semillas; la segunda pondera
+por `p_ref` con 16. Contra su **propia** base, `L = 16` recupera el **99.9 %**.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  CASO C · la historia contiene la información, y ningún contexto │
+│  fijo trivial basta: L=1 sólo llega al 42.8 %                    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## 11.1 · Tu corrección a mi formulación es correcta, y la medición la confirma
+
+Escribí que lo adquirido sería «cuántas situaciones esconde cada observación».
+Medido:
+
+```
+celdas por observación              1.70
+CLASES PREDICTIVAS por observación  1.70
+```
+
+**Son iguales: no hay compresión disponible.** Cada celda aliasada debe
+distinguirse; ninguna colapsa. Así que el número no basta —y además no informa
+nada— y lo adquirido tiene que ser lo que dijiste: **qué historias pertenecen a qué
+contexto predictivo.**
+
+## 11.2 · Y eso es adquisición, no una ventana más ancha
+
+Ésta es la prueba que separa las dos cosas:
+
+```
+contextos crudos posibles a L=8        4.5 · 10¹⁵      tabla INTRATABLE
+creencias que de hecho ocurren          ~24            celdas del mundo ~17
+razón                                   1.38
+```
+
+La información de `L = 8` **no vive en 10¹⁵ contextos: vive en unas veinticuatro
+creencias.** Ensanchar la ventana no es una solución —la tabla no se puede estimar
+con ningún presupuesto— y encontrar esa partición sí es contenido que depende del
+mundo y de la experiencia.
+
+## 11.3 · El control ciego que este nivel trae de nacimiento
+
+```
+retención fija de profundidad 1        42.8 % del techo     SUMINISTRADA, tratable
+partición adquirida (cota)             92.0 % del techo
+margen atribuible a la adquisición     ~49 puntos
+```
+
+`FIXED-DEPTH-1` es el equivalente del `STATIC-BITCOUNT` de 1.6, y es **mejor
+control que aquél**: allí el ciego quedaba a milésimas del aprendido; aquí se queda
+a la mitad.
+
+## 11.4 · Estado de la candidata
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  CANDIDATA IDENTIFICADA · NO ADJUDICADA                          │
+│  desambiguación predictiva adquirida                             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+Pasa los cuatro filtros que tumbaron a las anteriores:
+
+```
+¿readout de C17?           NO · C17 está definido sobre el espacio ya aliasado
+¿la regala la física?      NO · la partición hay que descubrirla
+¿hay información?          SÍ · G_hist llega al 92 % del techo
+¿es tratable?              SÍ · ~24 creencias, no 10¹⁵ contextos
+¿premio grande?            SÍ · 0.34 nats, del orden de TODA la adquisición de 1.6
+```
+
+Y una propiedad metodológica que conviene no perder: **puede estudiarse con S0
+intacto.** No hace falta cerrar todavía el bucle política→experiencia, así que la
+paridad de trayectoria del linaje sobrevive un decimal más y
+`CONTROL_CAUSAL_POLITICA_ENDOGENA.md` queda en reserva para cuando haga falta.
+
+```
+1.7        P(O'|O,A)
+candidata  P(O'|O,A,Z) con Z adquirido        misma vida para todos los brazos
+después    usar Z para controlar qué experiencia se consigue
+```
+
+**No la adjudico.** Está medida para que decidas.
