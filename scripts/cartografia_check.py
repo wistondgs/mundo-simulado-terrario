@@ -90,6 +90,43 @@ def referenced(body: str) -> set[str]:
     return {match.rstrip("/") for match in REFERENCE.findall(body)}
 
 
+#: `fichero:línea` dentro de un enlace markdown. El hash vigila el fichero; esto
+#: vigila la cita. Son fallos distintos: una línea puede pudrirse sin que el
+#: fichero cambie después de la última vez que se regeneró el manifiesto, y
+#: entonces la sección sigue verde apuntando a otra cosa. Ocurrió: §XIV citaba
+#: `a4_advanced.py:347` y `:352` para una asignación que está en la 358.
+CITATION = re.compile(r"\((terrario|tests|scripts|scenarios|configs|knowledge)/([\w./-]+):(\d+)\)")
+
+
+def rotten_citations() -> dict[str, list[str]]:
+    """Citas `fichero:línea` que no resuelven, por sección.
+
+    No comprueba que la línea diga lo que la prosa afirma --eso no es
+    decidible-- sino que exista y no esté en blanco. Una cita a una línea vacía
+    o fuera de rango es siempre un error, y es el modo en que una cita envejece
+    cuando el fichero crece por encima de ella.
+    """
+    text = CARTOGRAPHY.read_text(encoding="utf-8")
+    found: dict[str, list[str]] = {}
+    for title, body in sections(text).items():
+        bad: list[str] = []
+        for prefix, rest, number in CITATION.findall(body):
+            relative = f"{prefix}/{rest}"
+            path = PROJECT_ROOT / relative
+            if not path.is_file():
+                bad.append(f"{relative}:{number} — el fichero no existe")
+                continue
+            lines = path.read_text(encoding="utf-8").splitlines()
+            index = int(number)
+            if index < 1 or index > len(lines):
+                bad.append(f"{relative}:{number} — fuera de rango ({len(lines)} líneas)")
+            elif not lines[index - 1].strip():
+                bad.append(f"{relative}:{number} — línea en blanco")
+        if bad:
+            found[title] = sorted(set(bad))
+    return found
+
+
 def head() -> str:
     try:
         return subprocess.check_output(
@@ -176,12 +213,25 @@ def check(only: str | None, tarea: str | None = None) -> int:
         if reasons:
             stale[title] = reasons
 
+    podridas = {t: v for t, v in rotten_citations().items()
+                if not only or only.lower() in t.lower()}
+
     scope = f" (sección ~ {only!r})" if only else ""
-    if not stale:
+    if podridas:
+        print(f"CITAS ROTAS{scope} — {len(podridas)} sección(es):\n")
+        for title, reasons in podridas.items():
+            print(f"  {title}")
+            for reason in reasons:
+                print(f"      {reason}")
+            print()
+    if not stale and not podridas:
         vigilados = sum(len(f) for t, f in current.items()
                         if not only or only.lower() in t.lower())
         print(f"cartografía al día{scope}: {vigilados} ficheros vigilados")
         return 0
+    if not stale:
+        print("G1: los hashes están al día; lo que falla son las citas de línea.")
+        return 1
 
     print(f"CARTOGRAFÍA OBSOLETA{scope} — {len(stale)} sección(es):\n")
     for title, reasons in stale.items():

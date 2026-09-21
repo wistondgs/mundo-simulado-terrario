@@ -885,7 +885,7 @@ interno del planner pero su error nunca se reporta; `prediction_error` sólo se 
 
 ## 188-192 · El algoritmo real
 
-**Random shooting**, [policy.py:85](terrario/agent/policy.py:85):
+**Random shooting**, [policy.py:98](terrario/agent/policy.py:98):
 
 ```python
 for candidate in range(num_candidates):        # 10
@@ -1213,7 +1213,7 @@ exploration_bias   = 1 − energy                     DERIVADA
 ```
 
 > **Medido el 2026-09-18 (OCF-G1).** `_energy` tiene **dos escritores**: `perceive` lo asigna
-> desde `observation.agent_energy` ([a4_advanced.py:352](terrario/agent/agents/a4_advanced.py:352))
+> desde `observation.agent_energy` ([a4_advanced.py:358](terrario/agent/agents/a4_advanced.py:358))
 > y `learn` lo acumula con `update()` ([a4:577](terrario/agent/agents/a4_advanced.py:577)), 68 y 68
 > veces en una vida de 68 pasos. De 21 estados instrumentados es el **único** con autoridad
 > disputada. Queda deliberadamente sin reparar: es O1, no OCF-G3. `_threshold` no lo escribe nadie
@@ -1225,7 +1225,7 @@ funcionales** de la misma variable; ninguna aporta información que la otra no t
 ## 322-325 · Qué ve A4 de su propia energía
 
 `perceive` hace **asignación directa**: `self.homeostasis._energy = observation.agent_energy`
-([a4_advanced.py:347](terrario/agent/agents/a4_advanced.py:347)).
+([a4_advanced.py:358](terrario/agent/agents/a4_advanced.py:358)).
 
 **Consecuencia que conviene fijar:** `HomeostaticState.update(energy_delta)`, llamado en `learn`,
 acumula deltas en `_energy` — y `perceive` **lo sobrescribe** en el paso siguiente. Como el orden
@@ -1652,7 +1652,7 @@ retira**.
 
 ## 459-465 · Schema
 
-`SandboxTraceStep` ([sandbox_runtime.py:56](terrario/lab/sandbox_runtime.py:56)), dataclass
+`SandboxTraceStep` ([sandbox_runtime.py:58](terrario/lab/sandbox_runtime.py:58)), dataclass
 congelado:
 
 | Campo | Parte |
@@ -2668,12 +2668,12 @@ BEGIN SELECT RAISE(ABORT, 'artifact versions are append-only'); END;
 
 | # | Rotura | Dónde | Sev |
 |---|---|---|---|
-| 17 | **`assert_reportable` no lo llama nada en producción**; dos registros de métricas disjuntos | [instrument_registry.py:254](terrario/lab/instrument_registry.py:254) | 🔴 |
+| 17 | **`assert_reportable` no lo llama nada en producción**; dos registros de métricas disjuntos | [instrument_registry.py:255](terrario/lab/instrument_registry.py:255) | 🔴 |
 | 13 | `definition_version` es una **constante global** — la semántica de métrica no se versiona en el ledger; la comprobación de `evidence_publication` es tautológica | [service.py:675](terrario/lab/preregistration/service.py:675) | 🔴 |
 | 1 | `observation_contract_hash`, `action_contract_hash`, `interventions_hash` y `agent_identity_hashes` **hashean etiquetas literales**, no contenido | [service.py:592](terrario/lab/preregistration/service.py:592) | 🔴 |
 | 10 | `implementation_hash` hashea la **ruta del símbolo**; reescribir el evaluador no lo mueve | [service.py:675](terrario/lab/preregistration/service.py:675) | 🔴 |
 | 9 | `dirty_diff_hash` hashea `git status --porcelain` — **nombres, no contenido** | [service.py:752](terrario/lab/preregistration/service.py:752) | 🔴 |
-| 11 | `_git` devuelve `""` ante cualquier fallo → **árbol sucio declarado limpio** | [service.py:773](terrario/lab/preregistration/service.py:773) | 🔴 |
+| 11 | `_git` devuelve `""` ante cualquier fallo → **árbol sucio declarado limpio** | [service.py:786](terrario/lab/preregistration/service.py:786) | 🔴 |
 | 16 | **`NOT_EVALUABLE` no es publicable**: `denominator <= 0` es blocker. La ausencia de soporte desaparece del registro permanente | [evidence_publication.py:278](terrario/lab/evidence_publication.py:278) | 🟠 |
 | 15 | `run_measures.py` **no importa `measurement_status`**: colapsa MISSING, NOT_EVALUABLE e INVALID en `None` | `run_measures.py` | 🟠 |
 | 14 | `missing_data_behavior` **hardcodeado a `"ERROR"`** para toda métrica; la política real del instrumento nunca llega al ledger | [service.py:678](terrario/lab/preregistration/service.py:678) | 🟠 |
@@ -3496,6 +3496,11 @@ ni `.csv`. El corpus era, por construcción, invisible para el guardián del map
 podía crecer ×2,4 sin que ninguna sección quedara obsoleta. Corregido en esta
 misma pasada.
 
+**Ampliado de nuevo el 2026-09-21** (§XLII): el gate ya no vigila sólo hashes de
+fichero, también verifica cada cita `fichero:línea` del documento —inexistente,
+fuera de rango o en blanco—. El hash no podía ver que una cita se pudriera
+mientras el fichero registrado seguía igual, y cuatro lo habían hecho.
+
 ## 38.6 · Hipergrafo · sigue siendo estructura, no conocimiento
 
 Reverificado línea a línea; §32.4 se sostiene sin cambios:
@@ -3929,6 +3934,10 @@ aprendizaje`, y qué hereda, qué cambia y qué ejecuta cada organismo del linaj
 
 `terrario/agent/` son 3 403 líneas. Se leyeron enteras las que deciden conducta.
 
+**Solapa con §VI–§XIV y §XXVI, que ya cubrían este terreno y estaban vigentes
+por hash.** Esta lectura no las consultó antes, y por eso re-derivó el planner y
+se quedó corta en homeostasis; las correcciones están abajo, marcadas. Ver §XLII.
+
 ## 40.1 · El paso autoritativo · quién hace qué y en qué orden
 
 `run_step` ([world/transition.py:316](terrario/world/transition.py:316)) es el
@@ -4027,6 +4036,24 @@ pasos la acción viene de la política. `use_planner=True` no significa
 Que éste sea, medido, uno de los dos únicos módulos que mueven la conducta
 (+6,7 comidas) dice algo sobre el resto, no sobre la potencia del planner.
 
+> **Corregido contra §IX, que ya lo había medido y esta lectura no consultó.**
+> Dos cosas que §IX tiene y esta sección no tenía:
+>
+> 1. **Los dos efectos «significativos» del tamizado son la misma intervención
+>    medida dos veces.** La rama exige `use_planner ∧ use_world_model`, así que
+>    apagar el modelo del mundo **desactiva el planner**: 40/40 invocaciones con
+>    A4 completo, 0/40 con cualquiera de los dos apagados. «Modelo del mundo
+>    +6,33» y «planificador +6,67» son la misma ruta.
+> 2. **Cuando gana el planner, REINFORCE se actualiza fuera de política y lo
+>    trata como si fuera dentro.** `log_prob` es la de la política evaluada
+>    sobre la acción del planner, y `learn()` la recalcula sobre `_last_action`
+>    —la del planner— sin razón de importancia. El gradiente empuja a la
+>    política hacia una acción que la política no eligió.
+>
+> Y §IX cierra más fuerte que yo: con un modelo del mundo cuya salida es
+> constante, el planner **funciona como fuente de exploración, no como
+> planificador**. «No planifica» se queda corto.
+
 El despliegue además arrastra un supuesto que nadie ha comprobado: el modelo del
 mundo predice `next_state` de **640 dimensiones**, incluidos los contextos de
 memoria, que durante el rollout imaginario no se pueden actualizar. **K2: cuánto
@@ -4087,6 +4114,16 @@ localizar, y el propio comentario del código lo dice.
 Consecuencia que conviene tener escrita: la presión de viabilidad del organismo
 no elige **qué** hacer, sólo **cuánto** desordena la elección. Un organismo
 hambriento explora más; no busca comida.
+
+> **§XIV lo tenía, y más afilado.** No es sólo que `drive` no se consuma: es que
+> `update(energy_delta)` acumula en `_energy` y **`perceive` lo sobrescribe en
+> el paso siguiente**. Como el orden es `perceive → decide → learn`, el valor
+> acumulado **nunca se lee para decidir**: `update()` sirve únicamente para el
+> trace. Estado escrito y no leído.
+>
+> Y OCF-G1 lo midió: `_energy` tiene **dos escritores** —68 y 68 veces en una
+> vida de 68 pasos— y es el **único de 21 estados instrumentados con autoridad
+> disputada**. Queda sin reparar a propósito: es O1, no OCF-G3.
 
 ## 40.6 · El linaje · qué añade cada organismo
 
@@ -4163,9 +4200,13 @@ irreducible puede quedarse mirando la estática. Está dicho, no impedido. **K3.
 
 Lectura del 2026-09-21 sobre `1cf9b8f`. Cubre el punto 7 del contrato: mundos,
 runners, preregistro, lesiones, controles, métricas, gates, CAS, ledger y
-semillas. Las secciones §III, §IV, §V, §XVIII–§XXII contestaron preguntas sobre
-estas piezas el 17-09; esta sección **lee el mecanismo** y las corrige donde
-hace falta.
+semillas.
+
+**Corrección de procedimiento.** La versión original de este encabezado afirmaba
+qué contestaron §III, §IV, §V y §XVIII–§XXII sin haberlas leído. Lo que sí es
+verificable: las cuatro estaban **vigentes por hash** el día de esta lectura, y
+§XXI vigila **cero ficheros** —no cita ninguna ruta, así que el gate no puede
+validarla en absoluto—. Ver §XLII.
 
 ## 41.1 · Cuántas rutas pueden avanzar un timestep · y cuáles son la misma física
 
@@ -4378,3 +4419,70 @@ es. La única pieza que re-ejecuta para comparar es
    `SandboxService` y cuántas por `ExperimentController`. La distinción importa
    porque §XXI ya documentó que la semántica efectiva del sandbox no ejecuta
    `OpportunityLifecycle`.
+
+---
+
+# XLII · Reconciliación · el mapa como caché, y lo que costó no consultarla
+
+Escrita el 2026-09-21 a raíz de una pregunta que era, en efecto, de pura lógica:
+si la cartografía existe, ¿por qué un volumen nuevo vuelve a mapear lo que ya
+está mapeado?
+
+**La respuesta honesta: el Atlas 01 sí la usó; el 02 y el 03 no.**
+
+## 42.1 · Lo que se pagó dos veces
+
+Las secciones que solapan con el Atlas 02 —§VI a §XIV y §XXVI— estaban **todas
+vigentes por hash** el día de la lectura. No estaban obsoletas: estaban en
+caché, utilizables, y no se consultaron.
+
+El coste no fue sólo repetir trabajo. Fue **quedarse corto**:
+
+| Ya estaba en el mapa | Qué añadía sobre lo que el Atlas 02 escribió |
+|---|---|
+| §IX · Planner | `use_world_model=False` **desactiva el planner** (40/40 → 0/40 invocaciones). Los dos efectos «significativos» del tamizado son la misma intervención medida dos veces. |
+| §IX · Planner | Cuando gana el planner, REINFORCE usa `log π(a_planner)`: **actualización fuera de política tratada como dentro**. |
+| §IX · Planner | Con un modelo del mundo de salida constante, el planner es **fuente de exploración**, no planificador. Más fuerte que «no planifica». |
+| §XIV · Homeostasis | `update()` acumula y `perceive` **sobrescribe**: el valor acumulado nunca se lee para decidir. No es que `drive` no se consuma — es que la acumulación entera es sólo traza. |
+| §XIV · Homeostasis | OCF-G1: `_energy` es el **único de 21 estados instrumentados con autoridad disputada**, con dos escritores a 68 y 68 en una vida de 68 pasos. |
+
+Las cinco están ahora importadas en §XL, marcadas como corrección, en vez de
+quedar como un segundo relato paralelo — que es exactamente el defecto que §XXXIX
+reportó del inventario de gates y que esta serie estuvo a punto de repetir a
+nivel de documento.
+
+## 42.2 · El defecto del gate que esto destapó
+
+**El hash vigila el fichero; no vigila la cita.**
+
+§XIV citaba `a4_advanced.py:347` y `:352` para una asignación que hoy está en la
+**358** —las líneas 347 y 352 son un `device = …` y un separador de comentario—,
+y el manifiesto registraba **el mismo hash** que el fichero tiene ahora. Es
+decir: la sección estaba **verde** apuntando a otra cosa.
+
+Cómo pasa: `--write` se ejecutó después de que el fichero cambiara, sin
+reescribir la prosa. El hash prueba que el fichero es el mismo que cuando se
+**registró**, no que cuando se **escribió el texto**.
+
+**Reparado.** `cartografia_check.py` ahora verifica cada `fichero:línea` del
+documento: fichero inexistente, línea fuera de rango o línea en blanco. Encontró
+**cuatro citas podridas** en su primera pasada, en §IX, §XIX y §XXXI —todas
+símbolos que se desplazaron hacia abajo—, más las dos de §XIV halladas leyendo.
+Las seis están corregidas.
+
+Lo que el comprobador **no** puede decidir, y queda dicho: que la línea diga lo
+que la prosa afirma. Una cita a una línea que existe y no está en blanco pero
+apunta al símbolo equivocado sigue pasando. Eso sólo lo caza leer.
+
+Y un hueco que la pasada destapó: **§XXI vigila cero ficheros**. No cita ninguna
+ruta, así que el gate no puede invalidarla nunca: está permanentemente al día
+por construcción. **K2: cuántas secciones más están en esa situación.**
+
+## 42.3 · La regla, para que no vuelva a pasar
+
+> Antes de abrir un volumen: correr el gate sobre las secciones que solapan,
+> **leerlas**, y leer código sólo donde el mapa calle o esté obsoleto.
+
+La cartografía es una caché invalidable. No consultarla no es una pérdida de
+tiempo simétrica: se paga en trabajo repetido **y** en hallazgos que ya estaban
+y no se recogen. El Atlas 02 habría sido mejor volumen en menos tiempo.

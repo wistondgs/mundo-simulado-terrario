@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "1cf9b8f",
+  "head": "d6cb86c",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -229,7 +229,7 @@
         "docs/handoff/HEA_CLAIMS_EXTRAIDOS_v1.csv": "32a364df227a166989f36d619af057189f0057594e48afd74afdf64caa4ef42a",
         "docs/handoff/HEA_CONCEPTOS_EXTRAIDOS_v1.csv": "a4499716cec0b2d7354c93953db32007560cc19bea9a2140073eb2c2387f8c72",
         "docs/handoff/HEA_CONCEPTOS_SIN_DEFINICION_v1.csv": "32dcf704a3394401c86235b705651dd9c64c405298ac7a8ceb30362364cd380d",
-        "scripts/cartografia_check.py": "4c3faa3b7b47b7db1ec4a1aba4007513d6b985f2f9c5bbcbc5c188b0120e1497",
+        "scripts/cartografia_check.py": "1443b91f2cdba0eed8305568fcb11b700538ebabbe7810389107f99dfdf5c93f",
         "scripts/cartografia_hook.py": "536998b606b05b380651f871b0e6ea501648ae548112cd3c6e4863a36c1968dc",
         "scripts/experiment_capability_acquisition.py": "8ea633c806b9a345133c2e5ff3b8983a332c556bd1133b4d1531387209c98ecf",
         "scripts/experiment_t0_vs_t1.py": "61b4ad525dd301771e906c4f286bf3b4b34ca789cc9def7ed465fc3b875ddb9a",
