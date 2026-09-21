@@ -315,3 +315,96 @@ def test_A_seguir_el_estado_tiene_que_COMPRAR_verosimilitud():
     assert recorriendo < clavado, (
         f"recorrer el estado no compró nada: {recorriendo:.6f} vs {clavado:.6f}; "
         "el scoring no se está moviendo")
+
+
+# ===========================================================================
+# Enmienda 06 · el re-split extiende la misma hipótesis
+# ===========================================================================
+
+from terrario.level16.temporal import OBSERVATION_INDEX         # noqa: E402
+from terrario.level18.life import ObservedModel, live          # noqa: E402
+from terrario.level18.predictive_state import ROOT as _ROOT    # noqa: E402
+
+
+def _con_resplits(pasos=600, semilla=7):
+    """Una vida sintética que SÍ ejercita el re-split, con el favor vigilado."""
+    registro = []
+
+    class Vigilada(ObservedModel):
+        def _refine(self, state):
+            abierto = bool(self._children.get(state))
+            antes = float(self._favour.get(state, 0.0)) if abierto else None
+            super()._refine(state)
+            if abierto:
+                registro.append((antes, float(self._favour[state])))
+
+    # El espacio COMPLETO de observaciones: `OBSERVACIONES` del módulo tiene
+    # cuatro, y con cuatro el mecanismo no llega a re-separar nunca.
+    espacio = list(OBSERVATION_INDEX)
+    modelo = Vigilada(np.full((16, 4, 16), 4.0))
+    modelo.begin()
+    generador = np.random.default_rng(semilla)
+    for _ in range(pasos):
+        indice = int(generador.integers(4))
+        modelo.observe(espacio[0], EfferenceCopy(ALL_COMMANDS[indice]),
+                       espacio[int(generador.integers(len(espacio)))])
+    return modelo, registro
+
+
+def _huerfanos(modelo):
+    reconocidos = set()
+    for hijos in modelo._children.values():
+        reconocidos.update(hijos)
+    return sorted(set(modelo.states()) - {_ROOT} - reconocidos)
+
+
+def test_R1_un_resplit_NO_reinicia_la_evidencia_acumulada():
+    """Enmienda 06 §3 · `RE-SPLIT ≠ RESET DE EVIDENCIA`.
+
+    La implementación defectuosa hacía `favour[state] = balance_nuevo`, tirando
+    un favor acumulado de hasta 243,5. Eso hace la distinción artificialmente
+    fácil de refutar después, y no es lo que la Enmienda 02 §3.2 selló.
+    """
+    _modelo, registro = _con_resplits()
+    assert registro, "ningún re-split: la fixture no aplica"
+    perdidos = [(a, d) for a, d in registro if d < a]
+    assert not perdidos, (
+        f"{len(perdidos)} re-splits redujeron el favor acumulado: {perdidos[:3]}")
+
+
+def test_R2_un_resplit_no_deja_hijos_huerfanos():
+    """§3.3 exige que colapsar deje algo equivalente a no haber separado. Un
+    hijo al que ningún padre reconoce no está en `_descendants` de nadie y merge
+    no puede retirarlo jamás."""
+    modelo, registro = _con_resplits()
+    assert registro, "ningún re-split: la fixture no aplica"
+    assert _huerfanos(modelo) == [], (
+        f"{len(_huerfanos(modelo))} estados vivos sin padre que los reconozca")
+
+
+def test_R3_los_episodios_siguen_distinguiendose_pese_al_reciclado_de_ids():
+    """`born = max(prior) + 1` recicla identificadores tras un colapso. La
+    identidad de una hipótesis no puede ser el entero del estado."""
+    modelo, _registro = _con_resplits()
+    diario = modelo.episode_ledger()
+    assert diario, "sin episodios: la fixture no aplica"
+    identificadores = [e["episode_id"] for e in diario]
+    assert len(set(identificadores)) == len(identificadores)
+    assert identificadores == sorted(identificadores), "el id no es monotónico"
+    reciclados = [e["state_id"] for e in diario]
+    assert len(set(reciclados)) < len(reciclados), (
+        "ningún id de estado se reutilizó: el test no prueba lo que dice")
+
+
+def test_R4_una_vida_SIN_resplit_queda_bit_a_bit_igual():
+    """Localización de la corrección: lo que nunca ejercitó el defecto no puede
+    moverse. Huellas capturadas ANTES de reparar."""
+    for semilla, presupuesto, esperado in (
+            (150000013, 1024, (0.9395220965165965, 1, 3, 3)),
+            (150000013, 4096, (0.7341277082264245, 1, 4, 4)),
+            (150000015, 1024, (0.7442049045751042, 8, 7, 5)),
+            (150000015, 4096, (0.5607741578596269, 8, 7, 5)),
+            (150000017, 1024, (0.6544258727594676, 7, 10, 8))):
+        fila = live(semilla, presupuesto)
+        assert (fila["l_full"], fila["states"], fila["splits"],
+                fila["merges"]) == esperado, f"{semilla}:{presupuesto} se movió"

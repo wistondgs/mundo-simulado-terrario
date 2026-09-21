@@ -335,13 +335,29 @@ class PredictiveStateModel:
             for following in range(16):
                 self._routing[(signature[0], signature[1], following)] = born
 
-        # --- contabilidad de la Enmienda 02. NO cambia criterio, momento ni prior.
-        self._children[state] = list(born_here)
-        self._favour[state] = self._code[state][0] - self._code[state][1]
-        self._shadow[state] = self._evidence[state].copy()
-        self._collapsed_prior[state] = parent.copy()
-        self._episodes.append({"parent": state, "children": list(born_here),
-                               "merged": False})
+        # --- contabilidad de la Enmienda 02, desambiguada por la Enmienda 06.
+        # NO cambia criterio, momento, prior ni reparto de masa.
+        balance = self._code[state][0] - self._code[state][1]
+        if self._children.get(state):
+            # RE-SPLIT ≠ RESET DE EVIDENCIA. El refinamiento EXTIENDE la misma
+            # hipótesis abierta: los hijos nuevos se SUMAN --ninguno queda
+            # huérfano, y por tanto todos siguen siendo retirables por merge--,
+            # el favor ACUMULA, y la sombra y el prior colapsado pertenecen a esa
+            # hipótesis: `collapsed_prior` es el prior de no haber separado NUNCA
+            # y no cambia porque se separe otra vez.
+            self._children[state] = list(self._children[state]) + born_here
+            self._favour[state] += balance
+            for episode in reversed(self._episodes):
+                if episode["parent"] == state and not episode["merged"]:
+                    episode["children"] = list(episode["children"]) + born_here
+                    break
+        else:
+            self._children[state] = list(born_here)
+            self._favour[state] = balance
+            self._shadow[state] = self._evidence[state].copy()
+            self._collapsed_prior[state] = parent.copy()
+            self._episodes.append({"parent": state, "children": list(born_here),
+                                   "merged": False})
 
         self._prior[state] = parent * shares[-1]
         self._evidence[state] = np.zeros((16, 4, 16))

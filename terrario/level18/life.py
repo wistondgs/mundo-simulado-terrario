@@ -48,24 +48,54 @@ class ObservedModel(PredictiveStateModel):
         super().__init__(inherited_counts)
         self.favour_at_collapse: dict[int, list[float]] = {}
         self.undone: set[int] = set()
-        #: Episodios cuya contabilidad fue DESCARTADA por un re-split del mismo
-        #: estado antes de que se resolvieran. No son refutados ni fusionados:
-        #: no tienen estatus. Se cuentan y se reportan; no se esconden.
-        self.orphaned: set[int] = set()
+        self.orphaned: set[int] = set()     # con la Enmienda 06 debe quedar vacío
+        self._ledger: list[dict] = []
+        self._open: dict[int, int] = {}     # estado → episodio abierto
 
     def _refine(self, state: int) -> None:
-        if self._children.get(state):
-            for index, episode in enumerate(self._episodes):
-                if (episode["parent"] == state and index not in self.undone
-                        and index not in self.orphaned):
-                    self.orphaned.add(index)
+        extending = bool(self._children.get(state))
+        before = len(self._episodes)
         super()._refine(state)
+        if len(self._episodes) == before and not extending:
+            return                          # el criterio no llegó a separar
+        children = tuple(self._episodes[-1]["children"]) if self._episodes else ()
+        if extending and state in self._open:
+            record = self._ledger[self._open[state]]
+            record["children_created"] = children
+            record["extensions"] += 1
+            record["favour_after_last_extension"] = float(self._favour[state])
+        else:
+            self._open[state] = len(self._ledger)
+            self._ledger.append({
+                "episode_id": len(self._ledger),
+                "state_id": state,
+                "parent_episode": self._open.get(self._parent.get(state)),
+                "birth_t": self._updates,
+                "children_created": children,
+                "initial_favour": float(self._favour[state]),
+                "extensions": 0,
+                "favour_after_last_extension": None,
+                "accumulated_favour": None,
+                "collapse_t": None,
+                "status": "open",
+            })
+
+    def episode_ledger(self) -> list[dict]:
+        """Identidad ESTABLE de hipótesis. `born = max(prior)+1` recicla los ids
+        de estado tras un colapso, así que el entero del estado no puede ser la
+        identidad temporal de una hipótesis estructural."""
+        return [dict(r) for r in self._ledger]
 
     def _collapse(self, state: int) -> None:
         if self._descendants(state):
             # CABLE 1 · la evidencia: cuánto valía el marcador prequencial.
-            self.favour_at_collapse.setdefault(state, []).append(
-                float(self._favour.get(state, float("nan"))))
+            favour = float(self._favour.get(state, float("nan")))
+            self.favour_at_collapse.setdefault(state, []).append(favour)
+            if state in self._open:
+                record = self._ledger[self._open.pop(state)]
+                record["accumulated_favour"] = favour
+                record["collapse_t"] = self._updates
+                record["status"] = "merged"
             # CABLE 2 · la acción: qué episodio deja de existir. No se infiere de
             # los ids de los hijos, porque `born = max(prior) + 1` los RECICLA:
             # tras un colapso un split posterior reusa los mismos números y un
