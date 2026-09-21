@@ -27,6 +27,11 @@ import diagnostico.profundidad_uno as microscopio          # noqa: E402
 from terrario.level18.predictive_state import PredictiveStateModel  # noqa: E402
 
 REPLICAS = 32
+# El RNG de la nula NO usa el prefijo 18…: con dieciséis semillas, `180000000+k`
+# alcanzaría 180000011…180000015, que están RESERVADAS para el confirmatorio.
+# Nada del rango reservado debe aparecer en código de diagnóstico, ni siquiera
+# barajando: una auditoría posterior no puede distinguir un uso inocente.
+NULL_STREAM = 99000000
 
 
 def informacion(readout) -> float:
@@ -67,7 +72,7 @@ def main() -> None:
                 row = microscopio.run(seed, budget)
                 readout = row["readout"]
                 measured.append(informacion(readout))
-                mean, sd = nula(readout, REPLICAS, 180000000 + k)
+                mean, sd = nula(readout, REPLICAS, NULL_STREAM + k)
                 nulls.append(mean)
                 sds.append(sd)
                 sizes.append(len({z for _o, z, _c in readout}))
