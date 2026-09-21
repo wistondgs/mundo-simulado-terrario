@@ -78,8 +78,47 @@ EXECUTION_OUTCOMES = frozenset({
 })
 
 
+#: Lo que basta para afirmar que una familia no puede realizar un constructo.
+#: Tres caminos, no uno: si se puede demostrar formalmente por adelantado que
+#: `F(Z,A)` no distingue dos casos que sólo difieren en `O_{t+1}`, gastar una
+#: campaña para ganarse el derecho a preguntar por otra familia seria una
+#: ceremonia, no un metodo.
+ADMISSIBLE_FAMILY_EVIDENCE = frozenset({
+    EvidenceClass.VERIFIED_FORMAL, EvidenceClass.VERIFIED_CODE,
+    EvidenceClass.MEASURED_INTERVENTION, EvidenceClass.MEASURED_FACTORIAL,
+    EvidenceClass.MEASURED_LESION,
+})
+
+
 class SignalRefused(ValueError):
     """A reading the model will not hold, and why."""
+
+
+@dataclass(frozen=True)
+class FamilyContradiction:
+    """Evidence that a mechanism family cannot realise the construct.
+
+    Independent of how the signal arose: what licenses asking about another
+    family is the contradiction, not the fact that something was run.  A formal
+    proof that `F(Z,A)` cannot separate two cases differing only in the next
+    observation settles it without spending a campaign to earn the right to ask.
+    """
+
+    statement: str
+    evidence: EvidenceClass
+    evidence_ref: str
+
+    def __post_init__(self) -> None:
+        if not str(self.statement).strip() or not str(self.evidence_ref).strip():
+            raise SignalRefused("a family contradiction needs a statement and a reference")
+        if self.evidence not in ADMISSIBLE_FAMILY_EVIDENCE:
+            raise SignalRefused(
+                f"{self.evidence.value} cannot establish that a family fails to "
+                f"express a construct")
+
+    def as_record(self) -> Mapping[str, Any]:
+        return {"statement": self.statement, "evidence_class": self.evidence.value,
+                "evidence_ref": self.evidence_ref}
 
 
 class ProbeStatus(StrEnum):
@@ -147,6 +186,10 @@ class ObservedCeiling:
     candidate_lesions: frozenset[str] = frozenset()
     candidate_family_questions: tuple[str, ...] = ()
     non_claims: tuple[str, ...] = ()
+    #: Presente solo cuando algo admisible contradice a la familia. Un
+    #: paquete de preguntas sobre familias no es, por si solo, motivo
+    #: para preguntar por otra.
+    family_contradiction: "FamilyContradiction | None" = None
     status: ProbeStatus = ProbeStatus.OPEN
     origin: SignalOrigin = SignalOrigin.OBSERVED_EXECUTION
     schema_version: str = SCHEMA_VERSION
@@ -221,6 +264,10 @@ class DesignHold:
     candidate_lesions: frozenset[str] = frozenset()
     candidate_family_questions: tuple[str, ...] = ()
     non_claims: tuple[str, ...] = ()
+    #: Presente solo cuando algo admisible contradice a la familia. Un
+    #: paquete de preguntas sobre familias no es, por si solo, motivo
+    #: para preguntar por otra.
+    family_contradiction: "FamilyContradiction | None" = None
     status: ProbeStatus = ProbeStatus.OPEN
     origin: SignalOrigin = SignalOrigin.DESIGN_DECISION
     schema_version: str = SCHEMA_VERSION
@@ -295,6 +342,11 @@ def developmental_signals_v1() -> tuple[Any, ...]:
             "Z_{t+1}=F(Z_t,A_t,O_{t+1}): la observación entra en la clave de la "
             "ruta y nunca discrimina"),
         blocker_class=BlockerClass.FAMILY_CANNOT_EXPRESS,
+        family_contradiction=FamilyContradiction(
+            statement="F(Z_t,A_t) no puede separar dos historias que sólo "
+                      "difieren en O_{t+1}",
+            evidence=EvidenceClass.MEASURED_INTERVENTION,
+            evidence_ref="level18 · 0/400 variando observaciones"),
         source_evidence_refs=(
             "prueba hermética: 0/400 diferencias variando observaciones, "
             "297/400 variando acciones",

@@ -28,9 +28,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Mapping
 
-from terrario.lab.developmental_signal import (
-    BlockerClass, DesignHold, ObservedCeiling, observed_ceilings,
-)
+from terrario.lab.developmental_signal import BlockerClass
 
 SCHEMA_VERSION = "terrario.lab.question-type/v1"
 
@@ -82,11 +80,17 @@ def derive_question(target: str, signals: tuple, gap) -> DerivedQuestion:
 
     # 1 · Una familia que no puede expresar el constructo hace prematura
     #     cualquier pregunta sobre precursores: ningún precursor rescata a un
-    #     mecanismo incapaz de enunciar la cosa. Sólo un techo OBSERVADO puede
-    #     afirmarlo: una capacidad que nunca se intentó no observó familia
-    #     alguna.
-    familia = next((p for p in observed_ceilings(tuple(del_target))
-                    if p.blocker_class is BlockerClass.FAMILY_CANNOT_EXPRESS), None)
+    #     mecanismo incapaz de enunciar la cosa.
+    #
+    #     Lo que da permiso a preguntar por otra familia es la CONTRADICCIÓN,
+    #     no que algo se haya ejecutado. Una demostración formal previa de que
+    #     `F(Z,A)` no separa dos historias que sólo difieren en `O_{t+1}` basta,
+    #     y exigir una campaña para ganarse el derecho a preguntar sería
+    #     ceremonia. Lo que NO basta es traer preguntas sobre familias: un
+    #     paquete de preguntas no es una contradicción.
+    familia = next((p for p in del_target
+                    if getattr(p, "family_contradiction", None) is not None
+                    and p.candidate_family_questions), None)
     if familia is not None:
         dimensiones = tuple(sorted(familia.candidate_missing_precursors))
         pregunta = (familia.candidate_family_questions[0]
@@ -96,9 +100,10 @@ def derive_question(target: str, signals: tuple, gap) -> DerivedQuestion:
             target=target, question_type=QuestionType.FAMILY_PROBE,
             question=pregunta, candidate_dimensions=dimensiones,
             selection=Selection.UNRESOLVED if len(dimensiones) != 1 else Selection.RESOLVED,
-            why=(f"{familia.signal_id}: {familia.rationale[:90]}… · "
+            why=(f"{familia.family_contradiction.statement} "
+                 f"[{familia.family_contradiction.evidence.value}] · "
                  f"no precursor repairs a family that cannot state the construct"),
-            provenance=f"ObservedCeiling:{familia.signal_id}")
+            provenance=f"{type(familia).__name__}:{familia.signal_id}")
 
     # 2 · Una capacidad presente con necesidad sin adjudicar pide lesión, no
     #     adquisición. Preguntar si se puede adquirir algo que ya está sería

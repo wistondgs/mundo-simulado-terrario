@@ -131,16 +131,58 @@ def test_7_u3_keeps_its_three_outputs_and_names_their_provenance(g, signals):
                            gap_analysis(g, "SELECTION")).candidate_dimensions == ("PSI",)
 
 
-def test_7b_a_hold_cannot_produce_a_family_probe():
-    """Only an execution can report that a family failed to express something."""
+def _gap(**cambios):
     from terrario.lab.developmental import GapReport
+    base = dict(target="T", known=(), unknown=(), contradicted=(),
+                next_question=None, next_precursor=None, premature=True,
+                reason="", tied_candidates=("X",))
+    return GapReport(**{**base, **cambios})
 
+
+def test_7b_family_questions_alone_do_not_license_a_family_probe():
+    """Carrying a bundle of questions about families is not a contradiction.
+
+    This is what keeps 1.5 out of FAMILY_PROBE, and it is a weaker rule than
+    "only an execution counts": what licenses asking about another family is
+    the contradiction, not that something was run."""
     hold = _hold(candidate_family_questions=("¿puede la familia expresarlo?",))
-    gap = GapReport(target="T", known=(), unknown=(), contradicted=(),
-                    next_question=None, next_precursor=None, premature=True,
-                    reason="", tied_candidates=("X",))
-    q = derive_question("T", (hold,), gap)
-    assert q.question_type is not QuestionType.FAMILY_PROBE
+    assert derive_question("T", (hold,), _gap()).question_type \
+        is not QuestionType.FAMILY_PROBE
+
+
+def test_7c_a_formal_proof_licenses_a_family_probe_without_any_execution():
+    """Spending a campaign to earn the right to ask would be ceremony.
+
+    A hold that carries a formal contradiction does produce a FAMILY_PROBE --
+    the kind of signal is not what decides."""
+    from terrario.lab.developmental_signal import FamilyContradiction
+
+    hold = _hold(
+        candidate_family_questions=("¿puede otra familia expresarlo?",),
+        family_contradiction=FamilyContradiction(
+            statement="F(Z,A) no separa historias que sólo difieren en O",
+            evidence=EvidenceClass.VERIFIED_FORMAL,
+            evidence_ref="demostración previa a cualquier campaña"))
+    q = derive_question("T", (hold,), _gap())
+    assert q.question_type is QuestionType.FAMILY_PROBE
+    assert q.provenance == "DesignHold:DH-T"
+
+
+def test_7d_an_inadmissible_class_cannot_establish_a_family_contradiction():
+    """A hypothesis or a document does not settle that a family fails."""
+    from terrario.lab.developmental_signal import FamilyContradiction
+
+    for clase in (EvidenceClass.HYPOTHESIS, EvidenceClass.DECLARED_DOCUMENT,
+                  EvidenceClass.SUPPORTED_CORPUS):
+        with pytest.raises(SignalRefused, match="cannot establish"):
+            FamilyContradiction(statement="x", evidence=clase, evidence_ref="r")
+
+
+def test_7e_the_real_15_still_carries_no_family_contradiction(signals):
+    dh = next(h for h in design_holds(signals) if h.signal_id == "DH-15")
+    oc = next(c for c in observed_ceilings(signals) if c.signal_id == "OC-18")
+    assert dh.family_contradiction is None
+    assert oc.family_contradiction is not None
 
 
 # --- 8 · el orden no cambia nada -------------------------------------------------------

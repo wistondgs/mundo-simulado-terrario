@@ -5998,6 +5998,15 @@ decir que 1.5 chocó con nada.
 
 Y la procedencia viaja hasta la pregunta: `PREDSTATE ← ObservedCeiling:OC-18`,
 `SELECTION ← DesignHold:DH-15`.
+
+**Lo que da permiso a preguntar por otra familia es la contradicción, no que
+algo se haya ejecutado.** La primera formulación decía «sólo una ejecución
+puede producir `FAMILY_PROBE`» y era demasiado fuerte: si se demuestra
+formalmente por adelantado que `F(Z,A)` no separa dos historias que sólo
+difieren en `O_{t+1}`, gastar una campaña para ganarse el derecho a preguntar
+sería ceremonia. Ahora hace falta una `FamilyContradiction` con clase admisible
+—`VERIFIED_FORMAL`, `VERIFIED_CODE` o causal— **más** las preguntas; un paquete
+de preguntas por sí solo no basta, y eso es lo que sigue dejando a 1.5 fuera.
  Una campaña produce dos cosas que
 el proyecto confundía: el resultado científico de 1.8 es `FAMILY_MISMATCH`, y
 su lectura developmental es que faltaba un peldaño antes. El objeto guarda las
