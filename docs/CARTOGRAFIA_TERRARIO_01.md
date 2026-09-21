@@ -6111,3 +6111,101 @@ comprueba que el módulo nunca nombra una capacidad cazaba los nombres en el
 docstrings y comentarios quitados por AST — nombrar algo para prohibirlo no es
 saberlo. Es el modo de fallo «guardas de texto que cazan su documentación» que
 el proyecto ya tenía catalogado.
+
+## 48.8 · `A3b` fase 1 · la gramática de tarea, antes de cualquier descompositor
+
+`A3a` comparaba dos firmas de mecanismo. Esto no compara nada: lee una **tarea**
+y pregunta qué hace difícil por su propia estructura. Son preguntas distintas y
+la segunda es la que un diseñador de nivel encuentra primero.
+
+`terrario/lab/task_contract.py:94` · `TaskContract` sostiene hechos funcionales y
+nada más —cuánta información llega, cuánta sobrevive, cuándo ocurre cada cosa,
+qué partes pueden cambiar, de quién se dio el significado, y de qué depende de
+hecho el rendimiento—. **No contiene nombres de capacidad**, y no puede: un
+contrato que ya supiera qué capacidad hace falta sería la respuesta vestida de
+pregunta. Un guardián por AST lo comprueba sobre el módulo con docstrings
+quitados (`tests/test_task_contract.py:283`).
+
+**El orden temporal es el primitivo; las precedencias se calculan.** `retention`,
+`query`, `response` y `feedback` son instantes, y `query_after_retention` sale de
+compararlos. Declararlo como booleano aparte habría permitido escribirlo en
+contra de los tiempos.
+
+**Siete negativas en el constructor** (`terrario/lab/task_contract.py:130`): bits
+negativos, una respuesta antes de su pregunta, feedback antes de la respuesta que
+juzga, la consulta ya en la mano con la relevancia «desconocida», un componente
+adaptativo cuyo significado ya se dio —no queda nada que adaptar— y dependencia
+de la compatibilidad sin dos componentes que la tengan. Una tarea que no se puede
+escribir es una tarea que no existe.
+
+Y una distinción que el proyecto habría perdido: **fijo no es «significado
+dado»**. Una proyección aleatoria fija no aprende y nadie dijo nunca qué
+codifica. Colapsarlas convertiría todo componente congelado en uno explicado.
+
+### La lección de `A3a.1`, en su forma más convincente
+
+La recursión no implicaba desambiguación histórica. Aquí la trampa equivalente es:
+
+```
+encoder_adaptive ∧ decoder_adaptive  →  deben coordinarse
+```
+
+**No.** Dos partes pueden aprender a la vez y no deberse nada. Lo que exige la
+coordinación es que el rendimiento dependa de que **encajen**, y ese hecho se
+declara (`terrario/lab/task_contract.py:319`). Al revés también: que dependa de
+que encajen con una sola parte móvil es adaptarse a un **blanco fijo**, que no es
+que dos aprendan a ponerse de acuerdo.
+
+### Seis contratos sintéticos y un mutante, escritos antes de las reglas
+
+Cada uno existe para matar una regla que suena bien, y las reglas ingenuas se
+escribieron y se corrieron primero: **T1, T2, T3, T5 y el mutante fallaron**. Bajo
+ellas `T6` y el mutante producían el mismo conjunto, que es el fallo entero en una
+línea.
+
+| regla candidata | refutada por |
+|---|---|
+| `FUT := consulta posterior` | T1 |
+| `SEL := consulta posterior` | T1, T2 |
+| `POL := cuello de botella + consulta posterior` | T1, T3 |
+| `CRE := algo aprende sobre la retención` | T5 |
+| `COO := ambos adaptativos` | T2, mutante |
+| `COO := el rendimiento depende de que encajen` | T4 |
+| `CAP := la fuente supera al canal` | **ninguno · sobrevive intacta** |
+
+La última fila importa: una tabla donde todo se refuta sería sospechosa. El cuello
+de botella es un hecho de canal puro y no tiene nada que sobreafirmar.
+
+| caso | CAP | FUT | SEL | POL | CRE | COO |
+|---|---|---|---|---|---|---|
+| T1 · cuello, relevancia conocida | sí | · | · | · | sí | · |
+| T2 · consulta posterior, canal sobrado | · | sí | · | · | sí | · |
+| T3 · cuello + consulta, encoder fijo | sí | sí | sí | · | · | · |
+| T4 · encoder móvil, decoder fijo | sí | sí | sí | sí | sí | · |
+| T5 · feedback inmediato | sí | · | · | · | · | sí |
+| T6 · contrato completo | sí | sí | sí | sí | sí | sí |
+| mutante · ambos móviles, sin acoplamiento | sí | sí | sí | sí | sí | · |
+
+`T3` es el control que más pesa: **todo** el ingrediente de la presión está
+presente y el encoder no puede cambiar, así que no hay con qué aprender una
+política. Leer la presión como política es cómo una descripción de tarea se
+convierte en un plan de entrenamiento que nadie ganó. `T5` sólo vale porque el
+encoder **sí** aprende: un control que pasara por ausencia de aprendiz no sería
+control.
+
+### La regla epistemológica, estructural y no documental
+
+Todo lo que emite el módulo nace `HYPOTHESIS` con origen
+`DERIVED_FROM_TASK_CONTRACT`, y ambas cosas se rechazan en el constructor
+(`terrario/lab/task_contract.py:206`), no se piden en una revisión. El vocabulario
+de dependencia medida —`SUFFICIENT_SET`, `REQUIRES`, `MEASURED`— no está
+disponible aquí en absoluto, y un segundo guardián por AST lo comprueba.
+
+`T6` no necesitó ninguna condición propia: es la conjunción de lo que `T1`–`T5`
+aíslan por separado, y `test_t6_is_exactly_t4_plus_an_adaptive_decoder` lo fija
+como par mínimo. La condición de parada `TASK_DECOMPOSER_OVERFIT` no se activó.
+
+**Lo que no se sabe.** No hay descompositor general todavía, ni resolución contra
+el catálogo, ni ningún artefacto de un nivel real alimentando esto. `T6` está
+escrito a mano para ser estructuralmente equivalente a 1.5; que lo sea es una
+afirmación sobre el contrato, no una lectura de la campaña.

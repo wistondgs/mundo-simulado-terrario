@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "07b4039",
+  "head": "f7509e8",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -411,6 +411,12 @@
         "terrario/lab/capability_plan.py": "8808d40e4a095352fd609b10c098146be91cdee55cdfff6eaa528d85856cef52",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/mechanism_spec.py": "ba5407dc4f39dbd07534b0a53d22769bb35fa57d04bcee3b86d7d21432ce292c"
+      }
+    },
+    "XLVIII · El motor developmental · qué hace falta antes de que algo sea adquirible": {
+      "files": {
+        "terrario/lab/task_contract.py": "afc6242a7dfcc13280c82e4d6b98aa4dc09f0fa6afe063ef96a502fd9e298808",
+        "tests/test_task_contract.py": "2f4ad4e18f11e031544515e3e468148dd057c9dc19906ffb7ff832723429d7b8"
       }
     }
   }
