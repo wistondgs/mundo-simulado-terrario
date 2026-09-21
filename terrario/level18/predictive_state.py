@@ -113,6 +113,22 @@ class PredictiveStateModel:
         return float(self.predict(previous, efference)[
             _observation_index(following, "la observación siguiente")])
 
+    def _advance(self, command: int, after: int) -> None:
+        self._here = self._next_state(self._here, command, after)
+
+    def follow(self, efference, following) -> None:
+        """Seguir la propia dinámica sin aprender nada.
+
+        Predecir exige estar en el estado correcto, y el estado es recursivo:
+        `Z_t = F(Z_{t-1}, A_{t-1}, O_t)`. Seguirlo consume sólo la copia eferente
+        y la observación --nada que el organismo no tenga ya-- y no toca ni una
+        cuenta: seguir no es aprender. Sin esto, puntuar un banco deja al modelo
+        clavado donde empezó, y lo que se mide es la raíz de un árbol cuya
+        evidencia se marchó a las hojas.
+        """
+        self._advance(_command_index(efference),
+                      _observation_index(following, "la observación siguiente"))
+
     # --- la única operación plástica -----------------------------------------
 
     def observe(self, previous, efference, following) -> None:
@@ -150,7 +166,7 @@ class PredictiveStateModel:
         self._judge_open_split(here, before, command, after)
 
         self._came_from = (self._here, command)
-        self._here = self._next_state(self._here, command, after)
+        self._advance(command, after)
 
     # --- refinamiento --------------------------------------------------------
 
@@ -381,8 +397,7 @@ class PredictiveStateModel:
         for name, steps in probes.items():
             self.begin()
             for command, following in steps:
-                self._here = self._routing.get((self._here, command, following),
-                                               self._here)
+                self._advance(command, following)
             landing[name] = self._here
         self.begin()
         return landing

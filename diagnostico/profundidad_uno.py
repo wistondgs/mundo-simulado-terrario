@@ -112,6 +112,14 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
     def score(fn):
         return -float(np.mean([np.log(max(fn(*row), 1e-300)) for row in bank]))
 
+    def _tracking(model):
+        """Puntuar SIGUIENDO el estado. Sin esto se puntúa siempre la raíz."""
+        def fn(obs, command, nxt, previous_action, situation):
+            value = model.probability(obs, EfferenceCopy(command), nxt)
+            model.follow(EfferenceCopy(command), nxt)
+            return value
+        return fn
+
     def tabled(prior, evidence, which):
         def fn(obs, command, nxt, previous_action, situation):
             key = previous_action if which == "one" else situation
@@ -126,8 +134,7 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
         "no_split": score(lambda o, k, n, p, s: baseline.probability(
             o, EfferenceCopy(k), n)),
         "depth_one": score(tabled(depth_one, evidence_one, "one")),
-        "learner": score(lambda o, k, n, p, s: learner.probability(
-            o, EfferenceCopy(k), n)),
+        "learner": score(_tracking(learner)),
         "oracle": score(tabled(oracle_prior, evidence_oracle, "oracle")),
         "states": len(learner.states()),
         "splits": learner.refinements,

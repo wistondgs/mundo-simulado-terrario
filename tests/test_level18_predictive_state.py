@@ -191,3 +191,72 @@ def test_el_canal_solo_admite_una_copia_eferente():
     for intruso in (0, "A0", None, ALL_COMMANDS[0]):
         with pytest.raises(PredictiveStateError):
             modelo.observe(OBSERVACIONES[0], intruso, OBSERVACIONES[1])
+
+
+# --- el segundo defecto: puntuar sin seguir ---------------------------------
+
+def test_F5_puntuar_un_banco_mueve_el_estado():
+    """Predecir exige estar donde el estado recursivo dice.
+
+    `probability` no muta a propósito --puntuar no debe aprender--, así que
+    seguir la dinámica es del llamador. Cuando nadie lo hacía, un modelo con
+    30 estados se puntuaba entero desde la raíz, cuya evidencia se había
+    marchado a las hojas, y lo medido no era su organización.
+    """
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=True)
+    assert len(modelo.states()) > 2, "no separó; la fixture no aplica"
+
+    modelo.begin()
+    visitados = set()
+    generador = np.random.default_rng(11)
+    for _ in range(200):
+        antes = OBSERVACIONES[0]
+        indice = int(generador.integers(4))
+        despues = OBSERVACIONES[indice % len(OBSERVACIONES)]
+        modelo.probability(antes, EfferenceCopy(ALL_COMMANDS[indice]), despues)
+        visitados.add(modelo._here)
+        modelo.follow(EfferenceCopy(ALL_COMMANDS[indice]), despues)
+    assert len(visitados) > 1, (
+        f"puntuar 200 pasos no movió el estado: siempre {visitados}")
+
+
+def test_F6_seguir_no_toca_ninguna_cuenta():
+    """Y seguir tampoco puede aprender: sería evaluar entrenando."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=True)
+    antes_updates = modelo.updates
+    antes_splits = modelo.refinements
+    antes_evidencia = [e.copy() for e in modelo._evidence.values()]
+
+    for _ in range(50):
+        modelo.follow(EfferenceCopy(ALL_COMMANDS[0]), OBSERVACIONES[1])
+    assert modelo.updates == antes_updates
+    assert modelo.refinements == antes_splits
+    for previa, ahora in zip(antes_evidencia, modelo._evidence.values()):
+        assert np.array_equal(previa, ahora)
+
+
+def test_F7_la_organizacion_se_lee_con_la_misma_dinamica():
+    """`organization` es lo que L18-6 trasplanta. Llevaba la versión absorbente
+    que `1a35caa` reparó en `_next_state`: sin entrada explícita, se quedaba."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=True)
+    assert len(modelo.states()) > 2, "no separó; la fixture no aplica"
+
+    generador = np.random.default_rng(13)
+    sondas = {f"s{i}": [(int(generador.integers(4)), int(generador.integers(16)))
+                        for _ in range(6)] for i in range(8)}
+    leido = modelo.organization(sondas)
+
+    esperado = {}
+    for nombre, pasos in sondas.items():
+        modelo.begin()
+        for comando, siguiente in pasos:
+            modelo._advance(comando, siguiente)
+        esperado[nombre] = modelo._here
+    modelo.begin()
+    assert leido == esperado
