@@ -38,19 +38,21 @@ class TemporalContractError(RuntimeError):
     """Se le ofreció a la tabla algo que no es una observación."""
 
 
-def _checked(value: object, role: str) -> int:
+def _checked(candidate: object, role: str) -> int:
     """La aduana. Devuelve el índice, o explica por qué eso no entra."""
-    if not isinstance(value, tuple) or len(value) != 4:
+    if not isinstance(candidate, tuple) or len(candidate) != 4:
         raise TemporalContractError(
             f"{role} debe ser una observación de cuatro bits; llegó "
-            f"{type(value).__name__}. A1 no recibe actos, copia eferente, "
+            f"{type(candidate).__name__}. A1 no recibe actos, copia eferente, "
             "posición ni etiquetas de cambio."
         )
-    if any(bit not in (0, 1) for bit in value):
-        raise TemporalContractError(f"{role} tiene componentes que no son bits: {value!r}")
-    index = OBSERVATION_INDEX.get(value)  # type: ignore[arg-type]
+    if any(bit not in (0, 1) for bit in candidate):
+        raise TemporalContractError(
+            f"{role} tiene componentes que no son bits: {candidate!r}")
+    index = OBSERVATION_INDEX.get(candidate)  # type: ignore[arg-type]
     if index is None:
-        raise TemporalContractError(f"{role} no pertenece al espacio sensorial: {value!r}")
+        raise TemporalContractError(
+            f"{role} no pertenece al espacio sensorial: {candidate!r}")
     return index
 
 

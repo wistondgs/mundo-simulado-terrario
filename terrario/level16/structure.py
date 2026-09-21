@@ -67,18 +67,18 @@ def describe_world(seed: int, grid: Grid) -> WorldStructure:
     while stack:
         row, col = stack.pop()
         for direction in Direction:
-            target = (row + DELTA[direction][0], col + DELTA[direction][1])
-            if grid.cells[target] == 0 and target not in seen:
-                seen.add(target)
-                stack.append(target)
+            destino = (row + DELTA[direction][0], col + DELTA[direction][1])
+            if grid.cells[destino] == 0 and destino not in seen:
+                seen.add(destino)
+                stack.append(destino)
 
     signature = {cell: _signature(grid, cell) for cell in seen}
     transitions = set()
     for cell in seen:
         row, col = cell
         for direction in Direction:
-            target = (row + DELTA[direction][0], col + DELTA[direction][1])
-            landing = target if grid.cells[target] == 0 else cell
+            destino = (row + DELTA[direction][0], col + DELTA[direction][1])
+            landing = destino if grid.cells[destino] == 0 else cell
             transitions.add((signature[cell], signature[landing]))
 
     return WorldStructure(
