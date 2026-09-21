@@ -3597,3 +3597,324 @@ regenera con `--write`, y `--write` no puede comprobar que alguien haya releído
 Si se regenera después de cambiar el código sin reescribir el texto, el gate se
 pone verde sobre prosa vieja. El hash prueba que el fichero no cambió desde la
 última vez que se dijo «lo leí»; no prueba que se leyera.
+
+---
+
+# XXXIX · La implementación de la capa de conocimiento, leída
+
+Relectura del 2026-09-21 sobre `bbaa3e5`. §XXXII contó y §XXXVIII recontó; **esta
+sección lee**. Lo que sigue es el mecanismo: qué calcula cada pieza, con qué
+dato, bajo qué guarda y con qué consecuencia. Cada afirmación lleva
+`fichero:línea` o la orden que la produjo.
+
+Estados de conocimiento según el contrato del 2026-09-21: **K0** establecido,
+**K1** documentado pero verificable en código, **K2** no resuelto —no se rellena
+por intuición—, **K3** requiere evidencia externa.
+
+---
+
+## 39.1 · El defecto vivo · el catálogo de composición está roto
+
+**K0, medido hoy, tres pruebas en rojo desde `fd725e3` (18-09).**
+
+```
+$ python -c "from terrario.lab.agent_composition import catalogue; catalogue()"
+KeyError: 'use_curiosity'                       agent_composition.py:176
+
+$ pytest tests/test_agent_composition.py
+FAILED test_every_offered_concept_is_a_key_the_agent_actually_reads
+FAILED test_the_catalogue_carries_what_a_person_needs_to_choose
+FAILED test_the_mix_reads_as_a_sentence_not_as_flags
+```
+
+El contrato del módulo está en su propia cabecera
+([agent_composition.py:3](terrario/lab/agent_composition.py:3)): «`key` es la
+clave de configuración literal que A4 lee, así que un concepto que deja de
+existir deja de ser ofrecible, y `validate_selection` rechaza una clave
+desconocida en vez de ignorarla — **una errata que cambia nada en silencio es el
+peor modo de fallo que puede tener una pantalla de composición**».
+
+Eso es exactamente lo que ocurre ahora:
+
+| | |
+|---|---|
+| `CONCEPTS` | 11 conceptos |
+| booleanos en `DEFAULT_CONFIG` de A4 | 12 |
+| concepto sin bool en A4 | **`use_curiosity`** |
+| bools de A4 sin concepto | `learning_commit_enabled`, `full_adaptive_freeze` |
+
+`catalogue()` hace `bool(DEFAULT_CONFIG[c.key])` para cada concepto
+([:124](terrario/lab/agent_composition.py:124)) y `describe_selection()` lo
+repite ([:176](terrario/lab/agent_composition.py:176)), así que **las dos revientan**. Y `GET /api/agent-concepts`
+([api.py:122](terrario/lab/api.py:122)) devuelve `thaw(agent_catalogue())`: el
+endpoint que alimenta la pantalla de composición está caído.
+
+Mientras tanto `validate_selection({"use_curiosity": True})` **acepta la clave**
+—está en `_KEYS`— y la pasa a un A4 que no la lee. El modo de fallo que la
+cabecera declara el peor posible, ocurriendo en el módulo que lo declara.
+
+**La causa no es un descuido de tipeo, es una categoría.** `fd725e3` construyó
+la curiosidad como **A5**, un descendiente, no como un interruptor de A4: «A5 is
+A4's descendant, not A4 with a flag… turn `use_curiosity` off and A5 is A4». La
+clave la lee [a5_cybernetic.py:35](terrario/agent/agents/a5_cybernetic.py:35).
+El catálogo modela **un** organismo y el linaje ya tiene **dos**.
+
+Las dos salidas no son equivalentes y ninguna es una reparación mecánica:
+
+1. **El catálogo pasa a ser por agente** — cada `Concept` declara a qué
+   configuración pertenece. Es lo correcto si van a existir A5, A6…
+2. **`use_curiosity` sale del catálogo de A4** y la composición de A5 se ofrece
+   aparte. Más pequeño, y deja el catálogo mintiendo por omisión sobre lo que el
+   linaje puede componer.
+
+Es una decisión de modelo, no un arreglo, y por eso queda declarada aquí en vez
+de tomada.
+
+## 39.2 · Estado científico de las capacidades · calculado, no declarado
+
+**K0.** `status_of` ([capability_passport.py](terrario/lab/capability_passport.py))
+no lee un campo `status`: lo deriva, en orden de precondición —contrato completo
+→ procedencia al corpus → pureza de la intervención → existe un mundo que la
+exige → endpoint calibrado—. Ejecutado hoy:
+
+```
+$ python scripts/passport_check.py
+  procedencia   falla en 5 de 10
+  pureza        falla en 3 de 10
+  mundo         falla en 3 de 10
+  instrumento   falla en 8 de 10
+  listas para certificar: 1 de 10 — LEARN-A1
+```
+
+**La restricción que manda es el instrumento, y no por falta de instrumentos.**
+Los 8 del registro están los 8 en `REPORTABLE`. Lo que ocurre es que 8 de las 10
+capacidades declaran un endpoint que **no existe a propósito**:
+
+```
+HOMEO-A1   PENDIENTE-regulacion-condicionada-al-estado      UNREGISTERED
+EPMEM-A1   PENDIENTE-acierto-condicionado-a-historia-releva… UNREGISTERED
+LTMEM-A1   PENDIENTE-retencion-tras-interferencia           UNREGISTERED
+LEARN-A1   conversion_aprendizaje                            REPORTABLE
+UNC-A1     PENDIENTE-calibracion-de-incertidumbre           UNREGISTERED
+PLAST-A1   PENDIENTE-velocidad-de-revision-tras-inversion   UNREGISTERED
+TEMP-A1    PENDIENTE-desambiguacion-por-historia            UNREGISTERED
+WM-A1      examen_prediccion                                 REPORTABLE
+PLAN-A1    PENDIENTE-eleccion-no-miope                      UNREGISTERED
+CURIO-A1   PENDIENTE-exploracion-dirigida-por-error         UNREGISTERED
+```
+
+El prefijo `PENDIENTE-` es un nombre que el registro no puede resolver, así que
+`state_of` devuelve `UNREGISTERED` y el pasaporte queda bloqueado en
+`NO_CALIBRATED_ENDPOINT`. Es **lo contrario** del modo de fallo «defaults que
+convierten fallos en números plausibles»: en vez de sustituir el endpoint que
+falta por una métrica parecida, se declara un hueco que la máquina puede ver.
+Es la mejor decisión de diseño de toda la capa.
+
+## 39.3 · Corpus · dónde se decide lo epistemológico
+
+**K0 tras leer.** Tres decisiones cargadas se toman por coincidencia de
+subcadena, y conviene saberlo antes de citar el snapshot:
+
+| Decisión | Mecanismo real | Dónde |
+|---|---|---|
+| ¿claim del autor o inferencia del analista? | `"ANALYST" in value.upper()` | [ingestion.py:47](terrario/lab/theory/ingestion.py:47) |
+| fuerza de una relación (5 niveles) | subcadenas mezclando español e inglés: `EXPLICIT_CAUSAL`, `REQUIERE`, `DEPENDE`, `FACILITA`, `MODULA`, `INHIBE` | [ingestion.py:51](terrario/lab/theory/ingestion.py:51) |
+| ¿la fuente vale como evidencia? | `QUARANTIN` / `MISMATCH` / `UNAVAILABLE` en el texto de integridad | [ingestion.py:126](terrario/lab/theory/ingestion.py:126) |
+
+La frontera autor↔analista es la distinción más cargada del corpus y se decide
+con `in`. Un claim que diga «inferred» sin la palabra `ANALYST` entra como
+`AUTHOR_CLAIM`. **K2: cuántos de los 189 claims están mal clasificados por esto
+no está medido.**
+
+**Lo que sí es sólido.** El snapshot es direccionable por contenido: sha256 por
+artefacto, identidad = sha256 de la lista de entradas, colisión comprobada al
+reconstruir, y `missing_artifacts` declarado en el manifiesto
+([snapshot.py](terrario/lab/theory/snapshot.py)). Y la verificación de la
+evidencia operacional es fail-closed en el hash —compara el sha256 del manifiesto
+contra el del snapshot base y cada artefacto contra el suyo— **pero fail-open en
+la ausencia**: `if not self.evidence_root.exists(): return`
+([ingestion.py:90](terrario/lab/theory/ingestion.py:90)). Sin el directorio no
+hay error, hay silencio.
+
+**El locator, exacto.** `ClaimLocator` tiene ocho campos —página, sección,
+subsección, figura, tabla, párrafo, apéndice, suplemento—, todos opcionales
+([referencegraph/domain.py](terrario/lab/referencegraph/domain.py)). En todo el
+árbol se construye **una sola vez, sin argumentos**:
+`ClaimLocator()` en
+[import_corpus.py:367](terrario/lab/referencegraph/import_corpus.py:367).
+
+## 39.4 · El grafo de teoría · 956 aristas que existen si dos cadenas coinciden
+
+**K0 tras leer `build_graph`** ([theory/store.py:104](terrario/lab/theory/store.py:104)).
+El grafo no se declara: se **infiere por emparejamiento de texto**.
+
+* claim → fuente: primero por título casefold; si no, por id exacto; si no, por
+  la regex `\[((?:TI|DEV|X)\w*-?\d+)\]` buscada dentro del campo `source_id`.
+* relación → concepto: por `nombre_original` o `nombre_normalizado_provisional`
+  en casefold.
+* componente de hiperarista → concepto: el mismo emparejamiento.
+
+Consecuencia que hay que llevar pegada al número: los **1 035 nodos y 956
+aristas** del snapshot son las coincidencias que hubo, no las relaciones que el
+corpus afirma. Una diferencia de grafía produce **silencio**, no error. **K2: la
+tasa de aristas perdidas por no-coincidencia no está medida, y es medible.**
+
+`TheoryGraphStore` no persiste en base de datos: es un objeto en memoria con
+`save()`/`load()` a JSON ([store.py:85](terrario/lab/theory/store.py:85)).
+`paths()` y `lineage()` son BFS con profundidad máxima 8; `lineage` devuelve
+**todas** las rutas ascendentes sin declarar ninguna autoritativa.
+
+## 39.5 · La fábrica de hipótesis · qué calcula de verdad
+
+**K0, ejecutada hoy sobre el snapshot real.**
+
+```
+8 hiperaristas → 8 familias → 232 rivales
+todas:  identificabilidad = DESCRIPTIVE_ONLY
+        prioridad = (0.7, 0.5, 1.0, 0.3, 0.4, 0.6)
+        umbrales preregistrados = {}
+validate() = ('critical confounders unaddressed',)   en las ocho
+```
+
+Mecanismo, pieza por pieza:
+
+* **Generación de rivales** ([factory.py:174](terrario/lab/theory/factory.py:174)):
+  `itertools.combinations` sobre los componentes, **todos los subconjuntos no
+  vacíos** (2ⁿ−1) más una nula. Seis componentes → 64. El «mecanismo propuesto»
+  de cada rival es literalmente `" + ".join(components)`, y las condiciones de
+  falsación son plantillas f-string.
+* **Identificabilidad**: el compilador llama a la auditoría con un diccionario
+  **escrito a mano**, `{"paired_seeds": True, "identical_environment": True}`
+  ([factory.py:278](terrario/lab/theory/factory.py:278)). Los otros cinco checks
+  —cambio de un solo objetivo, capacidad, información, cómputo y exposición
+  emparejadas— quedan en `False` sin mirar nada. 2 de 7 ⇒ `DESCRIPTIVE_ONLY`
+  **para todo diseño que la fábrica produzca, por construcción**.
+* **Prioridad** ([factory.py:280](terrario/lab/theory/factory.py:280)): seis constantes literales, idénticas en las ocho familias. No
+  es una puntuación; es una tupla.
+* **Confusores** ([factory.py:249](terrario/lab/theory/factory.py:249)): `from_edge` crea cada `ConfounderSpec` con `critical=True` y
+  `mitigation=None`, y `DesignValidator` rechaza «critical confounders
+  unaddressed». **Por tanto `to_experiment_spec` no puede tener éxito nunca**
+  sobre un diseño generado: la fábrica es estructuralmente incapaz de emitir una
+  especificación ejecutable sin intervención humana. Eso no es un defecto —es un
+  gate— pero conviene decirlo como lo que es y no como «faltan datos».
+* **La puerta de revisión, por dentro**: `build_portfolio` sella la familia como
+  `APPROVED_FOR_EXPERIMENT_DESIGN` **él mismo** para superar el `PermissionError`
+  del compilador, y devuelve el diseño otra vez en `GENERATED`
+  ([factory.py:338](terrario/lab/theory/factory.py:338)). El artefacto que sale
+  respeta la puerta; el objeto que entró al compilador la saltó.
+
+## 39.6 · La «revisión científica» · una tabla de juicios, no un análisis
+
+**K0.** `review_portfolio` es determinista e inspeccionable, y eso es cierto.
+Pero lo que evalúa está **escrito a mano**: `_DETAILS`
+([scientific_review.py:154](terrario/lab/theory/scientific_review.py:154)) es un
+diccionario indexado por `HYPERCAND-01 … 08` con el estado del constructo, la
+disposición, los roles, los proxies, la métrica y las notas profundas de cada
+uno. Y `_dimensions` ([:249](terrario/lab/theory/scientific_review.py:249)) es una
+**tabla literal de nueve enteros por candidato**,
+sobre la que se calcula el frente de Pareto.
+
+Dos consecuencias que hay que saber antes de usarla:
+
+1. Un noveno candidato **levanta `KeyError`**. La revisión no procesa una
+   hiperarista que no sea una de las ocho.
+2. `pseudo_falsifiable` está fijado a `True` para todas las entradas
+   ([:229](terrario/lab/theory/scientific_review.py:229)), y el orden preferente
+   de salida `("HYPERCAND-02","HYPERCAND-01","HYPERCAND-08")` es una constante.
+
+No es deshonesto —codifica un análisis humano y lo vuelve reproducible— pero es
+un **registro**, no un analizador, y llamarlo revisión invita a leerlo como lo
+segundo.
+
+## 39.7 · Hipergrafos · son tres, no uno
+
+**K0.** La pregunta «¿hiperaristas reales o emulación binaria?» tiene tres
+respuestas porque hay tres sistemas distintos con ese nombre:
+
+| Sistema | Qué modela | Aridad | Servido en |
+|---|---|---|---|
+| **Teórico** · [theory_operational.py](terrario/lab/hypergraph/theory_operational.py) | mecanismos científicos con procedencia al corpus | **n-aria real** | `/api/theory-operational-*` |
+| **Operacional** · [operational.py](terrario/lab/hypergraph/operational.py) | el plano de ejecución: HYPOTHESIS → EXPERIMENT_DRAFT → PREREGISTRATION → EXECUTION_PLAN → TRIAL_INTENT → … → CAS_BLOB | tipada | `/api/operational-hypergraph` |
+| **Intercambio** · [models.py](terrario/lab/hypergraph/models.py) + [adapter.py](terrario/lab/hypergraph/adapter.py) | ingesta JSON/YAML de artefactos derivados | **binaria** (`source`, `target`) | `/api/hypergraph` |
+
+El endpoint que se llama `hypergraph` a secas sirve el **binario**. El de
+hiperaristas reales es el teórico, y se llama de otra manera.
+
+**El teórico es lo mejor construido del repositorio, y su mecanismo es una
+cadena de verificación, no una declaración.** `validate_bindings`
+([:185](terrario/lab/hypergraph/theory_operational.py:185)) resuelve cada
+ligadura contra el claim **y** la fuente importados, y rechaza si: el candidato
+no coincide, la procedencia no resuelve, la fuente no es evidencia válida, la
+revisión del claim o de la fuente no coincide, **el locator no coincide**, el
+claim no resuelve al registro de fuente declarado; y si la versión de la fuente
+empieza por `sha256:`, **abre el PDF real y compara el hash**.
+
+`materialize` ([:216](terrario/lab/hypergraph/theory_operational.py:216)) sólo
+acepta `APPROVED_CANDIDATES = {"HYPERCAND-02", "HYPERCAND-08"}`
+([:22](terrario/lab/hypergraph/theory_operational.py:22)) —dos,
+escritos a mano—, exige una ligadura por componente, roles sin duplicar, y
+**prohíbe promover el estado epistemológico**. `compose` exige puentes de
+compatibilidad con `rationale` explícito y funde ligaduras por
+`(participante, rol)`, abortando con `NO_COMPOSITION` si dos roles compatibles
+traen semántica de fuente distinta.
+
+`semantic_id` es `content_hash` del payload canónico con la ruta del snapshot
+normalizada —el prefijo absoluto de montaje es detalle de despliegue, no
+semántica—, y `from_payload` **recalcula la identidad y rechaza si no coincide**.
+Lo mismo hace `HypothesisDraft.from_payload`
+([theory/models.py](terrario/lab/theory/models.py)). La deserialización es
+a prueba de manipulación en las dos.
+
+## 39.8 · La memoria · dos sistemas, dos mecanismos
+
+**K0 · la del organismo** ([agent/memory.py](terrario/agent/memory.py)).
+
+`EpisodicMemory` no es una red: es un **buffer circular de 1 000** entradas
+`{embedding, action, energy_delta, prediction_error, timestamp}` con escritura
+por índice rotatorio. La lectura es coseno contra todo lo almacenado, `topk`, y
+`softmax` **sobre las similitudes top-k**. Detalle que importa para interpretar
+su efecto: el softmax se aplica a cosenos en `[-1,1]`, así que cuando las k
+similitudes son parecidas los pesos salen casi uniformes — la recuperación pesa
+poco aunque encuentre el vecino correcto. Con el buffer vacío devuelve ceros y
+lo registra en la traza.
+
+`LongTermMemory` sí es `nn.Module`: matriz `M` de 64×128 como `nn.Parameter`,
+lectura por atención escalada, y escritura con puerta:
+`M = M·(1−g) + outer(w, v)·g`. **La escritura ocurre fuera del optimizador**,
+bajo `no_grad`, y lleva tres guardas explícitas: `nan_to_num_` sobre `M` antes de
+escribir, la actualización propuesta sólo se copia si `torch.isfinite(...).all()`,
+y se recorta a `[-10, 10]`. El resultado se registra como `write_accepted` en la
+traza. Es estado que cambia la conducta sin pasar por el gradiente, y está
+protegido a propósito para que una escritura corrupta no envenene todas las
+lecturas posteriores.
+
+**K0 · la del laboratorio.** `canonical.py`
+([persistence/canonical.py](terrario/lab/persistence/canonical.py)) es la
+columna de identidad de toda la capa: `plain()` es un canonizador total y
+fail-closed —levanta `CanonicalizationError` ante un tipo no soportado y
+**prohíbe los flotantes no finitos** en un artefacto científico—, los conjuntos
+se ordenan por su propio json canónico, y `content_hash` es sha256 de eso. Cada
+`semantic_id` del repositorio cuelga de esta función.
+
+`ArtifactRepository` ([persistence/store.py](terrario/lab/persistence/store.py))
+es el almacén real: migraciones con checksum, versiones por artefacto, eventos
+de estado, auditoría, blobs CAS registrados por hash, exportación e importación
+de bundles con validación, y `integrity_check`. **Las 42 tablas vacías de las 72
+no son un almacén roto: son el esquema de una capa que nunca ingirió.**
+
+## 39.9 · Lo que sigue sin saberse · K2 declarados
+
+1. **Cuántos claims están mal clasificados** por el test de subcadena `ANALYST`.
+   Medible sobre los 189 claims con una revisión manual de muestra.
+2. **Cuántas relaciones del corpus no llegaron al grafo** por no coincidir la
+   grafía del concepto. Medible comparando `RELATIONS_AUDIT` contra las aristas
+   creadas.
+3. **Si los 57 PDFs que el snapshot no conoce** aportan claims nuevos o son
+   duplicados de los 44 ingeridos. No es inferible sin ingerirlos.
+4. **Qué mide realmente cada `PENDIENTE-*`**: ocho endpoints declarados por su
+   nombre y sin definición operacional. Es **K3** para al menos dos de ellos
+   —calibración de incertidumbre y elección no miope—, donde el proyecto no tiene
+   evidencia interna para fijar el criterio.
+5. **Si la recuperación episódica tiene efecto conductual** dado el aplanamiento
+   del softmax descrito en §39.8. Medible con una lesión: fijar los pesos a
+   uniformes y comparar.

@@ -1,5 +1,8 @@
 # La capa de conocimiento, cartografiada · y la puerta puesta en automático
 
+> **Superado por `INFORME_CAPA_CONOCIMIENTO_02.md`** (mismo día): este informe
+> contó la capa; el 02 la lee. Los números de aquí siguen siendo correctos.
+
 **2026-09-21** · rama `experiment/cognitive-live-observatory-01` · base `bbaa3e5`
 Depositado en `docs/CARTOGRAFIA_TERRARIO_01.md` §XXXVIII · 237 líneas nuevas.
 

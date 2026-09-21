@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "bbaa3e5",
+  "head": "8e530a0",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -245,6 +245,31 @@
         "terrario/lab/theory/store.py": "800faf980f08a2f9c0cd05794d4bf8749e683332e6b3ba9e5368ea7f9aebfb0b",
         "tests/test_capability_operationalization.py": "2ac29520a17332ab07a75c9c9df977f5cd5b0342d36209818d83644866f9506e",
         "theory_snapshots/theory-f59dbb6d6ee3850c/ingestion_summary.json": "ab842e21a3c0ee0487944eb7ed3f6aa5fbe7bc03fc379909099d42102fe73104"
+      }
+    },
+    "XXXIX · La implementación de la capa de conocimiento, leída": {
+      "files": {
+        "scripts/passport_check.py": "3236d4d3a16132e660ab292baae53e9599a87de690d58a3167f43189db40e511",
+        "terrario/agent/agents/a5_cybernetic.py": "e77441eab03fe5ac2cae943ec4fda8e304218d7b9a132a3e80af730f2e0f25a4",
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
+        "terrario/lab/agent_composition.py": "493515cb170809549f7dffeb1ec00cba5f8cd1b7508d741838092899386c0da4",
+        "terrario/lab/api.py": "a8f26868da496a0ed4cb1b511c1a6a46511512bb2cdeeaab81547995c0800ed8",
+        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/hypergraph/adapter.py": "768b5a9936e75340b4071ce50d9522bed67f14088c0361f230e67edb660ccd53",
+        "terrario/lab/hypergraph/models.py": "69428e040eb6b93affb361a5c8b380ea380d269654cb9ba24cab58844d393f06",
+        "terrario/lab/hypergraph/operational.py": "9b35fc3ef1e21b2d531c45f309f1e71deacaa00b08de436d06bebbf73291cb6f",
+        "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
+        "terrario/lab/persistence/canonical.py": "e82e4bb9fcdc9be3748f8e071a33d403784640d3bb9c899ab8201a2128a1cada",
+        "terrario/lab/persistence/store.py": "a74d6689b89090cdf1ee2de2d8d77f3ad437201bcfe23177cf951720540d59e3",
+        "terrario/lab/referencegraph/domain.py": "2b67377a5e340c5e70beffbea5213949b8c0532d50cff30edab1a613a1aeaf0d",
+        "terrario/lab/referencegraph/import_corpus.py": "01924070b0e4f4e44e0a939cc681badf617c0a970d913025f08d021c2f2f65fd",
+        "terrario/lab/theory/factory.py": "720e5be05e0dd78f4711c95693099704f7e3f1772889a8996db96ca634a1e52e",
+        "terrario/lab/theory/ingestion.py": "cbda44b6c2ce6c40d5cbe72a0e5a74caec095481cc99da3baaeb639a9cd6b1aa",
+        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
+        "terrario/lab/theory/scientific_review.py": "4ea9bc7bcfa261fcaa4f82b17708793fb4b09f1a3dfce0b317ec1a75ceb2c7eb",
+        "terrario/lab/theory/snapshot.py": "c9cf314fcc671c8962105d157c2dea22ed93617e30f0c0da2802d00abb83d767",
+        "terrario/lab/theory/store.py": "800faf980f08a2f9c0cd05794d4bf8749e683332e6b3ba9e5368ea7f9aebfb0b",
+        "tests/test_agent_composition.py": "c9cac527a7076a07ce213732a911257f64746241dc3916f02118790a202b5c49"
       }
     }
   }
