@@ -61,6 +61,8 @@ class LifeOutcome:
     change_rate: float
     trajectory_hash: str
     shuffle_destructive: bool
+    shuffle_distance_full: float
+    shuffle_distance_shuffled: float
 
 
 def classify(available: float, gained: float, temporal_gain: float,
@@ -116,6 +118,8 @@ def read_life(life: Life) -> tuple[LifeOutcome, CausalProbe]:
         change_rate=life.instruments.change_rate,
         trajectory_hash=life.instruments.trajectory_hash,
         shuffle_destructive=auditoria.destructive,
+        shuffle_distance_full=auditoria.full_distance_to_marginal,
+        shuffle_distance_shuffled=auditoria.shuffled_distance_to_marginal,
     )
     return salida, prueba
 
@@ -171,7 +175,7 @@ def run_campaign(steps: int = ACQUISITION_STEPS,
     gate_module.gate_trajectory_parity(reporte, vidas[0])
     gate_module.gate_experience_was_sufficient(reporte, vidas[0])
     gate_module.gate_beats_its_own_past(reporte, perdidas)
-    gate_module.gate_beats_shuffled(reporte, perdidas)
+    gate_module.gate_beats_shuffled(reporte, perdidas, salidas)
     gate_module.gate_state_is_causal(reporte, [p for _, p in leidas])
     gate_module.gate_measurement_is_passive(reporte, vidas[0])
     gate_module.gate_bitcount_cannot_explain_primary(reporte, vidas[0])

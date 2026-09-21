@@ -202,13 +202,35 @@ def gate_beats_its_own_past(report: GateReport, losses: dict[str, np.ndarray]) -
                f"{ganancia.mean():+.4f} nats")
 
 
-def gate_beats_shuffled(report: GateReport, losses: dict[str, np.ndarray]) -> None:
+def gate_beats_shuffled(report: GateReport, losses: dict[str, np.ndarray],
+                        outcomes=()) -> None:
+    """Ganar al control y que el control sea un control. Son un solo gate.
+
+    `SHUFFLE_NOT_DESTRUCTIVE` es condición de parada declarada en el oráculo §17
+    y durante la campaña se calculó por vida sin que ningún gate la leyera
+    (`AN-1`). Su sitio no es un gate nuevo: es la **precondición** de éste. «FULL
+    supera a TEMPORAL-SHUFFLED» no afirma nada si TEMPORAL-SHUFFLED conserva la
+    temporalidad, así que la comparación y la validez del comparador se aprueban
+    o caen juntas.
+    """
     ganancia = losses["shuffled"] - losses["full"]
     n = len(ganancia)
     inferior = ganancia.mean() - 1.96 * ganancia.std(ddof=1) / np.sqrt(n)
-    report.add("L16-8", "FULL supera a TEMPORAL-SHUFFLED", bool(inferior > 0),
+    intactas = [o for o in outcomes if not o.shuffle_destructive]
+    ok = bool(inferior > 0) and not intactas and len(outcomes) == n
+    if intactas:
+        detalle = (f"BARAJA NO DESTRUCTIVA en {len(intactas)} vidas: "
+                   f"{[o.seed for o in intactas]}")
+    elif len(outcomes) != n:
+        detalle = f"sin auditoría de baraja para las {n} vidas"
+    else:
+        peor = max(o.shuffle_distance_shuffled / o.shuffle_distance_full
+                   for o in outcomes)
+        detalle = (f"baraja destructiva en {n}/{n} · peor razón de distancia a la "
+                   f"marginal {peor:.4f}")
+    report.add("L16-8", "FULL supera a un TEMPORAL-SHUFFLED que de verdad baraja", ok,
                f"IC95 inferior {inferior:+.4f} · media {ganancia.mean():+.4f} · "
-               f"{int((ganancia > 0).sum())}/{n} positivas")
+               f"{int((ganancia > 0).sum())}/{n} positivas · {detalle}")
 
 
 def gate_state_is_causal(report: GateReport, pruebas) -> None:

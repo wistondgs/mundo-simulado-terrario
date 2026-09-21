@@ -27,6 +27,10 @@ WALL_PROBABILITY = 0.25
 #: Índices de los flujos derivados. Ver Enmienda 01 §5.
 _WORLD, _MOTOR, _SHUFFLE = 0, 1, 2
 
+#: Los flujos de la distribución nula empiezan aquí. No tocan la trayectoria
+#: ni la baraja del brazo, así que añadirlos no mueve ningún resultado.
+_NULL_BASE = 3
+
 
 def world_stream(seed: int) -> np.random.Generator:
     """Flujo que construye la rejilla y sortea la celda natal."""
@@ -41,6 +45,11 @@ def motor_stream(seed: int) -> np.random.Generator:
 def shuffle_stream(seed: int) -> np.random.Generator:
     """Flujo del control TEMPORAL-SHUFFLED. Jamás participa de la trayectoria."""
     return np.random.default_rng([seed, _SHUFFLE])
+
+
+def null_stream(seed: int, replica: int) -> np.random.Generator:
+    """Flujo de una permutación de referencia. Sólo lo usa la auditoría."""
+    return np.random.default_rng([seed, _NULL_BASE + replica])
 
 
 def build_world(seed: int) -> Grid:

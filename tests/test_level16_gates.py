@@ -28,12 +28,24 @@ def vida():
 
 @pytest.fixture(scope="module")
 def perdidas():
+    from terrario.level16.campaign import read_life
     vidas = [live(s, steps=1024, post_steps=512) for s in consume_seeds().lives]
-    return vidas, {
+    salidas = [read_life(v)[0] for v in vidas]
+    return vidas, salidas, {
         "full": np.array([log_loss(full(v), v.post) for v in vidas]),
         "frozen": np.array([log_loss(frozen(v), v.post) for v in vidas]),
         "shuffled": np.array([log_loss(temporal_shuffled(v), v.post) for v in vidas]),
     }
+
+
+class _VidaConBarajaIntacta:
+    """Una vida cuya baraja no destruyó nada, con todo lo demás correcto."""
+
+    def __init__(self, seed, destructiva):
+        self.seed = seed
+        self.shuffle_destructive = destructiva
+        self.shuffle_distance_full = 0.55
+        self.shuffle_distance_shuffled = 0.06 if destructiva else 0.54
 
 
 def _uno(funcion, *args) -> gates.GateResult:
@@ -45,7 +57,7 @@ def _uno(funcion, *args) -> gates.GateResult:
 # --- los doce en positivo ----------------------------------------------------
 
 def test_los_doce_gates_pasan_sobre_el_paquete_real(vida, perdidas):
-    vidas, L = perdidas
+    vidas, salidas, L = perdidas
     reporte = GateReport()
     gates.gate_lineage_isolation(reporte)
     gates.gate_action_provenance(reporte, vida)
@@ -55,7 +67,7 @@ def test_los_doce_gates_pasan_sobre_el_paquete_real(vida, perdidas):
     gates.gate_trajectory_parity(reporte, vida)
     gates.gate_experience_was_sufficient(reporte, vida)
     gates.gate_beats_its_own_past(reporte, L)
-    gates.gate_beats_shuffled(reporte, L)
+    gates.gate_beats_shuffled(reporte, L, salidas)
     gates.gate_state_is_causal(reporte, [probe(full(v), v.post) for v in vidas[:4]])
     gates.gate_measurement_is_passive(reporte, vida)
     gates.gate_bitcount_cannot_explain_primary(reporte, vida)
@@ -157,7 +169,8 @@ def test_l16_7_falla_si_alguna_vida_no_mejora():
 def test_l16_8_falla_si_el_intervalo_toca_el_cero():
     L = {"full": np.array([1.0, 1.0, 1.0, 1.0]),
          "shuffled": np.array([1.4, 0.6, 1.5, 0.5])}
-    assert not _uno(gates.gate_beats_shuffled, L).passed
+    sanas = [_VidaConBarajaIntacta(s, True) for s in range(4)]
+    assert not _uno(gates.gate_beats_shuffled, L, sanas).passed
 
 
 def test_l16_9_falla_si_ablacionar_no_cambia_nada(vida):
@@ -182,3 +195,83 @@ def test_l16_11_falla_si_al_control_se_le_fabrica_una_distribucion(monkeypatch, 
     monkeypatch.setattr(StaticBitcount, "probability",
                         lambda self, a, b: 1 / 16, raising=False)
     assert not _uno(gates.gate_bitcount_cannot_explain_primary, vida).passed
+
+
+# --- AN-1 reparada: la precondición de L16-8 ---------------------------------
+
+def test_l16_8_falla_si_la_baraja_no_destruyo_aunque_full_gane():
+    """Fixture negativa de AN-1, por la vía real del verificador.
+
+    Las pérdidas son las de una campaña que gana con holgura: sin la
+    precondición, este gate pasaría con un control que no es un control.
+    """
+    L = {"full": np.full(4, 1.0), "shuffled": np.full(4, 2.2)}
+    sanas = [_VidaConBarajaIntacta(s, True) for s in range(4)]
+    assert _uno(gates.gate_beats_shuffled, L, sanas).passed
+
+    rotas = [_VidaConBarajaIntacta(0, False)] + sanas[1:]
+    resultado = _uno(gates.gate_beats_shuffled, L, rotas)
+    assert not resultado.passed
+    assert "BARAJA NO DESTRUCTIVA" in resultado.evidence
+
+
+def test_l16_8_falla_si_no_hay_auditoria_de_baraja():
+    """Y no puede aprobarse por omisión: sin auditoría tampoco pasa."""
+    L = {"full": np.full(4, 1.0), "shuffled": np.full(4, 2.2)}
+    assert not _uno(gates.gate_beats_shuffled, L, []).passed
+
+
+# --- AN-5 · las fixtures prometidas por el oráculo §13 -----------------------
+
+def test_l16_7_falla_si_a_full_se_le_congela_antes_de_contar():
+    """La fixture que el oráculo prometía para L16-7, por la vía real.
+
+    Un FULL congelado antes de la adquisición ES el brazo FROZEN, así que la
+    ganancia es cero en todas las vidas y el gate cae. Se computa con pérdidas
+    reales sobre bancos POST reales, no con un diccionario sintético.
+    """
+    from terrario.level16.temporal import TemporalModel
+    vidas = [live(s, steps=256, post_steps=256) for s in consume_seeds().lives[:4]]
+    congelado = TemporalModel()
+    congelado.freeze()
+    L = {"full": np.array([log_loss(congelado, v.post) for v in vidas]),
+         "frozen": np.array([log_loss(frozen(v), v.post) for v in vidas])}
+    assert np.allclose(L["full"], L["frozen"])
+    assert not _uno(gates.gate_beats_its_own_past, L).passed
+
+
+def test_la_fixture_prometida_para_l16_5_es_imposible_por_construccion():
+    """«Cambiar una acción de un brazo» no puede ocurrir: no hay acciones por brazo.
+
+    Los brazos reciben una `Life` ya vivida; ninguno produce actos. La paridad de
+    trayectoria no es un invariante que pueda romperse desde un brazo, sino una
+    consecuencia de que sólo exista una trayectoria. Se declara **redundancia
+    lógica** y se ataca en su lugar la única precondición que sí puede caer: que
+    el cuerpo llegue a leer la tabla.
+    """
+    import ast
+    import pathlib
+    arbol = ast.parse(pathlib.Path("terrario/level16/arms.py").read_text())
+    nombres = {n.id for n in ast.walk(arbol) if isinstance(n, ast.Name)}
+    nombres |= {n.attr for n in ast.walk(arbol) if isinstance(n, ast.Attribute)}
+    assert not (nombres & {"next", "EndogenousMotor", "motor_stream", "step",
+                           "Direction", "integers"})
+    vida = live(140000011, steps=128, post_steps=64)
+    assert full(vida).updates == temporal_shuffled(vida).updates == len(vida.previous)
+
+
+def test_la_fixture_prometida_para_l16_6_queda_excluida_aguas_arriba():
+    """«Mundo estático» no puede llegar a una vida: el consumo de semillas lo corta.
+
+    Un mundo sin transiciones que cambien es `N-MUNDO` por el predicado
+    estructural, y la regla de consumo lo descarta **antes** de vivirlo. Por eso
+    la fixture real inyecta la condición en el gate en vez de fabricar el mundo.
+    """
+    import numpy as np_
+
+    from terrario.level1.world import Grid
+    from terrario.level16.structure import describe_world, is_nonworld
+    celdas = np_.array([[1, 1, 1, 1, 1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]], dtype=np_.uint8)
+    estatico = Grid(celdas, (1, 2))
+    assert is_nonworld(describe_world(0, estatico))

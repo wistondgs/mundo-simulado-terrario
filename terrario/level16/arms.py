@@ -28,7 +28,7 @@ from terrario.level1.world import ALL_OBSERVATIONS, Observation
 from terrario.level16.life import Life
 from terrario.level16.metrics import free_directions
 from terrario.level16.temporal import OBSERVATION_INDEX, TemporalModel
-from terrario.level16.world import shuffle_stream
+from terrario.level16.world import null_stream, shuffle_stream
 
 
 def full(life: Life) -> TemporalModel:
@@ -81,15 +81,30 @@ class ShuffleAudit:
     total_pairs: int
     full_distance_to_marginal: float
     shuffled_distance_to_marginal: float
+    null_mean: float
+    null_sd: float
+
+    @property
+    def tolerance(self) -> float:
+        """Hasta dónde puede alejarse de la marginal una baraja honesta.
+
+        Un umbral fijo --el `0.5 * distancia de FULL` que esto tenía antes-- es
+        dependiente del tamaño de muestra y rechaza barajas honestas por debajo
+        de unos mil pasos: con 512 pasos repartidos en dieciséis filas, una tabla
+        correctamente barajada se aleja de la marginal por puro ruido de
+        estimación hasta razones de 0.57. La referencia correcta es la propia
+        trayectoria barajada de otras maneras, que se autocalibra a cualquier
+        presupuesto.
+        """
+        return self.null_mean + 4.0 * self.null_sd
 
     @property
     def destructive(self) -> bool:
-        return (self.shuffled_distance_to_marginal
-                < 0.5 * self.full_distance_to_marginal)
+        return self.shuffled_distance_to_marginal <= self.tolerance
 
 
-def audit_shuffle(life: Life, aprendido: TemporalModel,
-                  barajado: TemporalModel) -> ShuffleAudit:
+def audit_shuffle(life: Life, aprendido: TemporalModel, barajado: TemporalModel,
+                  null_replicas: int = 8) -> ShuffleAudit:
     """Medir la destrucción por dos vías independientes.
 
     La primera cuenta puntos fijos de la permutación. La segunda mide cuánto se
@@ -114,8 +129,18 @@ def audit_shuffle(life: Life, aprendido: TemporalModel,
                  if any(o == a for a in life.previous)]
         return float(np.mean(filas)) if filas else 0.0
 
+    nulas = []
+    for replica in range(null_replicas):
+        otra = null_stream(life.seed, replica).permutation(n)
+        referencia = TemporalModel()
+        for indice, anterior in enumerate(life.previous):
+            referencia.observe(anterior, life.following[otra[indice]])
+        nulas.append(distancia(referencia))
+    nulas_array = np.array(nulas)
+
     return ShuffleAudit(fijos, coincidencias, esperadas, n,
-                        distancia(aprendido), distancia(barajado))
+                        distancia(aprendido), distancia(barajado),
+                        float(nulas_array.mean()), float(nulas_array.std(ddof=1)))
 
 
 class StaticBitcount:
