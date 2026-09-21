@@ -29,6 +29,7 @@ SELECCION = DerivedRoleKind.SELECTIVE_RETENTION_PRESSURE
 POLITICA = DerivedRoleKind.ADAPTIVE_RETENTION_POLICY
 CREDITO = DerivedRoleKind.DELAYED_CREDIT_TO_RETENTION
 COORDINACION = DerivedRoleKind.COORDINATION_PRESSURE
+INSTRUMENTO = DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE
 
 
 # --- T1 · cuello de botella, pero la relevancia se conoce antes de retener -----------
@@ -38,11 +39,14 @@ T1 = TaskContract(
     source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=True,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=False,
     encoder_semantics_given=False, decoder_semantics_given=True,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=False,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def test_t1_a_bottleneck_with_known_relevance_is_not_uncertainty_about_the_future():
@@ -66,11 +70,14 @@ T2 = TaskContract(
     source_information_bits=2.0, retention_capacity_bits=4.0,
     relevance_known_before_retention=False,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=True,
     encoder_semantics_given=False, decoder_semantics_given=False,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=False,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def test_t2_a_later_query_with_room_to_spare_creates_no_selection_pressure():
@@ -92,13 +99,16 @@ T3 = TaskContract(
     source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=False,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=False, decoder_adaptive=True,
     #: Fijo no es «significado dado»: una proyección aleatoria fija no
     #: aprende y nadie dijo nunca qué codifica.
     encoder_semantics_given=False, decoder_semantics_given=False,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=False,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def test_t3_pressure_exists_and_no_selection_policy_can_be_learned():
@@ -123,13 +133,16 @@ T4 = TaskContract(
     source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=False,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=False,
     encoder_semantics_given=False, decoder_semantics_given=True,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     #: Y el rendimiento SÍ depende de que encajen: el encoder debe aprender a
     #: aterrizar donde el decoder fijo espera.
     performance_depends_on_compatibility=True,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def test_t4_one_learner_against_a_fixed_target_is_not_coordination():
@@ -145,28 +158,45 @@ def test_t4_one_learner_against_a_fixed_target_is_not_coordination():
     assert set(r.roles) == {CAPACIDAD, INCERTIDUMBRE, SELECCION, POLITICA, CREDITO}
 
 
-# --- T5 · feedback inmediato respecto de la decisión de retención ---------------------
+# --- T5 · demora cero entre la retención y una señal atribuible a ella ---------------
+#
+# A3b.1 le corrigió el nombre. No demuestra «el feedback inmediato elimina el
+# crédito temporal»: con las desigualdades de este contrato, feedback en el
+# mismo instante que la retención arrastra la consulta consigo, así que el caso
+# es más estrecho de lo que su nombre prometía. Lo que demuestra es que si no
+# hay demora entre decidir y recibir una señal atribuible a esa decisión, no
+# queda crédito que asignar hacia atrás. La versión general de eso, con las dos
+# temporalidades ya separadas, está más abajo.
 
 T5 = TaskContract(
-    label="T5",
+    label="T5-ZERO_RETENTION_CREDIT_DELAY",
     source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=True,
     retention_time=0, query_time=0, response_time=0, feedback_time=0,
+    retention_credit_signal_time=0, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=True,
     encoder_semantics_given=False, decoder_semantics_given=False,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=True,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
-def test_t5_learning_about_retention_is_not_delayed_credit():
+def test_t5_zero_retention_credit_delay_is_not_the_same_as_prompt_feedback():
     """Kills: «the encoder learns and performance depends on it, therefore
     credit is delayed».
 
     Learning is present -- the encoder is adaptive and performance depends on
-    it -- so the absence of the role is about the timing and not about the
+    it -- so the absence of the role is about the distance and not about the
     absence of a learner.  A control that passed because nothing was learning
-    would not be a control."""
+    would not be a control.
+
+    The distance that matters is between the retention and a signal
+    attributable to it, which in this contract happens to coincide with
+    everything else being simultaneous.  The general form, where the response
+    is judged late and the retention is credited at once, is
+    `test_zero_retention_credit_delay_leaves_nothing_to_assign_backwards`."""
     r = derive_roles(T5)
     assert T5.encoder_adaptive and T5.performance_depends_on_encoder
     assert CREDITO not in r.roles
@@ -180,11 +210,14 @@ T6 = TaskContract(
     source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=False,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=True,
     encoder_semantics_given=False, decoder_semantics_given=False,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=True,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def test_t6_the_full_contract_derives_every_role_and_no_case_specific_condition():
@@ -228,16 +261,142 @@ def test_mutant_two_adaptive_components_that_need_not_agree():
     assert set(derive_roles(T6).roles) - set(r.roles) == {COORDINACION}
 
 
-# --- dos controles más, por los dos campos que si no nadie leería ---------------------
+# --- A3b.1 · replay no es crédito resuelto -------------------------------------------
+#
+# La versión anterior de este módulo afirmaba que `counterfactual_replay_allowed`
+# disolvía el crédito diferido. Se afirmó antes de tiempo y se retiró: poder
+# repetir la situación es un instrumento, y un instrumento no es un problema
+# resuelto. Las cuatro pruebas siguientes son lo que quedó en su lugar.
 
-def test_counterfactual_replay_dissolves_delayed_credit():
-    """Re-running the same situation with a different retention measures what
-    the other choice would have yielded, and there is no longer a credit to
-    assign backwards."""
-    con_replay = dataclasses.replace(T6, label="T6-replay",
-                                     counterfactual_replay_allowed=True)
-    assert CREDITO not in derive_roles(con_replay).roles
-    assert set(derive_roles(T6).roles) - set(derive_roles(con_replay).roles) == {CREDITO}
+def test_replay_without_an_observable_alternative_leaves_the_credit_where_it_was():
+    """Kills: «the situation can be re-run, therefore credit is no longer
+    delayed».
+
+    Nothing can be seen of the other choice, so re-running buys nothing and
+    the signal about the retention still arrives three apart from it."""
+    ciego = dataclasses.replace(T6, label="T6-replay-ciego",
+                                counterfactual_replay_allowed=True)
+    r = derive_roles(ciego)
+    assert CREDITO in r.roles
+    assert INSTRUMENTO not in r.roles
+    assert set(r.roles) == set(derive_roles(T6).roles)
+
+
+def test_replay_with_intervention_and_an_attributable_outcome_is_an_instrument():
+    """All four together, and even then what is derived is that an instrument
+    exists -- not that the delay is gone.  The delay is a fact about when the
+    signal arrives, and no instrument moves it."""
+    entero = dataclasses.replace(
+        T6, label="T6-replay-entero", counterfactual_replay_allowed=True,
+        alternative_retention_can_be_intervened=True,
+        outcome_of_alternative_is_observable=True,
+        feedback_is_attributable_to_that_retention=True)
+    r = derive_roles(entero)
+    assert INSTRUMENTO in r.roles
+    assert CREDITO in r.roles, "the instrument exists; the delay is still real"
+    assert r.instruments == (INSTRUMENTO,)
+
+
+@pytest.mark.parametrize("faltante", [
+    "counterfactual_replay_allowed",
+    "alternative_retention_can_be_intervened",
+    "feedback_is_attributable_to_that_retention"])
+def test_three_of_the_four_is_not_an_instrument(faltante):
+    """With any one of them missing there is nothing to measure."""
+    campos = dict(counterfactual_replay_allowed=True,
+                  alternative_retention_can_be_intervened=True,
+                  outcome_of_alternative_is_observable=True,
+                  feedback_is_attributable_to_that_retention=True)
+    campos[faltante] = False
+    if faltante == "alternative_retention_can_be_intervened":
+        campos["outcome_of_alternative_is_observable"] = False
+    assert INSTRUMENTO not in derive_roles(
+        dataclasses.replace(T6, label=f"sin-{faltante}", **campos)).roles
+
+
+def test_an_unobservable_outcome_of_an_alternative_nobody_can_bring_about():
+    with pytest.raises(ContractRefused, match="nothing whose outcome that would be"):
+        _contrato(outcome_of_alternative_is_observable=True,
+                  alternative_retention_can_be_intervened=False)
+
+
+# --- A3b.1 · las dos temporalidades del crédito no son la misma ----------------------
+
+def test_feedback_glued_to_the_response_can_still_be_far_from_the_retention():
+    """Kills: «the feedback arrives with the response, therefore there is no
+    temporal credit problem».
+
+    The judgement of the answer and the credit of the retention are different
+    clocks.  Here they are as close as they can be to the response and three
+    apart from the decision we actually want to credit."""
+    tardio = dataclasses.replace(T6, label="T6-credito-tardio",
+                                 response_time=3, feedback_time=3,
+                                 retention_credit_signal_time=3)
+    assert tardio.feedback_time == tardio.response_time
+    assert tardio.retention_credit_delay == 3
+    assert CREDITO in derive_roles(tardio).roles
+
+
+def test_zero_retention_credit_delay_leaves_nothing_to_assign_backwards():
+    """`T5` generalised, and named for what it actually shows.
+
+    Not «immediate feedback»: the response is judged three later and the
+    query has not even arrived when retention is decided.  What is zero is
+    the distance between the decision and a signal attributable to it, and
+    that is the only distance the role was ever about."""
+    sin_demora = dataclasses.replace(T6, label="T6-demora-cero",
+                                     retention_credit_signal_time=0)
+    assert sin_demora.feedback_time == 3 and sin_demora.retention_credit_delay == 0
+    r = derive_roles(sin_demora)
+    assert CREDITO not in r.roles
+    assert set(derive_roles(T6).roles) - set(r.roles) == {CREDITO}
+
+
+# --- A3b.1 · una presión de tarea no es una capacidad que adquirir --------------------
+
+def test_a_pressure_can_never_reach_the_acquisition_candidates():
+    """A task can impose a pressure with no mechanism in existence able to
+    answer it.  Reading the pressure as something the organism must acquire
+    is how the question stops being a question."""
+    for contrato in (T1, T2, T3, T4, T5, T6, MUTANTE):
+        r = derive_roles(contrato)
+        assert not set(r.pressures) & set(r.acquisition_candidates), contrato.label
+        assert set(r.acquisition_candidates) <= set(r.controls)
+
+
+def test_the_pressure_with_no_control_is_the_case_that_proves_it():
+    """`T3` again, read through the typing: every ingredient of the pressure
+    and nothing to acquire."""
+    r = derive_roles(T3)
+    assert SELECCION in r.pressures
+    assert r.acquisition_candidates == ()
+
+
+def test_the_four_classes_partition_what_comes_out():
+    for contrato in (T1, T2, T3, T4, T5, T6, MUTANTE):
+        r = derive_roles(contrato)
+        clases = (set(r.pressures) | set(r.controls)
+                  | set(r.coordination_requirements) | set(r.instruments))
+        assert clases == set(r.roles), contrato.label
+        assert (len(r.pressures) + len(r.controls)
+                + len(r.coordination_requirements) + len(r.instruments)) == len(r.roles)
+
+
+def test_t6_still_derives_the_same_six_now_split_by_class():
+    r = derive_roles(T6)
+    assert set(r.roles) == {CAPACIDAD, INCERTIDUMBRE, SELECCION, POLITICA,
+                            CREDITO, COORDINACION}
+    assert set(r.pressures) == {CAPACIDAD, INCERTIDUMBRE, SELECCION, CREDITO}
+    assert r.controls == (POLITICA,)
+    assert r.coordination_requirements == (COORDINACION,)
+    assert r.instruments == ()
+
+
+def test_coordination_is_neither_a_pressure_nor_something_one_part_can_learn():
+    """It is a demand on the pair, and it may have no owner."""
+    r = derive_roles(T6)
+    assert COORDINACION not in r.pressures
+    assert COORDINACION not in r.acquisition_candidates
 
 
 def test_knowing_what_will_matter_collapses_the_whole_selection_chain():
@@ -261,11 +420,14 @@ BASE = dict(
     label="base", source_information_bits=4.0, retention_capacity_bits=2.0,
     relevance_known_before_retention=False,
     retention_time=0, query_time=1, response_time=2, feedback_time=3,
+    retention_credit_signal_time=3, feedback_is_attributable_to_that_retention=True,
     encoder_adaptive=True, decoder_adaptive=True,
     encoder_semantics_given=False, decoder_semantics_given=False,
     performance_depends_on_encoder=True, performance_depends_on_decoder=True,
     performance_depends_on_compatibility=True,
-    counterfactual_replay_allowed=False)
+    counterfactual_replay_allowed=False,
+    alternative_retention_can_be_intervened=False,
+    outcome_of_alternative_is_observable=False)
 
 
 def _contrato(**cambios):
@@ -380,10 +542,11 @@ def test_every_role_carries_a_falsification_question_and_a_nature():
     for rol in derive_roles(T6).derived:
         assert rol.falsification_question.strip().endswith("?"), rol.kind
         assert rol.rationale.strip()
-        assert rol.nature in (RoleNature.TASK_PRESSURE, RoleNature.LEARNABLE_CONTROL)
+        assert isinstance(rol.nature, RoleNature)
 
 
 def test_roles_come_back_ordered_by_nothing_the_derivation_chose():
     r = derive_roles(T6)
     assert list(r.roles) == sorted(r.roles, key=lambda k: k.value)
-    assert set(r.pressures) | set(r.controls) == set(r.roles)
+    assert set(r.pressures) | set(r.controls) | set(r.coordination_requirements) \
+        | set(r.instruments) == set(r.roles)

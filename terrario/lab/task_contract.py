@@ -24,15 +24,38 @@ on.  It contains no capability names.  It cannot: a contract that already
 knew which capability the task needs would be the answer wearing the
 question's clothes.
 
-Seven refusals live in the constructor, because a task that cannot be written
+Nine refusals live in the constructor, because a task that cannot be written
 down is a task that cannot exist:
 
     bits below zero                         information is not negative
     a response before its question          answers do not precede asking
     feedback before the response            nor does its judgement
+    a signal before the decision it judges  nor does a retention's credit
     the query in hand, relevance unknown    you are holding the question
     adaptive with its meaning supplied      nothing left to adapt
     compatibility without both components   there is nothing to be compatible
+    an outcome of an unreachable alternative there is nothing whose outcome
+                                            that would be
+
+**Two clocks, not one.**  `feedback_time` judges the response.
+`retention_credit_signal_time` is when something attributable to the
+*retention* arrives, and they come apart: a judgement glued to the answer can
+still be far from the decision one wants to credit.  Only the second distance
+was ever what delayed credit meant.
+
+**And an instrument is not a solution.**  This module briefly held that
+counterfactual replay dissolved delayed credit.  It does not: being able to
+re-run the situation buys nothing if the alternative cannot be brought about,
+its outcome cannot be seen, or the result cannot be assigned to the choice.
+So replay no longer touches the delay at all; with all four conditions it
+derives that a *direct credit instrument exists*, which is a different and
+much weaker thing to say.
+
+What comes out is typed, and the typing is load-bearing.  A `TASK_PRESSURE`
+is a property of the task: it can exist with no mechanism anywhere able to
+answer it, so it can never reach `acquisition_candidates`.  Reading a
+pressure as a capability the organism must acquire is how the question stops
+being a question.
 
 Everything this module emits is `HYPOTHESIS`, with
 `DERIVED_FROM_TASK_CONTRACT` as origin, and both are refused in the
@@ -67,6 +90,13 @@ class RoleNature(StrEnum):
 
     TASK_PRESSURE = "TASK_PRESSURE"
     LEARNABLE_CONTROL = "LEARNABLE_CONTROL"
+    #: Que dos partes tengan que encajar no es una presion sobre el organismo
+    #: ni algo que una sola de ellas pueda aprender; es una exigencia sobre la
+    #: pareja, y puede no tener dueno.
+    COORDINATION_REQUIREMENT_CANDIDATE = "COORDINATION_REQUIREMENT_CANDIDATE"
+    #: Ni exigencia ni presion: un instrumento que existe. Decir que existe no
+    #: es decir que el problema que podria resolver esta resuelto.
+    AVAILABLE_INSTRUMENT = "AVAILABLE_INSTRUMENT"
 
 
 class DerivedRoleKind(StrEnum):
@@ -77,6 +107,7 @@ class DerivedRoleKind(StrEnum):
     SELECTIVE_RETENTION_PRESSURE = "SELECTIVE_RETENTION_PRESSURE"
     ADAPTIVE_RETENTION_POLICY = "ADAPTIVE_RETENTION_POLICY"
     DELAYED_CREDIT_TO_RETENTION = "DELAYED_CREDIT_TO_RETENTION"
+    DIRECT_RETENTION_CREDIT_AVAILABLE = "DIRECT_RETENTION_CREDIT_AVAILABLE"
     COORDINATION_PRESSURE = "COORDINATION_PRESSURE"
 
 
@@ -85,8 +116,10 @@ NATURE: dict[DerivedRoleKind, RoleNature] = {
     DerivedRoleKind.FUTURE_RELEVANCE_UNCERTAINTY: RoleNature.TASK_PRESSURE,
     DerivedRoleKind.SELECTIVE_RETENTION_PRESSURE: RoleNature.TASK_PRESSURE,
     DerivedRoleKind.DELAYED_CREDIT_TO_RETENTION: RoleNature.TASK_PRESSURE,
-    DerivedRoleKind.COORDINATION_PRESSURE: RoleNature.TASK_PRESSURE,
     DerivedRoleKind.ADAPTIVE_RETENTION_POLICY: RoleNature.LEARNABLE_CONTROL,
+    DerivedRoleKind.COORDINATION_PRESSURE:
+        RoleNature.COORDINATION_REQUIREMENT_CANDIDATE,
+    DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE: RoleNature.AVAILABLE_INSTRUMENT,
 }
 
 
@@ -125,7 +158,16 @@ class TaskContract:
     performance_depends_on_decoder: bool
     performance_depends_on_compatibility: bool
 
+    #: Cuando llega una senal ATRIBUIBLE a esta decision de retencion. No es
+    #: `feedback_time`: el juicio de la respuesta y el credito de la retencion
+    #: son dos temporalidades distintas, y confundirlas hace que un feedback
+    #: inmediato a la respuesta parezca resolver un credito que sigue lejos.
+    retention_credit_signal_time: int
+    feedback_is_attributable_to_that_retention: bool
+
     counterfactual_replay_allowed: bool
+    alternative_retention_can_be_intervened: bool
+    outcome_of_alternative_is_observable: bool
 
     def __post_init__(self) -> None:
         if not str(self.label).strip():
@@ -151,6 +193,16 @@ class TaskContract:
                 raise ContractRefused(
                     f"{self.label}: the {parte} is adaptive and its meaning was "
                     f"supplied; there is nothing left for it to adapt")
+        if self.retention_credit_signal_time < self.retention_time:
+            raise ContractRefused(
+                f"{self.label}: a signal about a retention arrives before the "
+                f"retention it is about")
+        if self.outcome_of_alternative_is_observable \
+                and not self.alternative_retention_can_be_intervened:
+            raise ContractRefused(
+                f"{self.label}: the outcome of an alternative retention is "
+                f"observable and the alternative cannot be brought about; there "
+                f"is nothing whose outcome that would be")
         if self.performance_depends_on_compatibility and not (
                 self.performance_depends_on_encoder
                 and self.performance_depends_on_decoder):
@@ -173,6 +225,12 @@ class TaskContract:
     def feedback_after_retention(self) -> bool:
         return self.feedback_time > self.retention_time
 
+    @property
+    def retention_credit_delay(self) -> int:
+        """Lo que separa decidir de enterarse, que no es lo mismo que responder
+        y enterarse."""
+        return self.retention_credit_signal_time - self.retention_time
+
     def as_record(self) -> Mapping[str, Any]:
         return {"schema_version": SCHEMA_VERSION, "label": self.label,
                 "source_information_bits": self.source_information_bits,
@@ -188,7 +246,15 @@ class TaskContract:
                 "performance_depends_on_decoder": self.performance_depends_on_decoder,
                 "performance_depends_on_compatibility":
                     self.performance_depends_on_compatibility,
+                "retention_credit_signal_time": self.retention_credit_signal_time,
+                "feedback_is_attributable_to_that_retention":
+                    self.feedback_is_attributable_to_that_retention,
                 "counterfactual_replay_allowed": self.counterfactual_replay_allowed,
+                "alternative_retention_can_be_intervened":
+                    self.alternative_retention_can_be_intervened,
+                "outcome_of_alternative_is_observable":
+                    self.outcome_of_alternative_is_observable,
+                "retention_credit_delay": self.retention_credit_delay,
                 "is_bottleneck": self.is_bottleneck,
                 "query_after_retention": self.query_after_retention}
 
@@ -234,19 +300,46 @@ class TaskRoleDerivation:
     def roles(self) -> tuple[DerivedRoleKind, ...]:
         return tuple(sorted({r.kind for r in self.derived}, key=lambda k: k.value))
 
+    def of_nature(self, nature: RoleNature) -> tuple[DerivedRoleKind, ...]:
+        return tuple(k for k in self.roles if NATURE[k] is nature)
+
     @property
     def pressures(self) -> tuple[DerivedRoleKind, ...]:
-        return tuple(k for k in self.roles if NATURE[k] is RoleNature.TASK_PRESSURE)
+        """What the task imposes.  Nobody has to be able to answer it."""
+        return self.of_nature(RoleNature.TASK_PRESSURE)
 
     @property
     def controls(self) -> tuple[DerivedRoleKind, ...]:
-        return tuple(k for k in self.roles if NATURE[k] is RoleNature.LEARNABLE_CONTROL)
+        return self.of_nature(RoleNature.LEARNABLE_CONTROL)
+
+    @property
+    def coordination_requirements(self) -> tuple[DerivedRoleKind, ...]:
+        return self.of_nature(RoleNature.COORDINATION_REQUIREMENT_CANDIDATE)
+
+    @property
+    def instruments(self) -> tuple[DerivedRoleKind, ...]:
+        return self.of_nature(RoleNature.AVAILABLE_INSTRUMENT)
+
+    @property
+    def acquisition_candidates(self) -> tuple[DerivedRoleKind, ...]:
+        """The only roles anything downstream may read as something to acquire.
+
+        A pressure is a property of the task, and a task can impose one with
+        no mechanism in existence able to answer it.  Reading a pressure as a
+        capability the organism must acquire is how the question stops being
+        a question, so pressures cannot reach this list at all.
+        """
+        return self.controls
 
     def as_record(self) -> Mapping[str, Any]:
         return {"schema_version": self.schema_version, "contract": self.contract,
                 "roles": [k.value for k in self.roles],
                 "pressures": [k.value for k in self.pressures],
                 "controls": [k.value for k in self.controls],
+                "coordination_requirements":
+                    [k.value for k in self.coordination_requirements],
+                "instruments": [k.value for k in self.instruments],
+                "acquisition_candidates": [k.value for k in self.acquisition_candidates],
                 "derived": [r.as_record() for r in self.derived]}
 
 
@@ -298,16 +391,36 @@ def derive_roles(contract: TaskContract) -> TaskRoleDerivation:
                "does holding the encoder at its initial mapping cost anything?")
 
     # Que haya aprendizaje sobre la retencion no hace diferido el credito: lo
-    # hace la distancia entre decidir y enterarse. Y el replay contrafactual
-    # la disuelve, porque volver a correr la misma situacion con otra
-    # retencion mide lo que la otra habria dado.
-    if contract.feedback_after_retention and contract.encoder_adaptive \
-            and contract.performance_depends_on_encoder \
-            and not contract.counterfactual_replay_allowed:
+    # hace la distancia entre DECIDIR y recibir una senal atribuible a esa
+    # decision. Y esa distancia no es la del feedback sobre la respuesta: un
+    # juicio que llega pegado a la respuesta puede seguir a mucha distancia de
+    # la retencion que queremos acreditar.
+    #
+    # El replay contrafactual NO aparece aqui. Poder repetir la situacion es
+    # un instrumento, no un credito resuelto: si la recompensa sigue llegando
+    # mucho despues, o no se sabe que parte del resultado se debe a la
+    # retencion, el problema temporal sigue entero. Esa conjuncion se afirmo
+    # antes de tiempo y se retiro.
+    if contract.retention_credit_delay > 0 and contract.encoder_adaptive \
+            and contract.performance_depends_on_encoder:
         anotar(DerivedRoleKind.DELAYED_CREDIT_TO_RETENTION,
-               "the judgement of a retention arrives after the retention and the "
-               "situation cannot be re-run to see what the other choice was worth",
-               "does the outcome of a retention reach it while it is still being made?")
+               f"a signal attributable to the retention arrives "
+               f"{contract.retention_credit_delay} apart from the decision it "
+               f"would credit, and something is trying to learn from it",
+               "does a signal about a retention reach it while it is still being made?")
+
+    # Y el instrumento, cuando esta entero. Las cuatro cosas hacen falta:
+    # poder repetir, poder poner otra retencion, poder ver como acaba, y poder
+    # atribuirle el resultado. Con tres de las cuatro no hay nada que medir.
+    if contract.counterfactual_replay_allowed \
+            and contract.alternative_retention_can_be_intervened \
+            and contract.outcome_of_alternative_is_observable \
+            and contract.feedback_is_attributable_to_that_retention:
+        anotar(DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE,
+               "the situation can be re-run with a different retention, the other "
+               "outcome can be seen, and the result can be assigned to the choice",
+               "does re-running with another retention yield a difference that can "
+               "be attributed to it?")
 
     # Dos partes adaptativas no tienen por que coordinarse: pueden aprender a
     # la vez y no deberse nada. Lo que exige la coordinacion es que el

@@ -6182,7 +6182,7 @@ de botella es un hecho de canal puro y no tiene nada que sobreafirmar.
 | T2 · consulta posterior, canal sobrado | · | sí | · | · | sí | · |
 | T3 · cuello + consulta, encoder fijo | sí | sí | sí | · | · | · |
 | T4 · encoder móvil, decoder fijo | sí | sí | sí | sí | sí | · |
-| T5 · feedback inmediato | sí | · | · | · | · | sí |
+| T5 · demora de crédito cero (§48.9) | sí | · | · | · | · | sí |
 | T6 · contrato completo | sí | sí | sí | sí | sí | sí |
 | mutante · ambos móviles, sin acoplamiento | sí | sí | sí | sí | sí | · |
 
@@ -6209,3 +6209,74 @@ como par mínimo. La condición de parada `TASK_DECOMPOSER_OVERFIT` no se activ�
 el catálogo, ni ningún artefacto de un nivel real alimentando esto. `T6` está
 escrito a mano para ser estructuralmente equivalente a 1.5; que lo sea es una
 afirmación sobre el contrato, no una lectura de la campaña.
+
+## 48.9 · `A3b.1` · qué clase de cosa es cada salida, y una afirmación retirada
+
+Tres correcciones semánticas antes del descompositor general. Ninguna añade
+capacidad de derivación: las tres **quitan** autoridad a lo que ya derivaba.
+
+### Una presión de tarea no es una capacidad que adquirir
+
+`A3b` emitía una bolsa homogénea de roles, y el Gap Analyzer habría podido leer
+`SELECTIVE_RETENTION_PRESSURE` como una habilidad que el organismo necesita.
+**No lo es.** Una tarea puede imponer una presión sin que exista todavía ningún
+mecanismo capaz de responderla, y confundir las dos cosas es cómo la pregunta
+deja de ser pregunta.
+
+Ahora la salida está tipada en cuatro clases
+(`terrario/lab/task_contract.py:59`):
+
+```
+TASK_PRESSURE                       CAP · FUT · SEL · CRE
+LEARNABLE_CONTROL                   POL
+COORDINATION_REQUIREMENT_CANDIDATE  COO
+AVAILABLE_INSTRUMENT                INS
+```
+
+`acquisition_candidates` devuelve **sólo** la segunda clase, y la garantía es
+estructural, no documental: una presión no puede llegar ahí. `COORDINATION_PRESSURE`
+sale de «presión» porque es una exigencia sobre la **pareja** y puede no tener
+dueño: ninguna de las dos partes por separado la adquiere.
+
+`T3` es la prueba viva: tres presiones y **cero** candidatos de adquisición.
+
+### El replay contrafactual no resuelve el crédito · afirmación retirada
+
+`A3b` afirmaba que `counterfactual_replay_allowed` disolvía el crédito diferido.
+**Se afirmó antes de tiempo y se retiró.** Poder repetir la situación no compra
+nada si la retención alternativa no se puede provocar, si no se ve cómo acaba, o
+si no se sabe qué parte del resultado se le debe.
+
+El replay ya **no toca** la demora. Con las cuatro condiciones juntas deriva que
+existe un **instrumento** —`DIRECT_RETENTION_CREDIT_AVAILABLE`, clase
+`AVAILABLE_INSTRUMENT`— y nada más. El contrato completo con el instrumento entero
+sigue teniendo crédito diferido, porque la demora es un hecho sobre cuándo llega
+la señal y ningún instrumento la mueve.
+
+```
+T6-replay-ciego    idéntico a T6            el replay solo no cambia nada
+T6-replay-entero   T6 + INS, CRE intacto    el instrumento existe; la demora también
+```
+
+Cuatro pruebas nuevas, tres de ellas parametrizadas sobre qué condición falta.
+
+### Dos relojes, no uno
+
+`feedback_time` juzga la **respuesta**. `retention_credit_signal_time` es cuándo
+llega algo atribuible a la **retención**, y se separan: un juicio pegado a la
+respuesta puede seguir lejos de la decisión que se quiere acreditar. Sólo la
+segunda distancia fue nunca lo que significaba el crédito diferido.
+
+Eso corrige también el nombre de `T5`. No demostraba «el feedback inmediato
+elimina el crédito temporal» —con sus desigualdades, feedback simultáneo a la
+retención arrastra la consulta consigo— sino algo más estrecho: **demora cero
+entre decidir y recibir señal atribuible**. La forma general, con la respuesta
+juzgada tarde y la retención acreditada al instante, es una prueba aparte.
+
+Dos negativas más en el constructor: una señal sobre una decisión no puede
+preceder a la decisión, y no se puede observar el desenlace de una alternativa
+que nadie puede provocar. Nueve en total.
+
+**Lo que no se sabe.** Si `DIRECT_RETENTION_CREDIT_AVAILABLE` debería además
+cancelar la demora cuando el instrumento se usa de verdad. Hoy coexisten a
+propósito: decir que existe un instrumento no es decir que se usó.
