@@ -30,6 +30,16 @@ from terrario.level17.efference import ALL_COMMANDS, EfferenceCopy
 from terrario.level17.wiring import ActuatorWiring
 from terrario.level18.predictive_state import PredictiveStateModel
 
+#: Enmienda 05 §5 · la cuarentena deja de depender de que alguien mire.
+#: Ninguna ruta de calibración, diagnóstico, nulo, permutación, fixture o ensayo
+#: puede consumir una de estas semillas: el runtime se niega.
+RESERVED_CONFIRMATORY = frozenset(range(180000011, 180000075))
+
+
+class ReservedSeedError(RuntimeError):
+    """Se intentó vivir una semilla del confirmatorio fuera de la campaña."""
+
+
 PREDECESSOR = 4096          # P0 · heredado sellado de 1.7
 CONTINGENCY = 1024          # P1 · heredado sellado de 1.7
 POST = 2048                 # banco de evaluación
@@ -190,8 +200,12 @@ def _conditional_entropy(pairs) -> float:
 
 
 def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = None,
-         predecessor: int = PREDECESSOR, contingency: int = CONTINGENCY,
-         post: int = POST) -> dict:
+         confirmatory: bool = False, predecessor: int = PREDECESSOR,
+         contingency: int = CONTINGENCY, post: int = POST) -> dict:
+    if seed in RESERVED_CONFIRMATORY and not confirmatory:
+        raise ReservedSeedError(
+            f"{seed} pertenece al confirmatorio sellado 180000011…180000074 y "
+            "esta ruta no es la campaña autorizada; `grep` ya no es la defensa")
     grid = build_world(seed)
     wiring = ActuatorWiring.sampled(seed)
     motor = EndogenousMotor(motor_stream(seed))
