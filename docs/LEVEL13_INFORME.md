@@ -1,6 +1,6 @@
 # `LEVEL1.3-ONE-STEP-REFERENCE-PERSISTENCE-01` · informe
 
-**`LEVEL13_STATUS = VERIFIED`** · los once gates en las ocho semillas.
+**`LEVEL13_STATUS = VERIFIED`** · los catorce gates en las ocho semillas.
 
 Rama `experiment/level13-one-step-reference-persistence-01`, nacida de `ef67ee5`
 --el cierre exacto del Nivel 1.1--. Oráculo sellado en `09c1d80`, **antes** de
@@ -139,7 +139,34 @@ El cuidado de `write` no era teórico: **`CueToken` y `Direction` son los dos
 cierto al comparar. Sólo `isinstance` los distingue, y hay contrato que lo deja
 escrito.
 
-## 8 · Defecto hallado construyendo · y es una reincidencia
+## 8 · Reconciliación del inventario de gates
+
+El preregistro sella catorce filas --`L13-0` … `L13-13`--. La primera versión
+del guion evaluaba **once**, y el informe reportaba once sin decir que el sello
+pedía tres más.
+
+Los tres que faltaban **sí estaban verificados**, en contratos y no en el
+informe de ejecución.
+
+| gate | dónde estaba | dónde se verifica ahora |
+|---|---|---|
+| `L13-1` observabilidad temporal | `tests/test_level13_lineage.py` · `query` no acepta `CueToken` | **añadido al guion**, por la firma |
+| `L13-2` aislamiento de la presentación | `tests/test_level13_lineage.py` · `present` devuelve `None` y no llama a nada salvo `write`, comprobado por AST | **añadido al guion**, con el mismo AST |
+| `L13-10` falsabilidad de atajos | `tests/test_level13_memory.py` · el banco de fuga y la memoria instantánea | **añadido al guion**, corriendo los dos mundos |
+
+`L13-2` sigue siendo lo que el sello dice que es --auditoría de la superficie de
+API, no del mundo--: el banco se enumera, así que no hay `Grid` que mutar. Está
+en el inventario para que se cuente, no para que se lea como prueba de que el
+mundo no se movió.
+
+**El resultado experimental no cambia**: los catorce pasan en las ocho
+semillas, y la salida del guion difiere de la anterior en exactamente tres
+líneas añadidas.
+
+Cada fila añadida trae su mutante: una `query` que acepta cue, una presentación
+con `act`, y un banco de fuga que no filtra hacen caer lo que les toca.
+
+## 9 · Defecto hallado construyendo · y es una reincidencia
 
 **Dos de mis contratos cazaron su propia documentación.**
 
@@ -156,7 +183,7 @@ haya vuelto a ocurrir teniéndolo escrito dice algo útil: una guarda basada en
 texto es frágil por construcción, no por descuido, y conviene tratarla como
 prohibida y no como desaconsejada.
 
-## 9 · Qué está permitido afirmar
+## 10 · Qué está permitido afirmar
 
 > El Agente Nivel 1.3 conservó durante exactamente un tick información sobre una
 > referencia direccional previamente percibida y utilizó esa información durante
@@ -178,7 +205,7 @@ espacial, representación del tiempo, conciencia temporal, continuidad de
 objetivos, planificación, navegación, selección de recuerdos, almacenamiento
 aprendido, olvido aprendido, consolidación, memoria multietapa.
 
-## 10 · Ficheros y reproducción
+## 11 · Ficheros y reproducción
 
 ```
 terrario/level13/     memory · inherited · agent · trials · metrics · experiment
@@ -198,7 +225,7 @@ OMP_NUM_THREADS=2 "$PY" -u scripts/level13_one_step_persistence.py
 OMP_NUM_THREADS=2 "$PY" -m pytest tests/test_level13_*.py -q --no-header -p no:cacheprovider
 ```
 
-## 11 · De qué tamaño es la adquisición
+## 12 · De qué tamaño es la adquisición
 
 Cuatro cues equiprobables: `H(G) = log₂4 = 2 bits`, más el estado de control
 `EMPTY`/`HELD`. Ésa es la escala exacta, y es la más pequeña del linaje --el 1.1

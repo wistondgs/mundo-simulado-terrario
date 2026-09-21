@@ -159,3 +159,37 @@ def test_las_semillas_del_13_no_pisan_las_anteriores():
 
 def test_la_reconstruccion_es_reproducible():
     assert reconstruct(SEMILLA).fingerprint() == reconstruct(SEMILLA).fingerprint()
+
+
+# --- los tres gates que el guion no evaluaba tienen que poder caer ---------------
+
+def test_una_consulta_que_acepta_cue_suspende_el_gate(core, monkeypatch):
+    """`L13-1`. Si añadir el parámetro no lo hiciera caer, el gate estaría
+    comprobando que el módulo se importa."""
+    from terrario.level13 import experiment
+
+    assert experiment._temporal_observability()
+    monkeypatch.setattr(Level13Agent, "query",
+                        lambda self, observation, cue=None: ())
+    assert not experiment._temporal_observability()
+
+
+def test_una_presentacion_que_actua_suspende_el_gate(core, monkeypatch):
+    """`L13-2`."""
+    from terrario.level13 import experiment
+
+    assert experiment._presentation_isolated(core)
+    monkeypatch.setattr(Level13Agent, "act", lambda self: None, raising=False)
+    assert not experiment._presentation_isolated(core)
+
+
+def test_un_atajo_que_no_cae_suspende_el_gate(core, monkeypatch):
+    """`L13-10`. El gate afirma que los mundos de atajo hunden a quien les toca.
+    Con un banco de fuga que no filtra, la afirmación es falsa y tiene que
+    decirlo."""
+    from terrario.level13 import experiment
+
+    assert experiment._shortcuts_falsifiable(core, CueSemantics.identity())
+    monkeypatch.setattr(experiment, "leaky_bank",
+                        lambda semantics: experiment.critical_bank())
+    assert not experiment._shortcuts_falsifiable(core, CueSemantics.identity())
