@@ -1,0 +1,140 @@
+"""Contratos del mecanismo de estado predictivo.
+
+El primero es la fixture del defecto encontrado: un autómata que, por faltarle una
+entrada explícita, se declaraba a sí mismo absorbente.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from terrario.level16.temporal import OBSERVATION_INDEX
+from terrario.level17.efference import ALL_COMMANDS, EfferenceCopy
+from terrario.level18.predictive_state import (
+    PredictiveStateError, PredictiveStateModel, ROOT,
+)
+
+OBSERVACIONES = [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0)]
+
+
+def _tabla():
+    return np.full((16, 4, 16), 4.0)
+
+
+def _forzar_split(modelo, pasos=64):
+    """Llevarlo a separar usando su propio criterio, sin tocarlo."""
+    generador = np.random.default_rng(7)
+    for _ in range(pasos):
+        antes = OBSERVACIONES[int(generador.integers(len(OBSERVACIONES)))]
+        comando = ALL_COMMANDS[int(generador.integers(4))]
+        despues = OBSERVACIONES[int(generador.integers(len(OBSERVACIONES)))]
+        modelo.observe(antes, EfferenceCopy(comando), despues)
+        if modelo.refinements > 0 and len(modelo.states()) > 2:
+            return True
+    return modelo.refinements > 0
+
+
+# --- el defecto: UNKNOWN ROUTE ≠ STAY ---------------------------------------
+
+def test_entrar_en_un_hijo_no_deja_al_ser_atrapado_en_el():
+    """La fixture del autómata absorbente.
+
+    Tras separar la raíz, estar dentro de un hijo no puede impedir la transición
+    que la dinámica heredada del padre sí define. Antes de la reparación, la
+    ausencia de una entrada explícita se leía como «quédate», y el organismo
+    entraba en un hijo y no salía nunca.
+    """
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    assert _forzar_split(modelo), "el criterio no separó; la fixture no aplica"
+
+    hijos = [z for z in modelo.states() if modelo.parent_of(z) is not None]
+    assert len(hijos) >= 2, modelo.states()
+
+    destinos = set()
+    for comando in range(4):
+        for siguiente in range(16):
+            destinos.add(modelo._next_state(hijos[0], comando, siguiente))
+    assert destinos != {hijos[0]}, (
+        "desde un hijo toda transición vuelve a él: el autómata es absorbente")
+
+
+def test_un_hijo_hereda_la_dinamica_de_salida_de_su_padre():
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    assert _forzar_split(modelo)
+    for hijo in [z for z in modelo.states() if modelo.parent_of(z) is not None]:
+        padre = modelo.parent_of(hijo)
+        for comando in range(4):
+            for siguiente in range(16):
+                propia = (hijo, comando, siguiente) in modelo._routing
+                if not propia:
+                    assert modelo._next_state(hijo, comando, siguiente) == \
+                        modelo._next_state(padre, comando, siguiente)
+
+
+def test_la_funcion_de_transicion_es_semanticamente_total():
+    """No hace falta materializar la tabla; hace falta que δ esté siempre definida."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _forzar_split(modelo)
+    assert modelo.routing_is_total()
+
+
+def test_la_raiz_sola_si_se_queda_en_si_misma():
+    """Con un solo estado, toda transición conduce a él. Eso NO es absorción."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    assert modelo.states() == [ROOT]
+    assert all(modelo._next_state(ROOT, c, o) == ROOT
+               for c in range(4) for o in range(16))
+
+
+# --- los invariantes del oráculo ---------------------------------------------
+
+def test_nace_siendo_1_7_bit_a_bit():
+    tabla = np.random.default_rng(3).random((16, 4, 16)) * 10 + 1
+    modelo = PredictiveStateModel(tabla)
+    modelo.begin()
+    peor = 0.0
+    for observacion in OBSERVACIONES:
+        indice = OBSERVATION_INDEX[observacion]       # NO la posición en la lista
+        referencia = tabla[indice] / tabla[indice].sum(axis=1, keepdims=True)
+        for j, comando in enumerate(ALL_COMMANDS):
+            peor = max(peor, float(np.abs(
+                modelo.predict(observacion, EfferenceCopy(comando)) - referencia[j]).max()))
+    assert peor == 0.0, peor
+
+
+def test_la_masa_heredada_se_conserva_tras_separar():
+    tabla = _tabla()
+    modelo = PredictiveStateModel(tabla)
+    modelo.begin()
+    _forzar_split(modelo)
+    assert np.allclose(sum(modelo.inherited_mass()), tabla, rtol=0, atol=1e-9)
+
+
+def test_la_lesion_devuelve_exactamente_a_1_7():
+    tabla = np.random.default_rng(5).random((16, 4, 16)) * 10 + 1
+    modelo = PredictiveStateModel(tabla)
+    modelo.begin()
+    _forzar_split(modelo)
+    modelo.lesion()
+    modelo.begin()
+    peor = 0.0
+    for observacion in OBSERVACIONES:
+        indice = OBSERVATION_INDEX[observacion]
+        referencia = tabla[indice] / tabla[indice].sum(axis=1, keepdims=True)
+        for j, comando in enumerate(ALL_COMMANDS):
+            peor = max(peor, float(np.abs(
+                modelo.predict(observacion, EfferenceCopy(comando)) - referencia[j]).max()))
+    assert peor == 0.0, peor
+    assert modelo.states() == [ROOT]
+
+
+def test_el_canal_solo_admite_una_copia_eferente():
+    modelo = PredictiveStateModel(_tabla())
+    for intruso in (0, "A0", None, ALL_COMMANDS[0]):
+        with pytest.raises(PredictiveStateError):
+            modelo.observe(OBSERVACIONES[0], intruso, OBSERVACIONES[1])

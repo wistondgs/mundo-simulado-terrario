@@ -75,6 +75,7 @@ class PredictiveStateModel:
         self._prior = {ROOT: self._inherited.copy()}      # masa heredada por estado
         self._evidence = {ROOT: np.zeros((16, 4, 16))}    # lo adquirido en 1.8
         self._routing: dict[tuple[int, int, int], int] = {}
+        self._parent: dict[int, int | None] = {ROOT: None}
         self._incoming: dict[int, dict[tuple[int, int], np.ndarray]] = {ROOT: {}}
         self._code = {ROOT: [0.0, 0.0]}                   # [unificado, separado]
         self._arrivals: dict[int, dict[tuple[int, int], float]] = {ROOT: {}}
@@ -141,9 +142,52 @@ class PredictiveStateModel:
             self._refine(here)
 
         self._came_from = (self._here, command)
-        self._here = self._routing.get((self._here, command, after), self._here)
+        self._here = self._next_state(self._here, command, after)
 
     # --- refinamiento --------------------------------------------------------
+
+    def _next_state(self, state: int, command: int, following: int) -> int:
+        """`δ(z, (a, o'))` con **backoff estructural** por la cadena de padres.
+
+        Un hijo hereda la dinámica de salida de su padre, y la evidencia la
+        especializa sólo donde el split la justifica. Sin esto, la ausencia de una
+        entrada explícita se leía como
+
+            «sé que debo quedarme aquí»
+
+        cuando lo único cierto era
+
+            «no tengo una transición especializada».
+
+        Son afirmaciones distintas, y confundirlas hacía el autómata **absorbente**:
+        el organismo entraba en un hijo y no salía nunca --0 % de cambios de estado
+        donde una partición de profundidad 1 exige ~75 %.
+
+            UNKNOWN ROUTE  ≠  STAY
+
+        `ROOT` sí se queda en sí mismo por defecto, y eso es correcto: con un solo
+        estado toda transición conduce a él. La totalidad semántica de `δ` viene de
+        la cadena, no de materializar la tabla entera.
+        """
+        node: int | None = state
+        while node is not None:
+            found = self._routing.get((node, command, following))
+            if found is not None:
+                return found
+            node = self._parent[node]
+        return ROOT
+
+    def routing_is_total(self) -> bool:
+        """Todo estado activo tiene `δ` definida para todo símbolo, por ruta o herencia."""
+        for state in self.states():
+            for command in range(4):
+                for following in range(16):
+                    if self._next_state(state, command, following) not in self._prior:
+                        return False
+        return True
+
+    def parent_of(self, state: int) -> int | None:
+        return self._parent[state]
 
     def _share_of(self, state: int, signature: tuple[int, int]) -> float:
         """La porción del prior heredado que esta firma recibiría al separarse.
@@ -183,6 +227,7 @@ class PredictiveStateModel:
             self._incoming[born] = {}
             self._arrivals[born] = {}
             self._code[born] = [0.0, 0.0]
+            self._parent[born] = state
             for following in range(16):
                 self._routing[(signature[0], signature[1], following)] = born
 
