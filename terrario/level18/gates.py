@@ -22,10 +22,12 @@ import numpy as np
 PACKAGE = pathlib.Path(__file__).parent
 TERRARIO = PACKAGE.parent
 
-#: Los diecisiete. Que el runner ejecute menos es fatal, no una nota al pie.
-#: Eran dieciséis hasta la Enmienda 01: faltaba `BASELINE-PARITY`, que 1.7 sí
-#: tenía y que no se trasladó. Añadirlo endurece el contrato.
-REQUIRED_GATES = tuple(f"L18-{i}" for i in range(17))
+#: Los dieciocho. Que el runner ejecute menos es fatal, no una nota al pie.
+#: Eran dieciséis pre-código. La Enmienda 01 añadió `BASELINE-PARITY`, que 1.7 sí
+#: tenía y no se trasladó; la Enmienda 02 añadió `REFINEMENT-REVERSIBILITY`,
+#: porque el oráculo prometía fusión y nada la certificaba. Los dos endurecen el
+#: contrato y ninguno de los dos es pre-código: la cronología se conserva.
+REQUIRED_GATES = tuple(f"L18-{i}" for i in range(18))
 
 #: Capacidades posteriores. No están en el disco; el gate lo prueba.
 LATER_CAPABILITIES = ("level11", "level12", "level13", "level14",
@@ -472,3 +474,44 @@ def gate_baseline_parity(report: GateReport, baseline_updates: int,
                f"mismo C_17 de partida {same_start} · actualizaciones "
                f"{baseline_updates} vs {model_updates} · comparador congelado "
                f"{baseline_frozen}")
+
+
+#: Constantes que reintroducirían un umbral humano en la fusión.
+FORBIDDEN_MERGE_CONSTANTS = frozenset({
+    "MERGE_THRESHOLD", "MIN_SUPPORT", "PATIENCE", "COOLDOWN", "MAX_STATES",
+    "SPLIT_COOLDOWN", "MIN_MERGE_EVIDENCE",
+})
+
+
+def gate_refinement_reversibility(report: GateReport, episodes, dangling_routes,
+                                  mass_before, mass_after,
+                                  learner_source: str,
+                                  rtol: float = MASS_RTOL,
+                                  atol: float = MASS_ATOL) -> None:
+    """L18-17 · una distinción aprendida se puede deshacer.
+
+    El oráculo prometía crear, separar **y fusionar**, y el primer mecanismo sólo
+    sabía separar. Mientras el refinamiento sea irreversible no se puede saber
+    cuánta sobrefragmentación viene de aceptar demasiado y cuánta de no poder
+    retractarse.
+
+    `episodes` son los splits realizados, cada uno con si la evidencia posterior
+    los **refutó** y si el mecanismo los **fusionó**. Un split refutado que
+    sobrevive es irreversibilidad; uno justificado que se deshace es inestabilidad.
+    Las dos son fallos y las dos se ven aquí.
+    """
+    constants = assigned_constants(learner_source) & FORBIDDEN_MERGE_CONSTANTS
+    refuted_alive = [e for e in episodes if e["refuted"] and not e["merged"]]
+    justified_undone = [e for e in episodes if not e["refuted"] and e["merged"]]
+    before = np.asarray(mass_before, dtype=float)
+    after = np.asarray(mass_after, dtype=float)
+    excess = float((np.abs(after - before)
+                    - np.maximum(atol, rtol * np.abs(before))).max())
+    ok = (not refuted_alive and not justified_undone and not dangling_routes
+          and excess <= 0.0 and not constants)
+    report.add("L18-17",
+               "una distinción refutada se deshace, y una justificada sobrevive", ok,
+               f"episodios {len(episodes)} · refutados que siguen vivos "
+               f"{len(refuted_alive)} · justificados deshechos {len(justified_undone)} "
+               f"· rutas colgantes {len(dangling_routes)} · exceso de masa "
+               f"{excess:+.3e} · constantes prohibidas {sorted(constants) or 'ninguna'}")

@@ -397,3 +397,75 @@ def test_l18_16_falla_si_no_reciben_las_mismas_oportunidades():
 
 def test_l18_16_falla_si_no_parten_del_mismo_C17():
     assert not _uno(gates.gate_baseline_parity, 4096, 4096, "c17", "otro", False).passed
+
+
+# ===========================================================================
+# L18-17 · REFINEMENT-REVERSIBILITY · sellado por la Enmienda 02
+# ===========================================================================
+
+MASA = np.arange(32, dtype=float).reshape(2, 4, 4) + 1.0
+
+
+def _episodios(refutados_vivos=0, justificados_deshechos=0):
+    eps = [{"refuted": True, "merged": True} for _ in range(2)]
+    eps += [{"refuted": False, "merged": False} for _ in range(2)]
+    eps += [{"refuted": True, "merged": False} for _ in range(refutados_vivos)]
+    eps += [{"refuted": False, "merged": True} for _ in range(justificados_deshechos)]
+    return eps
+
+
+def test_l18_17_pasa_cuando_lo_refutado_se_deshace_y_lo_justificado_sobrevive():
+    assert _uno(gates.gate_refinement_reversibility, _episodios(), [],
+                MASA, MASA.copy(), LIMPIO).passed
+
+
+def test_l18_17_F1_un_split_refutado_que_sobrevive_es_irreversibilidad():
+    """Exactamente el defecto de `acb6b14`: sabe separar y no sabe deshacer."""
+    r = _uno(gates.gate_refinement_reversibility, _episodios(refutados_vivos=1), [],
+             MASA, MASA.copy(), LIMPIO)
+    assert not r.passed
+    assert "refutados que siguen vivos 1" in r.evidence
+
+
+def test_l18_17_F2_un_split_justificado_que_se_deshace_es_inestabilidad():
+    r = _uno(gates.gate_refinement_reversibility,
+             _episodios(justificados_deshechos=1), [], MASA, MASA.copy(), LIMPIO)
+    assert not r.passed
+    assert "justificados deshechos 1" in r.evidence
+
+
+def test_l18_17_F3_la_fusion_no_puede_perder_ni_fabricar_masa():
+    perdida = MASA.copy(); perdida[0, 0, 0] -= 1e-4
+    assert not _uno(gates.gate_refinement_reversibility, _episodios(), [],
+                    MASA, perdida, LIMPIO).passed
+    fabricada = MASA.copy(); fabricada[1, 2, 3] += 1e-4
+    assert not _uno(gates.gate_refinement_reversibility, _episodios(), [],
+                    MASA, fabricada, LIMPIO).passed
+    ruido = MASA.copy(); ruido[0, 0, 0] += 1e-13
+    assert _uno(gates.gate_refinement_reversibility, _episodios(), [],
+                MASA, ruido, LIMPIO).passed
+
+
+def test_l18_17_F4_ninguna_ruta_puede_apuntar_a_un_hijo_que_ya_no_existe():
+    r = _uno(gates.gate_refinement_reversibility, _episodios(),
+             [(3, 1, 7)], MASA, MASA.copy(), LIMPIO)
+    assert not r.passed
+    assert "rutas colgantes 1" in r.evidence
+
+
+def test_l18_17_F5_renombrar_los_hijos_no_cambia_la_decision():
+    """Los episodios se juzgan por su contenido, no por qué etiqueta llevan."""
+    con_nombres = [dict(e, label=f"z{i}") for i, e in enumerate(_episodios())]
+    otros = [dict(e, label=f"w{99 - i}") for i, e in enumerate(_episodios())]
+    uno = _uno(gates.gate_refinement_reversibility, con_nombres, [], MASA, MASA.copy(), LIMPIO)
+    dos = _uno(gates.gate_refinement_reversibility, otros, [], MASA, MASA.copy(), LIMPIO)
+    assert uno.passed and dos.passed
+    assert uno.evidence == dos.evidence
+
+
+@pytest.mark.parametrize("constante", sorted(gates.FORBIDDEN_MERGE_CONSTANTS))
+def test_l18_17_falla_ante_cualquier_umbral_humano_de_fusion(constante):
+    r = _uno(gates.gate_refinement_reversibility, _episodios(), [], MASA,
+             MASA.copy(), f"{constante} = 3\n" + LIMPIO)
+    assert not r.passed
+    assert constante in r.evidence
