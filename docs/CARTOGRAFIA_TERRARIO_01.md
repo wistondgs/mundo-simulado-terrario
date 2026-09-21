@@ -5844,3 +5844,87 @@ silencio el sitio donde se decide un valor científico.
   banco ([:154](scripts/experiment_capability_acquisition.py:154))—, y que
   `NO_CORPUS_PROVENANCE` no la bloquee no dice nada sobre certificación;
 * no se produjo evidencia ni se tocó el `EvidenceGraph`.
+
+---
+
+# XLVIII · El motor developmental · qué hace falta antes de que algo sea adquirible
+
+Escrito el 2026-09-21. Es la pieza que 1.5 y 1.8 dejaron al descubierto: el
+proyecto sabe aislar adquisiciones pequeñas y lo ha hecho nueve veces, y las
+dos veces que apuntó a una capacidad que exigía una organización previa, se
+rompió igual — nadie había preguntado **qué tiene que ser cierto antes de que
+esto sea aprendible**.
+
+## 48.1 · Dos grafos, y el módulo se niega a fundirlos
+
+```
+GENEALOGÍA    qué campaña produjo qué capacidad, en el tiempo
+DESARROLLO    qué capacidad hace adquirible a cuál otra
+```
+
+`1.0 → 1.8` es una genealogía. Leerla como desarrollo **es exactamente el
+error**: 1.6 heredó deliberadamente nada cognitivo de 1.4, así que allí la
+cronología no es dependencia. `developmental.py` registra el origen de cada
+capacidad y no lo convierte en arista, y hay contrato que lo fija.
+
+## 48.2 · El eje que decide es MEDIDA contra LEÍDA
+
+Cada arista lleva cómo se sabe, y la distinción sobre la que descansa el
+programa entero no es «necesaria vs facilitadora» sino:
+
+```
+MEASURED   un experimento movió el precursor y miró el objetivo
+READ       la dependencia se ve en el código o en la matemática
+CANDIDATE  alguien la propuso
+```
+
+**`ψ REQUIERE M` está medida**: el factorial de `remembered-binding` da mejora
+sólo ψ `= 0.000000` exacto, interacción `+0.006515`, y el gate `RB-7` la
+vigila. **`CURIO REQUIERE WM` está leída**: sin predicción no hay error de
+predicción, lo cual es cierto, estructural, y no dice nada sobre si la
+curiosidad sería adquirible sin modelo del mundo.
+
+Hoy el grafo tiene **una sola arista medida**, y el instrumento que la produjo
+—el factorial 2×2— ya existe y da los cuatro tipos que hacen falta: necesaria,
+suficiente, sustituible, sinérgica.
+
+Una arista que se declare `MEASURED` sin nombrar experimento **se rechaza en el
+constructor**. Es la única afirmación que este módulo existe para impedir.
+
+## 48.3 · Las dos pruebas de aceptación son los dos techos
+
+Un analizador que no marque 1.5 y 1.8 como prematuras está mal, sea lo que sea
+que haga bien: son los dos objetivos a los que el proyecto llegó demasiado
+pronto, y la única verdad de campo disponible.
+
+```
+TARGET = SELECTION   (1.5)      PREMATURE = True
+   KNOWN        M REQUIRES SELECTION · READ
+   UNKNOWN      LIMRET · FUTVAL · TEMPCRED · SELPOL · COADAPT · PSI
+   LESIONAR     PSI
+
+TARGET = PREDSTATE   (1.8)      PREMATURE = True
+   KNOWN        ACTCON REQUIRES PREDSTATE · READ
+   UNKNOWN      EVSENS · REPUPD · HISTDIS
+   CONTRADICHO  M SUFFICIENT_SET PREDSTATE · la familia F(Z,A) no expresa F(Z,A,O)
+```
+
+`premature` es deliberadamente estricto: **un objetivo es prematuro cuando nada
+sobre sus precursores ha sido medido**. Y no significa «avanzado»: un objetivo
+con una sola arista medida ya no lo es, y hay contrato que lo comprueba —si no,
+la etiqueta sería un sinónimo de dificultad.
+
+## 48.4 · Dos cosas que aparecieron al construirlo
+
+**Los empates se reportan en vez de resolverse.** La primera versión elegía un
+candidato y lo presentaba como derivado; medido, `EVSENS` había ganado
+parcialmente **por orden alfabético** entre tres empatados. Una pregunta
+elegida por el alfabeto y presentada como derivada es peor que no tener
+pregunta: parecería que el grafo sabe algo. Ahora salen los cinco de 1.5 y los
+tres de 1.8, con la frase «the choice is yours».
+
+**Y un precursor ya demostrado no pide adquisición: pide lesión.** ψ existe, así
+que la pregunta no es si puede adquirirse sino **si es requisito o andamiaje**,
+y eso se contesta quitándola y mirando si el objetivo sobrevive. El analizador
+saca `PSI` como `lesion_candidate` de 1.5, que es la forma computable de la
+pregunta que llevaba abierta desde el cierre forense.
