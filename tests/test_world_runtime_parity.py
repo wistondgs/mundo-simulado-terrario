@@ -49,6 +49,9 @@ class OrganismoGuionizado:
     def offer_targets(self, targets): pass
     def get_internal_state(self): return {}
     def learn(self, transition): pass
+    # `CausalRuntime.step` lo llama y `run_step` no: el banco exige del
+    # organismo una pieza de interfaz que la ruta autoritativa no pide.
+    def get_trace_events(self): return []
 
     def decide(self):
         accion = self._acciones[self._i]
@@ -219,3 +222,136 @@ def test_el_banco_siembra_el_rng_global_antes_de_construir_el_agente(tmp_path):
     assert hashes[0] == hashes[1], (
         "dos creaciones del mismo spec dieron organismos distintos; el banco no "
         "está sembrando el RNG global antes de construir el agente")
+
+
+# ── PARITY-10 · conformidad ENTRE SUPERFICIES ────────────────────────────
+#
+# Lo que hay arriba prueba que `run_step` es determinista: lo ejecuta dos veces.
+# Eso no es lo que el encabezado de este fichero promete. «Un nivel superado
+# bajo una superficie y reprobado bajo la otra» exige comparar DOS superficies,
+# y la tercera ruta del árbol --`CausalRuntime.step`-- no llama a `run_step`:
+# reimplementa la secuencia, sin contrato de acción, sin lifecycle y con el RNG
+# exógeno derivado de la semilla del AGENTE en vez de la del mundo.
+#
+# El Atlas 03 dejó eso como K2 porque nadie lo había medido. Esto lo mide.
+
+from pathlib import Path
+
+from terrario.lab.causal import CausalRuntime
+from terrario.lab.execution.runtime import ScientificTrialIdentity
+
+#: El banco se cualifica sólo para este escenario y sin ciclo de oportunidades
+#: (`CausalRuntime.capability`), así que la comparación se hace donde él mismo
+#: dice ser exacto. Comparar fuera de su alcance declarado sería reprocharle
+#: algo que nunca prometió.
+ESCENARIO_CUALIFICADO = "d0_differences.yaml"
+
+
+def _campos_comunes(verdad, terminado):
+    """El subconjunto que las DOS superficies pueden ofrecer sin tocarlas.
+
+    `run_step` devuelve un `StepOutcome` y el banco un `record`, así que no
+    comparten forma. Lo que sí comparten es la VERDAD DEL MUNDO después del
+    paso, que es donde cualquier divergencia de física, reglas, coste o
+    lifecycle tiene que aparecer -- y el `state_hash`, que las resume.
+    """
+    agente = verdad.agents[0]
+    return {
+        "time": verdad.time,
+        "rules_version": verdad.rules_version,
+        "agent_position": (agente.pos.x, agente.pos.y),
+        "agent_energy": round(agente.energy, 9),
+        "alive": agente.alive,
+        "object_set": tuple(sorted(verdad.objects)),
+        "object_positions": tuple(sorted(
+            (k, v.pos.x, v.pos.y) for k, v in verdad.objects.items())),
+        "state_hash": verdad.state_hash(),
+        "terminated": terminado,
+    }
+
+
+def _ruta_autoritativa(escenario, *, semilla, pasos):
+    componentes = build_episode_components(
+        escenario, duration_fallback=pasos, with_lifecycle=False, world_seed=semilla)
+    agente = OrganismoGuionizado(GUION, pasos)
+    historia = []
+    for paso in range(pasos):
+        if not componentes.world._mutable_state().agents[0].alive:
+            break
+        outcome = run_step(componentes, agente, paso, world_seed=semilla,
+                           agent_seed=semilla + 1_000_003, max_steps=pasos)
+        historia.append(
+            _campos_comunes(componentes.world._mutable_state(), outcome.terminated))
+    return historia
+
+
+def _ruta_del_banco(escenario, *, semilla, pasos):
+    identidad = ScientificTrialIdentity(
+        execution_id="parity", trial_intent_id="parity", attempt_id="parity",
+        plan_hash="parity", preregistration_root_hash="parity",
+        software_identity="parity", scenario_identity=ESCENARIO_CUALIFICADO,
+        agent_identity="A0_RANDOM", world_seed=semilla, agent_seed=semilla + 1_000_003)
+    runtime = CausalRuntime(
+        identidad, Path(f"scenarios/{ESCENARIO_CUALIFICADO}"), dict(escenario))
+    # El mismo guion, instancia propia: el organismo del banco lo construye él,
+    # y dejarlo sortear devolvería la comparación a dos trayectorias distintas.
+    runtime.agent = OrganismoGuionizado(GUION, pasos)
+    historia = []
+    for _ in range(pasos):
+        if runtime.terminal:
+            break
+        record = runtime.step()
+        if record.get("terminal") and "world_hash" not in record:
+            break
+        historia.append(
+            _campos_comunes(runtime.world._mutable_state(), bool(record["terminal"])))
+    return historia
+
+
+def test_las_dos_superficies_recorren_la_misma_trayectoria():
+    """`run_step` contra `CausalRuntime.step`, misma condición inicial y guion.
+
+    Si diverge, el fallo nombra el primer paso y el primer campo. Una
+    divergencia aquí no es un test roto: es la respuesta al K2 del Atlas 03.
+    """
+    escenario = _escenario(ESCENARIO_CUALIFICADO, 4242)
+    autoritativa = _ruta_autoritativa(escenario, semilla=4242, pasos=40)
+    banco = _ruta_del_banco(escenario, semilla=4242, pasos=40)
+
+    assert autoritativa, "la ruta autoritativa no produjo ningún paso"
+    divergencia = _primera_divergencia(autoritativa, banco)
+    assert divergencia is None, (
+        f"paso {divergencia[0]}, campo {divergencia[1]!r}: "
+        f"run_step={divergencia[2]!r} · CausalRuntime={divergencia[3]!r}")
+
+
+def test_el_banco_no_puede_configurarse_en_T1():
+    """Por qué la divergencia del contrato de acción es hoy inalcanzable.
+
+    El Atlas 03 midió que `CausalRuntime.step` no aplica `apply_action_contract`
+    y que su cualificación --agente, escenario, lifecycle-- no mira el modo de
+    direccionamiento, así que un brazo T1 se habría clasificado `EXACT_FORKABLE`
+    sin poder consumir nada. Ese hueco existe en `capability` y **no es
+    alcanzable**, por dos puertas distintas, y conviene que se rompa ruidosamente
+    el día que alguna se abra:
+
+    1. `ScientificTrialIdentity` sólo admite claves `use_*` booleanas, así que
+       `addressing_mode` no cabe en la identidad de la corrida;
+    2. el banco construye su organismo con el `agent_config` del controlador
+       --vacío-- más `num_channels` y `view_size`, así que tampoco entra por el
+       escenario.
+    """
+    base = dict(
+        execution_id="x", trial_intent_id="x", attempt_id="x", plan_hash="x",
+        preregistration_root_hash="x", software_identity="x", scenario_identity="x",
+        agent_identity="A0_RANDOM", world_seed=1, agent_seed=2)
+
+    with pytest.raises(ValueError, match="use_"):
+        ScientificTrialIdentity(**base, agent_config={"addressing_mode": "T1_ENTITY"})
+
+    # Y la segunda puerta: lo que el banco entrega al constructor del organismo.
+    escenario = _escenario(ESCENARIO_CUALIFICADO, 4242)
+    runtime = CausalRuntime(
+        ScientificTrialIdentity(**base), Path(f"scenarios/{ESCENARIO_CUALIFICADO}"),
+        dict(escenario))
+    assert runtime.agent._addressing_mode.value == "T0_DIRECTIONAL"

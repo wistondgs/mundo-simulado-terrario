@@ -4517,9 +4517,21 @@ organismo no puede consumir nunca**, y la corrida se clasificaría igualmente
 `EXACT_FORKABLE`. No sería una resolución errónea —no aparece un objetivo
 fantasma— sino un organismo paralizado que parecería un T1 que rinde mal.
 
-Hoy **nadie construye el banco con T1**: `grep` sobre el árbol no devuelve un
-solo sitio. Es un hueco latente, no un resultado contaminado. Cerrarlo cuesta
-una línea en `capability`.
+**Medido el 2026-09-21: el hueco existe en `capability` y es inalcanzable, por
+dos puertas distintas.**
+
+1. `ScientificTrialIdentity` sólo admite claves `use_*` **booleanas**, así que
+   `addressing_mode` no cabe en la identidad de la corrida —levanta
+   `ValueError`—.
+2. El banco construye su organismo con el `agent_config` del controlador
+   —**vacío**— más `num_channels` y `view_size`, así que T1 tampoco entra por
+   el escenario. El modo resultante es `T0_DIRECTIONAL`.
+
+Sigue siendo cierto que `capability` no mira el modo, y por eso la
+inalcanzabilidad queda **fijada en una prueba**
+([test_world_runtime_parity.py:1](tests/test_world_runtime_parity.py:1)): si
+alguna de las dos puertas se abre, se rompe ruidosamente en vez de producir un
+brazo T1 paralizado que se leería como «T1 rinde mal».
 
 Y la segunda divergencia: el banco siembra el RNG **global**
 ([causal.py:109](terrario/lab/causal.py:109),
@@ -4552,8 +4564,28 @@ nivel superado bajo una superficie y reprobado bajo la otra no es un nivel
 superado» — y las superficies que podrían diverger son precisamente las que no
 compara.
 
-**No existe hoy ninguna prueba que enfrente `run_step` contra
-`CausalRuntime.step`.**
+~~**No existe hoy ninguna prueba que enfrente `run_step` contra
+`CausalRuntime.step`.**~~
+
+**Existe desde el 2026-09-21, y las dos superficies coinciden.**
+`test_las_dos_superficies_recorren_la_misma_trayectoria` las corre con la misma
+condición inicial, el mismo organismo guionizado y el mismo T0, sobre
+`d0_differences` y sin lifecycle —que es el alcance donde el banco **declara**
+ser exacto—, y compara paso a paso la verdad del mundo: tiempo, versión de
+reglas, posición, energía, vivo, conjunto y posiciones de objetos, `state_hash`
+y terminación. **Cuarenta pasos, cero divergencias.**
+
+Lo que eso significa y lo que no:
+
+* las tres divergencias que §41.3 nombró son **inertes bajo estas condiciones**
+  — el contrato de acción es no-op en T0, el RNG exógeno no se consume, y el
+  lifecycle está apagado en las dos rutas porque el banco no lo soporta;
+* **no** demuestra que las rutas sean equivalentes en general: el lifecycle
+  queda controlado fuera, no igualado, y T1 no se puede montar en el banco.
+
+Y una asimetría menor que la prueba destapó al escribirla: `CausalRuntime.step`
+llama a `agent.get_trace_events()`, que `run_step` no exige. El banco pide del
+organismo una pieza de interfaz que la ruta autoritativa no pide.
 
 ## 41.6 · RNG · dos disciplinas opuestas en el mismo repositorio
 
@@ -4660,8 +4692,11 @@ es. La única pieza que re-ejecuta para comparar es
 
 1. **K1** · Si alguna semilla ya publicada depende del orden de llamada de
    `RNGManager`. Comprobable reconstruyendo las sub-semillas de una campaña.
-2. **K2** · Si `run_step` y `CausalRuntime.step` producen la misma trayectoria
-   bajo T0 con el mismo guion. Es un test de veinte líneas y hoy no existe.
+2. ~~**K2** · Si `run_step` y `CausalRuntime.step` producen la misma
+   trayectoria bajo T0 con el mismo guion.~~ **Resuelto el 2026-09-21: sí, en
+   cuarenta pasos y sin una divergencia.** Ver §41.5. Queda abierto el caso con
+   lifecycle, que el banco no soporta y por tanto no se puede comparar sin
+   cambiarlo.
 3. **K2** · Qué mide de menos `verify_reproducibility.py` frente al paso real:
    sin coste de paso, el criterio de terminación difiere.
 4. **K2** · Cuántas de las 141 ejecuciones selladas corrieron por la ruta

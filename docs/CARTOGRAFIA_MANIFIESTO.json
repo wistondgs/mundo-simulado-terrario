@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "2e62a0e",
+  "head": "f2177a5",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -150,7 +150,7 @@
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
         "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
-        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
       }
     },
     "XXII · Preregistro y evidencia": {
@@ -168,7 +168,7 @@
     "XXIV · Tests": {
       "files": {
         "tests/test_agent_factory.py": "afd02bc71861521d130863a26fc030929626514f114499f9fc47c9dee38c5d44",
-        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
       }
     },
     "XXV · Rendimiento": {
@@ -354,7 +354,7 @@
         "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
         "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
-        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
       }
     },
     "XLIII · Atlas 04 · Capacidades demostradas": {
