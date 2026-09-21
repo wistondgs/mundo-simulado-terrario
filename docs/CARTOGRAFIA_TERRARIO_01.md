@@ -2850,13 +2850,13 @@ ha cruzado nunca el cortafuegos.
 
 ## 31.2 · Preregistro
 
-`AnalysisPlan` ([domain.py:288](terrario/lab/preregistration/domain.py:288)) — 12 campos, **ninguno
+`AnalysisPlan` ([domain.py:295](terrario/lab/preregistration/domain.py:295)) — 12 campos, **ninguno
 con default**; los defaults reales los inyecta el ensamblador en
 [service.py:621](terrario/lab/preregistration/service.py:621).
 
-`ProtocolSnapshot` ([domain.py:397](terrario/lab/preregistration/domain.py:397)) — 19 campos.
+`ProtocolSnapshot` ([domain.py:404](terrario/lab/preregistration/domain.py:404)) — 19 campos.
 
-**Máquina de estados** ([domain.py:49](terrario/lab/preregistration/domain.py:49)):
+**Máquina de estados** ([domain.py:50](terrario/lab/preregistration/domain.py:50)):
 
 ```
 DRAFT → READY_FOR_REVIEW → REVIEW_IN_PROGRESS → REVIEWED → PREREGISTERED_LOCKED
@@ -2899,13 +2899,13 @@ BEGIN SELECT RAISE(ABORT, 'artifact versions are append-only'); END;
 | 5 | Una ejecución `ABORTED` **no marca el preregistro** | (ausencia de código) | 🟡 |
 | 2 | `assert_transition` en 2 de 7 transiciones | [service.py:305](terrario/lab/preregistration/service.py:305) | 🟡 |
 | 3 | `sequence=2` hardcodeada en el evento de estado de revisión | [repository.py:206](terrario/lab/preregistration/repository.py:206) | 🟡 |
-| 4 | `withdraw` imposible desde `DRAFT`; devuelve 500 | [domain.py:636](terrario/lab/preregistration/domain.py:636) | 🟡 |
+| 4 | `withdraw` imposible desde `DRAFT`; devuelve 500 | [domain.py:659](terrario/lab/preregistration/domain.py:659) | 🟡 |
 
 ## 31.4 · Lo que sí está bien atado
 
 Cadena hash de eventos de ejecución ([execution/service.py:430](terrario/lab/execution/service.py:430));
 cadena de auditoría del preregistro ([repository.py:486](terrario/lab/preregistration/repository.py:486));
-verificación CAS de componentes del bundle ([commitments.py:106](terrario/lab/preregistration/commitments.py:106));
+verificación CAS de componentes del bundle ([commitments.py:126](terrario/lab/preregistration/commitments.py:126));
 binding revisión↔lock↔attestation ([repository.py:342](terrario/lab/preregistration/repository.py:342));
 aislamiento de aliasing en forks causales (`BRANCH_ALIASING_DETECTED`, [causal.py:224](terrario/lab/causal.py:224));
 liberación **visible** de trabajos huérfanos (`_release_orphaned_jobs`, `TRIAL_RELEASED_AFTER_LEASE_LOSS`);
@@ -4653,7 +4653,7 @@ puede ser tosca, lo que no puede es ser un hallazgo.
 
 ## 41.9 · Preregistro · siete estados y una contabilidad de exposición
 
-`ALLOWED_TRANSITIONS` ([domain.py:640](terrario/lab/preregistration/domain.py:640))
+`ALLOWED_TRANSITIONS` ([domain.py:659](terrario/lab/preregistration/domain.py:659))
 es una máquina estricta:
 
 ```
@@ -4662,13 +4662,13 @@ REVIEWED → DRAFT | PREREGISTERED_LOCKED
 PREREGISTERED_LOCKED → SUPERSEDED | WITHDRAWN        (ambos terminales)
 ```
 
-`SeedCommitment` ([:246](terrario/lab/preregistration/domain.py:246)) sella
+`SeedCommitment` ([:247](terrario/lab/preregistration/domain.py:247)) sella
 cuatro familias de semillas —mundo, agente, aleatorización, reemplazo— **cada
 una con su hash**, y `SeedPartition` las reparte en seis particiones, entre
 ellas `CONFIRMATORY_TEST` y `HOLDOUT`, con `exception_reason` cuando se sale de
 la norma.
 
-`ExposureStatus` ([:91](terrario/lab/preregistration/domain.py:91)) lleva la
+`ExposureStatus` ([:92](terrario/lab/preregistration/domain.py:92)) lleva la
 contabilidad de contaminación: `UNEXPOSED`, `PREEXPOSED`, `POSTLOCK_EXPOSED`,
 `CONTAMINATION_REVIEW_REQUIRED`. **Y está vivo**: 45 filas en
 `exposure_records`, junto a 141 preregistros sellados, 708 entradas de cadena de
@@ -5445,7 +5445,7 @@ roles** al CAS —`scientific_question`, `causal_design`, `protocol`,
 `metrics_and_endpoints`, `observer`,
 `seeds_partitions_randomization_replication`, `analysis`, `policies`,
 `environment_and_software`, `validation_policy`— cada uno con `cas_sha256` y
-`content_sha256`, y `verify` ([:106](terrario/lab/preregistration/commitments.py:106))
+`content_sha256`, y `verify` ([:126](terrario/lab/preregistration/commitments.py:126))
 falla con código por rol. La construcción se autocomprueba: si el canónico y el
 digest divergen, levanta.
 
@@ -5476,3 +5476,80 @@ el sello.
 
 Análisis completo en
 [INFORME_ARCHIVO_CIENTIFICO_01.md](docs/INFORME_ARCHIVO_CIENTIFICO_01.md).
+
+## 46.9 · La puerta autónoma y el manifiesto de gates · construidos
+
+Escrito el 2026-09-21, sobre el carril existente y sin almacén nuevo.
+
+**El manifiesto de gates**
+([gate_manifest.py](terrario/lab/preregistration/gate_manifest.py)) es la pieza
+que §46.8 encontró ausente en los dos mundos. Congela, **antes de ejecutar**,
+`(gate_id, certifies, certifies_revision, statement, criterion,
+negative_fixture)`, y `reconcile` compara la corrida contra el sello con un
+código por desacuerdo. `certifies` es un **identificador**, no la prosa:
+`statement` es su renderizado, y separarlos es lo que hace exacta la
+comparación —reescribir la frase es documentación; cambiar lo que el gate
+certifica es otro gate—.
+
+El caso de la fusión está fijado como réplica y no como juguete
+([test_gate_manifest.py](tests/test_gate_manifest.py)): con el sello de
+`F-0`…`F-9` y una corrida que reporta `F-9` certificando el tick, sale
+`GATE_CERTIFIES_MISMATCH:F-9:sealed=PASSIVITY@v1:run=TICK_REQUIRED@v1` **y**,
+por separado, `SEALED_GATE_NOT_EVALUATED:F-2`. Los dos defectos que el recuento
+«nueve de diez» confundía en uno.
+
+El manifiesto además se niega a sellar dos gates que certifiquen la misma
+propiedad —así es como un inventario conserva su tamaño mientras una propiedad
+se cae— y un gate sin fixtura negativa.
+
+**El bundle va versionado, no crecido.**
+[commitments.py:22](terrario/lab/preregistration/commitments.py:22) añade
+`ROOT_SCHEMA_V2` con un rol `gates` al final, y `verify` elige el orden por el
+esquema del propio manifiesto. Medido antes de tocarlo: los **141 bundles
+sellados tienen exactamente 10 componentes**, y crecer `ROLE_ORDER` los habría
+invalidado a todos de golpe con `BUNDLE_COMPONENT_SET_INVALID`. Verificado
+después: los 141 siguen con el orden correcto y los 285 borradores guardados
+siguen reconstruyéndose, ninguno con `gates` en su payload científico.
+
+**El sello determinista**
+([campaign_profile.py](terrario/lab/preregistration/campaign_profile.py))
+separa lo que el carril mezclaba: **inmutabilidad preregistrada ≠ aprobación
+humana**. Corre las mismas comprobaciones que el camino revisado —readiness,
+reconstrucción del root, comparación de hash en `lock`— y se gana la autonomía
+siendo **incapaz de dispensar**: el camino humano acepta un aviso
+enumerándolo, éste se niega a sellar mientras exista uno.
+
+Y la estrictez no es de mi módulo: `lock` recomputa los avisos él mismo y
+compara contra las aceptaciones de la decisión, así que un sello autónomo sólo
+puede tener éxito sobre un borrador genuinamente sin avisos.
+
+**Dos hallazgos al construirlo**, los dos medidos:
+
+* El borrador por defecto trae exactamente **dos** avisos, `PR-EXPOSURE-001`
+  —cuya propia descripción dice «Holdout blindness **cannot be asserted without
+  review**»— y `PR-PROXY-001`, el proxy no validado para su constructo. Es
+  decir, la regla estricta rechaza justo las dos cosas que una máquina no tiene
+  autoridad para firmar. El primero se limpia declarando la exposición, que es
+  el camino soportado.
+* **Un cliente podía silenciar `PR-PROXY-001`.** `validate_preregistration` lee
+  `validation_status` del borrador y `derive` deja al cliente fijar cualquier
+  clave que el borrador ya tenga, así que marcarla `VALIDATED_FOR_CONSTRUCT`
+  hacía desaparecer el aviso —comprobado en ejecución—. Sin eso, «esta puerta
+  no puede dispensar» sería teatro: el aviso se quitaba aguas arriba. El sello
+  autónomo resuelve ahora cada métrica **contra el registro** y se niega con
+  `CONSTRUCT_VALIDATION_DRIFT` si el borrador afirma una validación que el
+  registro no concede. Queda acotado a la puerta nueva: endurecer el validador
+  compartido cambia lo que reportan 141 preregistros guardados.
+
+**Y una advertencia que llega de fuera, medida en la sesión de reconstrucción.**
+El décimo componente del bundle, `validation_policy`, no sale del registro: sale
+de `policy_snapshot()` ([validation.py:52](terrario/lab/preregistration/validation.py:52)),
+que serializa el conjunto **vivo** de reglas. Ese conjunto se movió tres veces
+bajo la misma cadena de versión.
+
+Consecuencia para el sello autónomo: no es un defecto de este camino —la
+reconstrucción y el `lock` ocurren en el mismo proceso y concuerdan— pero sí
+significa que **un bundle sellado deja de re-derivarse desde su borrador en
+cuanto el conjunto de reglas cambia**. La inmutabilidad del sello es real; su
+*reproducibilidad* depende de que el código no se mueva, y eso es exactamente lo
+que la condición `A` del contrato de admisión distingue de «es reproducible».

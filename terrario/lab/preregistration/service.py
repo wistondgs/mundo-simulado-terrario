@@ -176,7 +176,7 @@ class PreregistrationService:
         root = payload.get("root_manifest") if isinstance(payload, Mapping) else None
         failures: list[str] = []
         warnings: list[str] = []
-        schema_valid = current.schema_version == "terrario.lab.preregistration-bundle/v1"
+        schema_valid = current.schema_version in self.commitments.ROLE_ORDERS
         component_hashes_valid = cas_valid = root_hash_valid = False
         if not root:
             failures.append("BUNDLE_NOT_PREPARED")
@@ -189,7 +189,9 @@ class PreregistrationService:
             if not root_hash_valid:
                 failures.append("ROOT_HASH_MISMATCH")
             roles = [str(x.get("role")) for x in root.get("components", ())]
-            if tuple(roles) != self.commitments.ROLE_ORDER:
+            # Against the order the bundle was sealed under, not the newest one:
+            # a v1 bundle stays verifiable after v2 exists.
+            if tuple(roles) != self.commitments.role_order(str(root.get("schema_version"))):
                 failures.append("BUNDLE_COMPONENT_SET_INVALID")
             with self.artifacts._connect() as connection:
                 stored = [dict(x) for x in connection.execute(

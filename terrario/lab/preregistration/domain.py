@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 from terrario.lab.persistence.canonical import content_hash, plain
+from terrario.lab.preregistration.gate_manifest import GateManifest, manifest_from_payload
 
 SCHEMA_VERSION = "terrario.lab.preregistration/v1"
 CANONICALIZATION_PROFILE = "terrario-canonical-json-v1"
@@ -449,14 +450,32 @@ class PreregistrationDraft:
     software: SoftwareManifest
     ui_preferences: Mapping[str, Any] = field(default_factory=dict)
     schema_version: str = SCHEMA_VERSION
+    #: What each gate certifies, frozen before the run that evaluates it.
+    #: Optional because the ten sealed roles predate it and 141 bundles are
+    #: already committed without one; a draft that carries it seals a v2 bundle.
+    #: Declared LAST on purpose: `PreregistrationService._assemble` constructs
+    #: this dataclass positionally, so inserting a field anywhere earlier
+    #: silently shifts every argument after it.
+    gates: GateManifest | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "ui_preferences", frozen_mapping(self.ui_preferences))
+        # Accept a stored payload as well as a manifest, and rebuild it through
+        # the codec that recomputes identity rather than trusting the stored
+        # hash.  An empty mapping means "no gates", not "a manifest of none".
+        if isinstance(self.gates, Mapping):
+            object.__setattr__(self, "gates",
+                               manifest_from_payload(self.gates) if self.gates else None)
 
     def scientific_payload(self) -> Mapping[str, Any]:
         value = plain(self)
         value.pop("preregistration_id", None)
         value.pop("ui_preferences", None)
+        if value.get("gates") is None:
+            # Absent rather than null, so a draft without gates hashes exactly as
+            # it did before this field existed.  A new optional field must not
+            # move the scientific identity of everything already sealed.
+            value.pop("gates", None)
         return value
 
     @property

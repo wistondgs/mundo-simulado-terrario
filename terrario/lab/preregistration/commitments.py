@@ -14,6 +14,12 @@ from terrario.lab.preregistration.domain import (
 from terrario.lab.preregistration.validation import policy_snapshot
 
 ROOT_SCHEMA = "terrario.lab.preregistration-bundle/v1"
+#: Adds the sealed gate inventory.  A new schema rather than an eleventh entry in
+#: `ROLE_ORDER`, because `verify` compares the role tuple exactly and 141 bundles
+#: are already sealed with ten: growing the constant would invalidate all of them
+#: at once.  Same precedent as `RESULT_SCHEMA v2`, where a v1 payload is refused
+#: for new publication and never rewritten.
+ROOT_SCHEMA_V2 = "terrario.lab.preregistration-bundle/v2"
 
 
 @dataclass(frozen=True)
@@ -40,9 +46,17 @@ class CommitmentBuilder:
         "environment_and_software",
         "validation_policy",
     )
+    #: v2 appends the sealed gate inventory.  The tuple is compared exactly by
+    #: `verify`, so each schema keeps its own and a bundle is checked against the
+    #: order it was sealed under -- never against the newest one.
+    ROLE_ORDERS = {ROOT_SCHEMA: ROLE_ORDER, ROOT_SCHEMA_V2: ROLE_ORDER + ("gates",)}
 
     def __init__(self, artifacts: ArtifactRepository):
         self.artifacts = artifacts
+
+    @classmethod
+    def role_order(cls, schema_version: str) -> tuple[str, ...]:
+        return cls.ROLE_ORDERS.get(schema_version, cls.ROLE_ORDER)
 
     def build(self, draft: PreregistrationDraft) -> PreparedCommitment:
         payloads: dict[str, Any] = {
@@ -68,19 +82,25 @@ class CommitmentBuilder:
             },
             "validation_policy": plain(policy_snapshot()),
         }
+        # A draft that seals what its gates certify is a v2 bundle; one that does
+        # not is byte-identical to what it would have produced before this role
+        # existed, which is what keeps the 141 sealed bundles verifiable.
+        schema = ROOT_SCHEMA_V2 if draft.gates is not None else ROOT_SCHEMA
+        if draft.gates is not None:
+            payloads["gates"] = draft.gates.payload()
         descriptors = []
-        for ordinal, role in enumerate(self.ROLE_ORDER):
+        for ordinal, role in enumerate(self.role_order(schema)):
             value = payloads[role]
             encoded = canonical_json(value).encode("utf-8")
             manifest = self.artifacts.register_blob(encoded, "application/vnd.terrario.preregistration-component+json")
             source_version = draft.protocol.experiment_draft_version_id if role == "protocol" else None
             source_hash = draft.protocol.experiment_draft_hash if role == "protocol" else None
             descriptors.append(ComponentDescriptor(
-                role, ordinal, f"{ROOT_SCHEMA}/{role}", content_hash(value), manifest.blob_hash,
+                role, ordinal, f"{schema}/{role}", content_hash(value), manifest.blob_hash,
                 source_version, source_hash,
             ))
         root_manifest = {
-            "schema_version": ROOT_SCHEMA,
+            "schema_version": schema,
             "canonicalization_profile": CANONICALIZATION_PROFILE,
             "study_intent": draft.study_intent.value,
             "components": plain(tuple(descriptors)),
@@ -105,7 +125,8 @@ class CommitmentBuilder:
 
     def verify(self, root_manifest: Mapping[str, Any]) -> tuple[bool, tuple[str, ...]]:
         failures: list[str] = []
-        if root_manifest.get("schema_version") != ROOT_SCHEMA:
+        schema = str(root_manifest.get("schema_version"))
+        if schema not in self.ROLE_ORDERS:
             failures.append("UNSUPPORTED_ROOT_SCHEMA")
         if root_manifest.get("canonicalization_profile") != CANONICALIZATION_PROFILE:
             failures.append("UNSUPPORTED_CANONICALIZATION_PROFILE")

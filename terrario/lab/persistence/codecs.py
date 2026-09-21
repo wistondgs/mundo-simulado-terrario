@@ -14,6 +14,7 @@ from terrario.lab.experiment_composer import (
 )
 from terrario.lab.world_authoring import WorldDraft
 from terrario.lab.world_contracts import WorldProvenance
+from terrario.lab.preregistration.gate_manifest import manifest_from_payload
 from terrario.lab.preregistration.domain import (
     AnalysisPlan, CausalDesignCommitment, CausalMode, ControlCommitment,
     EndpointCommitment, EndpointRole, EnvironmentRequirement, ExclusionPolicy,
@@ -115,7 +116,9 @@ def preregistration_draft_from_payload(payload: Mapping[str, Any]) -> Preregistr
     """Reconstruct a preregistration without silently filling scientific fields."""
     required = {field.name for field in PreregistrationDraft.__dataclass_fields__.values()}
     unknown = set(payload) - required
-    missing = (required - {"ui_preferences", "schema_version"}) - set(payload)
+    # `gates` joins the optional set rather than the required one: 141 bundles
+    # were sealed before it existed and their stored payloads do not carry it.
+    missing = (required - {"ui_preferences", "schema_version", "gates"}) - set(payload)
     if unknown or missing:
         raise ValueError(f"invalid preregistration fields; unknown={sorted(unknown)}, missing={sorted(missing)}")
     q, causal, protocol = payload["scientific_question"], payload["causal_design"], payload["protocol"]
@@ -179,6 +182,9 @@ def preregistration_draft_from_payload(payload: Mapping[str, Any]) -> Preregistr
         environment_requirement=EnvironmentRequirement(**payload["environment_requirement"]),
         observed_environment=ObservedEnvironment(**payload["observed_environment"]),
         software=SoftwareManifest(**payload["software"]),
+        # Rebuilt through `manifest_from_payload`, which recomputes the hash and
+        # refuses a payload that disagrees with its own content.
+        gates=(manifest_from_payload(payload["gates"]) if payload.get("gates") else None),
         ui_preferences=dict(payload.get("ui_preferences") or {}),
         schema_version=str(payload.get("schema_version", "terrario.lab.preregistration/v1")),
     )

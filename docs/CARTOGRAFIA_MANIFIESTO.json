@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "6467337",
+  "head": "ac6a06e",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -155,7 +155,7 @@
     },
     "XXII · Preregistro y evidencia": {
       "files": {
-        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
+        "terrario/lab/preregistration/domain.py": "70ea7e9d4833b74ea1e0494a8b5594dae3a59b7c5049db70773c4736bd57b9df",
         "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
       }
     },
@@ -217,10 +217,10 @@
         "terrario/lab/metric_result_sealing.py": "68cedcc5c6708b2f63b3892c62723db9202a8d8d0c17f10f22687701097c7d0f",
         "terrario/lab/persistence/migrations.py": "e4163a995919195a4d11374b80bd91103f2f044f50bfa819a9fef61f1dee120a",
         "terrario/lab/persistence/store.py": "a74d6689b89090cdf1ee2de2d8d77f3ad437201bcfe23177cf951720540d59e3",
-        "terrario/lab/preregistration/commitments.py": "fb7f0d404d80c2a08bf9ce8656eb65736f17c672b65f64e8858f654ea0b7f6cd",
-        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
+        "terrario/lab/preregistration/commitments.py": "c534ad607e5883be95734d321368ffdff6ac414d569fb1eee265b05958cab311",
+        "terrario/lab/preregistration/domain.py": "70ea7e9d4833b74ea1e0494a8b5594dae3a59b7c5049db70773c4736bd57b9df",
         "terrario/lab/preregistration/repository.py": "39e136e1d653e92d8c343e6b0be334ef284c756b0308baf85cf69d1278fb79ff",
-        "terrario/lab/preregistration/service.py": "1ebea5a8a6be0554ab2df6ba510d2f1b3ee09a879226bfa1ea6d9e38492fed52",
+        "terrario/lab/preregistration/service.py": "08c62bd4948cfaf05408f56449c859d27f529702b5a97fbd4f21ba8263f40a5e",
         "terrario/lab/preregistration/validation.py": "8e2c871ba09bcf14321adcd0ce768727012a14aba84303499b3e11d1def342f8"
       }
     },
@@ -349,7 +349,7 @@
         "terrario/lab/causal.py": "703005f09b03b7eb9d327aac2d1c620b8e3901277847f1778a3ca43c64cbef8d",
         "terrario/lab/evidence_admission.py": "faa2abdc9d64c527f49fb30f1adc632a8676f91c0d73f413d0c0b9f9e2f02462",
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
-        "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
+        "terrario/lab/preregistration/domain.py": "70ea7e9d4833b74ea1e0494a8b5594dae3a59b7c5049db70773c4736bd57b9df",
         "terrario/lab/replay.py": "5196fc90bfbfbc01e94dcfc324f1dc557059c45a1c23e775e60d0946d63d39a5",
         "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
         "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
@@ -391,10 +391,14 @@
         "terrario/lab/hypergraph/operational.py": "9b35fc3ef1e21b2d531c45f309f1e71deacaa00b08de436d06bebbf73291cb6f",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/metric_result_sealing.py": "68cedcc5c6708b2f63b3892c62723db9202a8d8d0c17f10f22687701097c7d0f",
-        "terrario/lab/preregistration/commitments.py": "fb7f0d404d80c2a08bf9ce8656eb65736f17c672b65f64e8858f654ea0b7f6cd",
+        "terrario/lab/preregistration/campaign_profile.py": "6c1ad71647d427b93a26c424ae5434af1ec5fba641bccd1d3054e388eea3e921",
+        "terrario/lab/preregistration/commitments.py": "c534ad607e5883be95734d321368ffdff6ac414d569fb1eee265b05958cab311",
+        "terrario/lab/preregistration/gate_manifest.py": "71b93f4b259573322317a19b0806eb1b9c8ffb77ab6311ce7755203a888e4d9e",
+        "terrario/lab/preregistration/validation.py": "8e2c871ba09bcf14321adcd0ce768727012a14aba84303499b3e11d1def342f8",
         "terrario/lab/referencegraph/api.py": "f20c976ebc1b44c6b28ad54939b6bf6f40b95b7636c361a2339c10348fb6a5d9",
         "terrario/lab/theory/ingestion.py": "cbda44b6c2ce6c40d5cbe72a0e5a74caec095481cc99da3baaeb639a9cd6b1aa",
-        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a"
+        "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
+        "tests/test_gate_manifest.py": "0dc5ab025f4e84b7535fd241fbe2b31313d49e25fd31b5dd6018fba5d55d95ac"
       }
     }
   }
