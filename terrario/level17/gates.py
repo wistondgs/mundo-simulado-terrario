@@ -197,15 +197,47 @@ def gate_action_provenance(report: GateReport, life, replay_commands) -> None:
     esperados = replay_commands(life.seed, len(life.all_commands))
     discrepancias = [t for t, (a, b) in enumerate(zip(life.all_commands, esperados))
                      if a is not b]
-    fuentes = {p.name for p in PACKAGE.glob("*.py")
-               if "integers" in attributes(p.read_text())}
+    # Quién puede llevar una dirección derivada del comando hasta el cuerpo.
+    # Es más afilado que «quién consume azar»: la baraja, el gemelo y el runner
+    # sortean cosas y ninguno de ellos mueve al ser. Sólo `life.py` actúa el
+    # comando; `twin.py` recibe uno y debe DESCARTARLO, y eso se comprueba en el
+    # árbol sintáctico en vez de creérselo.
+    cuerpos = {p.name for p in PACKAGE.glob("*.py")
+               if "step" in attributes(p.read_text())}
+    descarta = _discards_its_direction(PACKAGE / "twin.py")
     emisiones = life.motor_emitted == len(life.all_commands)
-    ok = not discrepancias and emisiones and fuentes <= {"twin.py", "shuffled.py"}
+    ok = (not discrepancias and emisiones
+          and cuerpos <= {"life.py", "twin.py"} and descarta)
     report.add("L17-2", "todo comando salió de S0 · el azar de B es propio", ok,
                f"discrepancias {len(discrepancias)}"
                + (f" (primera en t={discrepancias[0]})" if discrepancias else "")
                + f" · emitidos {life.motor_emitted}/{len(life.all_commands)}"
-               + f" · otros consumidores de azar: {sorted(fuentes) or 'ninguno'}")
+               + f" · módulos que mueven el cuerpo: {sorted(cuerpos)}"
+               + f" · el gemelo descarta el comando: {descarta}")
+
+
+def _discards_its_direction(source_path) -> bool:
+    """¿El `step` del gemelo borra su argumento y no vuelve a mirarlo?
+
+    Un mundo B que usara el comando tendría `D_W^B > 0` por la puerta de atrás, y
+    el contrato de B es exactamente lo contrario.
+    """
+    if not source_path.exists():
+        return False
+    tree = ast.parse(source_path.read_text())
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.FunctionDef) and node.name == "step"):
+            continue
+        borrado = False
+        usos = 0
+        for inner in ast.walk(node):
+            if isinstance(inner, ast.Delete):
+                borrado |= any(isinstance(t, ast.Name) and t.id == "direction"
+                               for t in inner.targets)
+            elif isinstance(inner, ast.Name) and inner.id == "direction":
+                usos += 1
+        return borrado and usos == 1      # la única mención es la del `del`
+    return False
 
 
 def gate_efference_purity(report: GateReport, efference_type) -> None:

@@ -65,6 +65,22 @@ class AnalyticActionShadow:
         self._p_observation = per_observation / per_observation.sum()
         self._marginal = table.mean(axis=1)
 
+    @classmethod
+    def marginalised(cls, other: AnalyticActionShadow) -> AnalyticActionShadow:
+        """La sombra del mundo B, desde la de A.
+
+        `T_B(s'|s,a) = ¼ Σ_b T_A(s'|s,b)` implica `P_B(o'|o,a) = P_A(o'|o)` para
+        toda `a`, luego `D_W^B = 0` exactamente. **No** se obtiene envolviendo la
+        rejilla en `MarginalisedBody`: ese envoltorio marginaliza en tiempo de
+        ejecución y la rejilla que guarda dentro sigue siendo la de A, así que una
+        sombra construida sobre ella devuelve la dependencia de A con otro nombre.
+        """
+        twin = cls.__new__(cls)
+        twin._table = np.repeat(other.marginal()[:, None, :], 4, axis=1)
+        twin._p_observation = other._p_observation.copy()
+        twin._marginal = other.marginal()
+        return twin
+
     @property
     def p_reference(self) -> np.ndarray:
         """`p_ref(o,a) = p(o) · 1/4`, que es lo que S0 produce."""

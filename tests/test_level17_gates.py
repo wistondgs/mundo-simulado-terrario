@@ -477,3 +477,37 @@ def test_l17_8_falla_si_B_aparece_anormalmente_positivo():
     resultado = _uno(gates.gate_null_world, 0.35, nula)
     assert not resultado.passed
     assert "WORLD_B_OR_MODEL_NULL_FAIL" in resultado.evidence
+
+
+def test_l17_2_detecta_un_gemelo_que_usa_el_comando(tmp_path):
+    """El contrato de B es `D_W^B = 0`; un B que actúe el comando lo rompe por
+    la puerta de atrás. Se comprueba en el árbol, no en la muestra."""
+    from terrario.level17.gates import _discards_its_direction
+
+    (tmp_path / "honesto.py").write_text(
+        "class B:\n    def step(self, direction):\n        del direction\n"
+        "        return self._g.step(self._r.integers(4))\n")
+    (tmp_path / "tramposo.py").write_text(
+        "class B:\n    def step(self, direction):\n        return self._g.step(direction)\n")
+    (tmp_path / "sutil.py").write_text(
+        "class B:\n    def step(self, direction):\n        guardado = direction\n"
+        "        del direction\n        return self._g.step(guardado)\n")
+
+    assert _discards_its_direction(tmp_path / "honesto.py")
+    assert not _discards_its_direction(tmp_path / "tramposo.py")
+    assert not _discards_its_direction(tmp_path / "sutil.py")
+    assert not _discards_its_direction(tmp_path / "no_existe.py")
+
+
+def test_el_runner_confirmatorio_corre_sobre_calibracion():
+    """La comprobación administrativa: la ruta exacta de la campaña existe y se
+    ha ejercitado antes de abrir ninguna semilla confirmatoria."""
+    from terrario.level17.campaign import run_campaign
+
+    resultado = run_campaign(tuple(range(150000011, 150000030)), pairs_required=3)
+    assert len(resultado.pairs) == 3
+    for par in resultado.pairs:
+        assert par.d_w_a > 0
+        assert par.d_w_b == 0.0
+        assert par.restored_exactly and par.inherited_intact
+        assert par.shuffled_destructive
