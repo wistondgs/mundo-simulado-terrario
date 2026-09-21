@@ -77,6 +77,24 @@ prerrequisito plausible de esas cuatro, no una demostración de ninguna.
 
 ---
 
+## DÓNDE FALLÓ la v1 · nodo medido
+
+`LEARNER-18-v1` quedó cerrado como insuficiente, y la ingeniería inversa
+localizó el fallo: **el criterio que crea una distinción y el que la destruye no
+están en la misma escala.** Un split se acepta por cualquier margen —0,02 nats
+bastan— y el primer incremento del juicio posterior es de orden 0,17, así que
+toda distinción refutada muere en **cero pasos**. Sobrevive la que nace con favor
+suficiente para aguantar una observación, no la que tiene evidencia.
+
+Consecuencia medida: en 6 de 16 vidas el organismo termina con **exactamente un
+estado** —organización ausente, no mala— mientras el oráculo gana entre +0,20 y
++0,53 sobre esas mismas trayectorias. No hay casos intermedios, y no es propiedad
+del mundo: 3 de 16 vidas cambian de signo con el presupuesto.
+
+Detalle en [LEVEL18_INGENIERIA_INVERSA_V1.md](LEVEL18_INGENIERIA_INVERSA_V1.md).
+
+---
+
 ## Lo que el experimento aporta al hipergrafo aunque falle
 
 Un hecho con número: **la organización histórica compra eficiencia de
