@@ -29,7 +29,7 @@ contrario sería la primera afirmación falsa del documento.
 | **01** | **Capa de conocimiento** | corpus · teoría · hipergrafos · fábrica de hipótesis · memoria · composición | Terrario | **HECHO** · §XXXIX + `INFORME_CAPA_CONOCIMIENTO_02.md` |
 | **02** | **El organismo** | runtime percepción→estado→decisión→acción→consecuencia→aprendizaje · linaje A0–A5 | Terrario | **HECHO** · §XL + `ATLAS_02_ORGANISMO.md` |
 | **03** | **Sistema experimental** | mundos · runners · preregistro · lesiones · controles · métricas · gates · CAS · ledger · semillas | Terrario | **HECHO** · §XLI + `ATLAS_03_SISTEMA_EXPERIMENTAL.md` |
-| 04 | **Capacidades demostradas** | C16 · C17 · C18 · 1.0–1.5 · curiosidad · regulación, cada una atada a código y a evidencia vigente | Terrario | pendiente |
+| **04** | **Capacidades demostradas** | 1.0–1.8 en ocho worktrees · los diez pasaportes · qué está demostrado y qué sólo contabilizado | Terrario + 8 worktrees | **HECHO** · §XLIII + `ATLAS_04_CAPACIDADES.md` |
 | 05 | **Genesis** | qué existe en código hoy · qué recibe de Terrario · qué produce · cuánto de «génesis de capacidades» está operativo | genesis-v2 | reconocido · `lab/genesis/` 19 861 líneas, 70 tests |
 | 06 | **RNE / RNFE** | CI-VERDAD · CADENA-CAUSAL · Retention Ledger · integración · reparaciones abiertas | genesis-v2 `runtime/` (277 fich) | reconocido |
 | 07 | **Evidencia, canon y autoridad** | experimento→resultado→almacenamiento→teoría→hipergrafo→siguiente pregunta · qué manda ante contradicción · qué gates están activos | los cuatro | pendiente |

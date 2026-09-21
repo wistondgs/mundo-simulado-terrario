@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "34a9497",
+  "head": "b171098",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -296,6 +296,15 @@
         "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
         "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+      }
+    },
+    "XLIII · Atlas 04 · Capacidades demostradas": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/agents/a5_cybernetic.py": "e77441eab03fe5ac2cae943ec4fda8e304218d7b9a132a3e80af730f2e0f25a4",
+        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
+        "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c"
       }
     }
   }

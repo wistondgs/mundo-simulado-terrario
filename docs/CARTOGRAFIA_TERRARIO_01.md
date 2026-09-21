@@ -4493,3 +4493,237 @@ por construcción. **K2: cuántas secciones más están en esa situación.**
 La cartografía es una caché invalidable. No consultarla no es una pérdida de
 tiempo simétrica: se paga en trabajo repetido **y** en hallazgos que ya estaban
 y no se recogen. El Atlas 02 habría sido mejor volumen en menos tiempo.
+
+---
+
+# XLIII · Atlas 04 · Capacidades demostradas
+
+Lectura del 2026-09-21 sobre `b171098`. Cubre el punto 4 del contrato: cada
+capacidad atada a código, experimento, instrumento, evidencia vigente,
+lesión/control y estado epistemológico real.
+
+**Paso 0 hecho, esta vez.** Las secciones que solapan —§XVI, §XVII, §XVIII,
+§XXIII, §XXVI, §XXVII, §XXXIV–§XXXVII— están vigentes, y §39.2 ya midió los
+pasaportes: se citan, no se re-derivan. Pero con una advertencia que el propio
+paso 0 produjo y que cambia cómo hay que leerlas, en §43.8.
+
+**Convención de citas.** Las capacidades viven en ocho worktrees. Una ruta de
+otro árbol se escribe `<worktree> · <ruta>:<línea>` **sin** el prefijo
+`terrario/`, para que el gate no la confunda con una ruta local y la declare
+inexistente.
+
+## 43.1 · Hay dos contabilidades de capacidad y no se tocan
+
+Éste es el hallazgo del volumen, y es estructural. El estado de un pasaporte
+lo **calcula** [`status_of`](terrario/lab/capability_passport.py:113); el de un
+nivel lo **dictamina** una campaña sellada con sus propios gates:
+
+| | **Pasaportes** | **Niveles** |
+|---|---|---|
+| Qué describe | módulos de A4/A5 | organismos completos |
+| Unidad | `HOMEO-A1`, `EPMEM-A1`, `CURIO-A1`… | 1.0, 1.1 … 1.8 |
+| Estado | **calculado** por `status_of` | **veredicto** de una campaña sellada |
+| Instrumento | registro canónico, 8 reportables | gates propios por nivel |
+| Cuántos | 10 | 8 |
+| Con experimento propio | **0** | 8 |
+| Certificables hoy | **1** (`LEARN-A1`) | — |
+
+Medido: **ningún nivel importa
+[`capability_passport`](terrario/lab/capability_passport.py:113),
+[`instrument_registry`](terrario/lab/instrument_registry.py:51) ni
+[`measurement_status`](terrario/lab/measurement_status.py:41).** Cero, en los
+ocho árboles. Y ningún pasaporte nombra un
+nivel —la única coincidencia de «1.0» en el fichero es un valor de temperatura—.
+
+> Las capacidades que están **demostradas** viven en los niveles. Las que están
+> **contabilizadas para certificación** viven en los pasaportes. No se
+> encuentran en ningún punto.
+
+## 43.2 · Sistema 1 · los diez pasaportes
+
+Medido en §39.2 y no repetido aquí: **1 de 10 listo para certificar**
+(`LEARN-A1`), con el instrumento como restricción dominante —8 de 10 declaran un
+endpoint `PENDIENTE-*` que el registro no resuelve **a propósito**, para que el
+hueco sea visible en vez de sustituirlo por una métrica parecida—.
+
+Lo que este volumen añade: **esos diez no tienen experimento.** El pasaporte
+describe qué debería ocurrir al quitar el módulo
+([`negative_prediction`](terrario/lab/capability_passport.py:80)) y qué mundo lo
+exigiría (`demanding_world`); ninguna campaña sellada ejecuta esa ablación. El pasaporte es una **candidatura**, y §39.2 ya lo decía: «una
+implementación concreta de un concepto, como candidata experimental».
+
+## 43.3 · Sistema 2 · linaje A · 1.0 → 1.4 y la fusión
+
+Organismos descendientes del Agente de Nivel 1, cada uno con oráculo sellado
+**antes** de existir el código, gates propios y fixture negativa por gate.
+
+| Nivel | Adquisición | Estado | Árbol |
+|---|---|---|---|
+| 1.0 | contingencia sensorimotora | FROZEN | `causal-bench-01` |
+| — | reversión del mapa motor (sonda, no adquisición) | FROZEN | `causal-bench-01` |
+| 1.1 | orientación direccional | FROZEN | `causal-bench-01` |
+| 1.2 | proximidad cualitativa | FROZEN | `causal-bench-01` |
+| 1.3 | persistencia de una referencia un paso | VERIFIED | `level13-persistence-01` |
+| 1.4 | ligadura conjuntiva de dos referencias | VERIFIED | `level14-binding-01` |
+| fusión | *ninguna* — composición B+Q+H+M | VERIFIED | `organism-fusion-hm-01` |
+
+**Deuda conocida y no saldada** (§XXXIX): 1.2, 1.3 y la fusión tienen el
+inventario de gates divergente entre el oráculo sellado y el informe de
+ejecución. Ningún valor medido se mueve; lo que diverge es la taxonomía. Sólo
+1.4 fue reconciliado.
+
+## 43.4 · 1.5 · congelado, y con condición de descongelación escrita
+
+```
+ESTADO    CONGELADO · sólo diseño
+CÓDIGO    ninguno · no hay rama, carpeta ni implementación
+CAMPAÑA   no ejecutada
+```
+
+Nueve documentos, **tres supersesiones el mismo día**, y una condición explícita
+para descongelarlo: «experiencia útil generada por el organismo > capacidad
+disponible para conservarla». El motivo declarado es que a la memoria selectiva
+**le falta la necesidad**: hoy la escasez la impone el experimentador, no la
+produce el organismo.
+
+Es la entrada más sana del inventario: una capacidad que no se descarta, no se
+finge y dice qué haría falta para volver.
+
+## 43.5 · Sistema 2 · linaje B · 1.6 → 1.8 · un reinicio deliberado
+
+`9b0d39b` lo dice en el asunto: «**Seal the Level 1.6 oracle on a tree where
+nothing cognitive was inherited**». Verificado: `level16` importa de
+`level1.world` sólo primitivas del **cuerpo y el mundo** —`Grid`, `Direction`,
+`DELTA`, `Observation`, `ALL_OBSERVATIONS`— y **nada** de `level11`…`level14`.
+
+Se hereda el cuerpo; no se hereda la cognición. No es continuación del linaje A:
+es una segunda línea que empieza de cero con aprendices tabulares.
+
+**1.6 · regularidad temporal observacional · `POSITIVO`**
+
+```
+adquiere   P(o_{t+1} | o_t), y nada más — `observe` rechaza en ejecución
+           un acto, un bit de cambio, una copia eferente y una posición
+vida       T = 4096 · banco POST = 2048 transiciones nuevas, tras el congelado
+controles  FROZEN · TEMPORAL-SHUFFLED · STATIC-BITCOUNT · K-SOMBRA (instrumento)
+```
+
+El barajado se audita como lo que es: 1 punto fijo de π (esperanza 1) frente a
+431 coincidencias de valor (esperanza 410, «el alfabeto de 16, NO un defecto»).
+Distinguir ambos contadores es lo que evita descalibrar el criterio.
+
+**1.7 · contingencia de la acción propia · `POSITIVO`** · 16/16 pares · 13/13
+gates
+
+```
+hereda     el MECANISMO de 1.6 instanciado en W y congelado — no una tabla
+           forastera: H(O'|O) varía 0,5623–1,5464 entre mundos
+adquiere   C_17(O, A, O') — la desviación por acción sobre la expectativa temporal
+NO adquiere  la relevancia causal o general del concepto «acción»
+gemelo B   T_B(s'|s,a) = ¼ Σ_b T_A(s'|s,b) · I_B(A;O'|O) = 0 EXACTAMENTE
+```
+
+Y la corrección que salvó el diseño, dicha por ellos mismos: `NO-ACTION` **no es
+el predecesor congelado**, porque contra un `M_0` congelado aparece una ventaja
+falsa que **crece con el presupuesto** —el brazo nuevo ve datos que el congelado
+no vio—.
+
+## 43.6 · 1.8 · estado predictivo · un negativo bien llevado
+
+`BUDGET SELECTION = NONE` en la ronda C. El confirmatorio
+—semillas 180000011…180000074— sigue **cerrado e intacto**, y la cláusula de la
+Enmienda 04 §6 detiene la modificación de la estadística en vez de seguir
+buscando un presupuesto que gane.
+
+**La causa raíz está nombrada y verificada en código.** El oráculo selló
+`Z_{t+1} = F(Z_t, A_t, O_{t+1})`; lo implementado es el caso degenerado
+`Z_{t+1} = F(Z_t, A_t)`. Comprobado abriendo el fichero:
+
+```
+level18-predictive-state-01 · level18/predictive_state.py:168
+    self._came_from = (self._here, command)           ← sin observación
+level18-predictive-state-01 · level18/predictive_state.py:336
+    for following in range(16):
+        self._routing[(signature[0], signature[1], following)] = born
+                                                      ← las 16 rutas idénticas
+```
+
+Prueba hermética: mismas 400 acciones con tres secuencias de observación
+distintas dan **0/400 diferencias** en `Z`; mismas observaciones con acciones
+distintas dan 297/400. Y la cuantificación de lo que se deja fuera, con `H(C)`
+= 2,98 nats: **dos pares (obs, acción) con 258 contextos resuelven el 91 % de la
+situación; seis acciones solas con 4 096 contextos resuelven el 48 %**.
+
+Es un `FAMILY_MISMATCH` de la taxonomía de negativos, no un
+`SCIENTIFIC_NEGATIVE`: la familia de particiones estaba mal elegida, así que el
+experimento no falsó la hipótesis — midió otra cosa.
+
+## 43.7 · Qué se puede afirmar hoy, por capacidad
+
+| Capacidad | Código | Experimento | Instrumento | Control/lesión | Estado real |
+|---|---|---|---|---|---|
+| contingencia sensorimotora (1.0) | sí | sellado | gates propios | reversión | **demostrada en su mundo** |
+| orientación direccional (1.1) | sí | sellado | gates propios | control negativo | **demostrada** |
+| proximidad cualitativa (1.2) | sí | sellado | gates propios | sí | demostrada · inventario divergente |
+| memoria de un paso (1.3) | sí | sellado | gates propios | tick omitido | demostrada · inventario divergente |
+| ligadura conjuntiva (1.4) | sí | sellado | gates propios | 12 fixtures | **demostrada y reconciliada** |
+| composición B+Q+H+M | sí | sellado | gates propios | factorial 2×2 | **interacción superaditiva** |
+| memoria selectiva (1.5) | **no** | no | — | — | **CONGELADO · sólo diseño** |
+| regularidad temporal (1.6) | sí | sellado | K-SOMBRA | 3 brazos | **POSITIVO** |
+| contingencia de acción (1.7) | sí | sellado | gemelo A/B | 4 controles | **POSITIVO** |
+| estado predictivo (1.8) | sí | abierto | reparado ×2 | escalera | **sin presupuesto seleccionable** |
+| los 10 módulos de A4/A5 | sí | **ninguno** | 8 registrados, 8 `PENDIENTE` | declarada, no ejecutada | **1 certificable de 10** |
+
+## 43.8 · §XXVII quedó contradicha por el código, y el gate no podía verlo
+
+La tabla `write → storage → read → efecto` de §XXVII declara:
+
+| Tipo | write | storage | read | ¿efecto conductual? |
+|---|---|---|---|---|
+| `prediction_error` | `learn` | `last_prediction_error` | **nadie** | **no** |
+
+**Falso desde `fd725e3`.** `A5Cybernetic._policy_reward`
+([a5_cybernetic.py:52](terrario/agent/agents/a5_cybernetic.py:52)) lo lee y lo
+suma a la recompensa — el valor lo escribe `learn()`
+([a4_advanced.py:615](terrario/agent/agents/a4_advanced.py:615)) para ESE paso,
+antes de llegar ahí—. Es la superficie causal entera de CURIO-A1. La fila
+correcta hoy sería «read: `_policy_reward` en A5 · efecto: **sí**».
+
+Y §XXVII **no cita ninguna ruta**, así que el gate no puede invalidarla: sigue
+verde afirmando lo contrario de lo que hace el código.
+
+## 43.9 · Doce de cuarenta y cuatro secciones son invisibles para el gate
+
+Cerrando el K2 que §42.2 dejó abierto:
+
+```
+44 secciones de primer nivel · 32 vigiladas · 12 sin una sola cita de ruta
+
+  Cartografía de Terrario        XXVI  · Qué es A4, sin los nombres
+  XVI   · P1 CAPABILITY-ACQUISITION-01   XXVII · Causalidad del comportamiento
+  XXI   · Sandbox vs ejecución científica XXVIII· Deuda y contradicciones
+  XXIII · Ablaciones y composición        XXIX  · Arquitectura futura
+  XXIV  · Tests                           Apéndice · Lagunas declaradas
+  XXV   · Rendimiento                     XLII  · Reconciliación
+```
+
+Algunas lo son con razón —§XXIX es prospectiva, §XLII es método—. Pero **§XVI,
+§XXIII, §XXVI, §XXVII y §XXVIII afirman cosas sobre código y no citan una sola
+línea**, y cuatro de las cinco son exactamente las secciones de capacidades.
+Nadie las vigila desde el 17-09, y §43.8 muestra que al menos una ya envejeció
+mal.
+
+## 43.10 · Lo que no se sabe
+
+1. **K1** · Si las afirmaciones de §XVI, §XXIII y §XXVI siguen siendo ciertas.
+   No es opinable: se comprueba leyéndolas contra el código, como se hizo con
+   §XXVII, y cada una debería salir de ahí con citas.
+2. **K2** · Qué diría un pasaporte de las capacidades del linaje B. Hoy 1.6 y
+   1.7 están demostradas y **no tienen pasaporte**; los diez pasaportes
+   describen módulos que no tienen experimento. Unir las dos contabilidades es
+   una decisión de modelo, no una reparación.
+3. **K2** · Si la ablación declarada en cada `negative_prediction` produce lo que
+   predice. Diez ablaciones no ejecutadas.
+4. **K3** · Para 1.8, qué familia de particiones sería la correcta. La evidencia
+   interna dice cuál **no** es —action-only— y cuánta información deja fuera; no
+   dice cuál elegir.
