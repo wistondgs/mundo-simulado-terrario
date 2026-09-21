@@ -23,6 +23,12 @@ import enum
 from dataclasses import dataclass
 
 
+#: Alias declarado aquí, en la frontera del aprendiz, y no importado de la
+#: física: así `contingency.py` no importa NADA de `terrario.level1.world` y la
+#: opacidad del token deja de ser una promesa para ser estructura.
+Observation = tuple[int, int, int, int]
+
+
 class EfferenceContractError(RuntimeError):
     """Se ofreció como copia eferente algo que no es un comando opaco."""
 

@@ -27,9 +27,8 @@ import hashlib
 
 import numpy as np
 
-from terrario.level1.world import Observation
 from terrario.level16.temporal import OBSERVATION_INDEX, TemporalModel
-from terrario.level17.efference import EfferenceCopy
+from terrario.level17.efference import EfferenceCopy, Observation
 
 
 class ContingencyContractError(RuntimeError):

@@ -83,3 +83,49 @@ class MarginalisedBody:
                 f"reproduce la vida; claves: {sorted(state)}")
         self._rng.bit_generator.state = state["rng"]
         self._draws = int(state["draws"])
+
+
+def state_kernels(seed: int, wiring, intact: frozenset[int] = frozenset()):
+    """Los kernels físicos `T_A` y `T_B` del componente natal, y las firmas.
+
+    `intact` existe **para las fixtures**: los índices de comando que ahí se
+    listen conservan su efecto real en `T_B` en vez de marginalizarse. Con el
+    conjunto vacío produce el gemelo correcto; con `{0}` produce un B defectuoso
+    en el que una sola acción sigue siendo causal, que es exactamente lo que
+    `L17-1` debe detectar.
+    """
+    from terrario.level1.world import DELTA
+    from terrario.level16.structure import _signature
+    from terrario.level16.temporal import OBSERVATION_INDEX
+    from terrario.level16.world import build_world
+    from terrario.level17.efference import ALL_COMMANDS
+
+    grid = build_world(seed)
+    seen = {grid.position}
+    stack = [grid.position]
+    while stack:
+        row, col = stack.pop()
+        for direction in Direction:
+            destino = (row + DELTA[direction][0], col + DELTA[direction][1])
+            if grid.cells[destino] == 0 and destino not in seen:
+                seen.add(destino)
+                stack.append(destino)
+
+    cells = sorted(seen)
+    index = {cell: i for i, cell in enumerate(cells)}
+    kernel_a = np.zeros((len(cells), 4, len(cells)))
+    for cell in cells:
+        for position, command in enumerate(ALL_COMMANDS):
+            direction = wiring.actuate(command)
+            destino = (cell[0] + DELTA[direction][0], cell[1] + DELTA[direction][1])
+            landing = destino if grid.cells[destino] == 0 else cell
+            kernel_a[index[cell], position, index[landing]] = 1.0
+
+    kernel_b = kernel_a.copy()
+    marginal = kernel_a.mean(axis=1)
+    for position in range(4):
+        if position not in intact:
+            kernel_b[:, position, :] = marginal
+
+    signature = np.array([OBSERVATION_INDEX[_signature(grid, c)] for c in cells])
+    return kernel_a, kernel_b, signature

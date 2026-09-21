@@ -49,6 +49,7 @@ class TwoPhaseLife:
     acquired: ActionContingencyModel
     no_action: TemporalModel
     acquisition: tuple[tuple[Observation, CommandToken, Observation], ...]
+    all_commands: tuple[CommandToken, ...]
     visits: np.ndarray
     post: tuple[tuple[Observation, CommandToken, Observation], ...]
     trajectory_hash: str
@@ -65,10 +66,12 @@ def live_two_phase(seed: int, predecessor_steps: int, acquisition_steps: int,
     huella = hashlib.sha256()
 
     observation = grid.observe()
+    emitted: list[CommandToken] = []
 
     def paso() -> tuple[Observation, CommandToken, Observation]:
         nonlocal observation
         command = ALL_COMMANDS[int(motor.next())]
+        emitted.append(command)
         moved, following = grid.step(phi.actuate(command))
         huella.update(bytes([ALL_COMMANDS.index(command), moved,
                              *observation, *following]))
@@ -100,5 +103,5 @@ def live_two_phase(seed: int, predecessor_steps: int, acquisition_steps: int,
     post = tuple(paso() for _ in range(post_steps))
 
     return TwoPhaseLife(seed, phi, inherited, acquired, no_action,
-                        tuple(acquisition), visits, post,
+                        tuple(acquisition), tuple(emitted), visits, post,
                         huella.hexdigest(), motor.emitted)
