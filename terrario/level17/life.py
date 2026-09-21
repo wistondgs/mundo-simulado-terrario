@@ -48,6 +48,7 @@ class TwoPhaseLife:
     inherited: TemporalModel
     acquired: ActionContingencyModel
     no_action: TemporalModel
+    acquisition: tuple[tuple[Observation, CommandToken, Observation], ...]
     visits: np.ndarray
     post: tuple[tuple[Observation, CommandToken, Observation], ...]
     trajectory_hash: str
@@ -86,8 +87,10 @@ def live_two_phase(seed: int, predecessor_steps: int, acquisition_steps: int,
     no_action = TemporalModel()
     no_action.load(inherited.snapshot())          # parte del mismo sitio...
     visits = np.zeros((16, 4))
+    acquisition: list[tuple[Observation, CommandToken, Observation]] = []
     for _ in range(acquisition_steps):
         anterior, command, siguiente = paso()
+        acquisition.append((anterior, command, siguiente))
         acquired.observe(anterior, EfferenceCopy(command), siguiente)
         no_action.observe(anterior, siguiente)    # ...pero sigue aprendiendo sin el comando
         visits[OBSERVATION_INDEX[anterior], ALL_COMMANDS.index(command)] += 1
@@ -96,5 +99,6 @@ def live_two_phase(seed: int, predecessor_steps: int, acquisition_steps: int,
     # --- banco POST
     post = tuple(paso() for _ in range(post_steps))
 
-    return TwoPhaseLife(seed, phi, inherited, acquired, no_action, visits, post,
+    return TwoPhaseLife(seed, phi, inherited, acquired, no_action,
+                        tuple(acquisition), visits, post,
                         huella.hexdigest(), motor.emitted)

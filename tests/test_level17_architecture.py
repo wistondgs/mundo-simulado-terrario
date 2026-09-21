@@ -190,3 +190,72 @@ def test_en_el_mundo_gemelo_la_ventaja_contra_no_action_no_es_positiva():
     finally:
         modulo.build_world = real
     assert np.mean(ventajas) < 0.0, np.mean(ventajas)
+
+
+# --- SHUFFLED-ACTION estratificado ------------------------------------------
+
+def test_la_baraja_estratificada_conserva_P_L_de_O_y_A():
+    """Destruye A↔O'|O y NADA más: mismos O_t, mismos O_{t+1}, mismas cuentas."""
+    from collections import Counter
+
+    from terrario.level17 import shuffled
+    from terrario.level17.efference import ALL_COMMANDS
+    from terrario.level17.life import live_two_phase
+
+    vida = live_two_phase(SEMILLA, 256, 512, post_steps=64)
+    previos = [a for a, _, _ in vida.acquisition]
+    comandos = [k for _, k, _ in vida.acquisition]
+    orden = shuffled.stratified_permutation(
+        previos, shuffled.stratified_stream(SEMILLA, 0))
+
+    # cada índice destino recibe un origen del MISMO estrato de O_t
+    assert all(previos[t] == previos[orden[t]] for t in range(len(previos)))
+    # y el conteo de acciones por observación es idéntico
+    antes = Counter((previos[t], comandos[t]) for t in range(len(previos)))
+    despues = Counter((previos[t], comandos[orden[t]]) for t in range(len(previos)))
+    assert antes == despues
+    assert sorted(orden) == list(range(len(previos)))
+
+
+def test_la_baraja_no_deja_ventaja_y_su_dispersion_cae_en_la_nula():
+    from terrario.level17 import shuffled
+    from terrario.level17.efference import EfferenceCopy
+    from terrario.level17.life import live_two_phase
+
+    vida = live_two_phase(SEMILLA, 512, 1024, post_steps=256)
+    previos = [a for a, _, _ in vida.acquisition]
+    comandos = [k for _, k, _ in vida.acquisition]
+    siguientes = [c for _, _, c in vida.acquisition]
+
+    barajado = shuffled.build(vida.inherited, previos, comandos, siguientes, SEMILLA, 0)
+    auditoria = shuffled.audit(barajado, vida.inherited, previos, comandos,
+                               siguientes, SEMILLA)
+    assert auditoria.destructive
+    assert shuffled.row_spread(vida.acquired) > auditoria.tolerance
+
+    perdida = lambda f: -np.mean([np.log(f(a, k, c)) for a, k, c in vida.post])
+    ventaja = (perdida(lambda a, k, c: vida.no_action.probability(a, c))
+               - perdida(lambda a, k, c: barajado.probability(a, EfferenceCopy(k), c)))
+    assert ventaja < 0.05, ventaja
+
+
+def test_una_baraja_que_no_baraja_no_pasa_la_auditoria():
+    """Fixture negativa: un brazo con la permutación identidad conserva la
+    dependencia entera y queda muy fuera de la nula honesta."""
+    from terrario.level17 import shuffled
+    from terrario.level17.efference import EfferenceCopy
+    from terrario.level17.life import live_two_phase
+
+    vida = live_two_phase(SEMILLA, 256, 512, post_steps=64)
+    previos = [a for a, _, _ in vida.acquisition]
+    comandos = [k for _, k, _ in vida.acquisition]
+    siguientes = [c for _, _, c in vida.acquisition]
+
+    identidad = ActionContingencyModel(vida.inherited)
+    for anterior, comando, siguiente in vida.acquisition:
+        identidad.observe(anterior, EfferenceCopy(comando), siguiente)
+
+    auditoria = shuffled.audit(identidad, vida.inherited, previos, comandos,
+                               siguientes, SEMILLA)
+    assert not auditoria.destructive
+    assert auditoria.observed > auditoria.tolerance

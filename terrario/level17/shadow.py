@@ -99,6 +99,34 @@ class AnalyticActionShadow:
             return 0.0
         return float(np.sum((visits / total) * self._divergence_to_marginal()))
 
+    def divergence_matrix(self) -> np.ndarray:
+        """`KL[P(·|o,a) ‖ P(·|o)]` por contexto. La usa el instrumento de exposición."""
+        return self._divergence_to_marginal()
+
+    def marginal_learner_error(self, model) -> float:
+        """`ε_NA = E_p_ref KL[ P(·|o,a) ‖ M_NA(·|o) ]`.
+
+        El baseline NO-ACTION predice lo mismo para las cuatro acciones, así que
+        su error incluye toda la dependencia que ignora. La resta
+        `D_K_action = ε_NA − ε_A` deja **sólo** el conocimiento atribuible a usar
+        el comando, y descuenta los datos extra de la fase A, que NO-ACTION
+        también recibió. Es la contraparte interna exacta de
+        `D_C = L(NA) − L(M_1)`.
+        """
+        from terrario.level1.world import ALL_OBSERVATIONS
+
+        p_ref = self.p_reference
+        total = 0.0
+        for o, observation in enumerate(ALL_OBSERVATIONS):
+            if self._p_observation[o] == 0:
+                continue
+            q = model.predict(observation)
+            for a in range(4):
+                p = self._table[o, a]
+                mask = (p > 0) & (q > 0)
+                total += p_ref[o, a] * float(np.sum(p[mask] * np.log(p[mask] / q[mask])))
+        return total
+
     def learner_error(self, model) -> float:
         """`ε_K = Σ p_ref(o,a) KL[ P(·|o,a) ‖ M_1(·|o,a) ]`."""
         from terrario.level1.world import ALL_OBSERVATIONS
