@@ -1900,23 +1900,39 @@ métricas, tests) requiere leer `lab/evidence_publication.py` y las fixtures de 
 
 # XXIII · Ablaciones y composición
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17. **Una
+> afirmación caducó y el resto se sostiene con exactitud**, incluidas las dos
+> más finas —qué entra al optimizador y qué cuenta `parameter_count`—.
+
 ## 545-551 · Cómo se construye un agente con flags
 
 `lab/agent_composition.py::validate_selection` es **fail-closed**: rechaza una clave desconocida en
 vez de descartarla en silencio. Tres familias de clave:
 
 ```
-_KEYS          los 10 use_*      deben ser bool
-_TUNING_KEYS   numéricos         validados contra [minimum, maximum]
+_KEYS          los 11 use_*      deben ser bool     ⚠ eran 10
+_TUNING_KEYS   2 numéricos       validados contra [minimum, maximum]
 _CHOICE_KEYS   addressing_mode   validado contra dominio enumerado
 ```
+
+⚠ **Corrección.** Medido hoy: `_KEYS` tiene **11**, no 10
+([agent_composition.py:146](terrario/lab/agent_composition.py:146)). El
+undécimo es `use_curiosity`, y **no es una entrada más**: A4 no lo lee —es de
+A5—, así que `validate_selection` lo **acepta** y lo pasa a un organismo que lo
+ignora, y `catalogue()` levanta `KeyError`. La descripción «fail-closed» de
+esta sección sigue siendo cierta para las claves desconocidas y **falsa para
+ésta**, que es conocida y no debería estar. Ver §XXXIX.
 
 [546] **Las ablaciones NO eliminan módulos: los dejan construidos y cortan su ruta.**
 [547] Los downstream reciben **ceros** de la misma dimensión.
 [548] **No cambian dimensiones**: `_build_state` siempre devuelve 640.
-[549-550] **Sí cambia el número de parámetros entrenables**, porque `parameter_count` cuenta sólo
-`requires_grad`, y **sí cambia qué módulos entran al optimizador**: `learnable_modules` se
-construye condicionalmente. Un agente sin memoria de largo plazo tiene un Adam distinto.
+[549-550] **Sí cambia el número de parámetros entrenables**, porque
+`parameter_count` cuenta sólo `requires_grad`
+([a4_advanced.py:885](terrario/agent/agents/a4_advanced.py:885)), y **sí cambia
+qué módulos entran al optimizador**: `learnable_modules` se construye
+condicionalmente, con una rama por flag
+([a4_advanced.py:278](terrario/agent/agents/a4_advanced.py:278)). Un agente sin
+memoria de largo plazo tiene un Adam distinto. **Verificado hoy, las dos.**
 [551] Cambian rutas de control: las ramas `if self._use_*`.
 
 ## 552-554 · Ablaciones que no son intervenciones locales
@@ -1963,9 +1979,23 @@ invocar interacción alguna. `nucleo_lecun` hereda lo mismo más la memoria.
 
 # XXIV · Tests
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17. Sus
+> cifras de cabecera **caducaron todas**: la suite creció y ya no falla una
+> prueba, fallan por lo menos cuatro.
+
 ## 566-575 · Distribución
 
-**152 ficheros, 711 pruebas, 1 omitida, 1 fallando** (el gate de hashes protegidos).
+⚠ **Medido hoy** contra lo que decía esta sección:
+
+| | 2026-09-17 | **2026-09-21** |
+|---|---:|---:|
+| ficheros | 152 | **155** |
+| pruebas recolectadas | 711 | **863** |
+| fallando | 1 (gate de hashes) | **≥ 4** |
+
+Las tres nuevas en rojo son de `test_agent_composition.py` y llevan así desde
+`fd725e3` (§XXXIX); la cuarta es la que esta sección ya nombraba. El desglose
+por subsistema de abajo es **K1 · medido el 2026-09-17** y no se ha recontado.
 
 | Subsistema | Ficheros |
 |---|---|
@@ -1982,7 +2012,10 @@ clasificar las 711 una a una. Los **controles científicos** sí están contados
 falsación de instrumento, más 22 de contrato de acción y 12 de paridad de selector.
 
 [573-575] Ejercitan `SandboxService` 3 ficheros; `ExperimentController`, los de `experiment`.
-**Ninguno ejercita ambos sobre el mismo escenario** — [523] de nuevo.
+**Ninguno ejercita ambos sobre el mismo escenario** — [523] de nuevo. **Se
+sostiene**: hoy existe `tests/test_world_runtime_parity.py`, pero §XLI midió que
+ejecuta `run_step` las dos veces, así que prueba determinismo y no conformidad
+entre superficies.
 
 ## 576-586 · Qué falta
 
@@ -1990,8 +2023,10 @@ falsación de instrumento, más 22 de contrato de acción y 12 de paridad de sel
 que una predicción del world model cambie la elección del planner [212]; el round-trip de
 checkpoint para **A4** [501].
 [579] Dependen de hashes exactos: `test_system_baseline_characterization.py`.
-[580-581] La omitida es `test_agent_factory.py:35`, con
-`@pytest.mark.skipif(not torch.cuda.is_available())` — **no hay CUDA en esta máquina**.
+[580-581] La omitida es `test_agent_factory.py`, con
+`@pytest.mark.skipif(not torch.cuda.is_available())`
+([test_agent_factory.py:34](tests/test_agent_factory.py:35)) — **no hay CUDA en
+esta máquina**. **Se sostiene, verificado hoy.**
 [582] Contra el riesgo de que un test verde replique la implementación defectuosa, la respuesta
 del repositorio son los **controles con respuesta analítica conocida**: [583] el más fuerte es
 `uniform_random_agent` → **0.0400 teórico contra 0.0404 medido**.
@@ -2004,6 +2039,11 @@ del repositorio son los **controles con respuesta analítica conocida**: [583] e
 
 # XXV · Rendimiento
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17. Es la
+> sección **más apoyada en medición de corrida**: sus tiempos y proporciones
+> quedan como **K1 · medido el 2026-09-17** y no se han repetido. Lo que sí es
+> derivable del código —la aritmética de pasadas— está verificado hoy.
+
 ## 587-593 · Dónde se van los segundos
 
 **Coste por decisión**, medido aislando módulos (5 semillas, 100 decisiones):
@@ -2015,9 +2055,15 @@ sin incertidumbre      22.42 ms     → incertidumbre cuesta 16.6 ms (43 %)
 sin ambos               3.15 ms     → todo el resto del agente: 8 %
 ```
 
-La razón es aritmética y está en el código:
-- **planner**: 10 candidatos × 5 pasos de horizonte = **50 pasadas del world model por decisión**.
-- **incertidumbre**: 25 acciones × 5 cabezas del ensemble = **125 pasadas por decisión**.
+La razón es aritmética y está en el código. **Verificada hoy contra
+`DEFAULT_CONFIG`:**
+- **planner**: `planner_candidates = 10`
+  ([a4_advanced.py:103](terrario/agent/agents/a4_advanced.py:103)) × `planner_horizon = 5`
+  = **50 pasadas del world model por decisión** — y sólo en la mitad de los
+  pasos, porque `plan_prob = 0.5`.
+- **incertidumbre**: 25 acciones × `ensemble_size = 5`
+  ([a4_advanced.py:101](terrario/agent/agents/a4_advanced.py:101))
+  = **125 pasadas por decisión**, en todos los pasos.
 
 **Reparto por fase del timestep** (proporciones firmes; los absolutos estaban contaminados por
 carga en paralelo):

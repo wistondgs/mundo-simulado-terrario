@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "667dc09",
+  "head": "fff3153",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -157,6 +157,23 @@
       "files": {
         "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
         "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
+      }
+    },
+    "XXIII · Ablaciones y composición": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/lab/agent_composition.py": "493515cb170809549f7dffeb1ec00cba5f8cd1b7508d741838092899386c0da4"
+      }
+    },
+    "XXIV · Tests": {
+      "files": {
+        "tests/test_agent_factory.py": "afd02bc71861521d130863a26fc030929626514f114499f9fc47c9dee38c5d44",
+        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+      }
+    },
+    "XXV · Rendimiento": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30"
       }
     },
     "XXVI · Qué es A4, sin los nombres": {
