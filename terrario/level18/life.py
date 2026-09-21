@@ -17,6 +17,8 @@ byte a byte como se congeló, y la lesión no puede alcanzar al brazo FULL.
 """
 from __future__ import annotations
 
+import time
+
 import numpy as np
 
 from terrario.level1.world import DELTA, Direction
@@ -109,6 +111,7 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
     # --- P2 · T_18 · sólo aquí nace 1.8 ---------------------------------------
     last = 0
     max_states = len(learner.states())
+    started = time.perf_counter()
     born_at: dict[int, int] = {}
     merged_at: dict[int, int] = {}
     for step in range(budget):
@@ -131,6 +134,8 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
                 born_at[i] = step
             if episode["merged"] and i not in merged_at:
                 merged_at[i] = step
+
+    elapsed = time.perf_counter() - started
 
     # --- banco · nadie aprende aquí -------------------------------------------
     bank = []
@@ -174,8 +179,18 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
     # --- lectura congelada de la organización ---------------------------------
     learner.begin()
     readout = []
-    for obs, command, following, _previous, situation in bank:
-        readout.append((OBSERVATION_INDEX[obs], learner._here, situation))
+    # (c) de la Enmienda 03 · hambre: pasos del banco que caen en una celda
+    # `(estado, O_t, A_t)` sin NINGUNA evidencia, predichos sólo por el prior.
+    hungry_full = 0
+    hungry_depth = 0
+    for obs, command, following, previous, situation in bank:
+        o = OBSERVATION_INDEX[obs]
+        a = ALL_COMMANDS.index(command)
+        readout.append((o, learner._here, situation))
+        if learner._evidence[learner._here][o, a].sum() == 0.0:
+            hungry_full += 1
+        if depth_evidence[previous][o, a].sum() == 0.0:
+            hungry_depth += 1
         learner.follow(EfferenceCopy(command), following)
 
     states = learner.states()
@@ -212,6 +227,14 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
         "starved_mass": (sum(inherited[z] for z in starved) / total_prior
                          if total_prior else 0.0),
         "dangling": len(learner.dangling_routes()),
+        "hungry_full": hungry_full / len(bank),
+        "hungry_depth": hungry_depth / len(bank),
+        "seconds": elapsed,
+        "cells_held": sum(
+            int(a.size) for store in (learner._prior, learner._evidence,
+                                      learner._shadow, learner._collapsed_prior)
+            for a in store.values())
+        + sum(int(p.size) for z in states for p in learner._incoming[z].values()),
         "situations": len(ordered),
         "h_c_o": h_c_o, "h_c_zo": h_c_zo,
         "h_z_co": _conditional_entropy([((o, c), z) for o, z, c in readout]),
