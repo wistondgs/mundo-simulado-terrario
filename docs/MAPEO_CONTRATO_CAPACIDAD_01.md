@@ -18,7 +18,7 @@ ya es «la unidad de la campaña: ningún algoritmo entra sin uno».
 
 | módulo | líneas | qué es |
 |---|---|---|
-| [capability_passport.py](terrario/lab/capability_passport.py) | 561 | **el contrato** · 22 campos y un estado **derivado**, no declarado |
+| [capability_passport.py](terrario/lab/capability_passport.py) | 561 | **el contrato** · 24 campos y un estado **derivado**, no declarado |
 | [capability_operationalization.py](terrario/lab/capability_operationalization.py) | 478 | los puentes aprobados por un humano de capacidad → claim del corpus |
 | [capability_intervention.py](terrario/lab/capability_intervention.py) | 103 | contratos de intervención del plano de ejecución |
 | [capability_exam.py](terrario/lab/capability_exam.py) | 320 | el examen reservado de una capacidad **adquirida** |
@@ -134,7 +134,7 @@ SUPPLIED_AND_ACQUIRED_NOT_SEPARATED
 de modo que **el colapso no sea un error de validación sino un estado del
 pasaporte** —igual que los otros cinco: calculado, no declarado—.
 
-Eso reutiliza `status_of`, el hash canónico existente y los 22 campos, y no crea
+Eso reutiliza `status_of`, el hash canónico existente y los 24 campos, y no crea
 ningún registro paralelo.
 
 ---

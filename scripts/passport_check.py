@@ -54,8 +54,8 @@ def condiciones(passport: CapabilityPassport) -> dict[str, tuple[bool, str]]:
 def informe() -> int:
     print(f"PASAPORTES DE CAPACIDAD — {len(REGISTRY)} registrados\n")
     orden = ["contrato", "procedencia", "pureza", "mundo", "instrumento"]
-    print(f"  {'capacidad':<11}{'concepto':<30}" + "".join(f"{c:<13}" for c in orden))
-    print("  " + "-" * 106)
+    print(f"  {'capacidad':<13}{'concepto':<30}" + "".join(f"{c:<13}" for c in orden))
+    print("  " + "-" * 108)
 
     faltantes: dict[str, int] = {c: 0 for c in orden}
     for cid, passport in REGISTRY.items():
@@ -66,7 +66,7 @@ def informe() -> int:
             celdas += f"{'si' if cumple else 'NO':<13}"
             if not cumple:
                 faltantes[condicion] += 1
-        print(f"  {cid:<11}{passport.concept_id[:29]:<30}{celdas}")
+        print(f"  {cid:<13}{passport.concept_id[:29]:<30}{celdas}")
 
     print()
     for condicion in orden:

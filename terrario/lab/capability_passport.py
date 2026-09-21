@@ -1,10 +1,17 @@
 """El pasaporte de una capacidad, y el estado que se calcula en vez de declararse.
 
 TCS-01 fija el pasaporte como la unidad de la campaña: ningún algoritmo entra sin
-uno. Veintidós campos que responden, para una implementación concreta, de qué
+uno. Veinticuatro campos que responden, para una implementación concreta, de qué
 concepto viene, qué significa poseerlo computacionalmente, qué información puede
 y no puede ver, qué debería ocurrir al quitarlo, y qué tiene que exigir el mundo
 para que sea necesario.
+
+El número estuvo mal desde el primer día y conviene decirlo aquí, porque es
+justo lo que este módulo protege: la cabecera decía «veintidós» cuando la
+dataclass ya tenía veintitrés --`notes` es texto libre y probablemente no se
+contó--, y `operationalization_id` la dejó en veinticuatro sin que nadie
+volviera. La autoridad sobre la forma canónica de v1 no es esta frase sino
+`V1_FIELDS`, y hay un contrato que la fija literal.
 
 Lo que hace útil al pasaporte no es tenerlo escrito: es que su ESTADO se calcule.
 `status_of` no lee un campo `status`, lo deriva de condiciones comprobables --
@@ -82,11 +89,32 @@ class ElementKind(StrEnum):
 
 @dataclass(frozen=True)
 class ElementRef:
-    """Una identidad con revisión, no una etiqueta.
+    """Una identidad de **entidad**, con su revisión como procedencia.
 
-    `key` deja fuera la revisión: dar la versión 1 de un mecanismo y pedir que
-    se adquiera su versión 2 sigue siendo dar y pedir lo mismo, y colapsaría la
-    pregunta científica igual de bien.
+    Excluir la revisión de `key` no es una comodidad: es la capa en la que este
+    tipo vive, y el árbol ya distingue las dos.
+
+        capa de entidad, sin versión
+            `concept_id` --declarado sin versión, al lado mismo de
+            `algorithm_id` y `algorithm_version`-- y `CorpusConceptReference`
+
+        capa de realización, versionada y NO sustituible
+            `algorithm_id` + `algorithm_version`; `InstrumentRef`, que levanta
+            `INSTRUMENT_VERSION_DRIFT` en vez de aceptar otra versión; los
+            diseños de `theory/factory.py`, inmutables por `(id, version)`;
+            `MechanismSpec`, con clave `(mechanism_id, version)`
+
+    `ElementRef` es de la primera y `MechanismRef` de la segunda, y por eso una
+    lleva la revisión como dato y la otra la lleva en su identidad.
+
+    La consecuencia buscada: la pregunta «¿lo dimos o debe adquirirlo?» se hace
+    de la **entidad**. Dar la versión 1 y exigir que se adquiera la 2 sigue
+    siendo dar y pedir lo mismo, porque el organismo recibe la cosa en cualquier
+    caso.
+
+    El límite, dicho para que nadie lo generalice de más: esto **no** autoriza a
+    sustituir versiones en la capa de realización. Ahí la revisión sí es
+    identidad, y cambiarla es deriva.
     """
 
     kind: ElementKind
@@ -745,7 +773,14 @@ def migrate_to_v2(passport: CapabilityPassport, *, capability_id: str,
     derivado = replace(
         passport, capability_id=capability_id, schema_version=SCHEMA_VERSION_V2,
         supplied=supplied, acquisition_target=acquisition_target,
-        non_claims=non_claims, formalization_ref=formalization_ref)
+        non_claims=non_claims, formalization_ref=formalization_ref,
+        # La procedencia al corpus NO se hereda, y esto lo destapó la prueba de
+        # `capability_operationalization`: el registro es una decisión humana
+        # que nombra un `capability_id` concreto, y arrastrarlo haría que el
+        # pasaporte nuevo reclamara un enlace que no lo nombra. Es exactamente
+        # la procedencia inventada que esta migración existe para no cometer.
+        # El v2 nace sin enlace y lo gana cuando una persona decida para él.
+        corpus_provenance=(), operationalization_id=None)
     if derivado.content_identity == passport.content_identity:
         raise ValueError("la migración no produjo una identidad nueva")
     return derivado
@@ -769,3 +804,55 @@ def assert_claimable(passport: CapabilityPassport, claim: str) -> str:
                 f"{passport.capability_id}: {claim!r} está declarado fuera de "
                 f"alcance en non_claims y no puede afirmarse de esta capacidad")
     return claim
+
+
+# ── El primer pasaporte v2, migrado desde uno productivo ─────────────────
+#
+# LEARN-A1 es el único de los diez que puede poblar los cuatro campos sin
+# inferencias: auditados los diez, sólo él y WM-A1 tienen un endpoint que
+# resuelve a un `MetricSpec` con alcance declarado, y WM-A1 es
+# INTERVENTION_IMPURE --su efecto no es atribuible a nadie--.
+#
+# El v1 no se toca. Éste es otro pasaporte, con su propio identificador, y los
+# dos coexisten: el que se evaluó y el que además separa lo dado de lo que debe
+# adquirirse.
+
+def _learn_a1_v2() -> CapabilityPassport:
+    from terrario.lab.mechanism_spec import MechanismRef, REGISTRY as MECHANISMS
+
+    origen = REGISTRY["LEARN-A1"]
+    mecanismo = MECHANISMS[("online-gradient-update", 1)]
+    return migrate_to_v2(
+        origen,
+        capability_id="LEARN-A1-V2",
+        # VERIFIED_FROM_CODE · el mecanismo entero lo escribimos nosotros:
+        # `OnlineLearner` construye el Adam sobre los módulos aprendibles.
+        supplied=(
+            ElementRef(ElementKind.MECHANISM, "online-gradient-update", "1"),
+            ElementRef(ElementKind.PARAMETER, "learning-rate"),
+            ElementRef(ElementKind.PARAMETER, "gradient-clip"),
+            ElementRef(ElementKind.PARAMETER, "update-frequency"),
+        ),
+        # VERIFIED_FROM_EXPERIMENT · `experiment_capability_acquisition.py`
+        # aísla exactamente esto: los gemelos L y F reciben experiencia
+        # LITERALMENTE idéntica y sólo difieren en si el update ocurre, y S
+        # --crédito barajado-- pregunta si lo aprendido es la relación causal.
+        acquisition_target=(
+            ElementRef(ElementKind.CONTENT, "parameter values of the learnable modules"),
+        ),
+        # VERIFIED_FROM_CODE · el alcance que el propio instrumento declara:
+        # `MetricSpec.semantic_definition` lo acota a un segmento de regla
+        # estable, y su `notes` separa el cero de NOT_EVALUABLE.
+        non_claims=(
+            "that the organism learns across a change of rules; the endpoint "
+            "measures discrimination inside a stable-rule segment",
+            "that a reading of zero means no learning; zero means exposures "
+            "existed and none converted, and with no exposures the reading is "
+            "NOT_EVALUABLE",
+            "that the parameter change is the organism understanding anything",
+        ),
+        formalization_ref=MechanismRef.to(mecanismo),
+    )
+
+
+register(_learn_a1_v2())

@@ -5637,10 +5637,30 @@ cuyo significado depende de la redacción.
 
 ## 47.5 · Lo que sigue sin estar
 
-**`NO VERIFICADO`** · Ningún pasaporte productivo es v2. La demostración usa
-fixtura, no registro: los diez existentes son módulos de A4/A5 y **no existe
-pasaporte del linaje 1.x**, así que fabricar uno para 1.6 o 1.7 sería inventar
-procedencia que aquellas campañas nunca escribieron.
+~~**`NO VERIFICADO`** · Ningún pasaporte productivo es v2.~~
+
+**Hay uno desde el 2026-09-21: `LEARN-A1-V2`.** Auditados los diez, sólo dos
+tienen un endpoint que resuelve a un `MetricSpec` con alcance declarado
+—`LEARN-A1` y `WM-A1`— y el segundo es `INTERVENTION_IMPURE`, así que su efecto
+no es atribuible. Los otros ocho declaran `PENDIENTE-*` y no tienen instrumento
+que acote nada.
+
+Sus cuatro campos salen de evidencia, no de inferencia: `supplied` del código
+—`OnlineLearner` construye el Adam—, `acquisition_target` del experimento
+`experiment_capability_acquisition.py`, que aísla exactamente eso con gemelos
+L/F de experiencia **literalmente** idéntica y un tercero de crédito barajado;
+y `non_claims` del alcance que el propio `MetricSpec` declara.
+
+**Y la migración perdió la procedencia, que es el hallazgo.** El registro de
+operacionalización es una decisión humana que nombra un `capability_id`
+concreto; heredarlo habría hecho que el pasaporte nuevo reclamara un enlace que
+no lo nombra. Lo destapó una prueba que ya existía, no yo. Así que `LEARN-A1-V2`
+nace en `NO_CORPUS_PROVENANCE` y el recuento pasa a **1 de 11**: un pasaporte
+v2 no hereda el derecho a citar el corpus, se lo gana cuando alguien decide
+para él.
+
+**`NO VERIFICADO`** · Sigue sin existir pasaporte del linaje 1.x, y fabricar
+uno para 1.6 o 1.7 seguiría siendo inventar procedencia.
 
 **`K2`** · Si los diez pueden migrarse sin falsear su historia. `migrate_to_v2`
 existe y exige un `capability_id` propio, pero nadie ha intentado rellenar

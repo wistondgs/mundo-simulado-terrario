@@ -12,12 +12,23 @@ The split this module makes, and the reason for it:
     MechanismSpec       what the mechanism means -- formal, versioned
     AlgorithmBinding    which implementation realises it
 
-Level 1.8 is why `degenerate_of` exists.  Its oracle sealed
-`Z_{t+1} = F(Z_t, A_t, O_{t+1})`; what ran was `Z_{t+1} = F(Z_t, A_t)`, the
-degenerate case with the observation dropped.  Every number it produced was
-true, and it answered a different question than the one sealed.  A mechanism
-that names the degenerate cases it must NOT collapse into makes that a
-checkable claim instead of something found by reading the source a year later.
+Level 1.8 is why `degenerate_of` was noticed, but it is not what it encodes.
+Its oracle sealed `Z_{t+1} = F(Z_t, A_t, O_{t+1})`; what ran was
+`Z_{t+1} = F(Z_t, A_t)`, the degenerate case with the observation dropped.
+Every number it produced was true, and it answered a different question.
+
+The relation is general, and the tree already builds it everywhere -- checked
+across four independent campaigns, where the degenerate forms are deliberate
+controls: 1.2 has `ConstantDistance` and `BlindCore`, 1.3 has `NoMemory`,
+`WriteDisabledMemory` and `ImmediateMemory` -- three degenerate forms of one
+mechanism -- and the fusion has its own `NoMemory`.
+
+What settles it is the case nobody declared: A4's planner, given a
+constant-output world model, "works as a source of exploration, not as a
+planner".  That degenerate form had to be found by reading, exactly like 1.8's.
+So this field does not encode one campaign's defect; it makes declarable, in
+advance, a relation the project constructs in every campaign and occasionally
+only discovers afterwards.
 
 The registry is immutable per `(mechanism_id, version)`, the same rule the
 versioned designs in `theory/factory.py` already enforce: re-registering an id
@@ -169,3 +180,38 @@ def resolve(ref: MechanismRef) -> MechanismSpec:
         raise MechanismSpecDrift(
             f"{ref.mechanism_id} v{ref.version} content changed under its version")
     return spec
+
+
+# ── Mecanismos registrados ───────────────────────────────────────────────
+#
+# Escritos leyendo el código, no el nombre de la clase. Cada uno dice qué
+# construye; qué clase lo realiza es asunto de `AlgorithmBinding`.
+
+register(MechanismSpec(
+    mechanism_id="online-gradient-update",
+    version=1,
+    semantic_definition=(
+        "Parameters change from the consequence of the organism's own action, so "
+        "that held-out competence after the experience exceeds competence before it."),
+    # Read from terrario/agent/learner.py: Adam over the learnable modules, with
+    # gradient clipping, applied once every `update_frequency` steps.
+    operational_form=(
+        "theta_{k+1} = Adam(theta_k, clip(grad_theta L, c), lr); "
+        "applied when step_count mod update_frequency == 0"),
+    state_variables=("Adam moment estimates", "step_count"),
+    inputs=("loss gradient over the learnable modules",),
+    outputs=("updated parameters",),
+    invariants=(
+        "the update is the only difference between the learning and frozen twins",
+        "a gradient hash is a diagnostic and never a control input",
+    ),
+    degenerate_of=(
+        "updates disabled, which leaves recurrent state and memories advancing "
+        "on their own -- the frozen twin's score can move without a single "
+        "parameter changing, and crediting that drift to learning is the error "
+        "the double difference exists to avoid",
+        "credit shuffled between (x_t, a_t) and y_t, which still updates "
+        "parameters but not from the causal relation",
+    ),
+    notes="Realised today by OnlineLearner; the binding, not this spec, says so.",
+))
