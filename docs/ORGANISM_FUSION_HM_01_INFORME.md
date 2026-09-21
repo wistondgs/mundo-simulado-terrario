@@ -1,6 +1,6 @@
 # `ORGANISM-FUSION-HM-01` · informe
 
-**`FUSION_STATUS = VERIFIED`** · los nueve gates en las ocho semillas.
+**`FUSION_STATUS = VERIFIED`** · los diez gates en las ocho semillas.
 
 Base `7ac43fb`, árbol propio. Preregistro sellado en `4028790` **antes** de
 existir el código. Semillas `110000011 … 110000018`.
@@ -101,7 +101,40 @@ existe y `Level12Agent` publica `self.proximity`--. La fusión lo construyó:
 De aquí en adelante, el nivel que **añade** un modelo entrega también su
 envoltorio congelado.
 
-## 6 · Qué no se encontró
+## 6 · Reconciliación del inventario de gates
+
+El preregistro sella diez filas --`F-0` … `F-9`--. La primera versión del guion
+evaluaba **nueve**, y tenía además un defecto peor que una ausencia.
+
+**Usaba `F-9` para «el tick hace falta».** El sello le asigna ese número a la
+**pasividad**, y lista omitir el tick entre las seis fixturas negativas
+obligatorias. Ascender una fixture a gate numerado no añadió rigor: le quitó el
+sitio a otra cosa y dejó la pasividad fuera del inventario con su número
+aparentemente cubierto. Quien contara nueve filas y viera `F-0`…`F-9` habría
+concluido que sólo faltaba una.
+
+El número robado había llegado también a los contratos, donde un epígrafe decía
+`F-9` sobre el tick.
+
+| gate | dónde estaba | dónde se verifica ahora |
+|---|---|---|
+| `F-2` `M` sin deriva | `tests/test_organism_fusion.py` · `memory.py` byte-idéntico al blob de `705239c` | **añadido al guion**, contra el mismo blob |
+| `F-9` pasividad | `tests/test_organism_fusion.py`, **sin número**, bajo el epígrafe de congelación | **recuperado su número** |
+| — omitir el tick | ocupaba `F-9` | **devuelto a fixtura negativa**, y sigue corriéndose en las ocho semillas |
+
+La mitad de `F-9` que nada comprobaba era «cero RNG nuevo en las métricas». El
+factorial y el Brier son cerrados por diseño, así que un generador dentro de
+`organism/metrics.py` convertiría la medición en una realización más y el
+informe seguiría llamándola exacta. Ahora se comprueba por AST.
+
+**El resultado experimental no cambia**: los diez pasan en las ocho semillas y
+la fixtura del tick sigue cayendo. La salida del guion difiere en la línea de
+`F-2`, el nombre de `F-9` y el bloque nuevo de fixturas negativas.
+
+Cada fila añadida trae su mutante: un blob distinto y unas métricas que sortean
+hacen caer lo que les toca.
+
+## 7 · Qué no se encontró
 
 **Ningún defecto de integración.** Los dos caminos no comparten estado, ninguna
 fase de adquisición mueve la huella de la otra, el `reset` de la memoria no pasa
@@ -111,7 +144,7 @@ por encima de nada de proximidad, y las campañas de 1.1 y 1.2 dan sobre esta ba
 Era exactamente el riesgo que se estaba probando, y salió limpio a la primera. Es
 un resultado sin épica, y conviene reportarlo como tal.
 
-## 7 · Qué está permitido afirmar
+## 8 · Qué está permitido afirmar
 
 > Un mismo organismo conservó intactas cuatro capacidades adquiridas en ramas
 > experimentales distintas --conocimiento corporal, orientación direccional,
@@ -129,7 +162,7 @@ organismo unificado en sentido fuerte, ni que las capacidades se hayan adquirido
 en presencia unas de otras — **cada una se adquirió en aislamiento de las
 demás**, y reunirlas después no cambia eso.
 
-## 8 · El libro mayor, con sus tres clases
+## 9 · El libro mayor, con sus tres clases
 
 ```
 B · Q · H     parámetros aprendidos, cada uno EN AISLAMIENTO de los otros
@@ -139,7 +172,7 @@ composición   suministrada, nunca aprendida, y sostiene todos los resultados
 
 Decir «el organismo tiene cuatro capacidades» tapa la tercera fila.
 
-## 9 · Ficheros y reproducción
+## 10 · Ficheros y reproducción
 
 ```
 terrario/organism/   memory (copia literal) · core · agent · metrics · experiment
@@ -158,7 +191,7 @@ OMP_NUM_THREADS=2 "$PY" -u scripts/organism_fusion_hm.py
 OMP_NUM_THREADS=2 "$PY" -m pytest tests/ -q --no-header -p no:cacheprovider
 ```
 
-## 10 · Lo que queda
+## 11 · Lo que queda
 
 El orden adjudicado deja dos cosas después de esto:
 

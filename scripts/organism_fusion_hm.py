@@ -106,6 +106,14 @@ def main() -> int:
         if mal:
             fallos.append(nombre)
 
+    print("\n  FIXTURAS NEGATIVAS SELLADAS\n")
+    for nombre in reportes[0].negative_fixtures():
+        mal = [r.seed for r in reportes if not r.negative_fixtures()[nombre]]
+        print(f"    {'CAE' if not mal else 'NO CAE':<6}{nombre}"
+              + (f"   semillas {mal}" if mal else ""))
+        if mal:
+            fallos.append(nombre)
+
     print(f"\n  FUSION_STATUS = {'VERIFIED' if not fallos else 'FAILED'}")
     return 0 if not fallos else 1
 

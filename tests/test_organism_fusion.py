@@ -80,7 +80,7 @@ def test_dos_nucleos_distintos_suspenden_el_contrato(organismo):
                    [FusedAgent(organismo, NoMemory()), FusedAgent(otro, NoMemory())])
 
 
-# --- congelación ------------------------------------------------------------------
+# --- F-9 · pasividad · congelación ------------------------------------------------------------------
 
 def test_ninguna_pieza_expone_observe(organismo):
     assert not hasattr(organismo, "observe")
@@ -172,7 +172,7 @@ def test_apagar_una_capacidad_deja_su_prior_ignorante(organismo):
     assert sin_h._h(ALL_TOKENS[0]) == H_IGNORANTE
 
 
-# --- F-9 · el tick sigue haciendo falta --------------------------------------------------
+# --- fixtura negativa sellada · el tick sigue haciendo falta --------------------------------------------------
 
 def test_sin_el_tick_el_brazo_completo_cae_al_brazo_sin_memoria(organismo, reporte):
     """La semántica de 1.3 sobrevive a la fusión: omitir el tick deja `peek` en
@@ -253,3 +253,33 @@ def test_la_precondicion_puede_fallar(monkeypatch):
     monkeypatch.setattr(core, "orientation_babbling", degradado)
     with pytest.raises(BaselineRegression, match="cobertura de orientación"):
         reconstruct(SEMILLA)
+
+
+# --- F-2 y F-9 · los dos gates que el guion no evaluaba tienen que poder caer ----
+
+def test_una_memoria_derivada_suspende_el_gate(monkeypatch):
+    """`F-2`. El contrato de arriba compara textos; esto comprueba que el gate
+    del guion --el que el informe cuenta-- también sabe decir que no."""
+    from terrario.organism import experiment
+
+    assert experiment._memory_frozen()
+    monkeypatch.setattr(experiment, "BLOB_M",
+                        "705239c:terrario/level13/metrics.py")
+    assert not experiment._memory_frozen()
+
+
+def test_una_metrica_que_sortea_suspende_la_pasividad(monkeypatch, tmp_path):
+    """`F-9`, su mitad nueva: el factorial y el Brier son cerrados, así que un
+    generador dentro de las métricas convertiría la medición en una realización
+    más sin que nada lo dijera."""
+    from terrario.organism import experiment
+
+    assert experiment._metrics_are_closed()
+
+    sorteando = tmp_path / "experiment.py"
+    sorteando.write_text("", encoding="utf-8")
+    (tmp_path / "metrics.py").write_text(
+        "import numpy as np\n\ndef f():\n    return np.random.default_rng(0)\n",
+        encoding="utf-8")
+    monkeypatch.setattr(experiment, "__file__", str(sorteando))
+    assert not experiment._metrics_are_closed()
