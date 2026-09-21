@@ -3769,10 +3769,11 @@ directorio de ficheros; la de la ejecución es la base. No hay puente.
 ## 38.8 · Composición de habilidades · el único punto conectado
 
 `agent_composition.py` sigue siendo la pieza de esta capa que **sí** toca el
-ciclo experimental, y ahora son **once** conceptos, no diez: `fd725e3` añadió
-`use_curiosity` —«convierte el error de su propia predicción en motivo para
-actuar»— con bloque de corpus 28
-([agent_composition.py:70](terrario/lab/agent_composition.py:70)).
+ciclo experimental. `fd725e3` añadió `use_curiosity` —«convierte el error de su
+propia predicción en motivo para actuar»— con bloque de corpus 28
+([agent_composition.py:95](terrario/lab/agent_composition.py:95)), y desde el
+2026-09-21 el catálogo es **por agente**: A4 ofrece **diez** conceptos y A5
+**once**, porque `use_curiosity` es suya. Ver §XXIII y §XXXIX.
 
 ```
 use_temporal · use_episodic_memory · use_longterm_memory · use_world_model
