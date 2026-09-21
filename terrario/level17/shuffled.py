@@ -12,6 +12,23 @@ observación y el tamaño de muestra.
 La destructividad se calibra contra muchas permutaciones honestas de esa misma
 vida. **Nunca contra un umbral fijo**: ésa fue la lección de 1.6, donde un
 `< 0.5` escrito a mano rechazaba barajas honestas por debajo de mil pasos.
+
+Cuántas réplicas, medido y no elegido. Con ocho, una vida de dieciséis fallaba la
+destructividad a `T_17 = 4096` --por 0.0002-- y el sospechoso no era la baraja
+sino la nula: la `sd` de ocho muestras carga un 26.7 % de error relativo y la
+tolerancia hereda ese ruido. Subiendo réplicas:
+
+```
+réplicas   sd media   error rel. de sd   tolerancia   destructivas
+       8    0.00246        26.7 %           0.0401       15/16
+      16    0.00266        18.3 %           0.0407       16/16
+      32    0.00251        12.7 %           0.0399       16/16
+      64    0.00254         8.9 %           0.0401       16/16
+```
+
+La tolerancia converge a ~0.0400 en los cuatro casos: el criterio estaba bien y lo
+que oscilaba era su estimador. `32` deja el error de la `sd` por debajo del 13 % y
+cuesta nada.
 """
 
 from __future__ import annotations
@@ -25,6 +42,9 @@ from terrario.level17.contingency import ActionContingencyModel
 from terrario.level17.efference import ALL_COMMANDS, EfferenceCopy
 
 _SHUFFLE_BASE = 128
+
+#: Réplicas de la nula. Derivado, no elegido: ver la tabla en la docstring.
+DEFAULT_NULL_REPLICAS = 32
 
 
 def stratified_stream(seed: int, replica: int) -> np.random.Generator:
@@ -87,7 +107,7 @@ def row_spread(model: ActionContingencyModel) -> float:
 
 def audit(shuffled_arm: ActionContingencyModel, inherited: TemporalModel,
           previous, commands, following, seed: int,
-          replicas: int = 8) -> ShuffleAudit:
+          replicas: int = DEFAULT_NULL_REPLICAS) -> ShuffleAudit:
     """Comparar la dispersión del brazo barajado **que se pasa** contra su nula.
 
     Recibe el brazo en vez de reconstruirlo: si lo reconstruyera, una fixture que
