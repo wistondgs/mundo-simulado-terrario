@@ -84,6 +84,12 @@ class PredictiveStateModel:
         self._updates = 0
         self._splits = 0
         self._merges = 0
+        # --- fusión (Enmienda 02). El criterio y el momento del split NO cambian.
+        self._children: dict[int, list[int]] = {}      # splits abiertos
+        self._favour: dict[int, float] = {}            # balance colapsado − refinado
+        self._shadow: dict[int, np.ndarray] = {}       # evidencia de la hipótesis colapsada
+        self._collapsed_prior: dict[int, np.ndarray] = {}
+        self._episodes: list[dict] = []
 
     # --- el ser entra en el mundo -------------------------------------------
 
@@ -141,10 +147,90 @@ class PredictiveStateModel:
         if self._code[here][1] < self._code[here][0] and len(self._incoming[here]) > 1:
             self._refine(here)
 
+        self._judge_open_split(here, before, command, after)
+
         self._came_from = (self._here, command)
         self._here = self._next_state(self._here, command, after)
 
     # --- refinamiento --------------------------------------------------------
+
+    def _ancestor_with_open_split(self, state: int) -> int | None:
+        node: int | None = state
+        while node is not None:
+            if node in self._children:
+                return node
+            node = self._parent[node]
+        return None
+
+    def _judge_open_split(self, state: int, before: int, command: int,
+                          after: int) -> None:
+        """Enmienda 02 · la misma hipótesis, juzgada a lo largo del tiempo.
+
+        `favor` NO se reinicia tras separar: arranca con el balance que justificó
+        el split y sigue acumulando. Si empezara de cero, la penalización de
+        complejidad desharía casi todo refinamiento de inmediato y el mecanismo
+        oscilaría sin que la evidencia tuviera nada que ver.
+
+            favor > 0   la distinción paga su complejidad   → mantener
+            favor ≤ 0   ya no la paga                       → fusionar
+
+        El `≤` resuelve el empate a favor del modelo más simple. No es un umbral.
+        """
+        ancestor = self._ancestor_with_open_split(state)
+        if ancestor is None:
+            return
+        collapsed = (self._collapsed_prior[ancestor][before, command]
+                     + self._shadow[ancestor][before, command])
+        refined = self._weights(state, before, command)
+        self._favour[ancestor] += (
+            -float(np.log(collapsed[after] / collapsed.sum()))
+            + float(np.log(refined[after] / refined.sum())))
+        self._shadow[ancestor][before, command, after] += 1.0
+        if self._favour[ancestor] <= 0.0:
+            self._collapse(ancestor)
+
+    def _descendants(self, state: int) -> list[int]:
+        found = []
+        pending = list(self._children.get(state, ()))
+        while pending:
+            node = pending.pop()
+            found.append(node)
+            pending.extend(self._children.get(node, ()))
+        return found
+
+    def _collapse(self, state: int) -> None:
+        """Deshacer un split. La masa se suma; nada se borra para que luzca bien."""
+        family = self._descendants(state)
+        if not family:
+            return
+        self._prior[state] = self._collapsed_prior[state].copy()
+        pooled = self._evidence[state].copy()
+        for node in family:
+            pooled += self._evidence[node]
+        self._evidence[state] = pooled
+        for node in family:
+            for key, arrow in list(self._routing.items()):
+                if arrow == node or key[0] == node:
+                    del self._routing[key]
+            for store in (self._prior, self._evidence, self._incoming,
+                          self._arrivals, self._code, self._parent):
+                store.pop(node, None)
+            for store in (self._children, self._favour, self._shadow,
+                          self._collapsed_prior):
+                store.pop(node, None)
+        self._children.pop(state, None)
+        self._favour.pop(state, None)
+        self._shadow.pop(state, None)
+        self._collapsed_prior.pop(state, None)
+        self._incoming[state] = {}
+        self._arrivals[state] = {}
+        self._code[state] = [0.0, 0.0]
+        if self._here in family:
+            self._here = state
+        for episode in self._episodes:
+            if episode["parent"] == state and not episode["merged"]:
+                episode["merged"] = True
+        self._merges += 1
 
     def _next_state(self, state: int, command: int, following: int) -> int:
         """`δ(z, (a, o'))` con **backoff estructural** por la cadena de padres.
@@ -219,9 +305,11 @@ class PredictiveStateModel:
                            + [1.0])                       # la última: el padre
         shares = amounts / amounts.sum()
         parent = self._prior[state]
+        born_here: list[int] = []
 
         for share, signature in zip(shares[:-1], signatures):
             born = max(self._prior) + 1
+            born_here.append(born)
             self._prior[born] = parent * share
             self._evidence[born] = self._incoming[state][signature].copy()
             self._incoming[born] = {}
@@ -230,6 +318,14 @@ class PredictiveStateModel:
             self._parent[born] = state
             for following in range(16):
                 self._routing[(signature[0], signature[1], following)] = born
+
+        # --- contabilidad de la Enmienda 02. NO cambia criterio, momento ni prior.
+        self._children[state] = list(born_here)
+        self._favour[state] = self._code[state][0] - self._code[state][1]
+        self._shadow[state] = self._evidence[state].copy()
+        self._collapsed_prior[state] = parent.copy()
+        self._episodes.append({"parent": state, "children": list(born_here),
+                               "merged": False})
 
         self._prior[state] = parent * shares[-1]
         self._evidence[state] = np.zeros((16, 4, 16))
@@ -247,6 +343,19 @@ class PredictiveStateModel:
     @property
     def refinements(self) -> int:
         return self._splits
+
+    @property
+    def collapses(self) -> int:
+        return self._merges
+
+    def episodes(self) -> list[dict]:
+        """Lo que `L18-17` audita: cada split y si llegó a deshacerse."""
+        return [dict(e) for e in self._episodes]
+
+    def dangling_routes(self) -> list[tuple[int, int, int]]:
+        """Rutas que apuntan a un estado que ya no existe. Debe estar vacía."""
+        return [key for key, arrow in self._routing.items()
+                if arrow not in self._prior or key[0] not in self._prior]
 
     def states(self) -> list[int]:
         return sorted(k for k in self._prior if self._prior[k].sum() > 0)

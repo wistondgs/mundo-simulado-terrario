@@ -22,17 +22,32 @@ def _tabla():
     return np.full((16, 4, 16), 4.0)
 
 
-def _forzar_split(modelo, pasos=64):
-    """Llevarlo a separar usando su propio criterio, sin tocarlo."""
-    generador = np.random.default_rng(7)
+def _alimentar(modelo, pasos, justificado, semilla=7):
+    """Alimentar con su propio criterio intacto.
+
+    `justificado=True` produce datos donde la consecuencia depende de veras del
+    comando ANTERIOR, así que la distinción paga su complejidad y sobrevive.
+    `justificado=False` produce ruido: la distinción queda refutada y el mecanismo
+    debe deshacerla.
+    """
+    generador = np.random.default_rng(semilla)
+    anterior = 0
     for _ in range(pasos):
-        antes = OBSERVACIONES[int(generador.integers(len(OBSERVACIONES)))]
-        comando = ALL_COMMANDS[int(generador.integers(4))]
-        despues = OBSERVACIONES[int(generador.integers(len(OBSERVACIONES)))]
+        antes = OBSERVACIONES[0]
+        indice = int(generador.integers(4))
+        comando = ALL_COMMANDS[indice]
+        if justificado:
+            despues = OBSERVACIONES[anterior % len(OBSERVACIONES)]
+        else:
+            despues = OBSERVACIONES[int(generador.integers(len(OBSERVACIONES)))]
         modelo.observe(antes, EfferenceCopy(comando), despues)
-        if modelo.refinements > 0 and len(modelo.states()) > 2:
-            return True
-    return modelo.refinements > 0
+        anterior = indice
+    return modelo
+
+
+def _forzar_split(modelo, pasos=400):
+    _alimentar(modelo, pasos, justificado=True)
+    return modelo.refinements > 0 and len(modelo.states()) > 2
 
 
 # --- el defecto: UNKNOWN ROUTE ≠ STAY ---------------------------------------
@@ -131,6 +146,44 @@ def test_la_lesion_devuelve_exactamente_a_1_7():
                 modelo.predict(observacion, EfferenceCopy(comando)) - referencia[j]).max()))
     assert peor == 0.0, peor
     assert modelo.states() == [ROOT]
+
+
+def test_F1_una_distincion_refutada_se_deshace():
+    """Enmienda 02 · con ruido, la separación deja de pagar y el mecanismo la
+    retira. Un split irreversible es exactamente el defecto de `acb6b14`."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=False)
+    assert modelo.refinements > 0, "no llegó a separar; la fixture no aplica"
+    assert modelo.collapses > 0
+    episodios = modelo.episodes()
+    assert any(e["merged"] for e in episodios)
+
+
+def test_F2_una_distincion_justificada_sobrevive():
+    """Y no debe deshacer lo que la evidencia sí sostiene."""
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=True)
+    assert modelo.refinements > 0
+    assert len(modelo.states()) > 2, "colapsó una distinción que la evidencia sostiene"
+
+
+def test_F3_la_fusion_conserva_la_masa_heredada():
+    tabla = _tabla()
+    modelo = PredictiveStateModel(tabla)
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=False)
+    assert np.allclose(sum(modelo.inherited_mass()), tabla, rtol=0, atol=1e-9)
+
+
+def test_F4_tras_fusionar_no_queda_ninguna_ruta_colgante():
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=False)
+    assert modelo.collapses > 0
+    assert modelo.dangling_routes() == []
+    assert modelo.routing_is_total()
 
 
 def test_el_canal_solo_admite_una_copia_eferente():
