@@ -250,6 +250,19 @@ def test_F7_la_organizacion_se_lee_con_la_misma_dinamica():
     generador = np.random.default_rng(13)
     sondas = {f"s{i}": [(int(generador.integers(4)), int(generador.integers(16)))
                         for _ in range(6)] for i in range(8)}
+
+    # No-vacuidad: si ninguna sonda pisara una ruta AUSENTE, el recorrido
+    # absorbente y el de backoff coincidirían y el test pasaría sin probar nada.
+    desconocidas = 0
+    for pasos in sondas.values():
+        modelo.begin()
+        for comando, siguiente in pasos:
+            if (modelo._here, comando, siguiente) not in modelo._routing:
+                desconocidas += 1
+            modelo._advance(comando, siguiente)
+    modelo.begin()
+    assert desconocidas > 0, "ninguna sonda pisó una ruta ausente: el test sería vacío"
+
     leido = modelo.organization(sondas)
 
     esperado = {}
@@ -260,3 +273,45 @@ def test_F7_la_organizacion_se_lee_con_la_misma_dinamica():
         esperado[nombre] = modelo._here
     modelo.begin()
     assert leido == esperado
+
+
+# --- falsificadores temporales de los dos defectos de medición ---------------
+
+def test_A_seguir_el_estado_tiene_que_COMPRAR_verosimilitud():
+    """Falsificador temporal, no de censo.
+
+    Un test que cuente estados o compare huellas pasa con un scoring que nunca
+    se mueve. Éste exige que SEGUIR el estado compre verosimilitud: sobre datos
+    donde la consecuencia depende del comando anterior, puntuar recorriendo la
+    dinámica tiene que batir estrictamente a puntuar clavado en la raíz.
+    """
+    modelo = PredictiveStateModel(_tabla())
+    modelo.begin()
+    _alimentar(modelo, 600, justificado=True)
+    assert len(modelo.states()) > 2, "no separó; la fixture no aplica"
+
+    banco = []
+    generador = np.random.default_rng(23)
+    anterior = 0
+    for _ in range(300):
+        indice = int(generador.integers(4))
+        banco.append((OBSERVACIONES[0], ALL_COMMANDS[indice],
+                      OBSERVACIONES[anterior % len(OBSERVACIONES)]))
+        anterior = indice
+
+    def perdida(siguiendo):
+        modelo.begin()
+        total = 0.0
+        for antes, comando, despues in banco:
+            total -= np.log(max(modelo.probability(
+                antes, EfferenceCopy(comando), despues), 1e-300))
+            if siguiendo:
+                modelo.follow(EfferenceCopy(comando), despues)
+        return total / len(banco)
+
+    recorriendo = perdida(True)
+    clavado = perdida(False)
+    modelo.begin()
+    assert recorriendo < clavado, (
+        f"recorrer el estado no compró nada: {recorriendo:.6f} vs {clavado:.6f}; "
+        "el scoring no se está moviendo")
