@@ -82,3 +82,23 @@ Un estado pasa a `DEMOSTRADA` cuando, y sólo cuando, existen a la vez:
 ```
 
 1.6 cumple las cinco. Ninguna flecha posterior cumple ninguna.
+
+---
+
+## 6 · Enmienda del 2026-09-20 · etiqueta de régimen
+
+Este mapa se emitió con `A1 = DEMOSTRADA` y sin cualificar el régimen. La crítica
+posterior (`0c9e3d1`) midió que a `T = 4096` la cobertura de S0 sobre las
+transiciones alcanzables es `1.0000` con desviación cero. El estado de A1 **no
+cambia**, pero no debe citarse solo:
+
+```
+A1  =  DEMOSTRADA
+RÉGIMEN  =  EXPOSICIÓN SATURADA
+```
+
+Demostrado: adquisición y convergencia bajo exposición prácticamente exhaustiva.
+No demostrado: adquisición eficiente bajo experiencia escasa.
+
+El texto original de §1 a §5 se conserva sin editar. Congelación definitiva en
+`docs/LEVEL16_CONGELADO.md`.
