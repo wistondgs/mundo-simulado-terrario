@@ -5764,3 +5764,49 @@ que acepta `seed` promete lo que no cumple.
 **Clasificación:** la ruta dirigida es **ingeniería**. Un pasaporte v2 no
 promueve una corrida, y que `NO_CORPUS_PROVENANCE` no bloquee la
 materialización es correcto para ingeniería y no dice nada sobre certificación.
+
+## 47.8 · La primera ejecución dirigida por capacidad
+
+Corrida el 2026-09-21 sobre el experimento histórico, sin tocarlo.
+
+El punto de entrada es `_fresh`
+([experiment_capability_acquisition.py:208](scripts/experiment_capability_acquisition.py:208)),
+que hace `torch.manual_seed(seed)` y llama a `create_agent`. Lo único que
+cambia entre brazos es de dónde sale el dict de configuración; el mundo, las
+semillas, los pasos, el algoritmo y el endpoint son los mismos.
+
+```
+semilla     hash de traza                       ≡
+1000041     1567ef6a1241e7792a9536357c201e8a    sí
+…           ocho semillas, ocho hashes distintos
+1000048     5af0271ec1f06f317eac19a467288488    sí
+
+equivalentes: 8 de 8
+```
+
+Iguales en clase de agente, hash de parámetros iniciales, configuración
+efectiva, aprendiz, mundo, semillas, longitud y **hash de la traza de acciones
+reales** —NOOP, PUSH, INSPECT, CONSUME con objetivo resuelto—. Los hashes
+difieren entre semillas, así que la comparación discrimina.
+
+**Y el hallazgo de esta etapa es dónde se detuvo el pasaporte.**
+`Bench.experience` valida su configuración con `validate_selection`
+([experiment_capability_acquisition.py:155](scripts/experiment_capability_acquisition.py:155)),
+que admite conceptos, *tunings* y elecciones **y nada más**. De todo lo que el
+pasaporte autoriza, sólo la **bandera de activación** cruza esa puerta:
+`learning_rate`, `grad_clip` y `update_frequency` quedan autorizados y los pone
+`DEFAULT_CONFIG` dentro del agente.
+
+No es una carencia del pasaporte: es una propiedad del contrato, y conviene
+fijarla, porque un cambio que dejara pasar parámetros por esa puerta movería en
+silencio el sitio donde se decide un valor científico.
+
+**Lo que esto NO demuestra**, y hay que escribirlo al lado del resultado:
+
+* el endpoint está **ejecutado**, no **ligado**: `conversion_aprendizaje` sigue
+  teniendo `EndpointBinding` sólo con `LEARN-A1`, y el v2 lo lleva por herencia
+  de campo. `explicitly_bound_to_v2 = false` al terminar esta fase;
+* la corrida es **ingeniería** —`ENGINEERING_SANDBOX`, fijado por el propio
+  banco ([:154](scripts/experiment_capability_acquisition.py:154))—, y que
+  `NO_CORPUS_PROVENANCE` no la bloquee no dice nada sobre certificación;
+* no se produjo evidencia ni se tocó el `EvidenceGraph`.

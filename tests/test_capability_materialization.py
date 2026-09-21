@@ -185,3 +185,25 @@ def test_the_directed_route_is_engineering_not_science():
     assert _materializar().agent_config
     # Y la clasificación por defecto sigue siendo la de ingeniería.
     assert ExecutionClassification.ENGINEERING_SANDBOX.value == "ENGINEERING_SANDBOX"
+
+
+def test_only_the_activation_flag_crosses_the_selection_boundary():
+    """Measured while running the first capability-directed execution.
+
+    `Bench.experience` validates its config through `validate_selection`, which
+    admits concepts, tunings and choices -- and nothing else.  So of everything
+    the passport authorises, only the activation flag is transmissible here;
+    `learning_rate`, `grad_clip` and `update_frequency` are authorised and are
+    supplied by DEFAULT_CONFIG inside the agent.
+
+    That is a property of the boundary, not a gap in the passport, and it is
+    worth pinning: a future change that let parameters through this door would
+    silently move where a scientific value is decided."""
+    from terrario.lab.agent_composition import _CHOICE_KEYS, _KEYS, _TUNING_KEYS
+
+    transmisible = _KEYS | _TUNING_KEYS | _CHOICE_KEYS
+    autorizadas = set(authorised_configuration_keys(CAPACIDAD))
+    flag = PASSPORTS[CAPACIDAD].composition_flag
+
+    assert autorizadas & transmisible == {flag}
+    assert autorizadas - transmisible == {"learning_rate", "grad_clip", "update_frequency"}
