@@ -92,6 +92,17 @@ class TaskKernel:
 
     name: str
     faculty: str
+    #: QUÉ clase de información tiene que seguir renovándose para que este
+    #: kernel no esté agotado. No es universal: depende de la capacidad.
+    #:
+    #:   "rule"     queda algo por aprender de una regla estable.
+    #:              Saturar es agotarse. Vale para inducción de reglas.
+    #:   "episode"  cada instancia trae contenido nuevo que hay que retener
+    #:              y que ya no está disponible al actuar. Vale para memoria:
+    #:              aquí que la regla esté aprendida NO es agotamiento.
+    #:   "regime"   hace falta detectar que la regla misma cambió.
+    #:              Vale para plasticidad.
+    renews: str
     causal: Mapping[str, tuple[float, float]]
     incidental: Mapping[str, tuple[float, float]]
     relax: str
@@ -121,6 +132,7 @@ class TaskKernel:
 MEMORY = TaskKernel(
     name="MEM-DEV",
     faculty="memory",
+    renews="episode",
     causal={"delay": (3.0, 8.0)},
     incidental={"cue_value": (CUE_MIN, CUE_MAX),
                 "delay": (3.0, 8.0),
@@ -135,6 +147,7 @@ MEMORY = TaskKernel(
 NO_MEMORY = TaskKernel(
     name="NOMEM-DEV",
     faculty="memory",
+    renews="episode",
     causal={"delay": (1.0, 2.0)},
     incidental={"cue_value": (CUE_MIN, CUE_MAX),
                 "delay": (1.0, 2.0),

@@ -17,7 +17,8 @@ EL CAMBIO QUE HACE RENOVABLE AL MUNDO
                    el valor del cue lo decide la respuesta. Dos situaciones.
 
     desarrollo     value = sorteo del vocabulario (81 valores)
-                   designated = side_of_cue(value)
+                   thr = CUE_BOUNDARY if boundary_of is None else float(boundary_of(j))
+        designated = "up" if value > thr else "down"
                    la respuesta la decide una REGLA sobre el valor.
 
 Invertir esa dependencia es todo. En el primero hay dos pares que memorizar;
@@ -45,7 +46,7 @@ import numpy as np
 
 from terrario.lab import world_generator as gen
 from terrario.devworld.kernel import (
-    TaskKernel, cue_vocabulary, side_of_cue,
+    CUE_BOUNDARY, TaskKernel, cue_vocabulary, side_of_cue,
 )
 
 SEMANTICS_VERSION = "terrario.devworld/v1"
@@ -72,7 +73,8 @@ class DevStation:
     up_id: int
     down_id: int
     cue_id: int
-    designated: str          # = side_of_cue(cue_value). Es `z` aplicado.
+    designated: str          # = la regla aplicada al valor. Es `z` aplicado.
+    boundary: float = CUE_BOUNDARY   # la frontera VIGENTE en esta estación
 
     @property
     def cognitive_signature(self) -> tuple[str, ...]:
@@ -114,7 +116,8 @@ class DevWorld:
 
 def generate(kernel: TaskKernel, *, seed: int, stations: int = 8,
              economy: gen.Economy = gen.DEFAULT_ECONOMY,
-             relaxed: bool = False) -> DevWorld:
+             relaxed: bool = False,
+             boundary_of: Any = None) -> DevWorld:
     """Un mundo del kernel. `relaxed=True` devuelve el gemelo de control.
 
     Los dos comparten cada sorteo: el gemelo no vuelve a sortear nada, sólo
@@ -145,7 +148,8 @@ def generate(kernel: TaskKernel, *, seed: int, stations: int = 8,
         # EL ÚNICO CAMBIO DEL GEMELO. Dentro del radio de visión al elegir.
         cue_col = (door_col - 1) if relaxed else cue_col_demanding
 
-        designated = side_of_cue(value)
+        thr = CUE_BOUNDARY if boundary_of is None else float(boundary_of(j))
+        designated = "up" if value > thr else "down"
         cue_id = add((gen.ROW_CUE, cue_col), (value, gen.MARK_CUE, 0.5, gen.CH3_INERT))
 
         dis_cols = tuple(cue_col_demanding + 1 + i for i in range(n_dis))
@@ -159,7 +163,8 @@ def generate(kernel: TaskKernel, *, seed: int, stations: int = 8,
         down_id = add((gen.ROW_ALT, door_col), (0.5, gen.MARK_DOOR, 0.5, dn_ch3))
 
         key.append(DevStation(j, door_col, cue_col, value, delay,
-                              dis_cols, dis_vals, up_id, down_id, cue_id, designated))
+                              dis_cols, dis_vals, up_id, down_id, cue_id,
+                              designated, thr))
         column = door_col + gen.VIEW_RADIUS + 1
 
     width = key[-1].door_column + gen.VIEW_RADIUS + 2

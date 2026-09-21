@@ -51,17 +51,37 @@ def main() -> int:
     print(f"\n      V_sol es la cuenta que decide: situaciones distintas relevantes")
     print(f"      para la solución. V_inc puede crecer por variedad cosmética.")
 
-    # --- D4 · saturación
-    print(f"\n  D4 · SATURACIÓN · ventanas de {a.ventana} estaciones")
-    print(f"      {'ventana':>8}{'rango':>14}{'nuevos V_sol':>14}{'acum':>7}"
-          f"{'banda':>9}{'bits sobre z':>14}")
+    # --- D4 · el criterio DEPENDE de qué clase de información debe renovarse
+    print(f"\n  D4 · SATURACIÓN · el kernel declara renews={MEMORY.renews!r}")
     wins = exposure.saturation(w, window=a.ventana)
+    print(f"      {'ventana':>8}{'rango':>14}{'nuevos V_sol':>14}{'acum':>7}"
+          f"{'bits regla':>12}")
     for win in wins:
         print(f"      {win.index:>8}{f'{win.first}-{win.last}':>14}{win.new_sol:>14}"
-              f"{win.cum_sol:>7}{win.band:>9.4f}{win.rule_bits:>14.2f}")
-    info = exposure.still_informative(wins)
-    print(f"\n      ¿sigue llegando información sobre la REGLA en las ventanas")
-    print(f"      tardías?  {'SI' if info else 'NO — el mundo se agotó'}")
+              f"{win.cum_sol:>7}{win.rule_bits:>12.2f}")
+    print(f"      regla saturada, y para un kernel de MEMORIA eso NO es agotarse.")
+
+    print(f"\n  D4.1 · INFORMACIÓN EPISÓDICA — la que decide aquí")
+    ep = exposure.episodic_information(w, window=a.ventana * 2)
+    print(f"      I(A* ; O_decisión) = {ep.leak_at_decision:.4f} bits sobre "
+          f"{ep.visible_configs} configuración(es) visible(s)")
+    print(f"      H(A*) por ventana: "
+          f"{' '.join(f'{x:.3f}' for x in ep.bits_per_window)}")
+    print(f"      cada episodio sigue exigiendo retener: "
+          f"{'SI' if ep.renews else 'NO'}")
+    info = ep.renews
+
+    # --- D4.3 · la reparación no puede añadir facultades
+    print(f"\n  D4.3 · ¿UNA REPARACIÓN AÑADE FACULTAD?  C(W_renovable) = C(W_base)")
+    moving = instances.generate(MEMORY, seed=a.semilla, stations=a.estaciones,
+                                boundary_of=lambda j: 0.30 + 0.08 * ((j // 128) % 6))
+    g = exposure.faculty_gate(w, moving)
+    print(f"      {'mundo':24}{'{memoria}':>12}{'{memoria+régimen}':>20}")
+    print(f"      {'base (umbral fijo)':24}{g.base_with_target:>12.4f}{'—':>20}")
+    print(f"      {'umbral móvil':24}{g.renewable_with_target:>12.4f}"
+          f"{g.renewable_with_extra:>20.4f}")
+    print(f"      el umbral móvil añade {g.extra_faculty}: "
+          f"{'SI -> RECHAZADO' if g.adds_faculty else 'no'}")
 
     # --- D6 · fugas
     print(f"\n  D6 · PUERTA ANTIFUGA · I(Y ; N) contra nulo por barajado, 400 sorteos")

@@ -119,19 +119,87 @@ def saturation(world: DevWorld, *, window: int = 64) -> tuple[Window, ...]:
     return tuple(out)
 
 
-def still_informative(windows: Sequence[Window], *, tol: float = 0.05) -> bool:
-    """¿Sigue llegando información sobre la REGLA en las ventanas tardías?
+def rule_still_informative(windows: Sequence[Window], *, tol: float = 0.05) -> bool:
+    """¿Queda algo por aprender de una regla ESTABLE?
 
-    Ésta es la pregunta del verificador de saturación, y NO la responde
-    `dV/dt`. Medido: con cue continuo `V` crece sin límite --2045 valores
-    distintos en 2048 estaciones-- y `rule_bits` pasa de 3.09 a 3.15. Variedad
-    infinita, información nula. `dV/dt > 0` es necesario y no suficiente.
-
-    El agotamiento no vive en la variedad de `n`: vive en el tamaño de `z`.
+    Sirve para kernels de inducción de reglas y NO como criterio universal.
+    `dV/dt` tampoco sirve, y por peor motivo: medido, con cue continuo `V`
+    crece sin límite --2045 valores distintos en 2048 estaciones-- y los bits
+    sobre la regla pasan de 3.09 a 3.15. Variedad infinita, información nula.
     """
     if len(windows) < 2:
         return False
     return (windows[-1].rule_bits - windows[len(windows) // 2].rule_bits) > tol
+
+
+# --- D4.1 · Información EPISÓDICA -------------------------------------------
+
+@dataclass(frozen=True)
+class EpisodicInformation:
+    """Lo que un mundo de MEMORIA tiene que seguir dando.
+
+    Que la regla ya esté aprendida no es agotamiento aquí. Lo que hace falta
+    es que cada instancia traiga contenido nuevo que (a) no se pueda deducir
+    y (b) siga siendo causalmente necesario al actuar, cuando ya no está.
+    """
+    leak_at_decision: float      # I(A* ; O_decisión). Debe ser 0.
+    visible_configs: int         # configuraciones distintas de lo observable
+    bits_per_window: tuple[float, ...]   # H(A*) por ventana
+
+    @property
+    def renews(self) -> bool:
+        """No agotado si lo observable al elegir no dice nada y la entropía de
+        la respuesta no decae: cada episodio sigue exigiendo retener."""
+        if self.leak_at_decision > 0.01 or not self.bits_per_window:
+            return False
+        b = self.bits_per_window
+        return min(b) > 0.8 and abs(b[-1] - b[0]) < 0.1
+
+
+def _entropy(labels: Sequence) -> float:
+    if not len(labels):
+        return 0.0
+    _, c = np.unique(np.asarray([str(v) for v in labels]), return_counts=True)
+    p = c / c.sum()
+    return float(-(p * np.log2(p)).sum())
+
+
+def episodic_information(world: DevWorld, *, window: int = 128) -> EpisodicInformation:
+    """D4.1 medido sobre el mundo, sin aprendiz.
+
+    `O_decisión` son los canales VISIBLES de las dos puertas: lo único que hay
+    delante cuando hay que elegir. Si `I(A*; O) = 0`, todos los bits de la
+    respuesta tienen que venir de haber retenido el cue.
+    """
+    objs = world.scenario["objects"]
+    sts = world.stations
+    vis = [tuple(objs[st.up_id]["channels"][:3] + objs[st.down_id]["channels"][:3])
+           for st in sts]
+    y = [st.designated for st in sts]
+    groups = {v: [yy for vv, yy in zip(vis, y) if vv == v] for v in set(vis)}
+    cond = sum(len(g) / len(y) * _entropy(g) for g in groups.values())
+    per_window = tuple(_entropy(y[s:s + window]) for s in range(0, len(y), window))
+    return EpisodicInformation(max(_entropy(y) - cond, 0.0), len(groups), per_window)
+
+
+# --- D4.3 · La reparación no puede añadir facultades ------------------------
+
+@dataclass(frozen=True)
+class FacultyGate:
+    """`C(W_renovable) = C(W_base)`. Si la reparación exige una facultad más,
+    falla aunque produzca más bits: ya no es el mismo problema."""
+    base_with_target: float
+    renewable_with_target: float
+    renewable_with_extra: float
+    extra_faculty: str
+
+    @property
+    def adds_faculty(self) -> bool:
+        """Añade facultad si el objetivo solo deja de bastar en el renovable, y
+        la facultad extra recupera lo perdido."""
+        return (self.base_with_target >= 0.95
+                and self.renewable_with_target < 0.95
+                and self.renewable_with_extra > self.renewable_with_target)
 
 
 # --- D6 · Puerta antifuga ---------------------------------------------------
@@ -197,3 +265,39 @@ def leak_gate(stations: Iterable[DevStation], *, seed: int = 0,
         out.append(LeakVerdict(name, obs, float(null.mean()),
                                float(np.percentile(null, 95)), len(sts)))
     return tuple(out)
+
+
+def _solve(world: DevWorld, *, track_regime: bool, memory_span: int = 24) -> float:
+    """Un resolutor guionizado. Los dos TIENEN memoria: retienen el cue.
+
+    La diferencia es si además rastrean el régimen, es decir si infieren la
+    frontera vigente de la experiencia reciente en vez de darla por conocida.
+
+    SIMPLIFICACIÓN DECLARADA: se evalúa sobre la clave del mundo y no
+    recorriendo el pasillo con el motor. La navegación es idéntica en los dos
+    mundos que se comparan, así que no puede ser lo que los distinga; y la
+    disociación completa contra el motor es D5, que sigue pendiente.
+    """
+    ok = 0
+    hist: list[tuple[float, str]] = []
+    for st in world.stations:
+        if not track_regime:
+            thr = 0.5
+        else:
+            recent = hist[-memory_span:]
+            up = [v for v, s in recent if s == "up"]
+            dn = [v for v, s in recent if s == "down"]
+            thr = (min(up) + max(dn)) / 2 if up and dn else 0.5
+        ok += ("up" if st.cue_value > thr else "down") == st.designated
+        hist.append((st.cue_value, st.designated))
+    return ok / len(world.stations)
+
+
+def faculty_gate(base: DevWorld, renewable: DevWorld, *,
+                 extra_faculty: str = "deteccion_de_regimen") -> FacultyGate:
+    """D4.3 · ¿la reparación antiagotamiento cambió el problema?"""
+    return FacultyGate(
+        base_with_target=_solve(base, track_regime=False),
+        renewable_with_target=_solve(renewable, track_regime=False),
+        renewable_with_extra=_solve(renewable, track_regime=True),
+        extra_faculty=extra_faculty)
