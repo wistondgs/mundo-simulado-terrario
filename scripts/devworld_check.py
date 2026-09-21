@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from terrario.lab import world_generator as diag          # noqa: E402
-from terrario.devworld import exposure, instances         # noqa: E402
+from terrario.devworld import exposure, instances, oracles         # noqa: E402
 from terrario.devworld.kernel import MEMORY               # noqa: E402
 
 
@@ -62,9 +62,11 @@ def main() -> int:
     print(f"      regla saturada, y para un kernel de MEMORIA eso NO es agotarse.")
 
     print(f"\n  D4.1 · INFORMACIÓN EPISÓDICA — la que decide aquí")
-    ep = exposure.episodic_information(w, window=a.ventana * 2)
-    print(f"      I(A* ; O_decisión) = {ep.leak_at_decision:.4f} bits sobre "
-          f"{ep.visible_configs} configuración(es) visible(s)")
+    eco_i = oracles.instrument_economy(a.estaciones)
+    w_i = instances.generate(MEMORY, seed=a.semilla, stations=a.estaciones, economy=eco_i)
+    ep = exposure.episodic_information(oracles.run(w_i, memory=True, seed=a.semilla).records, window=a.ventana * 2)
+    print(f"      fuga al elegir = {ep.leak_at_decision:.4f} "
+          f"(decodificador {ep.decoder_heldout:.4f} sobre base {ep.base_rate:.4f})")
     print(f"      H(A*) por ventana: "
           f"{' '.join(f'{x:.3f}' for x in ep.bits_per_window)}")
     print(f"      cada episodio sigue exigiendo retener: "

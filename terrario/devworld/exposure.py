@@ -138,19 +138,36 @@ def rule_still_informative(windows: Sequence[Window], *, tol: float = 0.05) -> b
 class EpisodicInformation:
     """Lo que un mundo de MEMORIA tiene que seguir dando.
 
-    Que la regla ya esté aprendida no es agotamiento aquí. Lo que hace falta
-    es que cada instancia traiga contenido nuevo que (a) no se pueda deducir
-    y (b) siga siendo causalmente necesario al actuar, cuando ya no está.
+    Que la regla ya esté aprendida no es agotamiento aquí. Hace falta que cada
+    instancia traiga contenido que (a) no esté disponible al actuar y (b) siga
+    siendo causalmente necesario.
+
+    SE CALCULA SOBRE LA OBSERVACIÓN COMPLETA, Y LA PRIMERA VERSIÓN NO.
+
+    La versión anterior miraba sólo los canales de las dos puertas y declaraba
+    `fuga = 0.0000` con una única configuración visible. Para el mundo
+    exigente era cierto; para el gemelo de control era FALSO y aun así daba lo
+    mismo, porque en el control lo que se mueve es el cue y las puertas siguen
+    idénticas. Medido con el contrato 6 de D5: el control daba `renueva=True`
+    cuando tiene que dar False por construcción, mientras un decodificador
+    sobre la observación entera acertaba 1.0000 en el control y 0.5476 en el
+    exigente sobre una tasa base de 0.5541.
+
+    Declarar `I = 0` sobre una proyección es la fuga que este mismo módulo
+    audita en D6. Aquí la medida usa el tensor entero que el motor entrega.
     """
-    leak_at_decision: float      # I(A* ; O_decisión). Debe ser 0.
-    visible_configs: int         # configuraciones distintas de lo observable
-    bits_per_window: tuple[float, ...]   # H(A*) por ventana
+    decoder_heldout: float       # acierto del decodificador sobre reservado
+    base_rate: float             # tasa base de la clase mayoritaria
+    bits_per_window: tuple[float, ...]
+
+    @property
+    def leak_at_decision(self) -> float:
+        """Cuánto de la respuesta está disponible al elegir, por encima del azar."""
+        return max(self.decoder_heldout - self.base_rate, 0.0)
 
     @property
     def renews(self) -> bool:
-        """No agotado si lo observable al elegir no dice nada y la entropía de
-        la respuesta no decae: cada episodio sigue exigiendo retener."""
-        if self.leak_at_decision > 0.01 or not self.bits_per_window:
+        if self.leak_at_decision > 0.05 or not self.bits_per_window:
             return False
         b = self.bits_per_window
         return min(b) > 0.8 and abs(b[-1] - b[0]) < 0.1
@@ -164,22 +181,38 @@ def _entropy(labels: Sequence) -> float:
     return float(-(p * np.log2(p)).sum())
 
 
-def episodic_information(world: DevWorld, *, window: int = 128) -> EpisodicInformation:
-    """D4.1 medido sobre el mundo, sin aprendiz.
+def _decode(records, *, seed: int = 0) -> tuple[float, float]:
+    """Vecino más próximo con reserva, sobre la observación COMPLETA.
 
-    `O_decisión` son los canales VISIBLES de las dos puertas: lo único que hay
-    delante cuando hay que elegir. Si `I(A*; O) = 0`, todos los bits de la
-    respuesta tienen que venir de haber retenido el cue.
+    Más fuerte que la información mutua a 100 canales: ahí cada observación es
+    única y condicionar da entropía cero por memorización, no por fuga. Un
+    decodificador con partición reservada sólo acierta si la fuga generaliza.
     """
-    objs = world.scenario["objects"]
-    sts = world.stations
-    vis = [tuple(objs[st.up_id]["channels"][:3] + objs[st.down_id]["channels"][:3])
-           for st in sts]
-    y = [st.designated for st in sts]
-    groups = {v: [yy for vv, yy in zip(vis, y) if vv == v] for v in set(vis)}
-    cond = sum(len(g) / len(y) * _entropy(g) for g in groups.values())
+    X = np.array([r.observation for r in records], dtype=float)
+    y = np.array([r.correct for r in records])
+    rng = np.random.default_rng(seed)
+    idx = rng.permutation(len(y))
+    cut = int(0.7 * len(y))
+    tr, te = idx[:cut], idx[cut:]
+    if len(te) == 0 or len(np.unique(y[tr])) < 2:
+        return float("nan"), float("nan")
+    d = ((X[te][:, None, :] - X[tr][None, :, :]) ** 2).sum(-1)
+    pred = y[tr][d.argmin(1)]
+    base = max(float((y[te] == c).mean()) for c in np.unique(y))
+    return float((pred == y[te]).mean()), base
+
+
+def episodic_information(records, *, window: int = 128,
+                         seed: int = 0) -> EpisodicInformation:
+    """D4.1 sobre las decisiones REALES de un oráculo, no sobre el mundo estático.
+
+    `records` son `oracles.DecisionRecord`: cada uno lleva el tensor completo
+    que el organismo tenía delante en el instante de elegir.
+    """
+    y = [r.correct for r in records]
+    dec, base = _decode(records, seed=seed)
     per_window = tuple(_entropy(y[s:s + window]) for s in range(0, len(y), window))
-    return EpisodicInformation(max(_entropy(y) - cond, 0.0), len(groups), per_window)
+    return EpisodicInformation(dec, base, per_window)
 
 
 # --- D4.3 · La reparación no puede añadir facultades ------------------------

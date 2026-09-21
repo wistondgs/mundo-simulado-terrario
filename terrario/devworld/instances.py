@@ -170,17 +170,28 @@ def generate(kernel: TaskKernel, *, seed: int, stations: int = 8,
     width = key[-1].door_column + gen.VIEW_RADIUS + 2
     e = economy
     scenario = {
+        "name": f"dev_{kernel.name}_{seed}{'_ctrl' if relaxed else ''}",
+        "description": "kernel + variación renovable + gemelo automático",
+        "generator": {"semantics": SEMANTICS_VERSION, "seed": seed,
+                      "kernel": kernel.name, "renews": kernel.renews,
+                      "relaxed": relaxed, "stations": stations},
         "grid_size": [width, 3],
         "duration": 2 * width,
-        "num_channels": gen.NUM_CHANNELS,
+        "seed": seed,
         "view_radius": gen.VIEW_RADIUS,
-        "objects": objects,
-        "initial_energy": e.initial_energy,
-        "max_energy": e.max_energy,
+        "num_channels": gen.NUM_CHANNELS,
+        # El techo no puede morder al oráculo perfecto: si mordiera, las
+        # últimas estaciones valdrían menos que las primeras y la energía
+        # dejaría de ser lineal en el acierto. El generador diagnóstico ya lo
+        # midió y lo arregló así; con 512 estaciones un techo plano de 60.0
+        # aquí mordería desde la estación 6.
+        "max_energy": max(e.max_energy, e.initial_energy + len(key) * e.gain),
         "step_energy_cost": e.step_energy_cost,
-        "low_energy_threshold": e.low_energy,
-        "agent_start": [gen.ROW_PATH, 0],
-        **gen._rules(e.gain, -e.loss, e.safe),
+        "expose_time_fraction": True,
+        "objects": objects,
+        "agent_start": {"pos": [gen.ROW_PATH, 0], "energy": e.initial_energy},
+        "changes": [],
+        "rules": gen._rules(e.gain, -e.loss, e.safe),
     }
     return DevWorld(scenario, kernel, economy, seed, tuple(key), relaxed)
 
