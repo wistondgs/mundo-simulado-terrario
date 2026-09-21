@@ -108,6 +108,15 @@ class DevelopmentalEdge:
                 f"experiment; that is the claim this module exists to refuse")
 
 
+#: Relaciones donde el OBJETIVO depende de los precursores, no al revés. La
+#: distinción no es cosmética: `REQUIRES` se lee del que depende hacia aquello
+#: de lo que depende, y `SYNERGIZES_WITH` no tiene esa asimetría.
+_TARGET_DEPENDS_ON = frozenset({
+    DependencyKind.REQUIRES, DependencyKind.FACILITATES,
+    DependencyKind.SUFFICIENT_SET, DependencyKind.UNKNOWN,
+})
+
+
 @dataclass(frozen=True)
 class GapReport:
     target: str
@@ -206,8 +215,14 @@ def gap_analysis(graph: DevelopmentalGraph, target: str,
     unknown: list[str] = []
     contradicted: list[str] = []
     for edge in entrantes:
+        # Dirección explícita y sin ambigüedad. `M REQUIRES SELECTION` se lee
+        # «M requiere SELECTION» y significaba lo contrario; una arista cuya
+        # dirección depende de cómo la lea quien pasa es peor que no tenerla.
         precursores = " + ".join(sorted(edge.precursors))
-        linea = f"{precursores} {edge.kind.value} {target} · {edge.evidence.value}"
+        linea = (f"{target} --{edge.kind.value}--> {precursores}"
+                 if edge.kind in _TARGET_DEPENDS_ON
+                 else f"{precursores} --{edge.kind.value}--> {target}")
+        linea += f"  · {edge.evidence.value}"
         if edge.evidence is EvidenceState.MEASURED:
             known.append(f"{linea} · {edge.experiment}")
         elif edge.evidence is EvidenceState.CONTRADICTED:
