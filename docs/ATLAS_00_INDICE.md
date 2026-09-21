@@ -32,7 +32,7 @@ contrario sería la primera afirmación falsa del documento.
 | **03** | **Sistema experimental** | mundos · runners · preregistro · lesiones · controles · métricas · gates · CAS · ledger · semillas | Terrario | **HECHO** · §XLI + `ATLAS_03_SISTEMA_EXPERIMENTAL.md` |
 | **04** | **Capacidades demostradas** | 1.0–1.8 en ocho worktrees · los diez pasaportes · qué está demostrado y qué sólo contabilizado | Terrario + 8 worktrees | **HECHO** · §XLIII + `ATLAS_04_CAPACIDADES.md` |
 | **05** | **Genesis** | `lab/genesis/` · qué entra, qué transforma, qué produce, quién lo consume | genesis-v2 | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VII + `ATLAS_05_GENESIS.md` |
-| 06 | **RNE / RNFE** | CI-VERDAD · CADENA-CAUSAL · Retention Ledger · integración · reparaciones abiertas | genesis-v2 `runtime/` | parcial · §I–§VI de `CARTOGRAFIA_GENESIS_01.md` ya lo cubren |
+| **06** | **RNE / RNFE** | qué persiste · qué puede cambiar · retención · qué tendría que aceptar para integrar una capacidad | genesis-v2 `runtime/` | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VIII + `ATLAS_06_RNE.md` |
 | 07 | **Evidencia, canon y autoridad** | experimento→resultado→almacenamiento→teoría→hipergrafo→siguiente pregunta · qué manda ante contradicción · qué gates están activos | los cuatro | pendiente |
 | 08 | **Estado del repositorio** | vivo · roto · incompleto · huérfano · duplicado · sólo documentado | los cuatro | pendiente |
 
