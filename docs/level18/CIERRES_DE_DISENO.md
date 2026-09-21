@@ -152,3 +152,86 @@ FIXED-DEPTH-1 (retención de un tick, SUMINISTRADA)    0.1468 / 0.3427 = 42.8 %
 techo con historia suficiente                          0.3154 / 0.3427 = 92.0 %
 margen de la adquisición                               ~49 puntos
 ```
+
+---
+
+# Cierre 5 · dependencia de `C17` · **la prueba que faltaba**
+
+**Retiro también mi frase anterior.** Escribí «1.8 enlaza con 1.7, no con 1.6» en
+sentido causal fuerte. Lo que había medido es que **la información es
+sensoriomotora**, no que el **contenido aprendido** `C17` sea necesario. Son cosas
+distintas y las junté.
+
+## Alcance declarado
+
+Sin diseñar el algoritmo de descubrimiento sólo puede aislarse **un** canal:
+
+```
+TESTEADO      C17 como PRIOR de arranque del estado
+NO TESTEADO   C17 como SEÑAL de cuándo hay que separar un estado
+```
+
+La partición la da el oráculo, **idéntica para los dos brazos**, precisamente para
+que la única diferencia sea el prior.
+
+## Resultado
+
+```
+T_18    con C17 (cálido)   sin C17 (frío)   ventaja de C17   razón
+  64          0.4757           2.3260          +1.8503        4.89×
+ 256          0.4446           1.6168          +1.1722        3.64×
+1024          0.3594           0.7300          +0.3706        2.03×
+4096          0.2085           0.2363          +0.0278        1.13×
+```
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  C17 → C18 es dependencia de EFICIENCIA MUESTRAL,                │
+│  no de posibilidad.                                              │
+│  Sin C17 el mecanismo converge igual: sólo necesita mucha más     │
+│  experiencia. Y la dependencia es enorme justo en el régimen      │
+│  donde 1.8 correría.                                             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**No fabrico dependencia donde no la hay, ni la niego donde la hay.** La respuesta
+honesta no es el binario que la pregunta admitía: es que `C17` multiplica por casi
+cinco la eficiencia a presupuesto pequeño y no aporta casi nada a presupuesto
+grande.
+
+Y **es exactamente la misma estructura que ya vimos en 1.7**: un predecesor bien
+consolidado ayuda más cuanto más hambriento de presupuesto está el sucesor. Allí
+encogía el efecto; aquí lo habilita.
+
+## La conservación de masa, verificada
+
+```
+invariante    Σ_z C_0(o,a,o' | z)  =  C_17(o,a,o')
+verificado    True · en los cuatro presupuestos
+```
+
+Tenés razón en que lo importante no es el `/k` sino **que separar, fusionar o crear
+estado nunca fabrique evidencia**. El `/k` es una forma de conseguirlo; la
+propiedad que hay que congelar como `L18-INCREMENTAL-INVARIANT` es la conservación.
+
+## Vigilancia de constantes, ampliada
+
+De acuerdo, y lo apunto explícitamente:
+
+```
+PROHIBIDO     NUM_LATENT_STATES = 17 · 24 · cualquier número verdadero
+PROHIBIDO     SPLIT_THRESHOLD / MERGE_THRESHOLD / MAX_STATES ajustados mirando
+              el resultado — es conocimiento humano mejor escondido
+PERMITIDO     un criterio general (MDL, bayesiano, test estadístico) suministrado
+              como mecanismo, con sus constantes declaradas ANTES y no elegidas
+              para reconstruir esta rejilla
+```
+
+## Estado
+
+```
+CAPACIDAD CANDIDATA                        ADJUDICADA
+POSICIÓN COMO SUCESOR CAUSAL DE C17        CONFIRMADA como eficiencia muestral
+                                           · el canal de señal de separación
+                                             sigue sin testear
+```

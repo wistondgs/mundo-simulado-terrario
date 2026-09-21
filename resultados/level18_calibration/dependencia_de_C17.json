@@ -1,0 +1,38 @@
+{
+ "__meta__": {
+  "etiqueta": "EXPLORATORIO / CALIBRACION \u00b7 NO CONFIRMATORIO",
+  "alcance": "aisla el canal PRIOR. La particion la da el oraculo para no tener que disenar el descubrimiento. El canal 'C17 como senal de cuando separar' NO se testea aqui y sigue abierto."
+ },
+ "por_presupuesto": {
+  "64": {
+   "con_C17": 0.4757,
+   "sin_C17": 2.326,
+   "ventaja": 1.8503,
+   "razon": 4.89
+  },
+  "256": {
+   "con_C17": 0.4446,
+   "sin_C17": 1.6168,
+   "ventaja": 1.1722,
+   "razon": 3.64
+  },
+  "1024": {
+   "con_C17": 0.3594,
+   "sin_C17": 0.73,
+   "ventaja": 0.3706,
+   "razon": 2.03
+  },
+  "4096": {
+   "con_C17": 0.2085,
+   "sin_C17": 0.2363,
+   "ventaja": 0.0278,
+   "razon": 1.13
+  }
+ },
+ "conservacion_de_masa": {
+  "invariante": "sum_z C_0(o,a,o'|z) == C_17(o,a,o')",
+  "verificado": true,
+  "en_todos_los_presupuestos": true
+ },
+ "veredicto": "C17 -> C18 es dependencia de EFICIENCIA MUESTRAL, no de posibilidad. Sin C17 el mecanismo converge igual, pero necesita mucha mas experiencia. La dependencia existe justamente en el regimen donde 1.8 correria."
+}
