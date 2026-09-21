@@ -36,6 +36,18 @@ from terrario.level18.predictive_state import PredictiveStateModel  # noqa: E402
 SEEDS = tuple(range(150000011, 150000019))
 
 
+def _entropia_condicional(pares):
+    """H(X|Y) empírica en nats. `pares` son (y, x)."""
+    from collections import Counter
+    conjunta = Counter(pares)
+    marginal = Counter(y for y, _ in pares)
+    total = float(len(pares))
+    acumulado = 0.0
+    for (y, x), n in conjunta.items():
+        acumulado -= (n / total) * np.log(n / marginal[y])
+    return float(acumulado)
+
+
 def _situations(grid):
     reachable = {grid.position}
     stack = [grid.position]
@@ -86,6 +98,7 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
     learner.begin()
 
     last = 0
+    max_states = len(learner.states())
     for _ in range(budget):
         command = ALL_COMMANDS[int(motor.next())]
         action = ALL_COMMANDS.index(command)
@@ -99,6 +112,7 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
         evidence_oracle[index[standing]][before, action, after] += 1
         last = action
         observation = following
+        max_states = max(max_states, len(learner.states()))
 
     bank = []
     for _ in range(post):
@@ -129,6 +143,18 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
             return weights[OBSERVATION_INDEX[nxt]] / weights.sum()
         return fn
 
+    # Lectura CONGELADA de la organización sobre el banco: ni una cuenta se
+    # toca, sólo se sigue el estado. C es instrumento; el learner no lo ve.
+    learner.begin()
+    lectura = []
+    for obs, command, following, _prev, situation in bank:
+        lectura.append((OBSERVATION_INDEX[obs], learner._here, situation))
+        learner.follow(EfferenceCopy(command), following)
+    h_c_dado_o = _entropia_condicional([(o, c) for o, _z, c in lectura])
+    h_c_dado_zo = _entropia_condicional([((o, z), c) for o, z, c in lectura])
+    h_z_dado_co = _entropia_condicional([((o, c), z) for o, z, c in lectura])
+    ocupados = len({z for _o, z, _c in lectura})
+
     learner.begin()
     return {
         "no_split": score(lambda o, k, n, p, s: baseline.probability(
@@ -137,7 +163,15 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
         "learner": score(_tracking(learner)),
         "oracle": score(tabled(oracle_prior, evidence_oracle, "oracle")),
         "states": len(learner.states()),
+        "max_states": max_states,
+        "occupied": ocupados,
         "splits": learner.refinements,
+        "merges": learner.collapses,
+        "h_c_o": h_c_dado_o,
+        "h_c_zo": h_c_dado_zo,
+        "h_z_co": h_z_dado_co,
+        "mi_cz_o": h_c_dado_o - h_c_dado_zo,
+        "readout": lectura,
         "situations": len(ordered),
         "mass_one": float(np.abs(sum(depth_one.values()) - table).max()),
         "mass_oracle": float(np.abs(sum(oracle_prior.values()) - table).max()),
@@ -147,16 +181,28 @@ def run(seed: int, budget: int, predecessor: int = 4096, contingency: int = 1024
 def main() -> None:
     print("=== ¿gana la profundidad 1, que es lo que el primer split produce? ===\n")
     print(f"{'T_18':>6} {'NO-SPLIT':>9} {'DEPTH-1':>9} {'LEARNER':>9} {'ORACLE':>9} | "
-          f"{'ΔL d1':>8} {'ΔL lrn':>8} {'ΔL orac':>8} | {'est':>4} {'spl':>4} {'sit':>4}")
+          f"{'ΔL d1':>8} {'ΔL lrn':>8} {'ΔL orac':>8}")
+    guardadas = {}
     for budget in (1024, 4096):
         rows = [run(s, budget) for s in SEEDS]
+        guardadas[budget] = rows
         mean = lambda k: float(np.mean([r[k] for r in rows]))
         base = mean("no_split")
         print(f"{budget:>6} {base:>9.4f} {mean('depth_one'):>9.4f} "
               f"{mean('learner'):>9.4f} {mean('oracle'):>9.4f} | "
               f"{base - mean('depth_one'):>+8.4f} {base - mean('learner'):>+8.4f} "
-              f"{base - mean('oracle'):>+8.4f} | {mean('states'):>4.1f} "
-              f"{mean('splits'):>4.1f} {mean('situations'):>4.1f}")
+              f"{base - mean('oracle'):>+8.4f}")
+
+    print(f"\n=== la organización que el mecanismo construyó ===\n")
+    print(f"{'T_18':>6} {'activos':>8} {'máx sim':>8} {'ocupados':>9} {'splits':>7} "
+          f"{'merges':>7} {'sit':>5} | {'H(C|O)':>8} {'H(C|Z,O)':>9} {'H(Z|C,O)':>9} "
+          f"{'I(C;Z|O)':>9}")
+    for budget, rows in guardadas.items():
+        mean = lambda k: float(np.mean([r[k] for r in rows]))
+        print(f"{budget:>6} {mean('states'):>8.1f} {mean('max_states'):>8.1f} "
+              f"{mean('occupied'):>9.1f} {mean('splits'):>7.1f} {mean('merges'):>7.1f} "
+              f"{mean('situations'):>5.1f} | {mean('h_c_o'):>8.4f} "
+              f"{mean('h_c_zo'):>9.4f} {mean('h_z_co'):>9.4f} {mean('mi_cz_o'):>9.4f}")
     print(f"\n  conservación de masa · DEPTH-1 {max(r['mass_one'] for r in rows):.2e}"
           f" · ORACLE {max(r['mass_oracle'] for r in rows):.2e}")
 
