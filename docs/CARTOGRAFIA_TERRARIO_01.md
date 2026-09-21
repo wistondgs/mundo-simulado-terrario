@@ -1321,6 +1321,12 @@ adicionalmente por el orden de las ranuras.
 
 # XVI · P1 · CAPABILITY-ACQUISITION-01
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17, y a
+> diferencia de §XXI y §XXVII **ninguna de sus afirmaciones de código ha
+> caducado**: las cuatro comprobables se sostienen. Lo que le faltaba era ser
+> vigilable. Sus cifras son mediciones de corrida y quedan como
+> **K1 · medido el 2026-09-17**, salvo donde se diga otra cosa.
+
 ## 361 · Call graph
 
 ```
@@ -1374,9 +1380,20 @@ escrituras**: F escribe en el buffer episódico y en `M` exactamente igual que L
 tanto `zero_grad/backward/step` del Adam.
 [379] Fuera del bloque pueden cambiar en F: `_hidden`, el buffer episódico, `M` (escrita bajo
 `no_grad`), `_step`, `homeostasis._energy`. **Parámetros con gradiente, no.**
-[380] **No hay BatchNorm ni running stats** en A4: el encoder usa `LayerNorm`, que no mantiene
-estadísticas. Verificado en el inventario de módulos.
-[381-382] **No hay Dropout** en ningún módulo de A4.
+
+> **Precisión desde §XXVI (2026-09-21).** `M` tiene **dos** canales: la escritura
+> con puerta bajo `no_grad` **y** el gradiente, porque `longterm_memory` está en
+> el optimizador ([a4_advanced.py:846](terrario/agent/agents/a4_advanced.py:846)).
+> Para **F** la frase de [379] es correcta —con `_use_online_learning=False` el
+> Adam no corre y sólo queda la escritura—, pero leída fuera de ese contexto
+> sugiere que `M` nunca recibe gradiente, y sí lo recibe.
+
+[380] **No hay BatchNorm ni running stats** en A4: el encoder usa `LayerNorm`
+([encoder.py:23](terrario/agent/encoder.py:23)), que no mantiene estadísticas.
+**Verificado hoy** con un barrido de `terrario/agent/`: 0 `nn.BatchNorm`,
+1 `nn.LayerNorm`.
+[381-382] **No hay Dropout** en ningún módulo de A4. **Verificado hoy**: 0
+`nn.Dropout` en todo el paquete.
 
 ## 383-386 · El control S
 
@@ -1405,7 +1422,11 @@ denominador** —un predictor constante no expresa preferencia, y puntuarlo 0.0 
 reales.
 [391-395] **Selección**: `softmax` sobre el par de logits de las dos alternativas, renormalizado.
 Bajo T1 usa `_slot_logits`; bajo T0, `direction_head` si existe y `policy_head` si no.
-[394] **El planner NO participa** en el examen. [395] La política sí, vía sus logits.
+[394] **El planner NO participa** en el examen — **verificado hoy**: la única
+mención de «planner» en `capability_exam.py` está en su cabecera
+([:15](terrario/lab/capability_exam.py:15)), y dice precisamente que la sonda no
+puede resolverse «con un planner cableado o una regla del escenario».
+[395] La política sí, vía sus logits.
 
 ## 396-397 · Realización, y por qué `G_R` es cero estructural
 
@@ -1417,7 +1438,13 @@ sobre la elección propia del organismo.**
 
 ## 398-406 · Efectos secundarios del examen
 
-[398-399] Sentar el examen **mutaba** `_hidden`, `_last_latent`, `_last_state`, `_last_action`,
+[398-399] **Verificado hoy, y la reparación es más fuerte de lo que esta
+sección decía:** el examen toma una instantánea y restaura
+([capability_exam.py:162](terrario/lab/capability_exam.py:162)), y la lista de
+qué restaurar **se deriva, no se escribe a mano**
+([:145](terrario/lab/capability_exam.py:145)) — una lista mantenida a mano
+vuelve a quedarse corta en cuanto alguien añade un campo.
+Sentar el examen **mutaba** `_hidden`, `_last_latent`, `_last_state`, `_last_action`,
 `_last_log_prob`, `_step` y `_offered_targets` — de modo que tres bancos en secuencia se
 contaminaban entre sí y **el orden de los bancos habría formado parte del resultado**. Ahora
 `sit_exam` guarda y restaura esas siete variables en un `try/finally`.
@@ -1735,47 +1762,82 @@ checkpointar a mitad de una actualización.
 
 # XXI · Sandbox frente a ejecución científica
 
-## 506-508 · Los dos call graphs y dónde divergen
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17, y es la
+> más desfasada de las tres saneadas hasta ahora: **cuatro de sus afirmaciones
+> centrales son falsas hoy**, todas por la misma causa — la secuencia del paso
+> se extrajo a `run_step` después de escribirla. Se conserva lo que sigue
+> siendo cierto y lo histórico se marca **K1 · medido el 2026-09-17**. Medición
+> vigente en §XLI (Atlas 03), que se cita en vez de repetirse.
+
+## 506-508 · Los dos call graphs · ⚠ ya no divergen
 
 ```
-SandboxService.run_bounded → .step → ._step_runtime
-ExperimentController.run   → .run_episode
+ExperimentController.run → run_episode → run_step   (controller.py:200)
+SandboxService.run_bounded → step → _step_runtime → run_step   (sandbox_runtime.py:178)
 ```
 
-[508] **Divergen en la primera función**: no comparten ningún bucle. Ambos reconstruyen la
-secuencia por su cuenta a partir de los mismos servicios.
+⚠ **Corrección 1 de 4.** [508] decía «divergen en la primera función: no
+comparten ningún bucle». **Hoy comparten la secuencia entera**: las dos llaman a
+`run_step` ([transition.py:316](terrario/world/transition.py:316)) y ambas lo
+dicen en un comentario — lo que queda propio de cada una es su instrumentación,
+que es lo único que puede diferir entre superficies.
 
-## 509-517 · Qué comparte y qué no cada uno
+## 509-517 · Qué comparte y qué no cada uno · corregido
 
 | | Controller | Sandbox |
 |---|---|---|
 | [509] servicios comunes | `WorldStateManager`, `Physics`, `RuleEngine`, `ChangeScheduler`, `create_agent` | ídem |
-| [510] física exclusiva | **`OpportunityLifecycle`** (respawn/cooldown) | — |
-| [511] instrumentación exclusiva | anotaciones causales, `geometry`, ventana forense, fases | **Contrato de Acción v2** |
-| [512] máquina de estados | fases del escenario | `RunState` (CREATED/RUNNING/COMPLETED/TERMINATED/FAILED) |
-| [513] terminación | `alive` al inicio → `break` | `terminated` al final |
+| [510] `OpportunityLifecycle` | **ambos** ⚠ | **ambos** ⚠ |
+| [511] Contrato de Acción v2 | **ambos** ⚠ | **ambos** ⚠ |
+| [512] máquina de estados | fases del escenario | `RunState` |
+| [513] terminación | `alive` al inicio → `break` ([controller.py:193](terrario/experiment/controller.py:193)) | `terminated` al final |
 | [514] observadores | `build_scientific_state` + anotaciones | `scientific_state` |
-| [515] semillas | `RNGManager.set_global_determinism(agent_seed)` | **no lo llama** |
-| [516] trace writer | `step_traces[]` en memoria + observer | `SandboxTraceStep` + `storage.write` cada 50 |
-| [517] checkpoints | `CheckpointManager` | ninguno |
+| [515] semillas | `set_global_determinism` ([controller.py:133](terrario/experiment/controller.py:133)) | **también lo llama** ⚠ ([sandbox_runtime.py:138](terrario/lab/sandbox_runtime.py:138)) |
+| [516] trace writer | `step_traces[]` + observer | `SandboxTraceStep` cada 50 ([sandbox_runtime.py:34](terrario/lab/sandbox_runtime.py:34)) |
+| [517] checkpoints | `observer.checkpoint` ([controller.py:298](terrario/experiment/controller.py:298)) | **ninguno** — 0 menciones |
+
+⚠ **Correcciones 2 y 3.** `OpportunityLifecycle` y el Contrato de Acción v2 eran
+exclusivos de una superficie cada uno; hoy los dos viven **dentro de `run_step`**
+y los ejecutan ambas.
+
+⚠ **Corrección 4, y la más instructiva.** [515] documentaba una asimetría real
+—el sandbox no sembraba el RNG global— **y ya está reparada**, con el motivo
+escrito donde se reparó: los pesos de los módulos salen del RNG **global** de
+torch, porque `memory.py:156` llama a `torch.randn` sin generador
+([memory.py:156](terrario/agent/memory.py:156)) y cada `nn.Linear` hace lo
+mismo. Sin sembrarlo, dos corridas de la misma especificación **producían
+organismos distintos** y `initial_parameters_hash` no era reproducible entre
+procesos. Los bancos lo compensaban a mano; la ruta científica sí sembraba desde
+el principio. Ésa era la asimetría que hacía que «la misma semilla» significara
+cosas distintas en cada superficie.
 
 ## 518-522 · Autoridad científica
 
-[518] Sólo desde el controller, vía `lab/execution/runtime.py` y el servicio de preregistro, puede
-sellarse evidencia.
-[519] `screen_concepts` → **Sandbox**. [520] P0 y P1 → **Sandbox**.
-[521] World2D Live → **Sandbox**.
-[522] **La ruta considerada autoritativa es la del `ExperimentController`. Ninguno de los
-experimentos de esta noche corrió por ella.**
+[518] Sólo desde el controller, vía `lab/execution/runtime.py` y el servicio de
+preregistro, puede sellarse evidencia.
+[519-521] `screen_concepts`, P0, P1 y World2D Live → Sandbox.
+[522] **K1 · medido el 2026-09-17**: «la ruta autoritativa es la del
+`ExperimentController` y ninguno de los experimentos de esa noche corrió por
+ella». No re-medido; y con la secuencia ya compartida, la afirmación ha perdido
+la mayor parte de su filo.
 
-## 523-525 · Conformidad y drift
+## 523-525 · Conformidad y drift · qué queda
 
-[523] **No existe ninguna prueba de conformidad entre ambos loops.** Es el hueco que P0.5 debe
-cerrar.
-[524] Comparten los servicios pero **no la secuencia**; el porcentaje de comportamiento
-compartido exactamente hoy no está medido y no puede estarlo sin esa prueba.
-[525] Fuentes potenciales de drift: `_find_target` duplicado, el orden physics/target, la base de
-la semilla de física, el gate de aprendizaje y la ausencia de lifecycle.
+[523] Hoy **sí existe** una prueba de paridad,
+`tests/test_world_runtime_parity.py` — pero §XLI midió que ejecuta `run_step`
+**las dos veces**: prueba determinismo, no conformidad entre superficies. El
+hueco que señalaba [523] sigue abierto, con otra forma.
+
+[525] De las cinco fuentes de drift, **cuatro se cerraron con la extracción**:
+`_find_target` es único y compartido, el orden physics/target es el de
+`run_step`, la base de la semilla de física es `world_seed + step` para todos, y
+el lifecycle ya no falta en ninguna. La quinta —el gate de aprendizaje— es hoy
+el parámetro `learning_enabled` del propio `run_step`.
+
+**Lo que queda de verdad** no está entre las cinco: es el tercer lazo,
+`CausalRuntime.step`, que no llama a `run_step` y diverge en contrato de acción,
+lifecycle y semilla exógena (§XLI).
+
 
 ---
 
@@ -2264,6 +2326,13 @@ se consume dentro del rollout del planner.
 
 # XXVIII · Deuda y contradicciones
 
+> **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17.
+> Comprobadas sus afirmaciones: **tres caducaron** —dos porque el defecto se
+> reparó, una por la extracción del contrato de acción— y **el resto se
+> sostiene**, incluidas todas las de §657-667. Una sección de deuda que envejece
+> bien en su mayor parte, pero que sin vigilancia acumulaba deuda **ya pagada**,
+> que es su propia forma de error.
+
 ## 650-653 · Documentación que ya no describe el código
 
 - `_handle_inspect`: *«The observation system handles the increased detail separately»* —
@@ -2275,18 +2344,30 @@ se consume dentro del rollout del planner.
   práctica `perceive` lo sobrescribe con el valor normalizado, así que el contrato se cumple **por
   accidente**.
 - `sit_exam`: afirmaba no mutar al agente y mutaba siete variables. Corregido hoy.
-- [652] `opportunity_lifecycle` en D4T: **declarado e ignorado** por el runtime que ejecuta todos
-  los experimentos.
+- [652] ⚠ **Caducada: reparada.** Era «`opportunity_lifecycle` declarado e
+  ignorado por el runtime que ejecuta todos los experimentos». Hoy
+  `with_lifecycle` **lo declara el llamante en vez de inferirse**
+  ([transition.py:168](terrario/world/transition.py:168)), y el motivo está
+  escrito donde se arregló: «una superficie que no ejecuta respawn tiene que
+  decirlo en vez de omitirlo en silencio, que es exactamente como el sandbox
+  llegó a ejecutar un mundo que el escenario nunca describió».
 - [653] `use_temporal`: cambia comportamiento, pero **ninguna tarea actual lo requiere**.
 
 ## 654-656 · Código muerto e inalcanzable
 
 - `policy_head.greedy`: existe, A4 no lo llama.
-- `EpisodicMemory.reset`, `LongTermMemory.reset_memory`, `HomeostaticState.reset`,
-  `OnlineLearner.reset`: **ningún loop los llama**.
-- `SelectorType.RELATION`: reservado, levanta `NotImplementedError` — inalcanzable **a propósito**.
-- La rama omnisciente `truth.objects.get(action.target_id)` en `controller._find_target`:
-  **inalcanzable**, porque nada escribe `target_id` en esa ruta.
+- ⚠ **Caducada**: «`EpisodicMemory.reset`, `LongTermMemory.reset_memory`,
+  `HomeostaticState.reset`, `OnlineLearner.reset`: ningún loop los llama».
+  **Los cuatro se llaman hoy.**
+- `SelectorType.RELATION`: reservado, levanta `NotImplementedError`
+  ([action_contract.py:332](terrario/core/action_contract.py:332)) — inalcanzable
+  **a propósito**, y «nunca emitido por ningún agente»
+  ([:76](terrario/core/action_contract.py:76)). **Se sostiene.**
+- ⚠ **Caducada**: la rama omnisciente `truth.objects.get(action.target_id)` ya
+  **no** es inalcanzable. El Contrato de Acción v2 escribe `target_id` en la
+  resolución ([transition.py:275](terrario/world/transition.py:275)), que es
+  precisamente lo que la hace segura: el único escritor es una resolución que ya
+  comprobó que el organismo podía percibir el objetivo.
 
 ## 657-667 · Fallos que se convierten en números plausibles
 
@@ -2296,8 +2377,9 @@ se consume dentro del rollout del planner.
   de uno actualizado salvo que alguien lea ese trace.
 - `LongTermMemory.write`: `nan_to_num` y `clamp(±10)` **antes** de escribir, y descarta la
   escritura si el resultado no es finito, con `write_accepted: False` en el trace.
-- `action_contract._visible`: `except (IndexError, TypeError): return True` — **una máscara
-  malformada hace visible todo**.
+- `action_contract._visible`: `except (IndexError, TypeError): return True`
+  ([action_contract.py:318](terrario/core/action_contract.py:318)) — **una
+  máscara malformada hace visible todo**. **Se sostiene, verificado hoy.**
 
 [659-663] **Fallos que terminan como cero, lista vacía o NOOP:**
 - `RuleEngine.evaluate` con `target_object is None` → `[]` → delta 0.0. Un CONSUME que no alcanzó
@@ -2320,9 +2402,18 @@ filtra con `or 0`— **se convierte en cero**.
 `run_measures` fuera del registro, que usan el par `(value, evaluable, reason)` en vez de
 `Reading`, y toda la capa de persistencia y UI, **no verificada** [443-445].
 
+**Se sostiene, medido hoy**: `run_measures.py` tiene **15** apariciones del
+idioma `or {}` / `or []` / `or ()` y **una sola** mención de `Reading`
+([run_measures.py:1](terrario/lab/run_measures.py:1)). La adopción de las
+cuatro lecturas que §XLI celebró —nueve consumidores— **no ha llegado aquí**.
+
 ---
 
 # XXIX · Arquitectura futura
+
+> **Ciega por diseño.** Es prospectiva: describe lo que no existe, así que no
+> puede citar código y el gate no debe vigilarla. Clasificada así el 2026-09-21
+> para que no vuelva a contarse como deuda.
 
 ## 668-669 · Contratos estables y contratos atados a D4T
 
@@ -2655,6 +2746,8 @@ agotable.
 ---
 
 # Apéndice · Lagunas declaradas
+
+> **Ciego por diseño.** Enumera lo que falta; citar código sería contradecirse.
 
 No verificado en esta pasada, y por qué:
 
@@ -4504,6 +4597,8 @@ es. La única pieza que re-ejecuta para comparar es
 ---
 
 # XLII · Reconciliación · el mapa como caché, y lo que costó no consultarla
+
+> **Ciega por diseño.** Es método, no descripción de código.
 
 Escrita el 2026-09-21 a raíz de una pregunta que era, en efecto, de pura lógica:
 si la cartografía existe, ¿por qué un volumen nuevo vuelve a mapear lo que ya

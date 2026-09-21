@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "77c890e",
+  "head": "667dc09",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -111,6 +111,13 @@
         "terrario/world/state.py": "9fdc7773f111f7c1a95bfa1cd8683e6a264875d7da65ed47fbccca9b043635ce"
       }
     },
+    "XVI · P1 · CAPABILITY-ACQUISITION-01": {
+      "files": {
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/encoder.py": "20066afd2d0e4e087146ddbd4b935db88847072c844593a92a430505658ef66e",
+        "terrario/lab/capability_exam.py": "35289d4b9167dd52c9c7752933ad545f18446078abe424a4232dd0fc2998c7ba"
+      }
+    },
     "XVII · Qué significa realmente «seis ejemplos informativos»": {
       "files": {
         "scripts/experiment_learner_sample_efficiency.py": "b9d35e35c200ff8c26c826fe6204683487db5e0f2f80e1a84cfce199152197a7",
@@ -137,6 +144,15 @@
         "tests/test_checkpoint_reconstruction.py": "3776d71f154cf3c8d7ecf6bf7ec983e7eb15eda275716b3b4399a2ec9eece17d"
       }
     },
+    "XXI · Sandbox frente a ejecución científica": {
+      "files": {
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
+        "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
+        "terrario/lab/sandbox_runtime.py": "7212fc5d10e51cfeb956015afd0588f31a300cba6d9af56529ca183f5c2b9d40",
+        "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
+        "tests/test_world_runtime_parity.py": "30d97aa2083219fab8785ea4b43e79f8d368b2adf8cb50f9c5635f1465f9857b"
+      }
+    },
     "XXII · Preregistro y evidencia": {
       "files": {
         "terrario/lab/preregistration/domain.py": "1779b5f40ed5318a2114ee0141f5dfa7d442a014036864332e7a4a17e7d8f732",
@@ -159,6 +175,13 @@
         "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
         "terrario/agent/world_model.py": "a7dca349d233a569002373734dd6f4162cb6458fb1c71736584525626412414b",
         "terrario/observer/checkpoints.py": "ee917bfc74a818f449be970edcbed86d8db08f56242e8b38f89034af5139b40e"
+      }
+    },
+    "XXVIII · Deuda y contradicciones": {
+      "files": {
+        "terrario/core/action_contract.py": "3e918e54115167cccb9461a1f412825223e5de8c67b5d6d8a0c59a7d49e4e927",
+        "terrario/lab/run_measures.py": "eb5b70983a97f807f48696e2ebf641b77b99d71a5a858dfef76d10c917cf65d1",
+        "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
     },
     "XXX · Las preguntas más importantes": {
