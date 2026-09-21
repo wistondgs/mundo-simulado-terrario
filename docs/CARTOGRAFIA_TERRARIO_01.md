@@ -5977,3 +5977,47 @@ aristas propias: se construye desde el ledger, que es la única fuente.
 Y el control que faltaba en el plan: **existe una fixtura donde la evidencia
 SÍ ordena los candidatos** y el empate se resuelve a uno solo. Sin ella, una
 regla que siempre empata no discrimina nada y pasa todas las pruebas.
+
+## 48.6 · `CeilingProbe` y derivación de clase de pregunta · `U2` y `U3`
+
+**Un techo es una lectura, no un resultado.** Una campaña produce dos cosas que
+el proyecto confundía: el resultado científico de 1.8 es `FAMILY_MISMATCH`, y
+su lectura developmental es que faltaba un peldaño antes. El objeto guarda las
+dos y no sustituye ninguna.
+
+**La regla que lo hace seguro: un techo nunca asciende un candidato a
+dependencia.** Que `F(Z,A)` no exprese la participación causal de la nueva
+observación justifica nombrar `EVSENS`, `REPUPD` y `HISTDIS` como candidatos;
+no autoriza escribir `EVSENS REQUIRED_FOR PREDSTATE`. Está impedido por
+construcción: `emitted_claims` sólo puede emitir `HYPOTHESIS`, y el ledger
+rechaza lo demás.
+
+**Y un negativo corriente no es un techo.** `PERFORMANCE_ONLY` existe para ser
+rechazado: «el agente no aprendió» habla del agente, no de la escalera. Si todo
+negativo pudiera ascender, la etiqueta sería un sinónimo de decepción.
+
+Las siete negativas de `U2` tienen su mutante. La séptima —el orden de los
+candidatos no cambia ni el significado ni la salida— viene del fallo
+alfabético: los candidatos viven en `frozenset` y la identidad de contenido los
+ordena, así que dos techos escritos con los argumentos en distinto orden son el
+mismo techo.
+
+**`U3` deriva la clase de incertidumbre, no el precursor.** «Adquirir EVSENS»
+seguiría siendo una elección inventada con aspecto de derivación.
+
+```
+PREDSTATE   FAMILY_PROBE   3 dimensiones · selection UNRESOLVED
+SELECTION   LESION_PROBE   PSI · precursor presente, necesidad sin adjudicar
+PSI_USEFUL  NONE_REQUIRED  ← el control negativo
+```
+
+El orden de derivación es lo que decide: **una familia incapaz de enunciar el
+constructo hace prematura cualquier pregunta sobre precursores** —ninguno
+rescata a un mecanismo que no puede decir la cosa—, así que la pregunta de
+familia gana siempre que exista una contradicción de esa forma. Sólo después
+una capacidad presente con necesidad sin adjudicar pide lesión, y sólo después
+los ausentes piden adquirirse.
+
+`PSI_USEFUL` es el control que impide que esto sea un detector universal de
+dificultad: su dependencia de M está medida, acotada y soportada, **no genera
+techo y no genera pregunta**.
