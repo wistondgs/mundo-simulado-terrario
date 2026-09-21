@@ -34,7 +34,7 @@ contrario sería la primera afirmación falsa del documento.
 | **05** | **Genesis** | `lab/genesis/` · qué entra, qué transforma, qué produce, quién lo consume | genesis-v2 | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VII + `ATLAS_05_GENESIS.md` |
 | **06** | **RNE / RNFE** | qué persiste · qué puede cambiar · retención · qué tendría que aceptar para integrar una capacidad | genesis-v2 `runtime/` | **HECHO** · `CARTOGRAFIA_GENESIS_01.md` §VIII + `ATLAS_06_RNE.md` |
 | **07** | **Evidencia, canon y autoridad** | qué fuente manda sobre qué clase de afirmación · divergencia legítima vs incoherencia | Terrario + genesis-v2 | **HECHO** · §XLIV + `CARTOGRAFIA_GENESIS_01.md` §IX + `ATLAS_07_AUTORIDAD.md` |
-| 08 | **Estado del repositorio** | vivo · roto · incompleto · huérfano · duplicado · sólo documentado | los cuatro | pendiente |
+| **08** | **Estado del repositorio** | vivo · roto · incompleto · huérfano · duplicado · sólo documentado | Terrario + genesis-v2 | **HECHO** · §XLV + `ATLAS_08_ESTADO_REPOSITORIO.md` |
 
 La **arquitectura global ejecutable** —la relación real entre Terrario, Genesis
 y RNE— no es un volumen propio: se contesta cuando 02, 05 y 06 estén leídos, y

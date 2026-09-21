@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "d5e22bd",
+  "head": "ed313d2",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -312,6 +312,14 @@
         "terrario/lab/evidence_admission.py": "faa2abdc9d64c527f49fb30f1adc632a8676f91c0d73f413d0c0b9f9e2f02462",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/preregistration/validation.py": "8e2c871ba09bcf14321adcd0ce768727012a14aba84303499b3e11d1def342f8"
+      }
+    },
+    "XLV · Atlas 08 · Estado real del repositorio": {
+      "files": {
+        "scripts/censo_orfandad.py": "882d32ffd301013635c7baebe4757a2fd6f2983c703cf00f0a9019cd2920146d",
+        "terrario/lab/crossgraph/d2trace.py": "126bd828267ca4841c622aee13f63fcbac29bc9a890a652aff03503ee1fc4f92",
+        "terrario/world/scenario.py": "d2328e28938582f7a2a423c8e55f154a4953d4e900e2c4cef6620ba781dad136",
+        "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
     }
   }

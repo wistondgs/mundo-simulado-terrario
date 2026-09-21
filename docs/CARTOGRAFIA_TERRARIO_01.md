@@ -4829,3 +4829,115 @@ pequeña y enferma.
    sellados fuera de 1.4.
 3. **K1** · Qué pasa con la regla estricta de admisión el día que exista el
    primer resultado publicado. Hoy no hay ninguno que la ponga a prueba.
+
+---
+
+# XLV · Atlas 08 · Estado real del repositorio
+
+Lectura del 2026-09-21. **Este volumen se ensambla de los anteriores.** Los
+Atlas 01–07 ya midieron subsistema por subsistema qué está vivo y qué no; lo
+único que faltaba era un **censo mecánico y global**, y eso es lo único que se
+midió de nuevo. Lo demás se cita.
+
+## 45.1 · El censo, y lo que costó que dijera la verdad
+
+`scripts/censo_orfandad.py` construye el grafo de imports por AST y separa tres
+estados: sin ningún importador, sólo importado por tests, vivo.
+
+| Árbol | Módulos | Sin importador | Sólo tests |
+|---|---:|---|---|
+| **Terrario** `terrario/` | 156 | **4** · 371 líneas | **16** · 2 898 líneas |
+| **genesis-v2** `runtime/` + `lab/` | 369 | **37** · 5 182 líneas | **74** · 17 562 líneas |
+| de eso, `lab/` medido **desde dentro** | — | 2 · 18 líneas | 14 · 3 743 líneas |
+
+Esa última fila es el matiz que el Atlas 05 ya había medido de otra forma:
+**`lab/genesis` está bien conectado consigo mismo y no lo alcanza nadie desde
+fuera.** Orfandad es una propiedad del observador, no del módulo.
+
+**Y el instrumento mintió cuatro veces antes de acertar.** Cada punto ciego era
+un idioma normal de Python, y cada versión respondía con total aplomo:
+
+```
+1. contar `__init__.py` como destino      → paquetes enteros «huérfanos»
+2. ignorar `from paquete import modulo`   → `instrument_registry` huérfano, con
+                                            `evidence_admission` importándolo
+3. excluir `__init__.py` como IMPORTADOR  → A0–A5 «huérfanos», y su factoría
+                                            vive precisamente ahí
+4. no resolver reexportaciones            → el lazo de vida entero «sólo tests»
+```
+
+Ninguna versión falló: todas respondieron. Publicar la primera habría metido en
+el Atlas la afirmación «el kernel del lazo de vida sólo lo usan los tests», que
+es falsa y habría sonado igual de segura que el resto. La lista vive en la
+cabecera del guion.
+
+## 45.2 · Las seis categorías, con lo que los volúmenes ya midieron
+
+**Vivo** — tiene consumidor fuera de tests **y** filas o corridas:
+
+* el paso autoritativo `run_step` y sus tres superficies (§XLI)
+* el preregistro: 141 sellados, 708 de cadena de auditoría, 45 de exposición (§XLI)
+* `Reading` y `evidence_admission`, nueve consumidores (§XLI)
+* el linaje 1.0–1.4 y la fusión, con oráculos sellados (§XLIII)
+* en el otro árbol: el lazo ρₜ, con rollback ejecutable y ledger de Λ (§VIII allí)
+
+**Roto** — falla hoy:
+
+* `catalogue()` y `describe_selection()` levantan `KeyError`; `GET /api/agent-concepts`
+  caído; tres pruebas en rojo desde `fd725e3` (§XXXIX)
+
+**Incompleto** — construido y sin cerrar:
+
+* 1.8, sin presupuesto seleccionable, confirmatorio intacto (§XLIII)
+* la campaña canónica de Genesis: 1 de 6 tareas (§VII allí)
+* `MODEL_PARAMETER`, declarada y vacía (§VIII allí)
+
+**Huérfano** — construido, probado, sin consumidor:
+
+* `lab/genesis` entero: 19 861 líneas, 70 tests, cero importadores externos (§VII allí)
+* `lab/genesis/retention`: el juicio de no-regresión, sin consumidor en `runtime` (§VIII allí)
+* `terrario/lab/crossgraph/d2trace.py` ([:1](terrario/lab/crossgraph/d2trace.py:1)): la
+  pieza que uniría Reference→Scenario, sin un solo llamador **ni test**
+* `terrario/world/scenario.py` ([:1](terrario/world/scenario.py:1)): 150 líneas, y hay
+  **otro** `load_scenario` en `experiment/controller.py` que es el que usa la ruta real
+* las 22 tablas `ref_*` y 9 `cross_*`, vacías (§XXXVIII)
+
+**Duplicado** — dos implementaciones de lo mismo:
+
+* `find_target`, extraído de dos copias idénticas… y hay una **cuarta** en
+  `verify_reproducibility.py` (§XLI)
+* dos `load_scenario`, uno por árbol de llamada
+* dos contabilidades de capacidad que no se tocan (§XLIII)
+* dos disciplinas de RNG opuestas en el mismo repositorio (§XLI)
+
+**Sólo documentado** — se afirma y no existe:
+
+* `CI-VERDAD`: **0 coincidencias** en genesis-v2 y en v16 (§VIII allí)
+* «un G1 promovido es G0 más esa habilidad»: docstring sin función (§VII allí)
+* el ciclo de madurez de conceptos RAW→…→RETAINED: tres enums desconectados (§XXXII)
+* `no_interference`: el canon lo nombra y no lo define (§IX allí)
+
+## 45.3 · §XXVIII verificada · dos de tres afirmaciones caducaron
+
+La sección de deuda es de las **doce que el gate no puede vigilar** (§XLIII).
+Comprobadas tres de sus afirmaciones contra el código de hoy:
+
+| Afirmación de §XXVIII | Hoy |
+|---|---|
+| «la rama omnisciente de `_find_target` es inalcanzable porque nada escribe `target_id`» | **caduca** — el contrato de acción lo escribe ([transition.py:275](terrario/world/transition.py:275)) |
+| «`policy_head.greedy` existe, A4 no lo llama» | **se sostiene** — 0 llamadores |
+| «`EpisodicMemory.reset`, `reset_memory`, `homeostasis.reset`, `learner.reset`: ningún loop los llama» | **caduca** — los cuatro se llaman hoy |
+
+Dos de tres. Es la segunda sección no vigilada que se encuentra desfasada
+—§XXVII fue la primera— y ya son **dos de dos comprobadas**.
+
+## 45.4 · Lo que no se sabe
+
+1. **K2** · Las otras diez secciones no vigiladas. Dos de dos comprobadas
+   salieron desfasadas; extrapolar no es medir.
+2. **K2** · Cuántos de los 37 huérfanos de genesis-v2 son código vendido o
+   histórico legítimo. El censo no distingue «nadie lo usa» de «nadie debe
+   usarlo».
+3. **K2** · Si los 74 módulos «sólo tests» de ese árbol son laboratorio
+   deliberado —como `lab/genesis`— o integración pendiente. Es la misma
+   pregunta del Atlas 05, ahora a escala de árbol.
