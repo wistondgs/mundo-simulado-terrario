@@ -315,17 +315,29 @@ def gate_mass_conservation(report: GateReport, inherited_counts, per_state_count
 
 
 def gate_incremental_invariant(report: GateReport, predict_18, predict_17,
-                               observations, commands) -> None:
+                               observations, commands, states_at_birth: int = 1,
+                               prior_fingerprint=None,
+                               inherited_fingerprint=None) -> None:
     """L18-5 · `C_18 = 0` ⇒ `P_18 = P_17` bit a bit, y la lesión vuelve a 1.7."""
+    # Enmienda 05 §1 · la versión anterior recibía `predict_17(observation)` y
+    # exigía, de hecho, INDEPENDENCIA DE LA ACCIÓN --el invariante de 1.6→1.7--.
+    # §6 sella P_18(o'|o,a,z_0) = P_17(o'|o,a), y P_17 depende de `a`: es la
+    # adquisición entera de 1.7. Ambas funciones reciben ahora `(o, a)`.
     worst = 0.0
     for observation in observations:
-        base = predict_17(observation)
         for command in commands:
-            worst = max(worst, float(
-                np.abs(np.asarray(predict_18(observation, command)) - base).max()))
-    ok = worst == 0.0
-    report.add("L18-5", "C_18 = 0 ⇒ P_18 = P_17 · la lesión devuelve a 1.7", ok,
-               f"peor diferencia sobre {len(observations)}×{len(commands)} = {worst:.3e}")
+            worst = max(worst, float(np.abs(
+                np.asarray(predict_18(observation, command))
+                - np.asarray(predict_17(observation, command))).max()))
+    alone = states_at_birth == 1
+    same_prior = prior_fingerprint == inherited_fingerprint
+    ok = worst == 0.0 and alone and same_prior
+    report.add("L18-5",
+               "C_18 = 0 ⇒ P_18(·|o,a) = P_17(·|o,a) · la lesión devuelve a 1.7",
+               ok,
+               f"peor diferencia sobre {len(observations)}×{len(commands)} = "
+               f"{worst:.3e} · estados funcionales al nacer {states_at_birth} · "
+               f"prior es el C_17 heredado {same_prior}")
 
 
 # ===========================================================================

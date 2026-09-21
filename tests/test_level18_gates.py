@@ -201,28 +201,62 @@ def _obs():
     return [(0, 0, 0, 0), (0, 1, 0, 1), (1, 1, 0, 0)]
 
 
+def _c17(escala=1.0):
+    """Una `C_17` que SÍ depende de la acción, como 1.7 entera."""
+    tabla = {}
+    for i, o in enumerate(_obs()):
+        bloque = np.zeros((4, 16))
+        for c in range(4):
+            fila = np.full(16, 1 / 16) + 0.01 * ((np.arange(16) + c + i) % 3)
+            bloque[c] = fila / fila.sum()
+        tabla[o] = bloque * escala
+    return tabla
+
+
+def _llama(p18, p17, estados=1, prior="C17", heredado="C17"):
+    return _uno(gates.gate_incremental_invariant, p18, p17, _obs(), (0, 1, 2, 3),
+                estados, prior, heredado)
+
+
 def test_l18_5_pasa_cuando_C18_cero_reproduce_1_7_bit_a_bit():
-    tabla = {o: np.full(16, 1 / 16) for o in _obs()}
-    r = _uno(gates.gate_incremental_invariant,
-             lambda o, c: tabla[o], lambda o: tabla[o], _obs(), (0, 1, 2, 3))
+    """§6 literal: P_18(o'|o,a,z_0) = P_17(o'|o,a), y P_17 DEPENDE de a."""
+    t = _c17()
+    r = _llama(lambda o, c: t[o][c], lambda o, c: t[o][c])
     assert r.passed
     assert "0.000e+00" in r.evidence
 
 
-def test_l18_5_falla_ante_un_residuo_minimo():
-    """Volver *casi* a 1.7 no es volver a 1.7."""
-    tabla = {o: np.full(16, 1 / 16) for o in _obs()}
-    r = _uno(gates.gate_incremental_invariant,
-             lambda o, c: tabla[o] + (1e-12 if c == 2 else 0.0),
-             lambda o: tabla[o], _obs(), (0, 1, 2, 3))
-    assert not r.passed
+def test_l18_5_M1_borrar_la_dependencia_de_la_accion_al_nacer_falla():
+    """El defecto que el gate anterior EXIGÍA. Nacer sin contingencia de acción
+    no es volver a 1.7: es volver a 1.6."""
+    t = _c17()
+    assert not _llama(lambda o, c: t[o][0], lambda o, c: t[o][c]).passed
 
 
-def test_l18_5_falla_si_la_prediccion_depende_del_comando_al_nacer():
-    tabla = {o: np.full(16, 1 / 16) for o in _obs()}
-    assert not _uno(gates.gate_incremental_invariant,
-                    lambda o, c: tabla[o] * (1 + 0.01 * c),
-                    lambda o: tabla[o], _obs(), (0, 1, 2, 3)).passed
+def test_l18_5_M2_alterar_una_probabilidad_heredada_falla():
+    t = _c17()
+    def roto(o, c):
+        fila = t[o][c].copy()
+        fila[3] += 1e-12
+        return fila
+    assert not _llama(roto, lambda o, c: t[o][c]).passed
+
+
+def test_l18_5_M3_introducir_contenido_nuevo_falla():
+    t = _c17()
+    assert not _llama(lambda o, c: t[o][c] * 0.9 + 0.1 / 16,
+                      lambda o, c: t[o][c]).passed
+
+
+def test_l18_5_M4_nacer_con_mas_de_un_estado_funcional_falla():
+    t = _c17()
+    assert not _llama(lambda o, c: t[o][c], lambda o, c: t[o][c], estados=2).passed
+
+
+def test_l18_5_M5_un_prior_que_no_es_el_C17_heredado_falla():
+    t = _c17()
+    assert not _llama(lambda o, c: t[o][c], lambda o, c: t[o][c],
+                      prior="otra-cosa", heredado="C17").passed
 
 
 # ===========================================================================
@@ -639,3 +673,80 @@ def test_un_contrato_que_no_cubre_los_gates_es_fatal():
         n for n in gates.REQUIRED_GATES if n not in ("L18-0", "L18-19")))
     with pytest.raises(LedgerIncomplete, match="no cubre"):
         gates.verify_ledger(_ledger_contractual(), incompleto)
+
+
+# ===========================================================================
+# L18-17 · que el gate deje de medir su propia definición
+# ===========================================================================
+
+def _modelo_alimentado(clase, pasos=600, justificado=False):
+    """Vive de verdad, y se observan `favour` y estructura por cables distintos."""
+    from terrario.level17.efference import ALL_COMMANDS, EfferenceCopy
+    from terrario.level16.temporal import OBSERVATION_INDEX
+    from terrario.level18.life import observed_episodes
+    observaciones = list(OBSERVATION_INDEX)
+    tabla = np.full((16, 4, 16), 4.0)
+    modelo = clase(tabla)
+    modelo.begin()
+    generador = np.random.default_rng(7)
+    anterior = 0
+    for _ in range(pasos):
+        indice = int(generador.integers(4))
+        despues = (observaciones[anterior % len(observaciones)] if justificado
+                   else observaciones[int(generador.integers(len(observaciones)))])
+        modelo.observe(observaciones[0], EfferenceCopy(ALL_COMMANDS[indice]), despues)
+        anterior = indice
+    return modelo, observed_episodes(modelo)
+
+
+def test_l18_17_M3_el_merge_correcto_pasa():
+    from terrario.level18.life import ObservedModel
+    modelo, episodios = _modelo_alimentado(ObservedModel)
+    assert episodios, "no hubo refinamientos: la fixture no aplica"
+    masa = np.full((16, 4, 16), 4.0)
+    r = _uno(gates.gate_refinement_reversibility, episodios,
+             modelo.dangling_routes(), masa, sum(modelo.inherited_mass()),
+             "def nada(): pass")
+    assert r.passed, r.evidence
+
+
+def test_l18_17_M1_refutado_con_merge_desactivado_FALLA():
+    """**El mutante que prueba que el gate no es tautológico.**
+
+    Con merge apagado, el marcador prequencial sigue diciendo «refutado» y la
+    estructura sigue diciendo «no fusionado». Si el gate leyera ambos del mismo
+    cable, esto pasaría.
+    """
+    from terrario.level18.life import MergeSuppressedModel
+    modelo, episodios = _modelo_alimentado(MergeSuppressedModel)
+    assert episodios, "no hubo refinamientos: la fixture no aplica"
+    refutados_vivos = [e for e in episodios if e["refuted"] and not e["merged"]]
+    assert refutados_vivos, (
+        "ningún episodio quedó refutado-y-vivo: el mutante no se pudo construir, "
+        "luego el gate seguiría midiendo su propia definición")
+    masa = np.full((16, 4, 16), 4.0)
+    r = _uno(gates.gate_refinement_reversibility, episodios,
+             modelo.dangling_routes(), masa, sum(modelo.inherited_mass()),
+             "def nada(): pass")
+    assert not r.passed
+
+
+def test_l18_17_M2_fusionar_sin_refutacion_falla():
+    masa = np.full((16, 4, 16), 4.0)
+    assert not _uno(gates.gate_refinement_reversibility,
+                    [{"refuted": False, "merged": True}], [], masa, masa,
+                    "def nada(): pass").passed
+
+
+def test_l18_17_M4_una_ruta_colgante_tras_fusionar_falla():
+    masa = np.full((16, 4, 16), 4.0)
+    assert not _uno(gates.gate_refinement_reversibility,
+                    [{"refuted": True, "merged": True}], [(3, 1, 7)], masa, masa,
+                    "def nada(): pass").passed
+
+
+def test_l18_17_M5_masa_alterada_al_fusionar_falla():
+    masa = np.full((16, 4, 16), 4.0)
+    assert not _uno(gates.gate_refinement_reversibility,
+                    [{"refuted": True, "merged": True}], [], masa, masa + 1.0,
+                    "def nada(): pass").passed

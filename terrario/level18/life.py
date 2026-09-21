@@ -35,6 +35,81 @@ CONTINGENCY = 1024          # P1 · heredado sellado de 1.7
 POST = 2048                 # banco de evaluación
 
 
+class ObservedModel(PredictiveStateModel):
+    """Instrumentación pura: registra el marcador prequencial en el instante en
+    que decide, y no altera ninguna decisión.
+
+    Enmienda 05 §2. Sin esto, `refuted` sólo puede leerse DESPUÉS del paso, y
+    para entonces `_favour` ya fue retirado: el único marcador disponible sería
+    «¿fusionó?», que es la acción, y el gate mediría su propia definición.
+    """
+
+    def __init__(self, inherited_counts) -> None:
+        super().__init__(inherited_counts)
+        self.favour_at_collapse: dict[int, list[float]] = {}
+        self.undone: set[int] = set()
+        #: Episodios cuya contabilidad fue DESCARTADA por un re-split del mismo
+        #: estado antes de que se resolvieran. No son refutados ni fusionados:
+        #: no tienen estatus. Se cuentan y se reportan; no se esconden.
+        self.orphaned: set[int] = set()
+
+    def _refine(self, state: int) -> None:
+        if self._children.get(state):
+            for index, episode in enumerate(self._episodes):
+                if (episode["parent"] == state and index not in self.undone
+                        and index not in self.orphaned):
+                    self.orphaned.add(index)
+        super()._refine(state)
+
+    def _collapse(self, state: int) -> None:
+        if self._descendants(state):
+            # CABLE 1 · la evidencia: cuánto valía el marcador prequencial.
+            self.favour_at_collapse.setdefault(state, []).append(
+                float(self._favour.get(state, float("nan"))))
+            # CABLE 2 · la acción: qué episodio deja de existir. No se infiere de
+            # los ids de los hijos, porque `born = max(prior) + 1` los RECICLA:
+            # tras un colapso un split posterior reusa los mismos números y un
+            # episodio deshecho parecería vivo.
+            for index, episode in enumerate(self._episodes):
+                if episode["parent"] == state and index not in self.undone:
+                    self.undone.add(index)
+        super()._collapse(state)
+
+
+class MergeSuppressedModel(ObservedModel):
+    """M1 de la Enmienda 05 · juzga igual, acumula el marcador igual, NO fusiona.
+
+    Existe sólo para falsificar `L18-17`: si este mutante no pudiera construirse,
+    el gate seguiría midiendo su propia definición.
+    """
+
+    def _collapse(self, state: int) -> None:
+        return None
+
+
+def observed_episodes(learner) -> list[dict]:
+    """`refuted` y `merged` leídos por cables DISTINTOS.
+
+    `refuted` viene del marcador prequencial --el favor en el momento de juzgar--
+    y `merged` del cambio REAL de organización: los hijos ya no están vivos.
+    """
+    pending = {k: list(v) for k, v in
+               getattr(learner, "favour_at_collapse", {}).items()}
+    undone = getattr(learner, "undone", set())
+    orphaned = getattr(learner, "orphaned", set())
+    records = []
+    for index, episode in enumerate(learner.episodes()):
+        if index in orphaned:
+            continue            # sin estatus · su cuenta la contabiliza `orphaned`
+        parent = episode["parent"]
+        if index in undone and pending.get(parent):
+            favour = pending[parent].pop(0)
+        else:
+            favour = float(learner._favour.get(parent, 1.0))
+        records.append({"refuted": favour <= 0.0, "merged": index in undone})
+    return records
+
+
 class ObservationHistoryModel(PredictiveStateModel):
     """O-HISTORY-ONLY · el mismo mecanismo, ciego al comando.
 
@@ -121,7 +196,7 @@ def live(seed: int, budget: int, *, merge: bool = True, trace: list | None = Non
     oracle_prior = {index[c]: table / len(ordered) for c in ordered}
     oracle_evidence = {index[c]: np.zeros_like(table) for c in ordered}
     flat = np.full_like(table, table.sum() / table.size)
-    learner = (PredictiveStateModel if merge else MergeDisabledModel)(table)
+    learner = (ObservedModel if merge else MergeDisabledModel)(table)
     learner.begin()
     observation_only = ObservationHistoryModel(table)      # O-HISTORY-ONLY
     observation_only.begin()
