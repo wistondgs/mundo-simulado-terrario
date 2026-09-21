@@ -13,11 +13,18 @@ bajo la distribución de referencia `p_ref(o,a) = p_estacionaria(o) · 1/4`, que
 la que S0 produce: caminata uniforme con rebote, cadena simétrica sobre celdas,
 luego estacionaria uniforme sobre el componente natal.
 
-También verifica el gemelo A/B: un mundo B con
+También verifica el gemelo A/B **al nivel del kernel de estados**, que es lo
+único que permite llamarlo gemelo físico:
 
     T_B(s'|s,a)  =  (1/4) Σ_b T_A(s'|s,b)      para toda a
 
-conserva exactamente la dinámica marginal de A y anula `I(A;O'|O)`.
+La primera versión de este script comparaba `conditional.mean(axis=1)` con
+`twin.mean(axis=1)`, que es cierto **por construcción**: demostraba un kernel
+observacional fabricado para ser gemelo, no un mundo B. Corregido. De las cuatro
+comprobaciones de abajo, dos son tautológicas y se marcan como tales; las dos que
+prueban algo son que la estacionaria coincide y que `I(O;O')` se conserva exacta
+mientras `I(A;O'|O)` cae a cero, ambas calculadas desde el kernel de estados a
+través del mapa de observación.
 
     python scripts/medir_dependencia_accion.py
 """
@@ -112,6 +119,77 @@ def sensory_mutual_information(marginalised, p_observation):
         for j in range(16) if marginalised[o, j] > 0 and marginal[j] > 0))
 
 
+def state_kernel(seed: int):
+    """`T_A(s'|s,a)` sobre el componente natal, con la firma de cada celda."""
+    grid = build_world(seed)
+    seen = {grid.position}
+    stack = [grid.position]
+    while stack:
+        row, col = stack.pop()
+        for direction in Direction:
+            destino = (row + DELTA[direction][0], col + DELTA[direction][1])
+            if grid.cells[destino] == 0 and destino not in seen:
+                seen.add(destino)
+                stack.append(destino)
+    cells = sorted(seen)
+    index = {cell: i for i, cell in enumerate(cells)}
+    kernel = np.zeros((len(cells), 4, len(cells)))
+    for cell in cells:
+        for direction in Direction:
+            destino = (cell[0] + DELTA[direction][0], cell[1] + DELTA[direction][1])
+            landing = destino if grid.cells[destino] == 0 else cell
+            kernel[index[cell], int(direction), index[landing]] = 1.0
+    signature = np.array([OBSERVATION_INDEX[_signature(grid, c)] for c in cells])
+    return kernel, signature
+
+
+def observational_from_states(kernel, signature, stationary):
+    """Proyectar un kernel de estados al espacio sensorial. Vale para A y para B."""
+    n = len(signature)
+    numerator = np.zeros((16, 4, 16))
+    denominator = np.zeros(16)
+    for s in range(n):
+        origen = signature[s]
+        denominator[origen] += stationary[s]
+        for a in range(4):
+            for s2 in np.nonzero(kernel[s, a])[0]:
+                numerator[origen, a, signature[s2]] += stationary[s] * kernel[s, a, s2]
+    conditional = np.zeros((16, 4, 16))
+    p_observation = np.zeros(16)
+    for origen in range(16):
+        if denominator[origen] > 0:
+            conditional[origen] = numerator[origen] / denominator[origen]
+            p_observation[origen] = denominator[origen]
+    return conditional, conditional.mean(axis=1), p_observation
+
+
+def verify_physical_twin(seed: int) -> None:
+    """Construir el mundo B FÍSICO y comprobar las cuatro propiedades."""
+    kernel_a, signature = state_kernel(seed)
+    kernel_b = np.repeat(kernel_a.mean(axis=1)[:, None, :], 4, axis=1)
+    n = len(signature)
+
+    # la cadena marginal es simétrica => estacionaria uniforme. Se comprueba.
+    marginal_a = kernel_a.mean(axis=1)
+    assert np.allclose(marginal_a, marginal_a.T), "la cadena marginal debe ser simétrica"
+    stationary = np.full(n, 1.0 / n)
+
+    ca, ma, pa = observational_from_states(kernel_a, signature, stationary)
+    cb, mb, pb = observational_from_states(kernel_b, signature, stationary)
+
+    print(f"  semilla {seed}  ({n} celdas)")
+    print("    [tautológico] T_B(.|s,a_i) == T_B(.|s,a_j)        "
+          f"{all(np.allclose(kernel_b[:, i, :], kernel_b[:, j, :]) for i in range(4) for j in range(4))}")
+    print("    [tautológico] sum_a T_A/4 == sum_a T_B/4          "
+          f"{np.allclose(kernel_a.mean(axis=1), kernel_b.mean(axis=1))}")
+    print("    [prueba algo] I(O;O') conservada exacta           "
+          f"{np.isclose(sensory_mutual_information(ma, pa), sensory_mutual_information(mb, pb), atol=0, rtol=0)}"
+          f"   ({sensory_mutual_information(ma, pa):.4f} -> {sensory_mutual_information(mb, pb):.4f})")
+    print("    [prueba algo] I(A;O'|O) anulada                   "
+          f"{conditional_mutual_information(ca, ma, pa):.4f} -> "
+          f"{conditional_mutual_information(cb, mb, pb):.3e}")
+
+
 def main() -> None:
     encabezado = "D_W = I(A;O'|O)"
     print(f"{'semilla':>10} {'celdas':>7} {encabezado:>16} {'H(O.|C)':>9} "
@@ -140,13 +218,9 @@ def main() -> None:
                   f"   I(O;O') {sensorial[mascara].mean():.4f}"
                   f"   razon {np.mean(disponible[mascara]/sensorial[mascara]):.3f}")
 
-    print("\n=== gemelo A/B ===")
-    conditional, marginalised, p_observation, _, _ = reachable_kernels(140000011)
-    twin = np.repeat(marginalised[:, None, :], 4, axis=1)
-    print(f"  I_B(A;O'|O)                {conditional_mutual_information(twin, twin.mean(axis=1), p_observation):.3e}"
-          "   (debe ser exactamente 0)")
-    print(f"  dinamica marginal identica {np.allclose(conditional.mean(axis=1), twin.mean(axis=1))}")
-    print(f"  I_A(A;O'|O) del mismo mundo {conditional_mutual_information(conditional, marginalised, p_observation):.4f}")
+    print("\n=== gemelo A/B, al nivel del kernel de ESTADOS ===")
+    for seed in (140000011, 140000014, 140000025):
+        verify_physical_twin(seed)
 
 
 if __name__ == "__main__":
