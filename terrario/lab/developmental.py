@@ -232,6 +232,10 @@ def gap_analysis(graph: DevelopmentalGraph, target: str,
         else:
             unknown.append(f"{linea} · {edge.basis}")
 
+    # U4 · el listón es por tipo de afirmación, no un «¿se midió algo?» global.
+    # Una presencia estructural se cierra leyendo código; una necesidad causal
+    # exige lesión, intervención o factorial. Exigir lo mismo a las dos haría
+    # que comprobar que una rama existe necesitara un experimento.
     medidas = [e for e in entrantes if e.evidence is EvidenceState.MEASURED]
     premature = not medidas and bool(entrantes)
     if not entrantes:
@@ -395,4 +399,53 @@ def terrario_graph() -> DevelopmentalGraph:
     # 1.6 importa de level1 sólo primitivas del cuerpo y del mundo, y NADA de
     # 1.1–1.4: por eso no existe arista developmental de PSI a TEMPREG aunque
     # la cronología las ponga en ese orden.
+    return g
+
+
+# ── El grafo, construido desde el ledger tipado ──────────────────────────
+
+def _collapse(claim) -> "EvidenceState":
+    """Las cuatro dimensiones del ledger, proyectadas al eje que el análisis usa.
+
+    La proyección pierde información a propósito y en un solo sentido: el
+    ledger es la autoridad y esto es una vista. `CONTRADICTED` gana sobre la
+    clase de evidencia porque una relación medida y luego refutada no es
+    conocimiento a favor -- que es justo lo que el modelo de dos ejes no podía
+    escribir.
+    """
+    from terrario.lab.relation_ledger import EpistemicStatus
+
+    if claim.status is EpistemicStatus.CONTRADICTED:
+        return EvidenceState.CONTRADICTED
+    if claim.is_measured:
+        return EvidenceState.MEASURED
+    if claim.is_read:
+        return EvidenceState.READ
+    return EvidenceState.CANDIDATE
+
+
+def graph_from_ledger(capabilities: dict[str, Capability],
+                      claims) -> DevelopmentalGraph:
+    """Una sola fuente: el ledger. El grafo deja de tener aristas propias."""
+    from terrario.lab.relation_ledger import RelationSemantics
+
+    equivalencia = {
+        RelationSemantics.REQUIRES: DependencyKind.REQUIRES,
+        RelationSemantics.FACILITATES: DependencyKind.FACILITATES,
+        RelationSemantics.SUFFICIENT_SET: DependencyKind.SUFFICIENT_SET,
+        RelationSemantics.ALTERNATIVE_TO: DependencyKind.ALTERNATIVE,
+        RelationSemantics.SUBSTITUTABLE_WITH: DependencyKind.ALTERNATIVE,
+        RelationSemantics.INHIBITS: DependencyKind.INHIBITS,
+        RelationSemantics.SYNERGIZES_WITH: DependencyKind.SUFFICIENT_SET,
+    }
+    g = DevelopmentalGraph()
+    for capability in capabilities.values():
+        g.add(capability)
+    for claim in claims:
+        g.link(DevelopmentalEdge(
+            precursors=claim.precursors, target=claim.target,
+            kind=equivalencia.get(claim.semantics, DependencyKind.UNKNOWN),
+            evidence=_collapse(claim),
+            basis=f"{claim.basis} [{claim.claim_id}]",
+            experiment=claim.evidence_ref))
     return g

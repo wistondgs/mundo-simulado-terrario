@@ -5928,3 +5928,52 @@ que la pregunta no es si puede adquirirse sino **si es requisito o andamiaje**,
 y eso se contesta quitándola y mirando si el objetivo sobrevive. El analizador
 saca `PSI` como `lesion_candidate` de 1.5, que es la forma computable de la
 pregunta que llevaba abierta desde el cierre forense.
+
+## 48.5 · `RELATION_LEDGER_V1` · cuatro ejes, y tres negativas estructurales
+
+Escrito el 2026-09-21. `U1` del plan ejecutable.
+
+**El modelo de dos ejes tenía uno mal.** `CONTRADICTED` estaba junto a
+`MEASURED`, es decir mezclaba *cómo lo sabemos* con *qué sostenemos ahora*: la
+refutación de 1.8 es `MEASURED_INTERVENTION` **y** `CONTRADICTED`, y en un solo
+enum había que elegir. Ahora son cuatro y se mueven libres:
+
+```
+semantics   REQUIRES · FACILITATES · SYNERGIZES_WITH · …    qué se afirma
+effect      NECESSARY · SUFFICIENT · SUBSTITUTABLE · …      qué forma tiene
+evidence    MEASURED_FACTORIAL · VERIFIED_CODE · …          cómo se sabe
+status      SUPPORTED · CONTRADICTED · SUPERSEDED           qué se sostiene
+```
+
+**Tres negativas viven en el constructor y no en una guía de estilo**, cada una
+porque la prohibición textual equivalente ya falló antes en este proyecto:
+
+* **scope** · una clase causal sin ámbito se rechaza. La única arista medida
+  del proyecto vale en un mundo, con un organismo, bajo una familia de
+  mecanismo; escrita sin eso, se convierte en ley universal la primera vez que
+  alguien la lea deprisa;
+* **procedencia de hipótesis** · una `HYPOTHESIS` sin `origin` se rechaza, o la
+  regla de que ningún modelo decide necesidades causales no es auditable: una
+  candidata generada y una humana son la misma fila a los dos meses;
+* **`superseded_by`** · una relación `SUPERSEDED` que no nombra a su sucesora
+  se rechaza. 1.5 pasó por cuatro supersesiones y hubo que reconciliar a mano
+  cuál mandaba.
+
+Y una clase de evidencia que el proyecto **ya producía sin tener dónde
+ponerla**: `REPLICATED_DETERMINISTIC`, que es lo que hizo la reconciliación de
+1.6 —celda por celda, `5e-5`, cero diferencias— cuando los artefactos
+originales ya no existían. No es medición, porque no hay artefacto; no es
+documento, porque se ejecutó una comprobación.
+
+**El listón es por tipo de afirmación**, no un «¿se midió algo?» global:
+presencia estructural cierra con `VERIFIED_CODE`, necesidad causal exige
+lesión, intervención o factorial, y sinergia exige factorial específicamente.
+Exigir lo mismo a las dos haría que comprobar que una rama existe necesitara
+un experimento.
+
+**El inventario tiene 15 filas y 5 cumplen política.** El grafo ya no tiene
+aristas propias: se construye desde el ledger, que es la única fuente.
+
+Y el control que faltaba en el plan: **existe una fixtura donde la evidencia
+SÍ ordena los candidatos** y el empate se resuelve a uno solo. Sin ella, una
+regla que siempre empata no discrimina nada y pasa todas las pruebas.

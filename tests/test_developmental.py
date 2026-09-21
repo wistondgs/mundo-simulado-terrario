@@ -137,3 +137,62 @@ def test_a_target_nobody_mapped_is_premature_too():
     g.add(Capability("X", "algo", CapabilityState.CANDIDATE))
     r = gap_analysis(g, "X")
     assert r.premature and "not in the graph yet" in r.reason
+
+
+# --- U1 · el ledger tipado gobierna el grafo ------------------------------------------
+
+def _from_ledger():
+    from terrario.lab.developmental import graph_from_ledger, terrario_graph
+    from terrario.lab.relation_ledger import relation_ledger_v1
+    return graph_from_ledger(terrario_graph().capabilities, relation_ledger_v1())
+
+
+def test_the_ledger_reproduces_both_acceptances():
+    g = _from_ledger()
+    assert gap_analysis(g, "SELECTION").premature
+    assert gap_analysis(g, "PREDSTATE").premature
+    assert not gap_analysis(g, "PSI_USEFUL").premature
+
+
+def test_measured_and_contradicted_are_different_axes():
+    """The defect the two-axis model could not express.
+
+    1.8's refutation is MEASURED_INTERVENTION *and* CONTRADICTED; putting both
+    on one enum forced a choice between recording how it was known and what we
+    now hold."""
+    from terrario.lab.relation_ledger import (
+        EpistemicStatus, EvidenceClass, relation_ledger_v1)
+
+    refutada = next(c for c in relation_ledger_v1() if c.claim_id == "REL-003")
+    assert refutada.evidence is EvidenceClass.MEASURED_INTERVENTION
+    assert refutada.status is EpistemicStatus.CONTRADICTED
+    assert refutada.is_measured
+
+
+# --- M1 · el control negativo, sin el cual la preservación de empates no vale ----------
+
+def test_evidence_can_order_candidates_and_then_there_is_no_tie():
+    """A rule that always ties discriminates nothing and passes every test.
+
+    So: a target whose two candidates sit at different distances from the
+    demonstrated frontier must come back with exactly one."""
+    from terrario.lab.developmental import (
+        Capability, CapabilityState, DependencyKind, DevelopmentalEdge,
+        DevelopmentalGraph, EvidenceState)
+
+    g = DevelopmentalGraph()
+    g.add(Capability("BASE", "algo demostrado", CapabilityState.DEMONSTRATED, "test"))
+    g.add(Capability("CERCA", "candidato apoyado en lo demostrado", CapabilityState.CANDIDATE))
+    g.add(Capability("LEJOS", "candidato que depende del anterior", CapabilityState.CANDIDATE))
+    g.add(Capability("META", "objetivo", CapabilityState.CANDIDATE))
+    g.link(DevelopmentalEdge(frozenset({"BASE"}), "CERCA", DependencyKind.REQUIRES,
+                             EvidenceState.READ, basis="apoyado en lo demostrado"))
+    g.link(DevelopmentalEdge(frozenset({"CERCA"}), "LEJOS", DependencyKind.REQUIRES,
+                             EvidenceState.READ, basis="depende del anterior"))
+    for pre in ("CERCA", "LEJOS"):
+        g.link(DevelopmentalEdge(frozenset({pre}), "META", DependencyKind.UNKNOWN,
+                                 EvidenceState.CANDIDATE, basis="candidato"))
+
+    r = gap_analysis(g, "META")
+    assert r.tied_candidates == ("CERCA",)
+    assert "the choice is yours" not in (r.next_question or "")
