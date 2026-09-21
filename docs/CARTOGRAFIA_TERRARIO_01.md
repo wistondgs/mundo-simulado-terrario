@@ -3501,6 +3501,13 @@ fichero, también verifica cada cita `fichero:línea` del documento —inexisten
 fuera de rango o en blanco—. El hash no podía ver que una cita se pudriera
 mientras el fichero registrado seguía igual, y cuatro lo habían hecho.
 
+**Y declara su propio alcance.** Cada corrida lista las secciones que **no citan
+ninguna ruta**: el gate no puede invalidarlas, están al día por construcción, y
+por eso nadie las revisaba. Son doce de cuarenta y cuatro, y de las dos
+comprobadas hasta hoy las dos estaban desfasadas (§XLV). No es un fallo que
+reporte: es la frontera de lo que este comprobador alcanza, dicha en voz alta en
+cada ejecución en vez de quedar implícita.
+
 ## 38.6 · Hipergrafo · sigue siendo estructura, no conocimiento
 
 Reverificado línea a línea; §32.4 se sostiene sin cambios:

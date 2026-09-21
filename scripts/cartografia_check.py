@@ -136,6 +136,20 @@ def head() -> str:
         return "unavailable"
 
 
+def unwatched() -> tuple[str, ...]:
+    """Secciones que no citan una sola ruta.
+
+    El gate no puede invalidarlas: están permanentemente al día por
+    construcción, y por eso nadie las revisa. Dos de dos comprobadas salieron
+    desfasadas --§XXVII afirma que `prediction_error` no lo lee nadie, y A5 lo
+    lee desde `fd725e3`--, así que la clase entera se reporta aunque no sea un
+    fallo: es el único aviso posible sobre lo que este comprobador no alcanza.
+    """
+    text = CARTOGRAPHY.read_text(encoding="utf-8")
+    return tuple(title for title, body in sections(text).items()
+                 if title != "(preámbulo)" and not referenced(body))
+
+
 def survey() -> dict[str, dict[str, str]]:
     """Estado actual: por sección, el hash de cada fichero que cita."""
     text = CARTOGRAPHY.read_text(encoding="utf-8")
@@ -212,6 +226,14 @@ def check(only: str | None, tarea: str | None = None) -> int:
             reasons.append(f"dejó de citarse: {relative}")
         if reasons:
             stale[title] = reasons
+
+    ciegas = unwatched()
+    if ciegas and not only:
+        print(f"SIN VIGILANCIA — {len(ciegas)} sección(es) no citan ninguna ruta;")
+        print("el gate no puede invalidarlas. No es un fallo: es su alcance.\n")
+        for title in ciegas:
+            print(f"      {title}")
+        print()
 
     podridas = {t: v for t, v in rotten_citations().items()
                 if not only or only.lower() in t.lower()}
