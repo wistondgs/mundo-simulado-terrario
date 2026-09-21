@@ -23,10 +23,34 @@ from __future__ import annotations
 
 from dataclasses import dataclass, fields
 from enum import StrEnum
+from typing import Any
 
 from terrario.lab.agent_composition import CONCEPTS
+from terrario.lab.persistence.canonical import content_hash, plain
 
 SCHEMA_VERSION = "terrario.lab.capability-passport/v1"
+#: v2 separates what we supply from what must be acquired, names what cannot be
+#: concluded, and points at a versioned mechanism instead of a paragraph.
+#:
+#: A new version rather than four more fields on v1, and measured before
+#: choosing: the ten registered passports declare none of them, so evaluating
+#: the separation as a precondition would reclassify 10 of 10 and take the only
+#: READY_FOR_CERTIFICATION with it.  A v1 passport therefore keeps its exact
+#: historical shape and state; moving one to v2 is an explicit act that mints a
+#: new identity, never a silent upgrade of the same record.
+SCHEMA_VERSION_V2 = "terrario.lab.capability-passport/v2"
+V1_FIELDS: tuple[str, ...] = (
+    "concept_id", "corpus_provenance", "operational_definition", "algorithm_id",
+    "algorithm_version", "capability_id", "inputs", "outputs", "internal_state",
+    "allowed_information", "forbidden_information", "expected_behavior",
+    "negative_prediction", "required_world_property", "primary_endpoint",
+    "secondary_endpoints", "falsification_controls", "intervention_purity",
+    "known_dependencies", "known_confounders", "composition_flag",
+    "demanding_world", "notes", "operationalization_id",
+)
+V2_ONLY_FIELDS: tuple[str, ...] = (
+    "supplied", "acquisition_target", "non_claims", "formalization_ref",
+)
 
 #: Campos cuya ausencia hace que el pasaporte no exista como contrato. No es la
 #: lista entera: `notes` y `secondary_endpoints` pueden estar vacíos sin que el
@@ -39,9 +63,49 @@ MANDATORY = (
 )
 
 
+class ElementKind(StrEnum):
+    """Qué clase de cosa es un elemento de `supplied` o de `acquisition_target`.
+
+    Existe para que la separación se compruebe por identidad y no por
+    ortografía: `"memory"` y `"episodic_memory"` son cadenas distintas y podrían
+    ser la misma cosa, mientras que `(MECHANISM, "onestep-cue-memory")` y
+    `(CONTENT, "onestep-cue-memory")` son distintas a propósito -- damos el
+    mecanismo, el organismo adquiere su contenido.
+    """
+
+    MECHANISM = "MECHANISM"
+    CONCEPT = "CONCEPT"
+    PARAMETER = "PARAMETER"
+    CONTENT = "CONTENT"
+    ORGANIZATION = "ORGANIZATION"
+
+
+@dataclass(frozen=True)
+class ElementRef:
+    """Una identidad con revisión, no una etiqueta.
+
+    `key` deja fuera la revisión: dar la versión 1 de un mecanismo y pedir que
+    se adquiera su versión 2 sigue siendo dar y pedir lo mismo, y colapsaría la
+    pregunta científica igual de bien.
+    """
+
+    kind: ElementKind
+    identity: str
+    revision: str = ""
+
+    def __post_init__(self) -> None:
+        if not str(self.identity).strip():
+            raise ValueError("un elemento requiere identidad")
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (str(self.kind.value), str(self.identity))
+
+
 class PassportState(StrEnum):
     """Por qué una capacidad todavía no puede certificarse."""
 
+    SUPPLIED_AND_ACQUIRED_NOT_SEPARATED = "SUPPLIED_AND_ACQUIRED_NOT_SEPARATED"
     PASSPORT_INCOMPLETE = "PASSPORT_INCOMPLETE"
     NO_CORPUS_PROVENANCE = "NO_CORPUS_PROVENANCE"
     INTERVENTION_IMPURE = "INTERVENTION_IMPURE"
@@ -97,6 +161,20 @@ class CapabilityPassport:
     #: Identificador de una decisión humana en capability_operationalization.
     #: No es una afirmación atribuible al corpus.
     operationalization_id: str | None = None
+    #: --- v2 ---------------------------------------------------------------
+    #: Declarados al final y con valor vacío, de modo que un pasaporte v1 se
+    #: construya y se serialice exactamente como antes de que existieran.
+    schema_version: str = SCHEMA_VERSION
+    #: El mecanismo o la estructura que NOSOTROS damos.
+    supplied: tuple[ElementRef, ...] = ()
+    #: El contenido u organización que debe surgir de la experiencia. Si esto
+    #: cabe en `supplied`, la capacidad no se está midiendo: se está montando.
+    acquisition_target: tuple[ElementRef, ...] = ()
+    #: Lo que no se podrá afirmar aunque el experimento salga positivo.
+    non_claims: tuple[str, ...] = ()
+    #: `MechanismRef` a un `MechanismSpec` registrado. Un párrafo no es
+    #: autoridad; una referencia versionada sí.
+    formalization_ref: Any | None = None
 
     def __post_init__(self) -> None:
         if self.composition_flag is not None and self.composition_flag not in {
@@ -104,6 +182,76 @@ class CapabilityPassport:
             raise ValueError(
                 f"{self.capability_id}: la bandera {self.composition_flag!r} no está en "
                 f"el catálogo de composición; el pasaporte y el catálogo derivaron")
+        if self.schema_version == SCHEMA_VERSION:
+            # v1 queda congelado: no puede adquirir semántica v2 por la puerta
+            # de atrás, porque entonces su identidad dependería de campos que su
+            # versión no declara.
+            for name in V2_ONLY_FIELDS:
+                if getattr(self, name):
+                    raise ValueError(
+                        f"{self.capability_id}: {name} es de "
+                        f"{SCHEMA_VERSION_V2}; migra el pasaporte en vez de "
+                        f"añadirle campos de otra versión")
+            return
+        if self.schema_version != SCHEMA_VERSION_V2:
+            raise ValueError(f"esquema de pasaporte desconocido: {self.schema_version}")
+        self._check_v2()
+
+    # ── v2 ───────────────────────────────────────────────────────────────
+
+    def _check_v2(self) -> None:
+        falta = [name for name in V2_ONLY_FIELDS if not getattr(self, name)]
+        if falta:
+            raise ValueError(
+                f"{self.capability_id}: {SCHEMA_VERSION_V2} exige {sorted(falta)}")
+        dados = {ref.key for ref in self.supplied}
+        pedidos = {ref.key for ref in self.acquisition_target}
+        comun = dados & pedidos
+        if comun:
+            # El colapso que borra la pregunta científica: si lo damos y además
+            # decimos que debe adquirirse, no hay nada que medir.
+            raise ValueError(
+                f"{self.capability_id}: {sorted(comun)} aparece a la vez como "
+                f"suministrado y como objetivo de adquisición")
+        prohibido = {str(x) for x in self.forbidden_information}
+        colado = sorted(prohibido & {ref.identity for ref in self.supplied})
+        if colado:
+            raise ValueError(
+                f"{self.capability_id}: {colado} está en forbidden_information y "
+                f"aun así se suministra")
+
+    @property
+    def is_v2(self) -> bool:
+        return self.schema_version == SCHEMA_VERSION_V2
+
+    def separates_supply_from_acquisition(self) -> bool:
+        """v1 nunca lo separa, y eso es un hecho sobre su versión, no un defecto.
+
+        Devolver `False` para v1 es lo que permite que `status_of` conserve su
+        semántica histórica: la condición sólo se evalúa donde el esquema la
+        declara.
+        """
+        if not self.is_v2:
+            return False
+        return bool(self.supplied) and bool(self.acquisition_target) and not (
+            {r.key for r in self.supplied} & {r.key for r in self.acquisition_target})
+
+    def payload(self) -> dict[str, Any]:
+        """Forma canónica. Un pasaporte v1 emite sus campos históricos y nada más.
+
+        Es la condición que hace que añadir v2 no mueva ninguna identidad ya
+        existente: los cuatro campos nuevos no aparecen como `null`, no
+        aparecen.
+        """
+        base = {name: plain(getattr(self, name)) for name in V1_FIELDS}
+        if not self.is_v2:
+            return base
+        return {**base, "schema_version": self.schema_version,
+                **{name: plain(getattr(self, name)) for name in V2_ONLY_FIELDS}}
+
+    @property
+    def content_identity(self) -> str:
+        return content_hash(self.payload())
 
     def missing(self) -> tuple[str, ...]:
         """Campos obligatorios vacíos. Un contrato incompleto no es un contrato."""
@@ -118,6 +266,12 @@ def status_of(passport: CapabilityPassport) -> PassportState:
     atribuible a nadie; sin mundo que lo exija una ablación sin efecto no dice
     nada; y sin instrumento calibrado el número no es reportable.
     """
+    if passport.is_v2 and not passport.separates_supply_from_acquisition():
+        # Primero porque es la precondición de todo lo demás: sin saber qué
+        # dimos y qué debía surgir, un endpoint calibrado mide algo que no
+        # sabemos atribuir. Y sólo bajo v2, medido: los diez pasaportes
+        # registrados son v1 y evaluarlo en ellos reclasificaría 10 de 10.
+        return PassportState.SUPPLIED_AND_ACQUIRED_NOT_SEPARATED
     if passport.missing():
         return PassportState.PASSPORT_INCOMPLETE
     if not passport.corpus_provenance:
@@ -559,3 +713,59 @@ register(CapabilityPassport(
         "capacidad es cerrar ese lazo, no anadir uno nuevo."),
     operationalization_id="OPR-CURIO-A1-PE-01",
 ))
+
+
+# ── v1 → v2 · una migración explícita, nunca una actualización silenciosa ──
+
+class NonClaimViolation(ValueError):
+    """Se intentó tratar como afirmación algo declarado fuera de alcance."""
+
+    code = "NON_CLAIM_PROMOTED"
+
+
+def migrate_to_v2(passport: CapabilityPassport, *, capability_id: str,
+                  supplied: tuple[ElementRef, ...],
+                  acquisition_target: tuple[ElementRef, ...],
+                  non_claims: tuple[str, ...],
+                  formalization_ref: Any) -> CapabilityPassport:
+    """Deriva un pasaporte v2 a partir de uno v1, con identidad nueva.
+
+    Exige `capability_id` distinto a propósito. Migrar en el sitio dejaría dos
+    significados bajo un identificador —el que se certificó y el que ahora
+    separa suministro de adquisición— y es exactamente el colapso que este
+    esquema existe para impedir, cometido sobre el pasaporte en vez de sobre la
+    capacidad.
+    """
+    from dataclasses import replace
+
+    if capability_id == passport.capability_id:
+        raise ValueError(
+            "migrar a v2 cambia lo que el pasaporte afirma; dale un "
+            "capability_id propio en vez de reescribir el que ya se evaluó")
+    derivado = replace(
+        passport, capability_id=capability_id, schema_version=SCHEMA_VERSION_V2,
+        supplied=supplied, acquisition_target=acquisition_target,
+        non_claims=non_claims, formalization_ref=formalization_ref)
+    if derivado.content_identity == passport.content_identity:
+        raise ValueError("la migración no produjo una identidad nueva")
+    return derivado
+
+
+def assert_claimable(passport: CapabilityPassport, claim: str) -> str:
+    """Los dientes de `non_claims`: una conclusión excluida no vuelve por la puerta.
+
+    Almacenar la lista no impide nada. Lo que impide algo es que exista un punto
+    por el que toda afirmación atribuida a esta capacidad tenga que pasar, y que
+    ese punto se niegue. Comparación sin distinguir mayúsculas ni espacios de
+    borde, porque la exclusión la escribe una persona y la afirmación la escribe
+    otra, a veces meses después.
+    """
+    normal = " ".join(str(claim).split()).casefold()
+    if not normal:
+        raise ValueError("una afirmación vacía no es una afirmación")
+    for excluido in passport.non_claims:
+        if " ".join(str(excluido).split()).casefold() == normal:
+            raise NonClaimViolation(
+                f"{passport.capability_id}: {claim!r} está declarado fuera de "
+                f"alcance en non_claims y no puede afirmarse de esta capacidad")
+    return claim

@@ -5553,3 +5553,101 @@ significa que **un bundle sellado deja de re-derivarse desde su borrador en
 cuanto el conjunto de reglas cambia**. La inmutabilidad del sello es real; su
 *reproducibilidad* depende de que el código no se mueva, y eso es exactamente lo
 que la condición `A` del contrato de admisión distingue de «es reproducible».
+
+---
+
+# XLVII · El contrato de construcción de capacidad · v2, y por qué v1 no se tocó
+
+Escrito el 2026-09-21. Extiende `capability_passport.py`, que §39.2 ya había
+identificado como «la unidad de la campaña»; **no** crea una abstracción nueva.
+
+## 47.1 · La medición que decidió el diseño
+
+Antes de añadir nada se corrió `status_of` sobre los diez pasaportes y se
+simuló el estado propuesto:
+
+```
+ANTES                              SI el estado se evaluara en v1
+  NO_CORPUS_PROVENANCE      5        SUPPLIED_AND_ACQUIRED_NOT_SEPARATED  10
+  INTERVENTION_IMPURE       2
+  NO_CALIBRATED_ENDPOINT    2      → 10/10, y LEARN-A1 deja de estar listo
+  READY_FOR_CERTIFICATION   1
+```
+
+Los diez tienen los campos nuevos vacíos **por construcción**, así que exigir
+la separación los declara defectuosos a todos y borra la única lectura útil que
+el sistema produce. Eso no es una mejora: es una migración escondida dentro de
+una.
+
+**Por eso el esquema va versionado.** `SCHEMA_VERSION_V2`
+([capability_passport.py:41](terrario/lab/capability_passport.py:41)) es el
+mismo precedente que `ROOT_SCHEMA_V2` en el bundle y `RESULT_SCHEMA v2` en la
+publicación. Verificado después: **cero pasaportes movidos**, los diez siguen en
+v1 y `passport_check.py` da salida idéntica.
+
+Y v1 queda congelado también **canónicamente**: `payload()` emite sus 24 campos
+históricos y ningún `null` de los cuatro nuevos, porque cuatro nulos moverían
+toda identidad ya calculada. Un v1 que intente llevar un campo v2 se rechaza en
+`__post_init__`.
+
+## 47.2 · Mecanismo y código dejan de ser la misma cosa
+
+`MechanismSpec` ([mechanism_spec.py](terrario/lab/mechanism_spec.py)) es lo que
+un mecanismo **significa**; `AlgorithmBinding` sigue siendo qué implementación
+lo realiza. Antes ambos eran `algorithm_id` más un párrafo, y dos
+implementaciones de un mecanismo eran indistinguibles de dos mecanismos.
+
+Copia la anatomía de `MetricSpec`
+([instrument_registry.py:55](terrario/lab/instrument_registry.py:55)) —que ya
+escribía la forma condicional «written out, not implied»— y la aplica al lado
+que no la tenía. Registro inmutable por `(mechanism_id, version)`, y `resolve`
+falla con tres códigos distintos —`UNKNOWN_MECHANISM`,
+`MECHANISM_VERSION_DRIFT`, `MECHANISM_SPEC_DRIFT`—, igual que `InstrumentRef`.
+
+**`degenerate_of` existe por el Nivel 1.8.** Su oráculo selló
+`Z_{t+1} = F(Z_t, A_t, O_{t+1})` y lo que corrió fue `F(Z_t, A_t)`: el caso
+degenerado, con la observación caída. Todos sus números eran ciertos y
+respondían a otra pregunta. Nombrar por adelantado las formas en las que un
+mecanismo **no** puede colapsar convierte eso en una afirmación comprobable en
+vez de un hallazgo de relectura.
+
+## 47.3 · La separación se comprueba por identidad, no por ortografía
+
+`ElementRef(kind, identity, revision)`
+([:84](terrario/lab/capability_passport.py:84)) con `key = (kind, identity)`.
+Dar `(MECHANISM, "memoria")` y pedir `(CONTENT, "memoria")` es legítimo —damos
+el mecanismo, el organismo adquiere su contenido—; dar y pedir la misma clave
+es el colapso que borra la pregunta científica, y se rechaza.
+
+La revisión queda **fuera** de la clave a propósito: dar la versión 1 y exigir
+que se adquiera la 2 sigue siendo dar y pedir lo mismo.
+
+## 47.4 · `non_claims` con dientes, y el plan
+
+`assert_claimable` es el punto por el que toda afirmación atribuida a una
+capacidad tiene que pasar, y se niega ante una conclusión declarada fuera de
+alcance. Guardar la lista no impide nada; el punto de paso sí.
+
+`capability_plan.emit_plan` ([capability_plan.py](terrario/lab/capability_plan.py))
+responde las nueve preguntas desde el registro y desde ningún otro sitio, y
+**se niega** en vez de degradar: un plan con un mecanismo sin resolver mandaría
+a implementar una promesa que nadie puede contrastar. No es un generador de
+prompts —no compone frases— porque un plan que se puede reformular es un plan
+cuyo significado depende de la redacción.
+
+## 47.5 · Lo que sigue sin estar
+
+**`NO VERIFICADO`** · Ningún pasaporte productivo es v2. La demostración usa
+fixtura, no registro: los diez existentes son módulos de A4/A5 y **no existe
+pasaporte del linaje 1.x**, así que fabricar uno para 1.6 o 1.7 sería inventar
+procedencia que aquellas campañas nunca escribieron.
+
+**`K2`** · Si los diez pueden migrarse sin falsear su historia. `migrate_to_v2`
+existe y exige un `capability_id` propio, pero nadie ha intentado rellenar
+`supplied` y `acquisition_target` de un módulo de A4 con datos derivables.
+
+**Nada conecta esto con la ejecución todavía**, y es deliberado: el criterio
+para conectar era que un pasaporte v2 respondiera sin ambigüedad qué se
+proporciona, qué debe adquirirse, qué mecanismo formal se pretende y qué código
+lo implementa. Lo responde **sobre fixtura**; sobre un registro productivo,
+todavía no.

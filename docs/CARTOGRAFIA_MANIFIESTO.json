@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "ac6a06e",
+  "head": "dc5d544",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -295,7 +295,7 @@
         "terrario/lab/agent_composition.py": "48a3292c38ac50403982b4e1527c2709b8e9f63eb5fd509efcf2fc89a20cb9f6",
         "terrario/lab/api.py": "c4c7dbb71e6a480e55bb7b26f7b76f8046b0c1870a4d25e7a3d0364f17f38091",
         "terrario/lab/capability_operationalization.py": "02b5abb68347e725bb417bf57e8a8a07b3b43cc6bfde3975b24ea457220ad47b",
-        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/capability_passport.py": "47edb4cf4dc98c1f9e1dcacfa2160c6136032095d43bd40b88c4f26ed91844a5",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/persistence/migrations.py": "e4163a995919195a4d11374b80bd91103f2f044f50bfa819a9fef61f1dee120a",
         "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
@@ -313,7 +313,7 @@
         "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
         "terrario/lab/agent_composition.py": "48a3292c38ac50403982b4e1527c2709b8e9f63eb5fd509efcf2fc89a20cb9f6",
         "terrario/lab/api.py": "c4c7dbb71e6a480e55bb7b26f7b76f8046b0c1870a4d25e7a3d0364f17f38091",
-        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/capability_passport.py": "47edb4cf4dc98c1f9e1dcacfa2160c6136032095d43bd40b88c4f26ed91844a5",
         "terrario/lab/hypergraph/adapter.py": "768b5a9936e75340b4071ce50d9522bed67f14088c0361f230e67edb660ccd53",
         "terrario/lab/hypergraph/models.py": "69428e040eb6b93affb361a5c8b380ea380d269654cb9ba24cab58844d393f06",
         "terrario/lab/hypergraph/operational.py": "9b35fc3ef1e21b2d531c45f309f1e71deacaa00b08de436d06bebbf73291cb6f",
@@ -361,7 +361,7 @@
       "files": {
         "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
         "terrario/agent/agents/a5_cybernetic.py": "161d0c02bee10fb205d474cdb16226e60db8efb1f4eda9a4cda5ffac4c591bcc",
-        "terrario/lab/capability_passport.py": "c19f77a553583682fc3d687ac5b8f996751f3e3fddfa01f83f85609e3e2929e3",
+        "terrario/lab/capability_passport.py": "47edb4cf4dc98c1f9e1dcacfa2160c6136032095d43bd40b88c4f26ed91844a5",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c"
       }
@@ -399,6 +399,14 @@
         "terrario/lab/theory/ingestion.py": "cbda44b6c2ce6c40d5cbe72a0e5a74caec095481cc99da3baaeb639a9cd6b1aa",
         "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
         "tests/test_gate_manifest.py": "0dc5ab025f4e84b7535fd241fbe2b31313d49e25fd31b5dd6018fba5d55d95ac"
+      }
+    },
+    "XLVII · El contrato de construcción de capacidad · v2, y por qué v1 no se tocó": {
+      "files": {
+        "terrario/lab/capability_passport.py": "47edb4cf4dc98c1f9e1dcacfa2160c6136032095d43bd40b88c4f26ed91844a5",
+        "terrario/lab/capability_plan.py": "8808d40e4a095352fd609b10c098146be91cdee55cdfff6eaa528d85856cef52",
+        "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
+        "terrario/lab/mechanism_spec.py": "82f37eab4007ae845cfecf78cdcd4299a0930a28583e6d129c7736a8670ccf82"
       }
     }
   }
