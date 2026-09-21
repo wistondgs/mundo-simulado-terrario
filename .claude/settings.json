@@ -25,6 +25,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/cartografia_hook.py\" --cierre",
+            "timeout": 180,
+            "statusMessage": "Cartografía: ¿queda algo sin cerrar?"
+          }
+        ]
+      }
     ]
   }
 }

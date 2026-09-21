@@ -3592,10 +3592,17 @@ comprobador a dos momentos del arnés (`.claude/settings.json`):
 * **después de cada `Edit`/`Write`** mira sólo el manifiesto y nombra la sección
   que ese fichero acaba de dejar obsoleta. Milisegundos, sin importar `terrario`.
 
+* **al cerrar el turno** corre el gate entero una vez y avisa si algo quedó
+  obsoleto. Se añadió el 2026-09-21 al medir que el hook de edición **no dispara
+  en esta clase de sesión**: su matcher es `Edit|Write|MultiEdit`, y una sesión
+  que escribe ficheros con heredocs de bash no usa ninguna de las tres. El
+  cierre las caza sin depender de CÓMO se escribió el fichero.
+
 La autoridad sigue siendo [cartografia_check.py](scripts/cartografia_check.py);
 el hook no decide nada por su cuenta y jamás rompe el turno —cualquier excepción
 sale como silencio—, porque un hook que rompe el turno se desactiva y entonces
-no comprueba nada.
+no comprueba nada. El de cierre además sólo emite `systemMessage`: devolver
+contexto al modelo al acabar reabriría el turno que acaba de terminar.
 
 **Lo que este mecanismo NO arregla, y conviene tener escrito:** el manifiesto se
 regenera con `--write`, y `--write` no puede comprobar que alguien haya releído.

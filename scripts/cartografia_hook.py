@@ -11,6 +11,11 @@ precisamente cuando uno no se acuerda. Esto lo ata a dos momentos del arnés:
     --edicion   después de cada Edit/Write: mira SÓLO el manifiesto y avisa si
                 el fichero que se acaba de tocar está citado por alguna sección.
                 Milisegundos, sin importar `terrario`, sin tocar disco de más.
+    --cierre    al terminar el turno: corre el gate entero una vez y avisa al
+                humano si algo quedó obsoleto. Existe porque `--edicion` sólo
+                ve las herramientas Edit/Write, y una sesión que edita con
+                heredocs de bash no dispara ninguna. El cierre las caza todas
+                sin depender de CÓMO se escribió el fichero.
 
 La autoridad sigue siendo `cartografia_check.py`. Este guion no decide nada por
 su cuenta: en `--sesion` reenvía lo que diga el gate, y en `--edicion` sólo
@@ -123,14 +128,37 @@ def edicion() -> int:
     })
 
 
+def cierre() -> int:
+    """Una pasada del gate al acabar el turno. Avisa; nunca bloquea.
+
+    Sólo `systemMessage`: un hook de cierre que devolviera contexto al modelo
+    podría reabrir el turno que acaba de terminar, y un aviso que provoca otra
+    vuelta deja de ser un aviso.
+    """
+    if not (PYTHON.is_file() and GATE.is_file()):
+        return 0
+    salida = subprocess.run([str(PYTHON), str(GATE)], cwd=RAIZ,
+                            capture_output=True, text=True, timeout=180)
+    if salida.returncode == 0:
+        return 0
+    texto = (salida.stdout or "").strip()
+    return _emite({
+        "systemMessage": "Cartografía sin cerrar:\n\n" + texto,
+        "suppressOutput": True,
+    })
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     grupo = ap.add_mutually_exclusive_group(required=True)
     grupo.add_argument("--sesion", action="store_true")
     grupo.add_argument("--edicion", action="store_true")
+    grupo.add_argument("--cierre", action="store_true")
     args = ap.parse_args()
     try:
-        return sesion() if args.sesion else edicion()
+        if args.sesion:
+            return sesion()
+        return cierre() if args.cierre else edicion()
     except Exception:                 # noqa: BLE001 — ver la cabecera
         return 0
 
