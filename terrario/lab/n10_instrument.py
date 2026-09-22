@@ -333,15 +333,51 @@ def shuffled_tokens(rows: Sequence[DecisionRow], *, seed: int) -> Mapping[int, s
     return barajado
 
 
-def shuffle_report(rows: Sequence[DecisionRow], *, seed: int) -> Mapping[str, Any]:
+def shuffle_report(rows: Sequence[DecisionRow], *, seed: int,
+                   max_coincidence: float = 0.75) -> Mapping[str, Any]:
+    """Marginales, correspondencia rota, determinismo y FUERZA.
+
+    Conservar los marginales no basta. Una permutación que deja el 85 % de
+    los tokens donde estaban es, para el brazo C, casi el brazo A con ruido:
+    la intervención existiría en el código y no en los datos. Así que se mide
+    cuántas decisiones siguen recibiendo su propia historia.
+    """
     from collections import Counter
     barajado = shuffled_tokens(rows, seed=seed)
     original = {i: r.history_id for i, r in enumerate(rows)}
+    coincidencias = sum(1 for i in original if original[i] == barajado[i])
+    tasa = coincidencias / len(rows) if rows else 0.0
+    #: Suelo por azar: con dos clases de tamaños n0 y n1 una permutación
+    #: aleatoria deja coincidiendo (n0^2 + n1^2) / n^2 de media.
+    cuenta = Counter(original.values())
+    n = len(rows) or 1
+    esperado = sum(v * v for v in cuenta.values()) / (n * n)
     return {"marginals_preserved":
                 Counter(original.values()) == Counter(barajado.values()),
             "correspondence_broken": original != barajado,
             "n": len(rows),
-            "deterministic": barajado == dict(shuffled_tokens(rows, seed=seed))}
+            "deterministic": barajado == dict(shuffled_tokens(rows, seed=seed)),
+            "policy_token_equals_actual_history": round(tasa, 6),
+            "chance_coincidence": round(esperado, 6),
+            "strong_enough": tasa <= max_coincidence,
+            "max_coincidence": max_coincidence}
+
+
+def seed_is_evaluable(world: Any) -> Mapping[str, Any]:
+    """¿Contiene ESTE mundo las dos clases históricas?
+
+    Se responde desde `GeneratedWorld.stations` --lo que el generador selló--
+    y ANTES de que ningún agente corra. Así la sustitución por una semilla de
+    reserva depende del mundo y nunca del desempeño: una fila empatada o un
+    organismo que no aprendió, habiendo estado las dos historias disponibles,
+    es resultado científico y no se reemplaza.
+    """
+    from collections import Counter
+    cuenta = Counter(history_of(st) for st in world.stations)
+    evaluable = len(cuenta) >= 2
+    return {"evaluable": evaluable,
+            "code": "" if evaluable else "SEED_NOT_EVALUABLE",
+            "history_classes": dict(cuenta), "n_stations": len(world.stations)}
 
 
 # --- FASE 6 · que la reposición sólo reponga ---------------------------------

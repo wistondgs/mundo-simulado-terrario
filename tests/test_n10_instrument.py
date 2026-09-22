@@ -413,3 +413,48 @@ def test_feedback_of_works_on_a_real_transition_and_not_only_in_its_source():
                    observation_t1=None, terminated=False, truncated=False,
                    step=0, seed=0)
     assert feedback_of(t) == pytest.approx(-4.15)
+
+
+# --- fuerza del shuffle y evaluabilidad, corregidos antes de la campaña --------------
+
+def test_the_shuffle_reports_how_much_of_the_correspondence_survives():
+    """Preserving the marginals is not enough: a permutation leaving 85% of
+    the tokens where they were would make arm C nearly arm A with noise, and
+    the intervention would exist in the code and not in the data."""
+    _, filas = corrida()
+    informe = shuffle_report(filas, seed=7)
+    assert "policy_token_equals_actual_history" in informe
+    assert informe["policy_token_equals_actual_history"] <= informe["max_coincidence"]
+    assert informe["strong_enough"] is True
+    assert 0.0 <= informe["chance_coincidence"] <= 1.0
+
+
+def test_a_weak_shuffle_is_reported_as_weak():
+    """The gate has to be able to say no."""
+    _, filas = corrida()
+    informe = shuffle_report(filas, seed=7, max_coincidence=0.0)
+    assert informe["strong_enough"] is False
+
+
+def test_evaluability_is_decided_from_the_world_before_any_agent_runs():
+    """So a replacement depends on the generated world and never on how the
+    organism did. A tied row or a learner that failed, with both histories
+    available, is a scientific result and is not replaced."""
+    from terrario.lab.n10_instrument import seed_is_evaluable
+    informe = seed_is_evaluable(mundo())
+    assert informe["evaluable"] is True
+    assert informe["code"] == ""
+    assert len(informe["history_classes"]) == 2
+    assert sum(informe["history_classes"].values()) == informe["n_stations"]
+
+
+def test_a_world_with_one_history_class_is_marked_not_evaluable():
+    from dataclasses import replace
+
+    from terrario.lab.n10_instrument import seed_is_evaluable
+    w = mundo()
+    una = replace(w, stations=tuple(s for s in w.stations
+                                    if s.cue_values == w.stations[0].cue_values))
+    informe = seed_is_evaluable(una)
+    assert informe["evaluable"] is False
+    assert informe["code"] == "SEED_NOT_EVALUABLE"
