@@ -6376,3 +6376,76 @@ clasificador. Y el programa nuevo está en
 [PROGRAMA_MICROCAPACIDADES_00.md](docs/PROGRAMA_MICROCAPACIDADES_00.md) con una
 sola cosa escrita: la pregunta y los tres espacios `(C, W, K)`. Nada de agentes,
 secuencia ni mundos.
+
+# L · El mapa de composición primitiva · v0.1
+
+**2026-09-21.** El primer artefacto del lado nuevo de la frontera.
+[MAPA_COMPOSICION_PRIMITIVAS_01.md](docs/MAPA_COMPOSICION_PRIMITIVAS_01.md) ·
+[primitive_composition.py](terrario/lab/hypergraph/primitive_composition.py) ·
+[test_primitive_composition.py](tests/test_primitive_composition.py).
+
+## 50.1 · El hallazgo · la columna que la historia no puede poblar
+
+Importado todo lo que el programa congelado midió **como composición** —seis
+aristas, no siete campañas: sólo la fusión y el gemelo de 1.7 midieron una
+composición por diseño—:
+
+```
+aristas con grado de libertad registrado ......... 0 de 6
+composiciones replicadas en dos mundos ........... 0
+ΔDF de la escalera histórica ..................... 0 en cada peldaño
+```
+
+No es un fallo del importador. El programa viejo preguntaba si un organismo
+concreto adquiría una capacidad concreta y **nunca preguntó qué grado de
+libertad se ensanchó**, así que nada de lo que produjo puede poblar esa columna.
+
+**Ésa es la justificación medida de §XLIX**: el mapa nuevo no puede arrancar
+releyendo el viejo, porque el viejo no contiene la variable que el nuevo mide.
+
+## 50.2 · Veinte primitivas, y el criterio de exclusión aplicado en serio
+
+Siete semillas históricas —sus números son cronología, no escalera— y trece
+descompuestas de `INVENTARIO_CONCEPTOS_01.md`. El concepto fuente está citado;
+**el troceo es mío**, y cada una lo declara con `DECOMPOSED from`.
+
+Aplicando en serio «si una capacidad contiene dentro otra capacidad funcional
+identificable, todavía no es primitiva», **casi ningún concepto de nivel
+superior del Mapa Global pasa entero**: de 22 en las tres capas salieron 13, y
+las cinco exclusiones constan con su razón. `use_planner` contiene un modelo del
+mundo **y** una búsqueda; la capa 3 entera no falla por tamaño sino por
+**sustrato** —falta una segunda variable esencial, un operador de perturbación,
+un espacio de estados enumerado—.
+
+## 50.3 · Cuatro negativas estructurales, no cuatro normas escritas
+
+```
+un emergente con nombre de facultad     E### o nada · «atención» se rechaza
+una arista sin mundo                    no se sabe de qué condición habla
+NO_EFFECT con salida o con un DOF       algo pasó
+una arista que se declara REPLICATED    se calcula sobre varios mundos
+```
+
+Y la quinta, sobre las primitivas: sin «no puede» no es mínima, sólo corta. Una
+primitiva que sólo dice lo que puede crece en la cabeza del lector hasta volver
+a ser una facultad.
+
+## 50.4 · Las dos aristas que justifican la forma del mapa
+
+**`H004` y `H005` son la misma composición `{P06, P07}` en dos mundos con
+resultados opuestos, y no se contradicen.** En el gemelo B la acción no mueve la
+transición —`T_B(s'|s,a) = ¼ Σ_b T_A(s'|s,b)`— y la información mutua es cero
+exacto. Por eso el mundo viaja con la arista.
+
+**`H002` y `H003` son para qué sirve `NO_EFFECT`.** ψ sola aporta cero exacto,
+ψ con `P04` funciona, y el mapa calcula solo que **`P04` fue el desbloqueante**.
+Ese cálculo sólo existe porque la fila vacía se escribió.
+
+## 50.5 · Lo que no se sabe
+
+La identidad de `PSI_UNIDENTIFIED` sigue `UNKNOWN`: el oráculo de 1.4 usa el
+símbolo para una biyección experimental **no entregada al agente**, y equipararlos
+sería conveniencia. La sección II del mapa está casi vacía **a propósito** —190
+pares y 1.140 tríos sobre veinte primitivas; elegir cuáles correr *es* la
+pregunta de muestreo—. Y la sección IV no tiene filas porque el organismo
+acumulativo del programa nuevo todavía no existe.
