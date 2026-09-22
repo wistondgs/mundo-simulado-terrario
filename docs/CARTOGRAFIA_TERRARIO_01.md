@@ -6288,3 +6288,91 @@ justo la sobreafirmación que esta unidad existe para no cometer.
 **Lo que no se sabe.** Si `DIRECT_RETENTION_CREDIT_AVAILABLE` debería además
 cancelar la demora cuando el instrumento se usa de verdad. Hoy coexisten a
 propósito: decir que existe un instrumento no es decir que se usó.
+
+# XLIX · La frontera · programa histórico congelado, programa nuevo sin empezar
+
+**2026-09-21.** Cambió la pregunta experimental, así que hay que separar los dos
+programas antes de que el segundo contamine la lectura del primero.
+
+## 49.1 · Qué se congeló y con qué identidad
+
+Dieciséis entradas en
+[CONGELACION_MANIFIESTO.json](docs/CONGELACION_MANIFIESTO.json), generado por
+[congelacion_manifiesto.py](scripts/congelacion_manifiesto.py) y documentado en
+[CONGELACION_HISTORICA_01.md](docs/CONGELACION_HISTORICA_01.md).
+
+**Los commits se leen de cada worktree, no se teclean.** El modo de fallo
+catalogado de este proyecto —§46.8— es una campaña que sella transcribiendo
+valores sellados a constantes sin que nada compruebe la transcripción contra el
+documento. Un manifiesto de congelación que lo repitiera sería el mismo defecto
+vestido de frontera.
+
+```
+linaje A     1.0 · reversión · 1.1 · 1.2 · 1.3 · 1.4 · fusión B+Q+H+M · 1.5
+linaje B     1.6 · 1.7 · 1.8 · 1.8-adjudicación
+otros        forrajeo adaptativo · OCF-G1/G3 · D5 copia · 10 pasaportes
+```
+
+Cinco motivos de congelación, y **tres campañas no se dejan contar como éxitos**:
+1.5 con su piloto irreproducible y semillas quemadas
+(`UNRESOLVED_HISTORICAL_ANOMALY`), 1.8 con la familia mal elegida (ídem), y el
+forrajeo con dos veredictos `INSUFFICIENT_INFORMATION`
+(`INSTRUMENT_LIMITATION`).
+
+## 49.2 · La frontera, y por qué no lleva tag
+
+```
+último commit del programa histórico   97f13a136e36
+primer commit del régimen nuevo        el que introduce el manifiesto
+```
+
+El repositorio tiene **cero** tags. No hay convención que seguir, así que crear
+la primera es una decisión de repositorio y queda sin tomar: la frontera
+autoritativa es el manifiesto.
+
+## 49.3 · El diseñador cruza; los mundos que produjo, no
+
+```
+WORLD INSTANCE  configuración histórica concreta   → CONGELADO
+WORLD DESIGNER  maquinaria generadora              → ACTIVO
+```
+
+Seis activos siguen vivos porque son instrumentos de descubrimiento y no
+resultados: World Designer, fábrica de niveles, hipergrafos, corpus,
+infraestructura experimental genérica —el carril de archivo de §46.8, construido
+y usado por cero campañas— y el motor developmental `A1`–`A3b.1`, que se
+construyó **después** de que cambiara la pregunta.
+
+## 49.4 · Orden histórico ≠ orden developmental
+
+Está escrito explícitamente porque la numeración invita a lo contrario. Y hay
+una razón medida: el linaje B es un reinicio deliberado —`level16` importa de
+`level1.world` sólo primitivas del cuerpo y **nada** de `level11…level14`
+(§43.5)—. Dos linajes con numeración continua y sin continuidad cognitiva.
+
+## 49.5 · Los dos tests rojos, clasificados y no tocados
+
+Suite completa medida el 2026-09-21: **2 failed · 1058 passed · 1 skipped** en
+`1:13:26`. Ambos fallos en `tests/test_system_baseline_characterization.py`.
+
+| test | clase | causa verificada |
+|---|---|---|
+| hashes de fuente protegida | `EXPECTED_HISTORICAL_DRIFT` | sello `f105eb2` del 14-sep; **22 commits** tocaron el árbol protegido después · 5 ficheros nuevos, 9 con hash distinto |
+| comportamiento D2/D3/D4 × A0/A1/A4 | `EXPECTED_HISTORICAL_DRIFT` | `44380b9` reclavó el sorteo exógeno sobre linaje y generación · `43ee4e0` gradiente que sobrevive al paso · `f72d225` frontera de congelado en A4 |
+
+El determinismo **sobrevive**: `test_same_case_repeats_semantically_byte_for_byte`
+pasa, así que no es indeterminismo. **El residuo honesto**: está verificado que
+la causa existe, no que explique el diff entero — nadie comparó la fixtura línea
+a línea. Resellar el manifiesto protegido es adjudicación humana, y la pregunta
+no es de hashes sino de si esos catorce cambios son deriva aceptada o regresión.
+
+## 49.6 · Lo que no se sabe
+
+El alcance de **1.8-adjudicación** y de **D5** no está cubierto por las secciones
+auditadas y **no se reverificó** para la congelación: van con `UNKNOWN` y con
+provenance que lo dice, en vez de con una descripción plausible que nadie
+comprobó. De 1.5 siguen `UNKNOWN` `α`, el calendario de exploración y el
+clasificador. Y el programa nuevo está en
+[PROGRAMA_MICROCAPACIDADES_00.md](docs/PROGRAMA_MICROCAPACIDADES_00.md) con una
+sola cosa escrita: la pregunta y los tres espacios `(C, W, K)`. Nada de agentes,
+secuencia ni mundos.

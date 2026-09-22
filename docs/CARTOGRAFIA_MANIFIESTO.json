@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "d574aef",
+  "head": "97f13a1",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -417,6 +417,12 @@
       "files": {
         "terrario/lab/task_contract.py": "b1c875f57562141c6d15488532964bcce6cc631b6e8b1e4784f8f345e3753f14",
         "tests/test_task_contract.py": "8c44097ca3cf9d2d8498c1a4fe888c4ce8c13f667199ffa4d3b7d5ab0282bede"
+      }
+    },
+    "XLIX · La frontera · programa histórico congelado, programa nuevo sin empezar": {
+      "files": {
+        "scripts/congelacion_manifiesto.py": "ceb9c2c092e619af711ae88eb76efdf6c928476ee2b40e80532a2db6a1d913ea",
+        "tests/test_system_baseline_characterization.py": "c59b1e0b7a6d63c07798304d2e21715567213f1e6c5157297b3dc95710e034c7"
       }
     }
   }
