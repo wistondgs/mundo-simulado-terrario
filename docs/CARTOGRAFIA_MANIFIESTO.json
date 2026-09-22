@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "740a96d",
+  "head": "a224a7b",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -415,8 +415,8 @@
     },
     "XLVIII · El motor developmental · qué hace falta antes de que algo sea adquirible": {
       "files": {
-        "terrario/lab/task_contract.py": "b1c875f57562141c6d15488532964bcce6cc631b6e8b1e4784f8f345e3753f14",
-        "tests/test_task_contract.py": "8c44097ca3cf9d2d8498c1a4fe888c4ce8c13f667199ffa4d3b7d5ab0282bede"
+        "terrario/lab/task_contract.py": "1a02761d8a68b7b693b0183d09b8f9b2c8bebeb104a89a3d23b34f2887d94db9",
+        "tests/test_task_contract.py": "0611582dbe431d05beee2cc55ae061f5b4b036f01b46fccbb2b17b63bd76cc00"
       }
     },
     "XLIX · La frontera · programa histórico congelado, programa nuevo sin empezar": {

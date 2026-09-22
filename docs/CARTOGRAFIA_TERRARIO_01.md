@@ -6529,8 +6529,9 @@ es vocabulario del instrumento; `primitives_v01`, `EXCLUDED` y `edges_v01` son
 acoplamientos peores: sólo importa stdlib, no toca `theory_operational` ni
 `EvidenceGraph`, y no contiene maquinaria de ejecución.
 
-**`AVAILABLE_INSTRUMENT` queda sin resolver y v0.1 NO congelado.** Detalle en
-§50.8.
+**`AVAILABLE_INSTRUMENT` se resolvió en §50.9 y v0.1 quedó congelado.** El
+detalle de por qué la primera retirada se detuvo está en §50.8, y se conserva:
+no se reescribe la historia como si el rol nunca hubiera existido.
 
 ## 50.8 · `AVAILABLE_INSTRUMENT` · la retirada se detuvo, y por qué
 
@@ -6571,3 +6572,58 @@ COORDINATION_...    una exigencia sobre una pareja · falso de plano
 Así que o se van los dos —naturaleza y tipo— o no se va ninguno. Y que se vaya
 el tipo arrastra tres campos del contrato que el propio encargo anterior pidió
 construir. Ésa es una decisión que no es mía.
+
+## 50.9 · `AVAILABLE_INSTRUMENT` retirado · sale la ontología, se quedan los datos
+
+**Trece agentes de sólo lectura antes de tocar nada**, y la retirada se hizo
+entera en un commit porque la parcial estaba medida como rota (§50.8).
+
+### Ciclo de vida, conservado y no reescrito
+
+```
+introduced   d574aef   nace al retirar la afirmación del replay: los cuatro
+                       booleanos se quedaron sin trabajo y se les inventó un
+                       cajón donde no pudieran confundirse con una exigencia
+audited      a224a7b   auditado · PROPERTY_OR_RESOURCE, no rol del TaskContract
+                       · la retirada parcial se detuvo por KeyError medido
+removed      este      fuera de DerivedRoleKind, de RoleNature, de NATURE, de
+                       la regla de derivación y de la serialización
+```
+
+### Por qué no era un rol
+
+Un rol aquí es **una exigencia que la tarea hace**, y el sujeto gramatical de
+sus cuatro precondiciones es **el experimentador**: un organismo no percibe si
+el arnés tiene permiso para rebobinar el mundo, y nada de su situación cambia
+cuando ese flag se mueve. Medido exhaustivamente: **1.890 pares de contratos
+legales** variando sólo `counterfactual_replay_allowed` dieron `pressures`,
+`controls`, `acquisition_candidates` y `coordination_requirements`
+**idénticos** en los 1.890.
+
+### Los seis campos, adjudicados uno a uno
+
+Un agente por campo y un adversario por adjudicación. **Los seis
+`APPARATUS_FACT`, cero `ROLE_ONLY`, cero `UNKNOWN`, ninguna refutada.** Así que
+**no se borró ningún campo**: lo que salió fue la clasificación, no el dato.
+
+```
+encoder_adaptive                            alimenta otras cuatro reglas
+retention_credit_signal_time                alimenta DELAYED_CREDIT
+feedback_is_attributable_to_that_retention  alimenta DELAYED_CREDIT
+alternative_retention_can_be_intervened     lo lee la negativa del constructor
+outcome_of_alternative_is_observable        lo lee la negativa del constructor
+counterfactual_replay_allowed               SIN LECTOR tras la retirada
+```
+
+El último queda **declarado como deuda**: es un hecho del aparato que hoy no
+lee nadie. No se borra —no es `ROLE_ONLY`— y no se muda a ningún contenedor
+nuevo, porque esta intervención no autoriza arquitectura.
+
+### La invariante que impedía el `KeyError` latente
+
+`NATURE[kind]` se lee sin defecto en dos sitios, así que la tabla tiene que ser
+**total** sobre `DerivedRoleKind`. Lo era por coincidencia y nada lo comprobaba;
+quitar una entrada no ponía roja ninguna prueba, rompía `acquisition_candidates`
+en producción. Ahora `check_nature_total` se ejecuta al importar y hay tres
+contratos: la igualdad, el mutante que agujerea una copia, y uno que
+**demuestra el `KeyError`** en vez de afirmarlo.

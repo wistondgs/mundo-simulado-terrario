@@ -19,6 +19,7 @@ import pytest
 
 from terrario.lab.relation_ledger import EvidenceClass, HypothesisOrigin
 from terrario.lab.task_contract import (
+    NATURE as _NATURE, RoleNature,
     ContractRefused, DerivedRole, DerivedRoleKind, RoleNature, TaskContract,
     derive_roles,
 )
@@ -29,7 +30,6 @@ SELECCION = DerivedRoleKind.SELECTIVE_RETENTION_PRESSURE
 POLITICA = DerivedRoleKind.ADAPTIVE_RETENTION_POLICY
 CREDITO = DerivedRoleKind.DELAYED_CREDIT_TO_RETENTION
 COORDINACION = DerivedRoleKind.COORDINATION_PRESSURE
-INSTRUMENTO = DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE
 
 
 # --- T1 · cuello de botella, pero la relevancia se conoce antes de retener -----------
@@ -263,10 +263,13 @@ def test_mutant_two_adaptive_components_that_need_not_agree():
 
 # --- A3b.1 · replay no es crédito resuelto -------------------------------------------
 #
-# La versión anterior de este módulo afirmaba que `counterfactual_replay_allowed`
-# disolvía el crédito diferido. Se afirmó antes de tiempo y se retiró: poder
-# repetir la situación es un instrumento, y un instrumento no es un problema
-# resuelto. Las cuatro pruebas siguientes son lo que quedó en su lugar.
+# Hubo una version que afirmaba que `counterfactual_replay_allowed` disolvia el
+# credito diferido. Se retiro. Despues hubo un rol
+# `DIRECT_RETENTION_CREDIT_AVAILABLE` con su propia clase
+# `AVAILABLE_INSTRUMENT`, y ese tambien se retiro: era una propiedad del arnes
+# experimental vestida de exigencia de la tarea. Los CAMPOS siguen aqui --son
+# hechos del aparato-- y lo que estas pruebas fijan es que no llegan a la
+# salida del organismo.
 
 def test_replay_without_an_observable_alternative_leaves_the_credit_where_it_was():
     """Kills: «the situation can be re-run, therefore credit is no longer
@@ -278,43 +281,51 @@ def test_replay_without_an_observable_alternative_leaves_the_credit_where_it_was
                                 counterfactual_replay_allowed=True)
     r = derive_roles(ciego)
     assert CREDITO in r.roles
-    assert INSTRUMENTO not in r.roles
     assert set(r.roles) == set(derive_roles(T6).roles)
 
 
-def test_replay_with_intervention_and_an_attributable_outcome_is_an_instrument():
-    """All four together, and even then what is derived is that an instrument
-    exists -- not that the delay is gone.  The delay is a fact about when the
-    signal arrives, and no instrument moves it."""
+def test_a_fully_capable_apparatus_changes_nothing_the_organism_faces():
+    """FASE F. All four harness conditions true — the situation can be re-run,
+    the alternative retention can be imposed, its outcome can be seen and the
+    result can be assigned — and the organism observes none of it.
+
+    Every organism-facing output is identical to the contract where the
+    apparatus can do nothing at all. The delay is still there, because a delay
+    is a fact about when a signal arrives and no instrument moves it."""
     entero = dataclasses.replace(
-        T6, label="T6-replay-entero", counterfactual_replay_allowed=True,
+        T6, label="T6-aparato-entero", counterfactual_replay_allowed=True,
         alternative_retention_can_be_intervened=True,
         outcome_of_alternative_is_observable=True,
         feedback_is_attributable_to_that_retention=True)
-    r = derive_roles(entero)
-    assert INSTRUMENTO in r.roles
-    assert CREDITO in r.roles, "the instrument exists; the delay is still real"
-    assert r.instruments == (INSTRUMENTO,)
+    r, base = derive_roles(entero), derive_roles(T6)
+    assert set(r.roles) == set(base.roles)
+    assert r.pressures == base.pressures
+    assert r.controls == base.controls
+    assert r.acquisition_candidates == base.acquisition_candidates
+    assert r.coordination_requirements == base.coordination_requirements
+    assert CREDITO in r.roles, "the delay is still real"
 
 
-@pytest.mark.parametrize("faltante", [
+@pytest.mark.parametrize("campo", [
     "counterfactual_replay_allowed",
     "alternative_retention_can_be_intervened",
-    "feedback_is_attributable_to_that_retention"])
-def test_three_of_the_four_is_not_an_instrument(faltante):
-    """With any one of them missing there is nothing to measure."""
-    campos = dict(counterfactual_replay_allowed=True,
-                  alternative_retention_can_be_intervened=True,
-                  outcome_of_alternative_is_observable=True,
-                  feedback_is_attributable_to_that_retention=True)
-    campos[faltante] = False
-    if faltante == "alternative_retention_can_be_intervened":
-        campos["outcome_of_alternative_is_observable"] = False
-    assert INSTRUMENTO not in derive_roles(
-        dataclasses.replace(T6, label=f"sin-{faltante}", **campos)).roles
+    "outcome_of_alternative_is_observable"])
+def test_no_harness_field_alone_can_move_an_organism_facing_output(campo):
+    """G2/G3/G4 per field. Flipping any single apparatus property must leave
+    acquisition_candidates, pressures and controls untouched."""
+    campos = {campo: True}
+    if campo == "outcome_of_alternative_is_observable":
+        campos["alternative_retention_can_be_intervened"] = True
+    variado = derive_roles(dataclasses.replace(T6, label=f"T6-{campo}", **campos))
+    base = derive_roles(T6)
+    assert variado.acquisition_candidates == base.acquisition_candidates
+    assert variado.pressures == base.pressures
+    assert variado.controls == base.controls
 
 
 def test_an_unobservable_outcome_of_an_alternative_nobody_can_bring_about():
+    """The refusal that pairs two of the apparatus fields survives the role's
+    removal: it never referenced the role."""
     with pytest.raises(ContractRefused, match="nothing whose outcome that would be"):
         _contrato(outcome_of_alternative_is_observable=True,
                   alternative_retention_can_be_intervened=False)
@@ -372,14 +383,14 @@ def test_the_pressure_with_no_control_is_the_case_that_proves_it():
     assert r.acquisition_candidates == ()
 
 
-def test_the_four_classes_partition_what_comes_out():
+def test_the_three_classes_partition_what_comes_out():
     for contrato in (T1, T2, T3, T4, T5, T6, MUTANTE):
         r = derive_roles(contrato)
         clases = (set(r.pressures) | set(r.controls)
-                  | set(r.coordination_requirements) | set(r.instruments))
+                  | set(r.coordination_requirements))
         assert clases == set(r.roles), contrato.label
         assert (len(r.pressures) + len(r.controls)
-                + len(r.coordination_requirements) + len(r.instruments)) == len(r.roles)
+                + len(r.coordination_requirements)) == len(r.roles)
 
 
 def test_t6_still_derives_the_same_six_now_split_by_class():
@@ -389,7 +400,6 @@ def test_t6_still_derives_the_same_six_now_split_by_class():
     assert set(r.pressures) == {CAPACIDAD, INCERTIDUMBRE, SELECCION, CREDITO}
     assert r.controls == (POLITICA,)
     assert r.coordination_requirements == (COORDINACION,)
-    assert r.instruments == ()
 
 
 def test_coordination_is_neither_a_pressure_nor_something_one_part_can_learn():
@@ -548,8 +558,8 @@ def test_every_role_carries_a_falsification_question_and_a_nature():
 def test_roles_come_back_ordered_by_nothing_the_derivation_chose():
     r = derive_roles(T6)
     assert list(r.roles) == sorted(r.roles, key=lambda k: k.value)
-    assert set(r.pressures) | set(r.controls) | set(r.coordination_requirements) \
-        | set(r.instruments) == set(r.roles)
+    assert set(r.pressures) | set(r.controls) \
+        | set(r.coordination_requirements) == set(r.roles)
 
 
 def test_a_credit_that_can_never_be_assigned_is_not_merely_delayed():
@@ -564,5 +574,152 @@ def test_a_credit_that_can_never_be_assigned_is_not_merely_delayed():
         feedback_is_attributable_to_that_retention=False)
     r = derive_roles(sin_atribucion)
     assert CREDITO not in r.roles
-    assert INSTRUMENTO not in r.roles
     assert set(derive_roles(T6).roles) - set(r.roles) == {CREDITO}
+
+
+# --- FASE E · la totalidad de NATURE deja de ser una coincidencia ----------------------
+
+def test_nature_covers_every_derived_role_kind():
+    """`NATURE[kind]` is a bare subscript in two places, so the table must be
+    total. It was total by accident and nothing checked it."""
+    from terrario.lab.task_contract import NATURE
+    assert set(NATURE) == set(DerivedRoleKind)
+
+
+def test_a_holed_nature_table_is_refused_by_the_contract():
+    """G1. The mutant: remove an entry deliberately."""
+    from terrario.lab.task_contract import NATURE, check_nature_total
+
+    agujereada = dict(NATURE)
+    quitada = agujereada.pop(DerivedRoleKind.ADAPTIVE_RETENTION_POLICY)
+    assert quitada is not None
+    with pytest.raises(RuntimeError, match="does not cover"):
+        check_nature_total(agujereada)
+    check_nature_total(NATURE)
+
+
+def test_the_holed_table_would_have_been_a_keyerror_not_a_red_test():
+    """Why the contract is needed at all, shown rather than asserted.
+
+    With an entry missing, the failure is an uncaught KeyError inside
+    `acquisition_candidates` on a whole class of legal contracts -- not an
+    assertion mismatch a reviewer would read as cosmetic."""
+    from terrario.lab import task_contract
+
+    original = dict(task_contract.NATURE)
+    try:
+        del task_contract.NATURE[DerivedRoleKind.ADAPTIVE_RETENTION_POLICY]
+        derivacion = derive_roles(T6)
+        assert POLITICA in derivacion.roles
+        with pytest.raises(KeyError):
+            _ = derivacion.acquisition_candidates
+    finally:
+        task_contract.NATURE.clear()
+        task_contract.NATURE.update(original)
+    assert derive_roles(T6).acquisition_candidates == (POLITICA,)
+
+
+# --- FASE G · el aparato no puede convertirse en nada del organismo --------------------
+
+def NATURE_DE(kind):
+    return _NATURE[kind]
+
+
+def _todos_los_contratos():
+    return (T1, T2, T3, T4, T5, T6, MUTANTE)
+
+
+def test_g2_no_apparatus_property_can_become_an_acquisition_candidate():
+    for contrato in _todos_los_contratos():
+        for candidato in derive_roles(contrato).acquisition_candidates:
+            assert NATURE_DE(candidato) is RoleNature.LEARNABLE_CONTROL, candidato
+
+
+def test_g3_no_apparatus_property_can_become_a_pressure():
+    """Exhaustive over the apparatus fields: every combination of the three
+    harness booleans, on every contract, leaves the pressures identical."""
+    import itertools
+    for contrato in _todos_los_contratos():
+        base = derive_roles(contrato).pressures
+        for repetir, intervenir, observar in itertools.product((False, True), repeat=3):
+            if observar and not intervenir:
+                continue
+            variado = dataclasses.replace(
+                contrato, counterfactual_replay_allowed=repetir,
+                alternative_retention_can_be_intervened=intervenir,
+                outcome_of_alternative_is_observable=observar)
+            assert derive_roles(variado).pressures == base, contrato.label
+
+
+def test_g4_no_apparatus_property_can_become_a_control():
+    import itertools
+    for contrato in _todos_los_contratos():
+        base = derive_roles(contrato).controls
+        for repetir, intervenir, observar in itertools.product((False, True), repeat=3):
+            if observar and not intervenir:
+                continue
+            variado = dataclasses.replace(
+                contrato, counterfactual_replay_allowed=repetir,
+                alternative_retention_can_be_intervened=intervenir,
+                outcome_of_alternative_is_observable=observar)
+            assert derive_roles(variado).controls == base, contrato.label
+
+
+def test_g5_the_record_no_longer_emits_the_removed_role():
+    """Serialisation must not carry a phantom of something that is gone."""
+    entero = dataclasses.replace(
+        T6, label="T6-aparato-entero", counterfactual_replay_allowed=True,
+        alternative_retention_can_be_intervened=True,
+        outcome_of_alternative_is_observable=True)
+    registro = derive_roles(entero).as_record()
+    texto = repr(registro)
+    assert "instruments" not in registro
+    assert "DIRECT_RETENTION_CREDIT_AVAILABLE" not in texto
+    assert "AVAILABLE_INSTRUMENT" not in texto
+    assert set(registro["roles"]) == set(
+        registro["pressures"] + registro["controls"]
+        + registro["coordination_requirements"])
+
+
+def test_g6_the_apparatus_facts_survive_and_produce_no_role():
+    """Every one of the six associated fields was adjudicated APPARATUS_FACT,
+    so the data stays. What must be gone is the role, not the fact."""
+    campos = {f.name for f in dataclasses.fields(TaskContract)}
+    for nombre in ("counterfactual_replay_allowed",
+                   "alternative_retention_can_be_intervened",
+                   "outcome_of_alternative_is_observable",
+                   "feedback_is_attributable_to_that_retention",
+                   "retention_credit_signal_time", "encoder_adaptive"):
+        assert nombre in campos, nombre
+
+    entero = dataclasses.replace(
+        T6, label="T6-aparato-entero", counterfactual_replay_allowed=True,
+        alternative_retention_can_be_intervened=True,
+        outcome_of_alternative_is_observable=True)
+    assert entero.counterfactual_replay_allowed is True
+    assert entero.as_record()["counterfactual_replay_allowed"] is True
+    assert len(derive_roles(entero).roles) == len(derive_roles(T6).roles)
+
+
+def test_g7_nothing_was_role_only_so_no_field_was_deleted():
+    """Six fields audited one at a time and each adjudicated APPARATUS_FACT;
+    zero ROLE_ONLY and zero UNKNOWN, so the deletion touched the ontology and
+    not the data."""
+    campos = tuple(f.name for f in dataclasses.fields(TaskContract))
+    assert campos == (
+        "label", "source_information_bits", "retention_capacity_bits",
+        "relevance_known_before_retention", "retention_time", "query_time",
+        "response_time", "feedback_time", "encoder_adaptive", "decoder_adaptive",
+        "encoder_semantics_given", "decoder_semantics_given",
+        "performance_depends_on_encoder", "performance_depends_on_decoder",
+        "performance_depends_on_compatibility", "retention_credit_signal_time",
+        "feedback_is_attributable_to_that_retention",
+        "counterfactual_replay_allowed", "alternative_retention_can_be_intervened",
+        "outcome_of_alternative_is_observable")
+
+
+def test_the_role_and_its_nature_are_gone_from_the_vocabulary():
+    assert not hasattr(DerivedRoleKind, "DIRECT_RETENTION_CREDIT_AVAILABLE")
+    assert not hasattr(RoleNature, "AVAILABLE_INSTRUMENT")
+    assert len(list(RoleNature)) == 3
+    assert len(list(DerivedRoleKind)) == 6

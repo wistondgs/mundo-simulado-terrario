@@ -47,9 +47,22 @@ was ever what delayed credit meant.
 counterfactual replay dissolved delayed credit.  It does not: being able to
 re-run the situation buys nothing if the alternative cannot be brought about,
 its outcome cannot be seen, or the result cannot be assigned to the choice.
-So replay no longer touches the delay at all; with all four conditions it
-derives that a *direct credit instrument exists*, which is a different and
-much weaker thing to say.
+So replay does not touch the delay at all.
+
+That retraction then left a second mistake behind, and it took a separate
+audit to see it.  The four replay conditions were kept and made to derive a
+role, `DIRECT_RETENTION_CREDIT_AVAILABLE`, under a nature of its own called
+`AVAILABLE_INSTRUMENT`.  But a role here is a **demand the task makes**, and
+the grammatical subject of those four conditions is the experimenter, never
+the organism: an organism cannot perceive whether the harness is allowed to
+rewind the world, and nothing about its situation changes when that flag
+flips.  Both the role and the nature are gone.
+
+**The fields stayed.**  Each of the six was adjudicated one at a time and
+none was found to exist solely to feed that role, so what was withdrawn is
+the classification, not the data.  Whether the apparatus facts eventually
+belong somewhere other than a task contract is a question this module does
+not answer and did not try to.
 
 What comes out is typed, and the typing is load-bearing.  A `TASK_PRESSURE`
 is a property of the task: it can exist with no mechanism anywhere able to
@@ -94,9 +107,6 @@ class RoleNature(StrEnum):
     #: ni algo que una sola de ellas pueda aprender; es una exigencia sobre la
     #: pareja, y puede no tener dueno.
     COORDINATION_REQUIREMENT_CANDIDATE = "COORDINATION_REQUIREMENT_CANDIDATE"
-    #: Ni exigencia ni presion: un instrumento que existe. Decir que existe no
-    #: es decir que el problema que podria resolver esta resuelto.
-    AVAILABLE_INSTRUMENT = "AVAILABLE_INSTRUMENT"
 
 
 class DerivedRoleKind(StrEnum):
@@ -107,7 +117,6 @@ class DerivedRoleKind(StrEnum):
     SELECTIVE_RETENTION_PRESSURE = "SELECTIVE_RETENTION_PRESSURE"
     ADAPTIVE_RETENTION_POLICY = "ADAPTIVE_RETENTION_POLICY"
     DELAYED_CREDIT_TO_RETENTION = "DELAYED_CREDIT_TO_RETENTION"
-    DIRECT_RETENTION_CREDIT_AVAILABLE = "DIRECT_RETENTION_CREDIT_AVAILABLE"
     COORDINATION_PRESSURE = "COORDINATION_PRESSURE"
 
 
@@ -119,8 +128,29 @@ NATURE: dict[DerivedRoleKind, RoleNature] = {
     DerivedRoleKind.ADAPTIVE_RETENTION_POLICY: RoleNature.LEARNABLE_CONTROL,
     DerivedRoleKind.COORDINATION_PRESSURE:
         RoleNature.COORDINATION_REQUIREMENT_CANDIDATE,
-    DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE: RoleNature.AVAILABLE_INSTRUMENT,
 }
+
+#: `NATURE[k]` es un subindice desnudo en dos sitios, asi que la tabla tiene
+#: que ser TOTAL sobre `DerivedRoleKind`. Eso era una coincidencia y un
+#: `KeyError` latente: quitar una entrada no rompia ninguna prueba, rompia
+#: `acquisition_candidates` en produccion. Ahora se comprueba al importar y
+#: hay un contrato que lo fija.
+def check_nature_total(nature: Mapping[DerivedRoleKind, "RoleNature"]) -> None:
+    """Refuse a classification table that does not cover every kind.
+
+    Callable rather than inline so a test can hole a copy and show the check
+    is the thing doing the work.
+    """
+    faltan = set(DerivedRoleKind) - set(nature)
+    if faltan:
+        raise RuntimeError(
+            f"NATURE does not cover {sorted(k.value for k in faltan)}; "
+            f"`NATURE[kind]` is read with no default, so this would be a "
+            f"KeyError inside acquisition_candidates rather than a visible "
+            f"failure in the suite")
+
+
+check_nature_total(NATURE)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -317,10 +347,6 @@ class TaskRoleDerivation:
         return self.of_nature(RoleNature.COORDINATION_REQUIREMENT_CANDIDATE)
 
     @property
-    def instruments(self) -> tuple[DerivedRoleKind, ...]:
-        return self.of_nature(RoleNature.AVAILABLE_INSTRUMENT)
-
-    @property
     def acquisition_candidates(self) -> tuple[DerivedRoleKind, ...]:
         """The only roles anything downstream may read as something to acquire.
 
@@ -338,7 +364,6 @@ class TaskRoleDerivation:
                 "controls": [k.value for k in self.controls],
                 "coordination_requirements":
                     [k.value for k in self.coordination_requirements],
-                "instruments": [k.value for k in self.instruments],
                 "acquisition_candidates": [k.value for k in self.acquisition_candidates],
                 "derived": [r.as_record() for r in self.derived]}
 
@@ -415,19 +440,6 @@ def derive_roles(contract: TaskContract) -> TaskRoleDerivation:
                f"{contract.retention_credit_delay} apart from the decision it "
                f"would credit, and something is trying to learn from it",
                "does a signal about a retention reach it while it is still being made?")
-
-    # Y el instrumento, cuando esta entero. Las cuatro cosas hacen falta:
-    # poder repetir, poder poner otra retencion, poder ver como acaba, y poder
-    # atribuirle el resultado. Con tres de las cuatro no hay nada que medir.
-    if contract.counterfactual_replay_allowed \
-            and contract.alternative_retention_can_be_intervened \
-            and contract.outcome_of_alternative_is_observable \
-            and contract.feedback_is_attributable_to_that_retention:
-        anotar(DerivedRoleKind.DIRECT_RETENTION_CREDIT_AVAILABLE,
-               "the situation can be re-run with a different retention, the other "
-               "outcome can be seen, and the result can be assigned to the choice",
-               "does re-running with another retention yield a difference that can "
-               "be attributed to it?")
 
     # Dos partes adaptativas no tienen por que coordinarse: pueden aprender a
     # la vez y no deberse nada. Lo que exige la coordinacion es que el
