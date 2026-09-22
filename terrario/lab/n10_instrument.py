@@ -130,7 +130,8 @@ def require_channel_contract(world: Any) -> None:
 # --- FASE 2 · la firma observable -------------------------------------------
 
 def observation_fields() -> tuple[str, ...]:
-    return tuple(f.name for f in dataclasses.fields(Observation))
+    import terrario.core.types as tipos
+    return tuple(f.name for f in dataclasses.fields(tipos.Observation))
 
 
 def observation_signature(obs: Observation) -> str:
@@ -341,3 +342,131 @@ def shuffle_report(rows: Sequence[DecisionRow], *, seed: int) -> Mapping[str, An
             "correspondence_broken": original != barajado,
             "n": len(rows),
             "deterministic": barajado == dict(shuffled_tokens(rows, seed=seed))}
+
+
+# --- FASE 6 · que la reposición sólo reponga ---------------------------------
+
+def present_without_energy(obs: Observation) -> str:
+    """Canales, máscara y tiempo. Sin energía, y SÓLO para el test de aislamiento.
+
+    No es la firma de `SAME_PRESENT` y no debe usarse como tal: quitar un campo
+    que el organismo ve haría el gate más laxo, que es justo lo que no puede
+    pasar. Aquí sirve para lo contrario -- comprobar que la intervención del
+    aparato mueve la energía y nada más.
+    """
+    import hashlib
+    h = hashlib.sha256()
+    h.update(obs.channels.tobytes())
+    h.update(obs.mask.tobytes())
+    h.update(f"{obs.time_fraction}".encode())
+    return h.hexdigest()
+
+
+def reset_isolation(sin_reset: Sequence[DecisionRow],
+                    con_reset: Sequence[DecisionRow]) -> Mapping[str, Any]:
+    """Todo igual salvo el nivel de energía residual.
+
+    Se comparan las dos corridas decisión a decisión. Que cambie el número de
+    oportunidades, su orden, la estación, el cue, la acción correcta o la
+    consecuencia significaría que la intervención tocó el experimento, no el
+    aparato.
+    """
+    if len(sin_reset) != len(con_reset):
+        return {"result": GateResult.FAIL.value, "code": "DECISION_COUNT_CHANGED",
+                "n_without": len(sin_reset), "n_with": len(con_reset)}
+    difieren: list[str] = []
+    for a, b in zip(sin_reset, con_reset):
+        for campo in ("station_id", "decision_id", "step", "history_id",
+                      "correct_action", "chosen_action", "consequence"):
+            if getattr(a, campo) != getattr(b, campo):
+                difieren.append(f"{campo}@{a.decision_id}")
+    energias_con = {r.energy_visible for r in con_reset}
+    energias_sin = {r.energy_visible for r in sin_reset}
+    return {"result": (GateResult.FAIL if difieren else GateResult.PASS).value,
+            "code": "RESET_CHANGED_MORE_THAN_ENERGY" if difieren else "",
+            "differing_fields": difieren[:20], "n_decisions": len(con_reset),
+            "distinct_energy_without_reset": len(energias_sin),
+            "distinct_energy_with_reset": len(energias_con)}
+
+
+# --- FASE 3/4 · el canal de feedback, y el mutante que lo suplanta ----------
+
+#: `T2` se retiró: reponer antes de `learn` no contamina nada, porque
+#: `consequence.energy_delta` se calcula dentro del paso, antes de cualquier
+#: reposición, y es un DELTA y no un nivel. Un mutante que no puede fallar no
+#: es un mutante. Lo que sí puede fallar es un aprendiz que lea el NIVEL, y por
+#: eso el contrato pasa a ser sobre el canal.
+T2_RETIRED_AS_NON_DISCRIMINATIVE = (
+    "reset-before-learn cannot contaminate energy_delta: the delta is computed "
+    "inside the step before any reset and is a difference, not a level")
+
+
+def feedback_of(transition: Any) -> float:
+    """El único canal admisible: la consecuencia, no el nivel.
+
+    Leer `observation.agent_energy` daría lo mismo para una decisión acertada y
+    una fallada en cuanto el aparato repone, y el aprendiz quedaría ciego sin
+    que ninguna métrica de desempeño lo dijera. Es la forma que 1.8 dejó pasar:
+    una variable presente en la especificación que no entra en la función.
+    """
+    return float(transition.consequence.energy_delta)
+
+
+def feedback_channel_gate(update: Callable[[float], Any], *, delta: float = 4.0
+                          ) -> Mapping[str, Any]:
+    """Prueba hermética: `update(+d)` y `update(-d)` deben diferir.
+
+    Sin mundo, sin organismo y sin campaña. Si las dos actualizaciones
+    coinciden, la consecuencia no participa causalmente por mucho que aparezca
+    en la firma.
+    """
+    try:
+        mas, menos = update(+delta), update(-delta)
+    except Exception as exc:                                  # noqa: BLE001
+        return {"result": GateResult.INVALID.value, "code": "UPDATE_RAISED",
+                "detail": repr(exc)}
+    return {"result": (GateResult.PASS if mas != menos else GateResult.FAIL).value,
+            "code": "" if mas != menos else "CONSEQUENCE_NOT_CAUSAL",
+            "update_positive": mas, "update_negative": menos}
+
+
+# --- FASE 14 · suficiencia informacional, antes de cualquier aprendiz -------
+
+def informational_sufficiency(rows: Sequence[DecisionRow]) -> Mapping[str, Any]:
+    """¿Contiene el problema la información que el constructo necesita?
+
+    Se pregunta antes de construir nada que aprenda, y es la defensa que a 1.8
+    le faltó: allí la especificación pedía `F(Z, A, O)` y lo implementado era
+    `F(Z, A)`, y ningún gate periférico lo vio.
+
+    Sobre verdad del mundo, por conteo exacto. Con el presente solo, lo mejor
+    que se puede hacer es la clase mayoritaria; con el presente y la historia,
+    la mejor respuesta por celda. Si la segunda no mejora a la primera, el
+    problema no contiene lo que queremos estudiar.
+    """
+    from collections import Counter, defaultdict
+    if not rows:
+        return {"result": "INVALID", "code": "NO_DECISIONS"}
+    if len({r.history_id for r in rows}) < 2:
+        return {"result": "INVALID", "code": "SINGLE_HISTORY_CLASS"}
+
+    por_o: dict[str, Counter] = defaultdict(Counter)
+    por_oh: dict[tuple[str, str], Counter] = defaultdict(Counter)
+    for r in rows:
+        por_o[r.obs_hash][r.correct_action] += 1
+        por_oh[(r.obs_hash, r.history_id)][r.correct_action] += 1
+
+    aciertos_o = sum(c.most_common(1)[0][1] for c in por_o.values())
+    aciertos_oh = sum(c.most_common(1)[0][1] for c in por_oh.values())
+    n = len(rows)
+    bayes_o, bayes_oh = aciertos_o / n, aciertos_oh / n
+    #: Suelo: la clase mayoritaria global. Si `O` ya la iguala, `O` no informa.
+    mayoritaria = Counter(r.correct_action for r in rows).most_common(1)[0][1] / n
+    suficiente = bayes_oh > bayes_o and bayes_o <= mayoritaria + 1e-12
+    return {"result": ("INFORMATIONALLY_SUFFICIENT" if suficiente
+                       else "INFORMATIONALLY_INSUFFICIENT"),
+            "n_decisions": n, "bayes_from_O": round(bayes_o, 6),
+            "bayes_from_O_and_H": round(bayes_oh, 6),
+            "majority_floor": round(mayoritaria, 6),
+            "gain": round(bayes_oh - bayes_o, 6),
+            "n_obs_hash": len(por_o), "n_history": len({r.history_id for r in rows})}
