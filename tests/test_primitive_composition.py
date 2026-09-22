@@ -10,17 +10,24 @@ import pytest
 
 from terrario.lab.hypergraph.primitive_composition import (
     EXCLUDED, NONE_OUTPUT, CompositionStatus, Cost, DegreeOfFreedom, Hyperedge,
-    MapRefused, Primitive, delta_df, edges_v01, genuine_interaction,
-    primitives_v01, replicated, unlocking_element,
+    DofStatus, MapRefused, MinimalityClaim, Primitive, delta_df, edges_v01,
+    genuine_interaction, primitives_v01, replicated, unlocking_element,
 )
 
 W = "W-test"
 
 
 def _edge(**cambios):
-    base = dict(id="Hx", inputs=frozenset({"P01", "P02"}), world=W, output="E900",
-                status=CompositionStatus.HYPOTHESIS)
+    base = dict(id="Hx", inputs=frozenset({"P01", "P02"}), world=W, scope="S",
+                output="E900", status=CompositionStatus.HYPOTHESIS)
     return Hyperedge(**{**base, **cambios})
+
+
+def _medida(antes, despues, dofs=frozenset(), **cambios):
+    """Una arista cuyo instrumento SÍ corrió."""
+    return _edge(dof_status=DofStatus.MEASURED, dof_measurement_ref="I-test/v1",
+                 dof_before=antes, dof_after=despues,
+                 new_degrees_of_freedom=dofs, **cambios)
 
 
 # --- un emergente no nace con nombre -------------------------------------------------
@@ -86,7 +93,33 @@ def test_observing_nothing_without_saying_no_effect_is_refused():
 def test_the_no_effect_row_is_what_identifies_the_unlocking_element():
     """`{A} -> nothing` is not a gap. It is the row that later names the
     element that unlocked the composition."""
-    assert unlocking_element(edges_v01()) == (("P04", "H003"),)
+    hallazgos = unlocking_element(edges_v01())
+    assert len(hallazgos) == 1
+    assert hallazgos[0]["element"] == "P04"
+    assert hallazgos[0]["from_empty"] == "H002"
+    assert hallazgos[0]["to_observed"] == "H003"
+    assert hallazgos[0]["scope"].startswith("campaign-02d5c43")
+    assert "not a universal unlocker" in hallazgos[0]["claim"]
+
+
+def test_a_pair_that_does_not_share_scope_licenses_no_inference():
+    """Different budget, organism or implementation means the two edges differ
+    in more than the added element, and the inference would be about all of it
+    at once."""
+    vacio = _edge(id="V", inputs=frozenset({"P01"}), output=NONE_OUTPUT,
+                  status=CompositionStatus.NO_EFFECT, evidence="x",
+                  scope="presupuesto-10k")
+    lleno = _edge(id="L", inputs=frozenset({"P01", "P02"}), output="E001",
+                  status=CompositionStatus.OBSERVED, evidence="x",
+                  scope="presupuesto-400k")
+    assert unlocking_element([vacio, lleno]) == ()
+    mismo = dataclasses_replace_scope(lleno, "presupuesto-10k")
+    assert len(unlocking_element([vacio, mismo])) == 1
+
+
+def dataclasses_replace_scope(edge, scope):
+    import dataclasses
+    return dataclasses.replace(edge, scope=scope)
 
 
 def test_with_no_empty_row_nothing_is_identified_as_unlocking():
@@ -125,68 +158,181 @@ def test_nothing_in_the_historical_import_is_replicated():
 # --- interacción genuina · E003 > E001 + E002 ---------------------------------------------
 
 def test_a_composition_that_is_the_union_of_its_parts_shows_no_excess():
-    a = _edge(id="A", inputs=frozenset({"P01"}), output="E001",
-              status=CompositionStatus.OBSERVED, evidence="x",
-              new_degrees_of_freedom={DegreeOfFreedom.STATE_DISCRIMINATION})
-    b = _edge(id="B", inputs=frozenset({"P02"}), output="E002",
-              status=CompositionStatus.OBSERVED, evidence="x",
-              new_degrees_of_freedom={DegreeOfFreedom.ACTION_RANGE})
-    ab = _edge(id="AB", inputs=frozenset({"P01", "P02"}), output="E003",
-               status=CompositionStatus.OBSERVED, evidence="x",
-               new_degrees_of_freedom={DegreeOfFreedom.STATE_DISCRIMINATION,
-                                       DegreeOfFreedom.ACTION_RANGE})
+    a = _medida(0, 1, {DegreeOfFreedom.STATE_DISCRIMINATION}, id="A",
+                inputs=frozenset({"P01"}), output="E001",
+                status=CompositionStatus.OBSERVED, evidence="x")
+    b = _medida(0, 1, {DegreeOfFreedom.ACTION_RANGE}, id="B",
+                inputs=frozenset({"P02"}), output="E002",
+                status=CompositionStatus.OBSERVED, evidence="x")
+    ab = _medida(0, 2, {DegreeOfFreedom.STATE_DISCRIMINATION,
+                        DegreeOfFreedom.ACTION_RANGE}, id="AB",
+                 inputs=frozenset({"P01", "P02"}), output="E003",
+                 status=CompositionStatus.OBSERVED, evidence="x")
     assert genuine_interaction([a, b, ab], ab) == frozenset()
 
 
 def test_a_degree_of_freedom_no_smaller_combination_showed_is_the_finding():
-    a = _edge(id="A", inputs=frozenset({"P01"}), output="E001",
-              status=CompositionStatus.OBSERVED, evidence="x",
-              new_degrees_of_freedom={DegreeOfFreedom.STATE_DISCRIMINATION})
-    ab = _edge(id="AB", inputs=frozenset({"P01", "P02"}), output="E003",
-               status=CompositionStatus.OBSERVED, evidence="x",
-               new_degrees_of_freedom={DegreeOfFreedom.STATE_DISCRIMINATION,
-                                       DegreeOfFreedom.TEMPORAL_CONDITIONING})
+    a = _medida(0, 1, {DegreeOfFreedom.STATE_DISCRIMINATION}, id="A",
+                inputs=frozenset({"P01"}), output="E001",
+                status=CompositionStatus.OBSERVED, evidence="x")
+    ab = _medida(0, 2, {DegreeOfFreedom.STATE_DISCRIMINATION,
+                        DegreeOfFreedom.TEMPORAL_CONDITIONING}, id="AB",
+                 inputs=frozenset({"P01", "P02"}), output="E003",
+                 status=CompositionStatus.OBSERVED, evidence="x")
     assert genuine_interaction([a, ab], ab) == frozenset(
         {DegreeOfFreedom.TEMPORAL_CONDITIONING})
 
 
 def test_a_smaller_combination_in_another_world_does_not_discount_the_excess():
     """Two worlds are two conditions here too."""
-    a = _edge(id="A", inputs=frozenset({"P01"}), output="E001", world="W-otro",
-              status=CompositionStatus.OBSERVED, evidence="x",
-              new_degrees_of_freedom={DegreeOfFreedom.TEMPORAL_CONDITIONING})
-    ab = _edge(id="AB", inputs=frozenset({"P01", "P02"}), output="E003",
-               status=CompositionStatus.OBSERVED, evidence="x",
-               new_degrees_of_freedom={DegreeOfFreedom.TEMPORAL_CONDITIONING})
+    a = _medida(0, 1, {DegreeOfFreedom.TEMPORAL_CONDITIONING}, id="A",
+                inputs=frozenset({"P01"}), output="E001", world="W-otro",
+                status=CompositionStatus.OBSERVED, evidence="x")
+    ab = _medida(0, 1, {DegreeOfFreedom.TEMPORAL_CONDITIONING}, id="AB",
+                 inputs=frozenset({"P01", "P02"}), output="E003",
+                 status=CompositionStatus.OBSERVED, evidence="x")
     assert genuine_interaction([a, ab], ab) == frozenset(
         {DegreeOfFreedom.TEMPORAL_CONDITIONING})
 
 
 # --- ΔDF, y que cero también es resultado --------------------------------------------------
 
-def test_a_rung_that_adds_nothing_reports_zero_rather_than_being_skipped():
-    a = _edge(id="A", inputs=frozenset({"P01"}), output="E001",
-              status=CompositionStatus.OBSERVED, evidence="x",
-              new_degrees_of_freedom={DegreeOfFreedom.STATE_DISCRIMINATION})
+def test_a_measured_rung_that_adds_nothing_reports_zero_and_says_who_measured():
+    """A measured zero is a result: the rung added nothing the instrument can
+    see, and that is worth writing down."""
+    a = _medida(0, 1, {DegreeOfFreedom.STATE_DISCRIMINATION}, id="A",
+                inputs=frozenset({"P01"}), output="E001",
+                status=CompositionStatus.OBSERVED, evidence="x")
     escalera = [("N1.0", frozenset({"P01"})),
-                ("N1.1", frozenset({"P01", "P02"})),
-                ("N1.2", frozenset({"P01", "P02", "P03"}))]
+                ("N1.1", frozenset({"P01", "P02"}))]
     filas = delta_df(escalera, [a], W)
-    assert [f["delta_df"] for f in filas] == [1, 0, 0]
-    assert filas[1]["gained"] == []
+    assert filas[0]["dof_status"] == "MEASURED"
+    assert filas[0]["delta_df"] is None, "the first rung has nothing to subtract from"
+    assert filas[1]["delta_df"] == 0 and filas[1]["gained"] == []
+    assert filas[1]["measurement_refs"] == ["I-test/v1"]
 
 
-def test_the_historical_import_yields_a_ladder_of_zeros():
-    """The finding of this whole import, and it is not a bug in the ladder.
+def test_an_unmeasured_rung_is_not_a_zero():
+    """THE correction. The first version of this function returned 0 for a
+    stage nobody had measured, one paragraph after the map said that writing
+    zero there would invent a result."""
+    escalera = [("N1.0", frozenset({"P01"}))]
+    fila = delta_df(escalera, [_edge(id="A", inputs=frozenset({"P01"}))], W)[0]
+    assert fila["dof_status"] == "NOT_MEASURED"
+    assert fila["delta_df"] is None
+    assert fila["df"] is None and fila["gained"] is None
 
-    The old programme measured whether a concrete organism acquired a concrete
-    capability. It never asked which degree of freedom widened, so nothing it
-    produced can populate this column -- which is exactly why the new
-    programme has to run its own experiments rather than re-read the old ones."""
+
+def test_measured_zero_and_not_measured_are_never_the_same_row():
+    """The mutant for the epistemological error itself.
+
+    Two ladders over the same stage: in one the instrument ran and found no
+    increase, in the other it never ran. If these ever compare equal, the map
+    has lost the distinction it was corrected to hold."""
+    escalera = [("S1", frozenset({"P01"})), ("S2", frozenset({"P01", "P02"}))]
+
+    #: El instrumento corrió en los dos peldaños y no encontró aumento.
+    medidas = [_medida(1, 1, id="A", inputs=frozenset({"P01"}), output="E001",
+                       status=CompositionStatus.OBSERVED, evidence="x"),
+               _medida(1, 1, id="AB", inputs=frozenset({"P01", "P02"}),
+                       output="E002", status=CompositionStatus.OBSERVED,
+                       evidence="x")]
+    #: Las mismas dos composiciones, y nadie midió.
+    sin_medir = [_edge(id="A", inputs=frozenset({"P01"}), output="E001",
+                       status=CompositionStatus.OBSERVED, evidence="x"),
+                 _edge(id="AB", inputs=frozenset({"P01", "P02"}), output="E002",
+                       status=CompositionStatus.OBSERVED, evidence="x")]
+
+    con = delta_df(escalera, medidas, W)[1]
+    sin = delta_df(escalera, sin_medir, W)[1]
+
+    assert con["dof_status"] == "MEASURED" and con["delta_df"] == 0
+    assert sin["dof_status"] == "NOT_MEASURED" and sin["delta_df"] is None
+    assert con != sin, "the two rows must never be the same row"
+    assert medidas[0].delta_dof == 0 and sin_medir[0].delta_dof is None
+
+
+def test_an_unmeasured_edge_cannot_carry_a_reading():
+    for campo, valor in (("dof_measurement_ref", "I/v1"), ("dof_before", 0),
+                         ("dof_after", 1)):
+        with pytest.raises(MapRefused, match="NOT_MEASURED and carries"):
+            _edge(**{campo: valor})
+
+
+def test_an_unmeasured_edge_cannot_name_a_degree_of_freedom():
+    """Naming one IS the measurement."""
+    with pytest.raises(MapRefused, match="naming one IS the measurement"):
+        _edge(new_degrees_of_freedom={DegreeOfFreedom.ACTION_RANGE})
+
+
+def test_a_measured_edge_must_say_which_instrument_and_give_both_readings():
+    with pytest.raises(MapRefused, match="no instrument reference"):
+        _edge(dof_status=DofStatus.MEASURED, dof_before=0, dof_after=0)
+    with pytest.raises(MapRefused, match="without both readings"):
+        _edge(dof_status=DofStatus.MEASURED, dof_measurement_ref="I/v1",
+              dof_before=0)
+
+
+def test_a_measured_rise_must_name_what_rose():
+    with pytest.raises(MapRefused, match="names none of them"):
+        _medida(0, 2)
+
+
+def test_naming_a_new_freedom_while_measuring_no_rise_is_refused():
+    with pytest.raises(MapRefused, match="measured delta 0"):
+        _medida(1, 1, {DegreeOfFreedom.ACTION_RANGE})
+
+
+def test_genuine_interaction_is_none_rather_than_empty_when_nobody_looked():
+    """Empty would say «the composition is exactly the union of its parts»."""
+    sin_medir = _edge(id="AB", inputs=frozenset({"P01", "P02"}), output="E003",
+                      status=CompositionStatus.OBSERVED, evidence="x")
+    assert genuine_interaction([sin_medir], sin_medir) is None
+    medida = _medida(0, 1, {DegreeOfFreedom.ACTION_RANGE}, id="AB",
+                     inputs=frozenset({"P01", "P02"}), output="E003",
+                     status=CompositionStatus.OBSERVED, evidence="x")
+    assert genuine_interaction([medida], medida) == frozenset(
+        {DegreeOfFreedom.ACTION_RANGE})
+
+
+def test_the_historical_import_measured_no_degrees_of_freedom_at_all():
+    """Not a ladder of zeros. A ladder of NOT_MEASURED.
+
+    The old programme asked whether a concrete organism acquired a concrete
+    capability and never asked which degree of freedom widened, so nothing it
+    produced can populate this column at all."""
+    assert all(e.dof_status is DofStatus.NOT_MEASURED for e in edges_v01())
+    assert all(e.delta_dof is None for e in edges_v01())
     escalera = [("S1", frozenset({"P03"})), ("S2", frozenset({"P03", "P04"}))]
     filas = delta_df(escalera, edges_v01(), "W-level1-grid")
-    assert [f["delta_df"] for f in filas] == [0, 0]
-    assert all(not e.new_degrees_of_freedom for e in edges_v01())
+    assert [f["dof_status"] for f in filas] == ["NOT_MEASURED", "NOT_MEASURED"]
+    assert [f["delta_df"] for f in filas] == [None, None]
+    assert 0 not in [f["delta_df"] for f in filas]
+
+
+# --- frontera conocida no es minimalidad demostrada -------------------------------------
+
+def test_a_cannot_is_a_boundary_and_not_a_proof_of_minimality():
+    """A thing can state exactly what it cannot do and still decompose."""
+    with pytest.raises(MapRefused, match="claims minimality with no basis"):
+        Primitive(id="P99", name="x", can="a", cannot="b", detection="c",
+                  minimality=MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY)
+
+
+def test_the_strong_claim_is_available_with_a_written_basis():
+    prim = Primitive(id="P99", name="x", can="a", cannot="b", detection="c",
+                     minimality=MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY,
+                     minimality_basis="no finer operational decomposition "
+                                      "preserves the phenomenon under W-test")
+    assert prim.minimality is MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY
+
+
+def test_none_of_the_twenty_claims_to_be_minimal():
+    """v0.1 of an experimental vocabulary, not a claim about the atoms of
+    intelligence. Every one has a boundary; not one has a demonstration that
+    nothing finer preserves the phenomenon."""
+    for prim in primitives_v01():
+        assert prim.minimality is MinimalityClaim.BOUNDARY_KNOWN, prim.id
 
 
 # --- las primitivas responden seis preguntas y ninguna más --------------------------------

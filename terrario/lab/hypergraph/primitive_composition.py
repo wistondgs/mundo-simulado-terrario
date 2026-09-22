@@ -63,6 +63,35 @@ class CompositionStatus(StrEnum):
     CONTRADICTED = "CONTRADICTED"
 
 
+class DofStatus(StrEnum):
+    """Whether an instrument measured degrees of freedom here. Never a value.
+
+    `MEASURED` with `delta_dof = 0` and `NOT_MEASURED` are different facts and
+    collapsing them is the epistemological error this map was caught making:
+    the historical import has no degree-of-freedom measurement at all, and
+    printing zero for it invents a result the old programme never produced.
+    """
+
+    NOT_MEASURED = "NOT_MEASURED"
+    MEASURED = "MEASURED"
+
+
+class MinimalityClaim(StrEnum):
+    """Having a boundary is not the same as being minimal.
+
+    A thing can state exactly what it cannot do and still decompose further.
+    The stronger claim needs the absence of a finer operational decomposition
+    that preserves the phenomenon we want to manipulate, and nothing in this
+    map demonstrates that for anything yet.
+    """
+
+    #: Su frontera negativa es explícita. Esto es lo que se puede afirmar hoy.
+    BOUNDARY_KNOWN = "BOUNDARY_KNOWN"
+    #: Y además no hay descomposición operacional más fina pertinente al
+    #: programa actual que preserve el fenómeno. Requiere base escrita.
+    MINIMAL_UNDER_CURRENT_VOCABULARY = "MINIMAL_UNDER_CURRENT_VOCABULARY"
+
+
 class Cost(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -134,6 +163,10 @@ class Primitive:
     #: Cómo sabemos que está presente. Sin esto no es una primitiva, es un deseo.
     detection: str = ""
     provenance: str = ""
+    minimality: MinimalityClaim = MinimalityClaim.BOUNDARY_KNOWN
+    #: Por qué no hay descomposición más fina pertinente. Sólo para la
+    #: afirmación fuerte, y sin ella la afirmación fuerte se rechaza.
+    minimality_basis: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "requires", tuple(self.requires))
@@ -147,12 +180,21 @@ class Primitive:
                     f"is just short")
         if self.id in self.requires:
             raise MapRefused(f"{self.id} cannot require itself")
+        if self.minimality is MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY \
+                and not self.minimality_basis.strip():
+            raise MapRefused(
+                f"{self.id} claims minimality with no basis. An explicit «cannot» "
+                f"is a boundary, not a proof: a thing can state what it cannot do "
+                f"and still decompose further, and the strong claim needs the "
+                f"absence of a finer decomposition that preserves the phenomenon")
 
     def as_record(self) -> Mapping[str, Any]:
         return {"id": self.id, "name": self.name, "can": self.can,
                 "cannot": self.cannot, "requires": list(self.requires),
                 "cost": self.cost.value, "detection": self.detection,
-                "provenance": self.provenance}
+                "provenance": self.provenance,
+                "minimality": self.minimality.value,
+                "minimality_basis": self.minimality_basis}
 
 
 @dataclass(frozen=True)
@@ -164,6 +206,15 @@ class Hyperedge:
     world: str
     output: str
     status: CompositionStatus
+    #: Todo lo que se mantuvo fijo aparte del mundo: organismo, presupuesto,
+    #: implementación, instrumento. Dos aristas sólo son comparables dentro del
+    #: mismo scope, y sin él «añadir P04 cambió el resultado» es una frase sin
+    #: condiciones.
+    scope: str = ""
+    dof_status: DofStatus = DofStatus.NOT_MEASURED
+    dof_measurement_ref: str | None = None
+    dof_before: int | None = None
+    dof_after: int | None = None
     new_degrees_of_freedom: frozenset[DegreeOfFreedom] = frozenset()
     evidence: str = ""
     note: str = ""
@@ -213,13 +264,55 @@ class Hyperedge:
             raise MapRefused(
                 f"{self.id} settles a composition with no evidence reference")
 
+        # Y la distinción que este mapa ya se equivocó una vez en sostener.
+        if self.dof_status is DofStatus.NOT_MEASURED:
+            for campo in ("dof_measurement_ref", "dof_before", "dof_after"):
+                if getattr(self, campo) is not None:
+                    raise MapRefused(
+                        f"{self.id} is NOT_MEASURED and carries «{campo}». "
+                        f"Nothing measured degrees of freedom here, and a value "
+                        f"in that column would be a result nobody produced")
+            if self.new_degrees_of_freedom:
+                raise MapRefused(
+                    f"{self.id} is NOT_MEASURED and names a degree of freedom; "
+                    f"naming one IS the measurement")
+        else:
+            if not self.dof_measurement_ref:
+                raise MapRefused(
+                    f"{self.id} claims MEASURED with no instrument reference")
+            if self.dof_before is None or self.dof_after is None:
+                raise MapRefused(
+                    f"{self.id} claims MEASURED without both readings")
+            if self.dof_before < 0 or self.dof_after < 0:
+                raise MapRefused(f"{self.id}: a count of freedoms is not negative")
+            salto = self.dof_after - self.dof_before
+            if salto > 0 and not self.new_degrees_of_freedom:
+                raise MapRefused(
+                    f"{self.id} measured a rise of {salto} and names none of them")
+            if salto <= 0 and self.new_degrees_of_freedom:
+                raise MapRefused(
+                    f"{self.id} names a new degree of freedom and measured "
+                    f"delta {salto}")
+
+    @property
+    def delta_dof(self) -> int | None:
+        """`None` cuando nadie midió. `0` medido es un resultado distinto."""
+        if self.dof_status is DofStatus.NOT_MEASURED:
+            return None
+        return self.dof_after - self.dof_before
+
     def label(self) -> str:
         return (f"{{{', '.join(sorted(self.inputs))}}} --{self.world}--> "
                 f"{self.output}")
 
     def as_record(self) -> Mapping[str, Any]:
         return {"id": self.id, "inputs": sorted(self.inputs), "world": self.world,
-                "output": self.output, "status": self.status.value,
+                "scope": self.scope, "output": self.output,
+                "status": self.status.value,
+                "dof_status": self.dof_status.value,
+                "dof_measurement_ref": self.dof_measurement_ref,
+                "dof_before": self.dof_before, "dof_after": self.dof_after,
+                "delta_dof": self.delta_dof,
                 "new_degrees_of_freedom":
                     sorted(d.value for d in self.new_degrees_of_freedom),
                 "evidence": self.evidence, "note": self.note,
@@ -240,37 +333,51 @@ def replicated(edges: Iterable[Hyperedge]) -> tuple[tuple[frozenset[str], str], 
                         key=lambda c: (sorted(c[0]), c[1])))
 
 
-def unlocking_element(edges: Iterable[Hyperedge]) -> tuple[tuple[str, str], ...]:
-    """Which single addition turned a NO_EFFECT into an emergence, same world.
+def unlocking_element(edges: Iterable[Hyperedge]) -> tuple[Mapping[str, Any], ...]:
+    """Which single addition changed the result, **under one matched scope**.
 
-    This is what `NO_EFFECT` is for.  `{A,B}` producing nothing is not a gap in
-    the map; it is the row that later identifies `C`.
+    This is what `NO_EFFECT` is for: `{A}` producing nothing is the row that
+    later identifies `C`.  But it identifies it only inside the conditions
+    that were held fixed.  Two edges in the same world with different budgets,
+    organisms or implementations differ in more than the added element, and
+    the inference would be about all of it at once.
+
+    So the scope comes back with the finding, and what is licensed is «adding
+    X changed the outcome under this scope», never «X unlocks Y».
     """
     lista = list(edges)
-    vacios = {(e.world, e.inputs) for e in lista
-              if e.status is CompositionStatus.NO_EFFECT}
-    hallazgos: list[tuple[str, str]] = []
+    vacios = [e for e in lista if e.status is CompositionStatus.NO_EFFECT]
+    hallazgos: list[Mapping[str, Any]] = []
     for edge in lista:
         if edge.output == NONE_OUTPUT or edge.status is not CompositionStatus.OBSERVED:
             continue
-        for mundo, vacio in vacios:
-            if mundo == edge.world and vacio < edge.inputs \
-                    and len(edge.inputs - vacio) == 1:
-                hallazgos.append((next(iter(edge.inputs - vacio)), edge.id))
-    return tuple(sorted(set(hallazgos)))
+        for vacio in vacios:
+            if (vacio.world == edge.world and vacio.scope == edge.scope
+                    and vacio.inputs < edge.inputs
+                    and len(edge.inputs - vacio.inputs) == 1):
+                hallazgos.append({
+                    "element": next(iter(edge.inputs - vacio.inputs)),
+                    "from_empty": vacio.id, "to_observed": edge.id,
+                    "world": edge.world, "scope": edge.scope,
+                    "claim": "adding this element changed the outcome under this "
+                             "scope; it is not a universal unlocker"})
+    return tuple(sorted(hallazgos, key=lambda h: (h["element"], h["to_observed"])))
 
 
-def genuine_interaction(edges: Iterable[Hyperedge], edge: Hyperedge) -> frozenset:
+def genuine_interaction(edges: Iterable[Hyperedge],
+                        edge: Hyperedge) -> frozenset | None:
     """Degrees of freedom the whole has and no smaller combination showed.
 
-    The question is whether `E003 = E001 + E002` or `E003 > E001 + E002`.  What
-    comes back is the excess: empty means the composition is the union of its
-    parts, and anything in it is the kind of phenomenon this map exists to find.
+    `None` when the edge carries no measurement: an empty set would say «the
+    composition is exactly the union of its parts», and nobody looked.
     """
+    if edge.dof_status is DofStatus.NOT_MEASURED:
+        return None
     menores: set[DegreeOfFreedom] = set()
     for otra in edges:
-        if otra.id != edge.id and otra.world == edge.world \
-                and otra.inputs < edge.inputs:
+        if (otra.id != edge.id and otra.world == edge.world
+                and otra.scope == edge.scope and otra.inputs < edge.inputs
+                and otra.dof_status is DofStatus.MEASURED):
             menores |= otra.new_degrees_of_freedom
     return edge.new_degrees_of_freedom - menores
 
@@ -279,21 +386,35 @@ def delta_df(stages: list[tuple[str, frozenset[str]]],
              edges: Iterable[Hyperedge], world: str) -> tuple[Mapping[str, Any], ...]:
     """`DF(S_n) - DF(S_{n-1})` along an accumulating organism.
 
-    A delta of zero is a result too: it says the rung added nothing that the
-    map can see, which is worth writing down rather than quietly skipping.
+    A stage covered by no measured edge comes back `NOT_MEASURED` with `None`
+    for every value.  It does **not** come back zero: a measured zero says the
+    rung added nothing and an unmeasured one says nobody looked, and the first
+    version of this function printed the second as the first.
     """
     lista = [e for e in edges if e.world == world]
     salida = []
-    previo: frozenset = frozenset()
+    previo: frozenset | None = None
     for nombre, capacidades in stages:
+        cubren = [e for e in lista if e.inputs <= capacidades]
+        medidas = [e for e in cubren if e.dof_status is DofStatus.MEASURED]
+        if not medidas:
+            salida.append({"stage": nombre, "capabilities": sorted(capacidades),
+                           "dof_status": DofStatus.NOT_MEASURED.value,
+                           "df": None, "delta_df": None, "gained": None,
+                           "why": "no edge covering this stage carries a degree "
+                                  "of freedom measurement"})
+            continue
         actual: set[DegreeOfFreedom] = set()
-        for edge in lista:
-            if edge.inputs <= capacidades:
-                actual |= edge.new_degrees_of_freedom
-        salida.append({"stage": nombre, "capabilities": sorted(capacidades),
-                       "df": sorted(d.value for d in actual),
-                       "delta_df": len(actual) - len(previo),
-                       "gained": sorted(d.value for d in (actual - previo))})
+        for edge in medidas:
+            actual |= edge.new_degrees_of_freedom
+        salida.append({
+            "stage": nombre, "capabilities": sorted(capacidades),
+            "dof_status": DofStatus.MEASURED.value,
+            "measurement_refs": sorted({e.dof_measurement_ref for e in medidas}),
+            "df": sorted(d.value for d in actual),
+            "delta_df": None if previo is None else len(actual) - len(previo),
+            "gained": None if previo is None
+                      else sorted(d.value for d in (actual - previo))})
         previo = frozenset(actual)
     return tuple(salida)
 
@@ -512,15 +633,17 @@ EXCLUDED = (
 def edges_v01() -> tuple[Hyperedge, ...]:
     return (
         Hyperedge(
-            id="H001", inputs=frozenset({"P03", "P04"}), world="W-level1-grid",
+            id="H001", scope="campaign-a1f180b · frozen organism B+Q · 2x2 factorial cells, same budget and implementation",
+            inputs=frozenset({"P03", "P04"}), world="W-level1-grid",
             output="E001", status=CompositionStatus.OBSERVED,
             evidence="frozen campaign a1f180b · 2x2 factorial H x M · 10 gates",
             note="superadditive interaction measured. WHICH degree of freedom "
-                 "widened was never this campaign's question, so the column is "
-                 "empty and that is UNKNOWN, not zero",
+                 "widened was never this campaign's question: dof_status is "
+                 "NOT_MEASURED, which is not a delta of zero",
             provenance="HISTORICAL"),
         Hyperedge(
-            id="H002", inputs=frozenset({"PSI_UNIDENTIFIED"}), world="W-level1-grid",
+            id="H002", scope="campaign-02d5c43 · organism B+Q+H+M · ten-gate protocol",
+            inputs=frozenset({"PSI_UNIDENTIFIED"}), world="W-level1-grid",
             output=NONE_OUTPUT, status=CompositionStatus.NO_EFFECT,
             evidence="frozen campaign 02d5c43 · gate RB-7 total dependence",
             note="psi alone contributes exactly zero. The identity of psi is "
@@ -529,21 +652,27 @@ def edges_v01() -> tuple[Hyperedge, ...]:
                  "the two would be convenience, not evidence",
             provenance="HISTORICAL"),
         Hyperedge(
-            id="H003", inputs=frozenset({"PSI_UNIDENTIFIED", "P04"}),
+            id="H003", scope="campaign-02d5c43 · organism B+Q+H+M · ten-gate protocol",
+            inputs=frozenset({"PSI_UNIDENTIFIED", "P04"}),
             world="W-level1-grid", output="E002",
             status=CompositionStatus.OBSERVED,
             evidence="frozen campaign 02d5c43 · ten gates green",
-            note="psi needs M. With H002 this is the pattern NO_EFFECT is for: "
-                 "the pair works and one half alone does not",
+            note="psi needs M UNDER THIS SCOPE. With H002 this is the pattern "
+                 "NO_EFFECT is for: the pair works and one half alone does "
+                 "not. That the two are matched on organism, budget and "
+                 "implementation is asserted by the campaign's own ablation "
+                 "gate RB-7 and was NOT re-verified here",
             provenance="HISTORICAL"),
         Hyperedge(
-            id="H004", inputs=frozenset({"P06", "P07"}), world="W-level17-twin-A",
+            id="H004", scope="campaign-6cf55a4 · same organism, budget and instrument; the twins differ ONLY in the world transition",
+            inputs=frozenset({"P06", "P07"}), world="W-level17-twin-A",
             output="E003", status=CompositionStatus.OBSERVED,
             evidence="frozen campaign 6cf55a4 · 16/16 pairs · 13/13 gates",
-            note="degrees of freedom UNKNOWN for the same reason as H001",
+            note="dof_status NOT_MEASURED for the same reason as H001",
             provenance="HISTORICAL"),
         Hyperedge(
-            id="H005", inputs=frozenset({"P06", "P07"}), world="W-level17-twin-B",
+            id="H005", scope="campaign-6cf55a4 · same organism, budget and instrument; the twins differ ONLY in the world transition",
+            inputs=frozenset({"P06", "P07"}), world="W-level17-twin-B",
             output=NONE_OUTPUT, status=CompositionStatus.NO_EFFECT,
             evidence="frozen campaign 6cf55a4 · I_B(A;O'|O) = 0 EXACTLY, with "
                      "T_B(s'|s,a) = 1/4 sum_b T_A(s'|s,b)",
@@ -552,7 +681,8 @@ def edges_v01() -> tuple[Hyperedge, ...]:
                  "conditions, which is why the world travels with the edge",
             provenance="HISTORICAL"),
         Hyperedge(
-            id="H006", inputs=frozenset({"P04", "P06", "P07"}),
+            id="H006", scope="campaign-9b7bdb0 · round C",
+            inputs=frozenset({"P04", "P06", "P07"}),
             world="W-level18", output="E004", status=CompositionStatus.UNKNOWN,
             note="the campaign that would have settled this is a FAMILY_MISMATCH: "
                  "the oracle sealed Z_{t+1} = F(Z_t, A_t, O_{t+1}) and what ran "

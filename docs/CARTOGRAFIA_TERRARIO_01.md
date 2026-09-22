@@ -6393,7 +6393,7 @@ composición por diseño—:
 ```
 aristas con grado de libertad registrado ......... 0 de 6
 composiciones replicadas en dos mundos ........... 0
-ΔDF de la escalera histórica ..................... 0 en cada peldaño
+ΔDF de la escalera histórica ..................... NOT_MEASURED · nunca 0
 ```
 
 No es un fallo del importador. El programa viejo preguntaba si un organismo
@@ -6449,3 +6449,41 @@ sería conveniencia. La sección II del mapa está casi vacía **a propósito** 
 pares y 1.140 tríos sobre veinte primitivas; elegir cuáles correr *es* la
 pregunta de muestreo—. Y la sección IV no tiene filas porque el organismo
 acumulativo del programa nuevo todavía no existe.
+
+## 50.6 · Corrección · `MEASURED_ZERO` y `NOT_MEASURED` son estados distintos
+
+§50.1 dijo «`UNKNOWN`, no cero» y `delta_df` **devolvía cero** dos líneas
+después. La prosa y el código se contradecían, y el código gana siempre. Es el
+mismo error epistemológico que la sección acababa de nombrar, cometido en el
+renglón siguiente.
+
+```
+dof_status          NOT_MEASURED  |  MEASURED
+dof_measurement_ref        null   |  obligatorio
+dof_before / dof_after     null   |  los dos, del instrumento
+delta_dof                  null   |  calculado · puede ser 0 legítimamente
+```
+
+Invariantes en el constructor: `NOT_MEASURED` con una lectura se rechaza, y
+`NOT_MEASURED` que **nombre** un grado de libertad también —nombrarlo *es* la
+medición—. `MEASURED` exige instrumento, las dos lecturas, y coherencia entre el
+salto y lo que nombra. Hay **un mutante dedicado** que levanta las dos escaleras
+sobre los mismos peldaños —una con instrumento que no halló aumento, otra sin
+instrumento— y exige que las filas nunca comparen iguales.
+
+`genuine_interaction` sigue la regla: `None` cuando nadie midió, no conjunto
+vacío. Vacío diría «la composición es la unión de sus partes», y nadie miró.
+
+Lo único que vale cero es `#{aristas históricas con medición de DF} = 0`.
+
+**El desbloqueante lleva su scope.** `unlocking_element` se niega a emparejar
+aristas de scope distinto y devuelve el scope con el hallazgo: lo licenciado es
+«añadir `P04` cambió el desenlace bajo este scope», nunca «`P04` desbloquea ψ».
+Que las dos de `H002`/`H003` estén emparejadas lo afirma el gate RB-7 de su
+propia campaña y no se reverificó.
+
+**Y frontera conocida no es minimalidad demostrada.** Una cosa puede decir qué
+no puede hacer y seguir siendo descomponible, así que `BOUNDARY_KNOWN` y
+`MINIMAL_UNDER_CURRENT_VOCABULARY` son afirmaciones separadas y la segunda exige
+base escrita. **Las veinte son `BOUNDARY_KNOWN`**: v0.1 de un vocabulario
+experimental, no los átomos últimos de nada.

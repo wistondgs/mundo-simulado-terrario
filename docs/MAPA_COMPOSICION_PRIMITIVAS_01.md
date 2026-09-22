@@ -29,7 +29,7 @@ aristas— el resultado es éste:
 ```
 aristas con grado de libertad registrado ......... 0 de 6
 composiciones replicadas en dos mundos ........... 0
-ΔDF de la escalera histórica ..................... 0 en cada peldaño
+ΔDF de la escalera histórica ..................... NOT_MEASURED · nunca 0
 ```
 
 **Ninguna.** Y no es un fallo del importador. El programa viejo preguntaba si un
@@ -144,12 +144,12 @@ es exactamente lo que hace falta un hipergrafo y no una escalera.
 
 Seis aristas, **todas con provenance `HISTORICAL`** y todas con su mundo.
 
-| arista | composición | mundo | salida | estado | grados de libertad |
+| arista | composición | mundo | salida | estado | medición de DF |
 |---|---|---|---|---|---|
-| `H001` | `{P03, P04}` | `W-level1-grid` | `E001` | OBSERVED | **UNKNOWN** |
+| `H001` | `{P03, P04}` | `W-level1-grid` | `E001` | OBSERVED | **NOT_MEASURED** |
 | `H002` | `{PSI_UNIDENTIFIED}` | `W-level1-grid` | `NONE` | **NO_EFFECT** | — |
-| `H003` | `{PSI_UNIDENTIFIED, P04}` | `W-level1-grid` | `E002` | OBSERVED | **UNKNOWN** |
-| `H004` | `{P06, P07}` | `W-level17-twin-A` | `E003` | OBSERVED | **UNKNOWN** |
+| `H003` | `{PSI_UNIDENTIFIED, P04}` | `W-level1-grid` | `E002` | OBSERVED | **NOT_MEASURED** |
+| `H004` | `{P06, P07}` | `W-level17-twin-A` | `E003` | OBSERVED | **NOT_MEASURED** |
 | `H005` | `{P06, P07}` | `W-level17-twin-B` | `NONE` | **NO_EFFECT** | — |
 | `H006` | `{P04, P06, P07}` | `W-level18` | `E004` | UNKNOWN | — |
 
@@ -160,14 +160,21 @@ exacto**. Dos condiciones, no una contradicción. Por eso el mundo viaja con la
 arista y una arista sin mundo se rechaza en el constructor.
 
 **`H002` y `H003` son para qué sirve `NO_EFFECT`.** ψ sola aporta cero exacto;
-ψ con `P04` funciona. El mapa calcula solo que **`P04` fue el elemento
-desbloqueante**, y ese cálculo sólo es posible porque la fila vacía existe. Una
-ausencia de emergencia que no se escribe es una fila que después no identifica
-nada.
+ψ con `P04` funciona. El mapa calcula solo que **añadir `P04` cambió el
+resultado**, y ese cálculo sólo es posible porque la fila vacía existe.
 
-**Y la columna de grados de libertad está entera en `UNKNOWN`.** El programa
-viejo midió que la composición era superaditiva; **cuál** grado de libertad se
-ensanchó no era su pregunta. `UNKNOWN`, no cero.
+**Pero la inferencia lleva su scope y no sale de él.** Vale únicamente si las
+dos aristas están emparejadas en organismo, presupuesto, implementación y demás
+condiciones, variando sólo la presencia de `P04`. Lo licenciado es «añadir
+`P04` cambió el desenlace **bajo este scope**», nunca «`P04` desbloquea ψ». El
+cálculo se niega a emparejar aristas de scope distinto y devuelve el scope junto
+al hallazgo. Que las dos de aquí lo estén lo **afirma el gate RB-7 de su propia
+campaña**, y no lo reverifiqué.
+
+**Y la columna de grados de libertad está entera en `NOT_MEASURED`.** El
+programa viejo midió que la composición era superaditiva; **cuál** grado de
+libertad se ensanchó no era su pregunta. Ningún instrumento de DF corrió nunca,
+así que no hay valor — ni cero.
 
 ---
 
@@ -178,12 +185,42 @@ ensanchó no era su pregunta. `UNKNOWN`, no cero.
 ```
 
 **No hay filas.** El organismo acumulativo del programa nuevo no existe: no hay
-`N1.0`. Y aunque se importara la escalera histórica, cada `ΔDF` daría **0**,
-porque ninguna arista importada lleva grado de libertad.
+`N1.0`. Y la escalera histórica no da ceros — da `NOT_MEASURED` en cada peldaño,
+porque ninguna arista importada lleva medición de grado de libertad.
 
-Un `ΔDF = 0` es un resultado útil y se escribe; una escalera entera de ceros por
-falta de la variable medida es otra cosa, y decir «cero» ahí sería mentir con un
-número. Hay un contrato que fija las dos lecturas por separado.
+### `MEASURED_ZERO` y `NOT_MEASURED` son estados distintos
+
+Ésta es una corrección a la v0.1 inicial, y era un error de bulto: el documento
+decía «`UNKNOWN`, no cero» y la función `delta_df` **devolvía cero** dos líneas
+después. La prosa y el código se contradecían, y el código gana siempre.
+
+```
+dof_status        NOT_MEASURED  |  MEASURED
+dof_measurement_ref      null   |  obligatorio
+dof_before / dof_after   null   |  los dos, del instrumento
+delta_dof                null   |  calculado · puede ser 0
+```
+
+Con las invariantes en el constructor: una arista `NOT_MEASURED` que lleve una
+lectura se rechaza, y una que **nombre** un grado de libertad también —nombrarlo
+**es** la medición—. Y al revés, una `MEASURED` sin instrumento, sin las dos
+lecturas, con un aumento que no nombra qué subió, o que nombra algo habiendo
+medido delta ≤ 0, se rechaza igual.
+
+`MEASURED` con `delta_dof = 0` es **completamente legítimo** y no equivale a
+`NOT_MEASURED`. Hay un mutante dedicado que construye las dos escaleras sobre los
+mismos peldaños —una con instrumento que no encontró aumento, otra sin
+instrumento— y exige que las filas **nunca** comparen iguales.
+
+Lo único que vale cero hoy es:
+
+```
+#{aristas históricas con medición de DF} = 0
+```
+
+`genuine_interaction` sigue la misma regla: devuelve `None` cuando nadie midió,
+no el conjunto vacío. Vacío diría «la composición es exactamente la unión de sus
+partes», y nadie miró.
 
 Las seis preguntas con las que se responderá esta sección cuando haya qué medir:
 
@@ -212,8 +249,25 @@ una arista sin mundo                    no se puede saber de qué condición hab
 NO_EFFECT con salida o con un DOF       algo pasó
 observar nada sin decir NO_EFFECT       la ausencia tiene su propio estado
 una arista que se declara REPLICATED    se calcula sobre varios mundos
-una primitiva sin «no puede»            no es mínima, sólo corta
+una primitiva sin «no puede»            sin frontera negativa explícita
+minimalidad afirmada sin base           una frontera no es una demostración
+una arista NOT_MEASURED con lectura     nadie midió; el valor sería inventado
 ```
+
+**Frontera conocida no es minimalidad demostrada**, y la v0.1 inicial las
+confundía. Una cosa puede decir exactamente qué no puede hacer y seguir siendo
+descomponible, así que son dos afirmaciones separadas:
+
+```
+BOUNDARY_KNOWN                    su frontera negativa es explícita
+MINIMAL_UNDER_CURRENT_VOCABULARY  y además no existe descomposición operacional
+                                  más fina pertinente al programa actual que
+                                  preserve el fenómeno que queremos manipular
+```
+
+La segunda exige base escrita y se rechaza sin ella. **Las veinte son
+`BOUNDARY_KNOWN`; ninguna afirma minimalidad.** Son la v0.1 de un vocabulario
+experimental, no una afirmación sobre los átomos últimos de la inteligencia.
 
 Seis estados y no veinte: `UNKNOWN` · `HYPOTHESIS` · `OBSERVED` · `REPLICATED` ·
 `NO_EFFECT` · `CONTRADICTED`.
