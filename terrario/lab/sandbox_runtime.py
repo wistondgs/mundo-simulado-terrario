@@ -126,15 +126,12 @@ class SandboxService:
         manager=components.world; rules=components.rules
         # The world fixes the sensory shape; the spec fixes which concepts exist.
         #
-        # Seeded before construction, not only inside it. `create_agent` seeds a
-        # per-agent torch.Generator, but module weights come from the GLOBAL
-        # torch RNG -- `memory.py:156` calls torch.randn with no generator, and
-        # so does every nn.Linear. So two runs of the same spec in one process
-        # produced different organisms, and `initial_parameters_hash` was not
-        # reproducible across processes. The benches were compensating by hand
-        # with torch.manual_seed before each create; the scientific path has
-        # called set_global_determinism since the beginning, and this is the
-        # asymmetry that made "same seed" mean different things on each surface.
+        # The torch half of this is now the factory's own guarantee:
+        # `create_agent` holds the global torch RNG at its `seed` while the
+        # modules are built and restores it afterwards, so two runs of the same
+        # spec give the same organism whoever calls it. What this line still
+        # buys is the OTHER half -- `numpy` and stdlib `random`, which the
+        # factory does not touch and the world does read.
         RNGManager.set_global_determinism(run.spec.agent_seed)
         agent=create_agent(run.spec.agent_reference,{"num_channels":s.get("num_channels",4),"view_size":2*s.get("view_radius",2)+1,**dict(run.spec.agent_configuration)},run.spec.agent_seed,device="cpu")
         # `physics` stays the same object the components carry: a test replaces it

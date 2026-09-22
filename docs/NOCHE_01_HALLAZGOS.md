@@ -130,6 +130,13 @@ condición corría con un organismo diferente según su posición en el bucle.**
 arnés y verificado; **no** en la fábrica, porque eso movería la caracterización golden y el
 manifiesto protegido, que son compuertas humanas.
 
+> **Nota del 2026-09-21** —añadida sin tocar lo de arriba, que es lo que se supo esa noche—:
+> el motivo para no arreglar la fábrica resultó equivocado, y se comprobó midiendo antes de
+> tocar nada. La caracterización golden **no se mueve**: todos los llamantes sembraban con la
+> misma semilla que pasaban como argumento, y entre su siembra y la construcción nada consume el
+> RNG global de torch. `create_agent` ya sostiene el RNG global en su `seed` y lo restaura al
+> salir. Ver §V [90] de `docs/CARTOGRAFIA_TERRARIO_01.md`.
+
 **El `policy_loss` sin término de entropía.** Añadido con bandera, apagado por defecto.
 
 **Y mi propia sonda del techo estaba rota.** El paseo elegía siempre la primera dirección libre

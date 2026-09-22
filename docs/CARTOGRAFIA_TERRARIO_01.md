@@ -134,9 +134,27 @@ barrido específico.*
 
 ## 13 · Rutas que crean agentes o mundos fuera de esos entrypoints — **sí, varias**
 
-**Crean agentes** (`create_agent`): `experiment/controller.py`, `experiment/adaptation.py`,
-`lab/sandbox_runtime.py`, `lab/agent_inspector.py`, `lab/causal.py`, `lab/execution/runtime.py`,
-y los scripts `screen_concepts`, `experiment_one_step_twins`, `experiment_capability_acquisition`.
+**Crean agentes** — **barrido completo fuera de `tests/`, 2026-09-21: 21 sitios.**
+
+*Llaman a `create_agent` directamente* (17): `experiment/controller.py:322` —el
+`_create_agent` que concentra la ruta científica—,
+[`lab/sandbox_runtime.py:136`](terrario/lab/sandbox_runtime.py:136),
+[`lab/agent_inspector.py:56`](terrario/lab/agent_inspector.py:56), y en `scripts/`:
+`adaptive_freeze_gate` (6 sitios), `state_authority_probe` (2), y uno cada uno
+`experiment_capability_acquisition`, `experiment_learner_sample_efficiency`,
+`experiment_one_step_twins`, `learned_state_audit`, `m_information_audit`, `purity_check`.
+
+*Pasan por `controller._create_agent`* (4): `experiment/controller.py:138`,
+`experiment/adaptation.py:312`, `lab/causal.py:110`, `lab/execution/runtime.py:92`.
+
+`screen_concepts` y `ablation_study` **no** están en la lista, al revés de lo que decía esta
+sección: construyen a través de `SandboxService`, que es quien llama.
+
+Todos sembraban el RNG global a mano justo antes de construir, y con la misma semilla que
+pasaban como argumento —la ruta científica y sus bancos con `set_global_determinism`, los guiones
+de `scripts/` con `torch.manual_seed`—. **La única excepción era `agent_inspector`**, que no
+sembraba nada: un modelo de lectura de la UI, fuera de toda campaña. Ver §V [90]: qué prometía esa
+firma, qué cumplía, y dónde vive ahora la garantía.
 
 **Crean mundos** (`build_world_state` / `WorldStateManager(...)`): `experiment/controller.py`,
 `experiment/adaptation.py`, `lab/sandbox_runtime.py`, `lab/world_authoring.py`,
@@ -152,7 +170,7 @@ runtime, deliberadamente — son bancos exógenos, no simulaciones.
 
 Sólo dos funciones lo hacen de principio a fin:
 `ExperimentController.run_episode` ([controller.py:196](terrario/experiment/controller.py:196)) y
-`SandboxService._step_runtime` ([sandbox_runtime.py:142](terrario/lab/sandbox_runtime.py:142)).
+`SandboxService._step_runtime` ([sandbox_runtime.py:169](terrario/lab/sandbox_runtime.py:169)).
 `world.advance_time()` lo invoca `PhysicsEngine.step` al final ([physics.py:83](terrario/world/physics.py:83)).
 
 ## 17 · Cuántos loops de simulación existen realmente
@@ -497,7 +515,7 @@ código.
 |---|---|
 | `numpy` | `core/rng.py`, `experiment/statistics.py`, `controller.materialize_scenario`, `world/opportunities.py`, `observer/checkpoints.py` |
 | `random` (stdlib) | `core/rng.py`, `lab/snapshot_bank.py`, `lab/capability_exam.py`, `lab/instrument_calibration.py` |
-| `torch` | `core/rng.py`, `agent/policy.py`, y **el RNG global de torch** en la construcción de todo `nn.Module` |
+| `torch` | `core/rng.py`, `agent/policy.py`, y **el RNG global de torch** en la construcción de todo `nn.Module` — fijado por `create_agent`, ver [90] |
 
 [85] No hay otras librerías con RNG.
 
@@ -508,20 +526,39 @@ código.
 - **Pesos**: salen del **RNG global de torch**. `memory.py:156` hace `torch.randn(...)` sin
   generator; lo mismo toda capa `nn.Linear`/`nn.Conv2d`.
 
-[90] **Hoy no se garantiza estructuralmente.** Dos agentes con la misma `agent_seed` construidos
-en secuencia en un proceso reciben pesos **distintos**, porque el RNG global avanza con cada
-construcción. Los bancos lo compensan llamando `torch.manual_seed(seed)` **antes** de
-`create_agent`. `experiment_capability_acquisition.py` va más lejos: **verifica** que los cuatro
-gemelos comparten `initial_parameters_hash` y aborta si no.
+[90] **Desde el 2026-09-21 sí se garantiza estructuralmente**, y en el único sitio donde la
+promesa se hace: `create_agent` sostiene el RNG global de torch en su `seed` mientras construye
+los módulos y **restaura el estado anterior al salir**
+([agents/__init__.py:50](terrario/agent/agents/__init__.py:50),
+[:129](terrario/agent/agents/__init__.py:129)). Dos agentes con la misma semilla son el mismo
+organismo aunque se construyan en secuencia, aunque algo haya gastado azar entre medias y aunque
+el llamante no siembre nada; y construir un agente ya no adelanta el flujo global del llamante.
+
+**Antes no.** El `seed` sólo alimentaba el generator de muestreo, y una firma que recibe una
+semilla prometía un objeto que la semilla no determinaba. El determinismo lo ponía el llamante:
+los bancos con `torch.manual_seed(seed)` y la ruta científica con `set_global_determinism`, en la
+línea inmediatamente anterior. Ésa es la línea que se ha movido dentro.
+
+[90 bis] **Ningún peso histórico se mueve con la reparación**, y esto se midió antes de hacerla:
+todos los llamantes sembraban con este mismo valor, y entre su siembra y la construcción nada
+consume el RNG global de torch —ni `build_episode_components` ni el bucle de episodio lo tocan; el
+único consumidor es la construcción de módulos—. La caracterización dorada de `system_baseline_02`
+devuelve los mismos `initial_parameters_hash` y las mismas trayectorias. El único llamante que
+corría **sin** sembrar era `AgentInspector` ([agent_inspector.py:56](terrario/lab/agent_inspector.py:56)),
+un modelo de lectura de la UI que no entra en ninguna campaña.
+
+[90 ter] `experiment_capability_acquisition.py` **verifica** además que los cuatro gemelos
+comparten `initial_parameters_hash` y aborta si no. Se queda: comprueba el organismo entero, no
+sólo que la semilla llegue.
 
 ## 91-92 · Claves derivadas vs. orden de llamada
 
 **Derivadas**: `OpportunityLifecycle` → `blake2b(seed:kind:root:generation)`;
 `materialize_scenario` → `default_rng(world_seed)`; física → `RNGManager(seed+step)` fresco por paso.
 
-[92] **Todavía dependen del orden**: el `torch.Generator` del agente (secuencial por diseño), el
-RNG global de torch en construcción de módulos, y `_recent_positions` del lifecycle (historia, no
-sorteo).
+[92] **Todavía dependen del orden**: el `torch.Generator` del agente (secuencial por diseño) y
+`_recent_positions` del lifecycle (historia, no sorteo). La construcción de módulos **ya no**: el
+peso de un agente dejó de depender de cuántos se habían construido antes en el proceso ([90]).
 
 ## 93-95 · Separación semántica de streams
 
@@ -566,14 +603,18 @@ estadística.
 ## 103 · Qué detectaría un RNG global accidental
 
 `RNGManager.set_global_determinism` + comparación de trayectorias en `test_reproducibility.py`.
-**Pero el banco no llama a `set_global_determinism`**, así que esa detección no cubre la ruta por
-la que corren todos los experimentos.
+La laguna que esta sección declaraba —«el banco no llama a `set_global_determinism`»— está
+**cerrada por los dos lados**: el banco lo llama
+([sandbox_runtime.py:135](terrario/lab/sandbox_runtime.py:135)), y la parte de torch ya no depende
+de que cada superficie se acuerde, porque la fija `create_agent` ([90]). Lo que ninguna de las dos
+cosas detecta sigue siendo un sorteo global **dentro** de un paso: eso lo cazan las trayectorias,
+no las semillas.
 
 ## 104-105 · Estado RNG en checkpoints · sensibilidad al orden
 
 `observer/checkpoints.py` guarda `np.random.get_state` y lo restaura. Ver §XX para el resto.
-[105] Siguen sensibles al orden: construcción de módulos, generator del agente,
-`_recent_positions`.
+[105] Siguen sensibles al orden: el generator del agente y `_recent_positions`. La construcción
+de módulos dejó de serlo ([90]).
 
 ---
 
@@ -1346,6 +1387,9 @@ causal_gain(...)                 G = (L_post − L_pre) − (F_post − F_pre)
 
 [363] La igualdad paramétrica se **demuestra**, no se asume: los cuatro agentes se construyen bajo
 la misma semilla global y la corrida compara sus `initial_parameters_hash`, abortando si difieren.
+Desde el 2026-09-21 además está **garantizada** por `create_agent` (§V [90]); la comprobación se
+queda porque prueba que los cuatro son el mismo organismo, no sólo que recibieron la misma
+semilla.
 [364] Estado **no paramétrico** que arranca idéntico por construcción: `_hidden` en ceros, buffer
 episódico vacío, `M` inicializada con la misma semilla, `_energy_baseline = 0`.
 
@@ -1773,7 +1817,7 @@ checkpointar a mitad de una actualización.
 
 ```
 ExperimentController.run → run_episode → run_step   (controller.py:200)
-SandboxService.run_bounded → step → _step_runtime → run_step   (sandbox_runtime.py:178)
+SandboxService.run_bounded → step → _step_runtime → run_step   (sandbox_runtime.py:175)
 ```
 
 ⚠ **Corrección 1 de 4.** [508] decía «divergen en la primera función: no
@@ -1792,7 +1836,7 @@ que es lo único que puede diferir entre superficies.
 | [512] máquina de estados | fases del escenario | `RunState` |
 | [513] terminación | `alive` al inicio → `break` ([controller.py:193](terrario/experiment/controller.py:193)) | `terminated` al final |
 | [514] observadores | `build_scientific_state` + anotaciones | `scientific_state` |
-| [515] semillas | `set_global_determinism` ([controller.py:133](terrario/experiment/controller.py:133)) | **también lo llama** ⚠ ([sandbox_runtime.py:138](terrario/lab/sandbox_runtime.py:138)) |
+| [515] semillas | `set_global_determinism` ([controller.py:133](terrario/experiment/controller.py:133)) | **también lo llama** ⚠ ([sandbox_runtime.py:135](terrario/lab/sandbox_runtime.py:135)) |
 | [516] trace writer | `step_traces[]` + observer | `SandboxTraceStep` cada 50 ([sandbox_runtime.py:34](terrario/lab/sandbox_runtime.py:34)) |
 | [517] checkpoints | `observer.checkpoint` ([controller.py:298](terrario/experiment/controller.py:298)) | **ninguno** — 0 menciones |
 
@@ -1810,6 +1854,15 @@ organismos distintos** y `initial_parameters_hash` no era reproducible entre
 procesos. Los bancos lo compensaban a mano; la ruta científica sí sembraba desde
 el principio. Ésa era la asimetría que hacía que «la misma semilla» significara
 cosas distintas en cada superficie.
+
+⚠ **Y desde el 2026-09-21 la asimetría no puede volver**, porque la garantía
+dejó de depender de que cada superficie se acordara: `create_agent` fija el RNG
+global en su propia semilla mientras construye y lo restaura al salir (§V [90]).
+Lo que las dos llamadas a `set_global_determinism` siguen comprando es la **otra
+mitad** —`numpy` y el `random` de la biblioteca estándar, que la fábrica no toca
+y el mundo sí lee—; para los pesos son ya redundantes. Una superficie nueva que
+olvide sembrar obtiene hoy el mismo organismo que las otras dos, y es
+`tests/test_agent_factory.py` quien lo sostiene.
 
 ## 518-522 · Autoridad científica
 
@@ -1956,8 +2009,10 @@ porque la rama exige ambos flags. Medido: 0 de 40 llamadas a `planner.plan`.
 
 ## 555-559 · Baseline y compartición
 
-[555-556] La baseline es la configuración por defecto; la misma inicialización se garantiza con
-`torch.manual_seed(seed)` antes de `create_agent`, y en P1 además **verificando el hash**.
+[555-556] La baseline es la configuración por defecto; la misma inicialización la garantiza hoy
+`create_agent`, que fija el RNG global en su semilla antes de construir (§V [90]) —antes se
+compensaba con `torch.manual_seed(seed)` en la línea de arriba—, y en P1 además **verificando el
+hash**.
 [557] **Comparten parámetros**: las tres cabezas del world model comparten backbone.
 [558] **Comparten optimizador**: un único Adam sobre todo.
 [559] **Sí, una ablación puede modificar gradientes de un módulo supuestamente intacto**, por dos
@@ -1990,21 +2045,28 @@ invocar interacción alguna. `nucleo_lecun` hereda lo mismo más la memoria.
 
 > **Reverificada el 2026-09-21.** Estuvo **ciega** desde el 2026-09-17. Sus
 > cifras de cabecera **caducaron todas**: la suite creció y ya no falla una
-> prueba, fallan por lo menos cuatro.
+> prueba.
 
 ## 566-575 · Distribución
 
-⚠ **Medido hoy** contra lo que decía esta sección:
+⚠ **Medido** contra lo que decía esta sección. La última columna es una corrida
+completa sobre `97f13a1`:
 
-| | 2026-09-17 | **2026-09-21** |
-|---|---:|---:|
-| ficheros | 152 | **155** |
-| pruebas recolectadas | 711 | **863** |
-| fallando | 1 (gate de hashes) | **≥ 4** |
+| | 2026-09-17 | 2026-09-21 (mañana) | **2026-09-21 (corrida completa)** |
+|---|---:|---:|---:|
+| ficheros `test_*.py` | 152 | 155 | **165** |
+| pruebas recolectadas | 711 | 863 | **1071** |
+| fallando | 1 (gate de hashes) | ≥ 4 | **2** |
+| saltadas | — | — | **1** (CUDA ausente) |
 
-Las tres nuevas en rojo son de `test_agent_composition.py` y llevan así desde
-`fd725e3` (§XXXIX); la cuarta es la que esta sección ya nombraba. El desglose
-por subsistema de abajo es **K1 · medido el 2026-09-17** y no se ha recontado.
+Las dos que quedan en rojo son **las dos** de
+`test_system_baseline_characterization.py`, y son de fixtura envejecida, no de
+código roto: el manifiesto protegido de `system_baseline_02` lleva 14 ficheros
+desfasados, y la caracterización conductual difiere **sólo** en
+`scenario_materialization_hash` —las trayectorias, las métricas y los
+`initial_parameters_hash` coinciden—. Las tres de `test_agent_composition.py`
+que esta sección daba en rojo **ya pasan**. El desglose por subsistema de abajo
+es **K1 · medido el 2026-09-17** y no se ha recontado.
 
 | Subsistema | Ficheros |
 |---|---|
@@ -2025,6 +2087,13 @@ falsación de instrumento, más 22 de contrato de acción y 12 de paridad de sel
 sostiene**: hoy existe `tests/test_world_runtime_parity.py`, pero §XLI midió que
 ejecuta `run_step` las dos veces, así que prueba determinismo y no conformidad
 entre superficies.
+
+[575 bis] **Nuevo el 2026-09-21.** `tests/test_agent_factory.py` fija la promesa
+de la firma de `create_agent` —misma semilla, mismo organismo— en cuatro
+arquitecturas, con su **control negativo** (dos semillas, dos organismos: sin él
+sembrar con una constante pasaría igual de bien) y con el caso que de verdad
+ocurría, el de construir después de que el proceso haya gastado azar global.
+Seis de sus casos fallaban antes de la reparación de §V [90].
 
 ## 576-586 · Qué falta
 
@@ -2579,7 +2648,7 @@ escritos contra la configuración concreta de A4.
 | recurrente | `A4._hidden` | — |
 | memoria episódica | `EpisodicMemory._buffer` | — |
 | azar del mundo | clave `(seed, kind, root, generation)` | — |
-| azar del agente | `torch.Generator` + **RNG global** para pesos | el global no está controlado por el banco |
+| azar del agente | `torch.Generator` para muestreo + **RNG global** para pesos | ninguno: `create_agent` fija y restaura el global (§V [90]) |
 | traza | `SandboxTraceStep` / `step_traces` | dos formatos distintos |
 
 ## 690 · Todos los lugares donde se muta estado en un timestep
@@ -4466,7 +4535,7 @@ llaman a la física en crudo**. No es lo mismo:
 | Ruta | Llama | Contrato de acción | Lifecycle | Coste de paso | RNG exógeno |
 |---|---|---|---|---|---|
 | `ExperimentController` ([:200](terrario/experiment/controller.py:200)) | `run_step` | sí | sí | sí | `world_seed + step` |
-| `SandboxService` ([:178](terrario/lab/sandbox_runtime.py:178)) | `run_step` | sí | sí | sí | `world_seed + step` |
+| `SandboxService` ([:175](terrario/lab/sandbox_runtime.py:175)) | `run_step` | sí | sí | sí | `world_seed + step` |
 | oráculos y 4 guiones de campaña | `run_step` | sí | sí | sí | `world_seed + step` |
 | **`CausalRuntime.step`** ([causal.py:129](terrario/lab/causal.py:129)) | `physics.step` | **no** | **no** | sí | **`agent_seed + tick`** |
 | **`verify_reproducibility.py`** ([:55](scripts/verify_reproducibility.py:55)) | `physics.step` | **no** | **no** | **no** | propio |
@@ -4557,7 +4626,7 @@ ejecuta.
 —para que una divergencia no confunda «las físicas difieren» con «los agentes
 difieren»—, y el fallo nombra el primer paso y el primer campo que divergen.
 
-Pero `_trayectoria` ([:88](tests/test_world_runtime_parity.py:88)) **ejecuta
+Pero `_trayectoria` ([:91](tests/test_world_runtime_parity.py:91)) **ejecuta
 `run_step` las dos veces**. Prueba el determinismo de la ruta autoritativa, no
 la paridad entre superficies. Su propio encabezado dice que existe porque «un
 nivel superado bajo una superficie y reprobado bajo la otra no es un nivel
@@ -5787,13 +5856,17 @@ materializada tiene **las mismas 29 claves** que la base, ni una más.
 `torch.manual_seed` previo, `_parameter_hash` coincide entre la ruta manual y la
 dirigida por capacidad, y el aprendiz sale con los tres parámetros vivos.
 
-**Y ahí apareció algo que no es de esta ruta.** Sin ese `torch.manual_seed`,
-dos construcciones idénticas con la misma `seed` dan parámetros **distintos**,
-incluso siendo la primera de un proceso nuevo: `create_agent` recibe un
-`generator` que no gobierna la inicialización de los módulos, y el determinismo
-lo aporta el llamante —`experiment_capability_acquisition.py:210` sí siembra;
-[controller.py:319](terrario/experiment/controller.py:319) **no**—. Una firma
-que acepta `seed` promete lo que no cumple.
+**Y ahí apareció algo que no era de esta ruta.** Sin ese `torch.manual_seed`,
+dos construcciones idénticas con la misma `seed` daban parámetros **distintos**,
+incluso siendo la primera de un proceso nuevo: `create_agent` recibía un
+`generator` que no gobernaba la inicialización de los módulos, y el determinismo
+lo aportaba el llamante —`experiment_capability_acquisition.py:210` sí sembraba;
+`_create_agent` ([controller.py:319](terrario/experiment/controller.py:319))
+**no**—. Una firma que acepta `seed` prometía lo que no cumplía.
+
+**Reparado el 2026-09-21** en la fábrica, que es donde se hace la promesa: ver
+§V [90]. Lo que esta subsección midió sigue en pie —las dos rutas construyen el
+mismo agente— y ahora lo hacen sin depender de que el llamante se acuerde.
 
 **Clasificación:** la ruta dirigida es **ingeniería**. Un pasaporte v2 no
 promueve una corrida, y que `NO_CORPUS_PROVENANCE` no bloquee la

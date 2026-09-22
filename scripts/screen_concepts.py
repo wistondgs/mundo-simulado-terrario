@@ -41,8 +41,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from dataclasses import replace
 
-import torch
-
 from terrario.lab.agent_composition import concepts_for, validate_selection
 from terrario.lab.models import thaw
 from terrario.lab.run_measures import measure_run
@@ -232,20 +230,19 @@ class Bench:
         config = replace(derive_sandbox(configuration_for(entry)), agent_reference="A4")
         spec = make_spec(config, compiled, 42, seed, steps + 1,
                          ExecutionClassification.ENGINEERING_SANDBOX, validate_selection(mix))
-        # The agent seed does NOT determine the agent.  create_agent seeds a
-        # torch.Generator that is used only for SAMPLING; module weights come
-        # from nn.Module constructors reading the GLOBAL torch RNG, which
-        # advances with every construction.  Three agents built from seed
-        # 1000045 in one process produced three different initial parameter
-        # hashes, so a condition's result depended on its position in the loop
-        # and an "ablation effect" was entangled with a different organism.
+        # The agent seed now DOES determine the agent: `create_agent` holds the
+        # global torch RNG at its `seed` while the modules are built, so the
+        # position of a condition in this loop no longer decides which organism
+        # it gets.  The compensating `torch.manual_seed(seed)` that used to
+        # stand here is gone because it had become a no-op -- `service.create`
+        # reseeds from the spec's agent seed before constructing, and nothing
+        # between the two reads the global torch RNG.
         #
-        # Seeded here rather than in the factory: fixing create_agent would
-        # change the initial weights of every agent for a given seed, which
-        # moves the golden behavioural characterisation and the protected hash
-        # manifest -- both human gates.  The defect is reported, not patched
-        # around in the science path.
-        torch.manual_seed(seed)
+        # What was feared about repairing the factory did not happen: the fix
+        # preserves the initial weights of every caller that was already
+        # seeding by hand -- all of them seeded with this same value -- so the
+        # golden behavioural characterisation does not move.  Verified by
+        # `tests/test_agent_factory.py`.
         run = self.service.create(spec, config, compiled)
         self.service.run_bounded(run.run_id, steps)
         return measure_run([thaw(step) for step in run.timeline])

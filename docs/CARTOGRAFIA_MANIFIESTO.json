@@ -2,20 +2,21 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "d574aef",
+  "head": "97f13a1",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
         "scripts/ablation_study.py": "0c0e936e9b8d2d7ae70878f9c9a23a958ad9c3779f84eddffc6fb63a4f420ad7",
-        "scripts/screen_concepts.py": "6fbc28d054e7c2467b5f20d5f72d04b2c32ac10004e12376e772c60be00dcebd",
+        "scripts/screen_concepts.py": "f883fa2144e41e1a8e6394b3954e69332b48046d76e827465e3e41d48e8ce1e3",
         "scripts/simulate_d4_signal.py": "537b73811863658abc824d06d73c74b5c7aaf5a76a5e9376cbd53e01b4da0a15",
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
+        "terrario/lab/agent_inspector.py": "c2eb29e9ea7901ae6b9f915e4dd8baa8d2df49b6ead66ab7966f4c8d49c65326",
         "terrario/lab/api.py": "c4c7dbb71e6a480e55bb7b26f7b76f8046b0c1870a4d25e7a3d0364f17f38091",
         "terrario/lab/instrument_calibration.py": "2d5eb858801cb2524321903c202c25b96d983920d03e9f655e3a74254343bce0",
         "terrario/lab/instrument_registry.py": "bb75dea85908872286246b632c18d386212d6549ad9088e4d5224a3a9c99a872",
         "terrario/lab/preregistration/__main__.py": "364a0ca4ff7c0764a047e9d472356ad92bda6930c2a075ce97e6c2a2e0582159",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "terrario/world/physics.py": "43521042e0d6ee090664c775cbfed4521e8da13147a3647326418cac00353990",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
       }
@@ -36,7 +37,7 @@
       "files": {
         "scenarios/d4_temporal_variety.yaml": "4fc2c5010b8144bf1ff5f8d2098040eba01f24bf33e60d3bf6d273fd4bccc3e0",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "terrario/lab/world_contracts.py": "b2b133e79d9af31736c03c5970ac2cc263cfb33ff7cb7a50d71b4f77693396e3",
         "terrario/world/rules.py": "56404a9483228010d08b3cad391ef7aa7060ce6a524cbbf528bcf5a638fd4730",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137"
@@ -51,6 +52,9 @@
     "V · RNG, determinismo y causalidad": {
       "files": {
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
+        "terrario/agent/agents/__init__.py": "bb53a654bc2debd26f73a8ecd770a87a47a5f568c74aa6794b48ada22d72eb59",
+        "terrario/lab/agent_inspector.py": "c2eb29e9ea7901ae6b9f915e4dd8baa8d2df49b6ead66ab7966f4c8d49c65326",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "tests/test_reproducibility.py": "1c6a6f35750b55876d7040471cc202e98fb85c6a28fd84fdb9125eb4d0e2333c"
       }
     },
@@ -135,7 +139,7 @@
     "XIX · Traza, ScientificFrame y evidencia": {
       "files": {
         "terrario/agent/scientific.py": "ea67f4c044cd773c7c0f9d22230b39624c4f441a877b385b7cb29923dbfd5f46",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce"
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f"
       }
     },
     "XX · Checkpoints y persistencia": {
@@ -148,9 +152,10 @@
       "files": {
         "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
         "terrario/experiment/controller.py": "2a41b194534f9b45818895a5082a995bc92856271ca40b82a28f0be638882ca1",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
-        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
+        "tests/test_agent_factory.py": "3e39eef08bea2e8b638307d67d405e73828ee3026939febdb05f76f0d2aeb89e",
+        "tests/test_world_runtime_parity.py": "efb914e4cfb1b278816bb25a74ee0b282404b09a322fd9f460af7413ff7c2b4d"
       }
     },
     "XXII · Preregistro y evidencia": {
@@ -167,8 +172,8 @@
     },
     "XXIV · Tests": {
       "files": {
-        "tests/test_agent_factory.py": "afd02bc71861521d130863a26fc030929626514f114499f9fc47c9dee38c5d44",
-        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
+        "tests/test_agent_factory.py": "3e39eef08bea2e8b638307d67d405e73828ee3026939febdb05f76f0d2aeb89e",
+        "tests/test_world_runtime_parity.py": "efb914e4cfb1b278816bb25a74ee0b282404b09a322fd9f460af7413ff7c2b4d"
       }
     },
     "XXV · Rendimiento": {
@@ -298,7 +303,7 @@
         "terrario/lab/capability_passport.py": "ac473aef3866add9b27630381c52b1287bc670010ae819fd0f8e5cacc5f70f5a",
         "terrario/lab/hypergraph/theory_operational.py": "c3ecfc201630661b4107e4bf43d028df22f70085b6b1475c07b7e80621eb7d30",
         "terrario/lab/persistence/migrations.py": "e4163a995919195a4d11374b80bd91103f2f044f50bfa819a9fef61f1dee120a",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "terrario/lab/theory/models.py": "8e0e095b59d9f1ef6ee0277120780160f3cac50791b5dfe182e59d84379a0b3a",
         "terrario/lab/theory/store.py": "800faf980f08a2f9c0cd05794d4bf8749e683332e6b3ba9e5368ea7f9aebfb0b",
         "tests/test_capability_operationalization.py": "2ac29520a17332ab07a75c9c9df977f5cd5b0342d36209818d83644866f9506e",
@@ -308,7 +313,7 @@
     "XXXIX · La implementación de la capa de conocimiento, leída": {
       "files": {
         "scripts/passport_check.py": "015258ccfbeff3b08fef13d08e411046366f08fef55b7e85e332d3c36e55c41f",
-        "scripts/screen_concepts.py": "6fbc28d054e7c2467b5f20d5f72d04b2c32ac10004e12376e772c60be00dcebd",
+        "scripts/screen_concepts.py": "f883fa2144e41e1a8e6394b3954e69332b48046d76e827465e3e41d48e8ce1e3",
         "terrario/agent/agents/a5_cybernetic.py": "161d0c02bee10fb205d474cdb16226e60db8efb1f4eda9a4cda5ffac4c591bcc",
         "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
         "terrario/lab/agent_composition.py": "48a3292c38ac50403982b4e1527c2709b8e9f63eb5fd509efcf2fc89a20cb9f6",
@@ -351,10 +356,10 @@
         "terrario/lab/measurement_status.py": "ffbb60e71ab5f9c5dcb1440b057806e1e3676b03a075962e318ed14dc27af29c",
         "terrario/lab/preregistration/domain.py": "70ea7e9d4833b74ea1e0494a8b5594dae3a59b7c5049db70773c4736bd57b9df",
         "terrario/lab/replay.py": "5196fc90bfbfbc01e94dcfc324f1dc557059c45a1c23e775e60d0946d63d39a5",
-        "terrario/lab/sandbox_runtime.py": "2432bfcc4b1d5cb56dca21f8474b7815e2956f040841bcb89f451fc5566097ce",
+        "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "terrario/world/opportunities.py": "ce37ab77241412e5a96ed848c8dfe4e7ccff729a32609d7076fd1e8408a9e374",
         "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
-        "tests/test_world_runtime_parity.py": "d9669dc1247419bf104a8b3e430da5202c090f8244210e740846746431270096"
+        "tests/test_world_runtime_parity.py": "efb914e4cfb1b278816bb25a74ee0b282404b09a322fd9f460af7413ff7c2b4d"
       }
     },
     "XLIII · Atlas 04 · Capacidades demostradas": {

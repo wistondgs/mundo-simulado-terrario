@@ -193,6 +193,13 @@ def test_el_banco_siembra_el_rng_global_antes_de_construir_el_agente(tmp_path):
     `create`. La ruta científica llama a `set_global_determinism` desde siempre.
     Ésa era la asimetría que hacía que «la misma semilla» significara cosas
     distintas en cada superficie.
+
+    Hoy la garantía ya no depende de que cada superficie se acuerde: la da
+    `create_agent`, que sostiene el RNG global en su `seed` mientras construye
+    y lo restaura al salir (`tests/test_agent_factory.py`). Esta prueba sigue
+    porque comprueba otra cosa —que el spec entero llega intacto al organismo,
+    no sólo la semilla— y porque es la que fallaría si alguna superficie
+    volviera a construir por su cuenta.
     """
     from dataclasses import replace
 
@@ -220,8 +227,8 @@ def test_el_banco_siembra_el_rng_global_antes_de_construir_el_agente(tmp_path):
                       .agent_identity["initial_parameters_hash"])
 
     assert hashes[0] == hashes[1], (
-        "dos creaciones del mismo spec dieron organismos distintos; el banco no "
-        "está sembrando el RNG global antes de construir el agente")
+        "dos creaciones del mismo spec dieron organismos distintos; algo entre "
+        "el spec y los pesos no está gobernado por la semilla del agente")
 
 
 # ── PARITY-10 · conformidad ENTRE SUPERFICIES ────────────────────────────

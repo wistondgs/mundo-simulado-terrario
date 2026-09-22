@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from contextlib import contextmanager
 from typing import Any
 
 import torch
@@ -45,6 +46,46 @@ def _parameter_hash(agent: Any) -> str:
     return digest.hexdigest()
 
 
+@contextmanager
+def _global_torch_seed(seed: int):
+    """Hold the global torch RNG at ``seed`` while an agent is constructed.
+
+    The ``generator`` that ``create_agent`` builds is the agent's *sampling*
+    stream and nothing else. Module weights come from the GLOBAL torch RNG:
+    every ``nn.Linear`` and ``nn.Conv2d`` draws from it, and so do the
+    hand-written parameters in `memory.py:156` and `temporal.py:81-83`, which
+    call ``torch.randn`` with no generator. So a signature that accepts a
+    ``seed`` and returns an agent was promising something it did not deliver --
+    two calls with the same seed produced different weights, and nothing
+    complained.
+
+    The determinism was really supplied by the caller: the scientific path and
+    every bench seeded the global RNG by hand on the line immediately above
+    their ``create_agent``. That line belongs here, where the promise is made,
+    so that a caller who trusts the argument is not silently wrong. The paths
+    that already seeded are unaffected -- they seeded with this same value and
+    nothing between their seeding and this call consumes the global torch RNG.
+
+    The prior state is restored on exit so that constructing an agent stays
+    invisible to whatever stream the caller was drawing from: the factory fixes
+    its own randomness instead of spending the caller's.
+
+    Only the CPU generator is touched, and deliberately so. Every module is
+    built on CPU and moved to the target device afterwards, so no device stream
+    is consumed here; ``torch.manual_seed`` would additionally reseed the CUDA
+    generators -- lazily, and so unrestorably when CUDA has not been
+    initialised yet -- which would make this helper reach past what it needs.
+    Writing a freshly seeded generator's state into the default one is the same
+    thing ``torch.manual_seed`` does to the CPU side, and nothing more.
+    """
+    previous = torch.random.get_rng_state()
+    torch.random.set_rng_state(torch.Generator().manual_seed(seed).get_state())
+    try:
+        yield
+    finally:
+        torch.random.set_rng_state(previous)
+
+
 def create_agent(
     agent_spec: str | dict[str, Any],
     config: dict[str, Any] | None = None,
@@ -55,6 +96,13 @@ def create_agent(
 
     No fallback architecture is permitted. ``agent_spec`` may be an ID or a
     mapping containing ``agent_id`` and optional local configuration.
+
+    ``seed`` determines the whole object: both the sampling generator and the
+    module weights, which come from the global torch RNG (see
+    ``_global_torch_seed``). Two calls with the same spec, config and seed
+    return agents with the same ``initial_parameters_hash``, in the same
+    process and across processes, and neither call disturbs the caller's
+    global RNG stream.
     """
     spec = dict(agent_spec) if isinstance(agent_spec, dict) else {"agent_id": agent_spec}
     requested_agent_id = str(spec.get("agent_id", ""))
@@ -79,25 +127,26 @@ def create_agent(
     }
 
     try:
-        if architecture_id == "A0_RANDOM":
-            agent = A0Random(generator=generator,
-                addressing_mode=str(agent_config.get("addressing_mode", "T0_DIRECTIONAL")))
-        elif architecture_id == "A1_REACTIVE":
-            agent = A1Reactive(**common)
-        elif architecture_id == "A2_GRU":
-            agent = A2GRUBaseline(
-                **common,
-                hidden_dim=int(agent_config.get("hidden_dim", 256)),
-            )
-        elif architecture_id == "A3_WORLD_MODEL":
-            agent = A3WorldModel(
-                **common,
-                hidden_dim=int(agent_config.get("hidden_dim", 256)),
-            )
-        elif architecture_id == "A5_CYBERNETIC":
-            agent = A5Cybernetic(config=agent_config, generator=generator)
-        else:
-            agent = A4Advanced(config=agent_config, generator=generator)
+        with _global_torch_seed(seed):
+            if architecture_id == "A0_RANDOM":
+                agent = A0Random(generator=generator,
+                    addressing_mode=str(agent_config.get("addressing_mode", "T0_DIRECTIONAL")))
+            elif architecture_id == "A1_REACTIVE":
+                agent = A1Reactive(**common)
+            elif architecture_id == "A2_GRU":
+                agent = A2GRUBaseline(
+                    **common,
+                    hidden_dim=int(agent_config.get("hidden_dim", 256)),
+                )
+            elif architecture_id == "A3_WORLD_MODEL":
+                agent = A3WorldModel(
+                    **common,
+                    hidden_dim=int(agent_config.get("hidden_dim", 256)),
+                )
+            elif architecture_id == "A5_CYBERNETIC":
+                agent = A5Cybernetic(config=agent_config, generator=generator)
+            else:
+                agent = A4Advanced(config=agent_config, generator=generator)
     except Exception as exc:
         raise AgentFactoryError(
             f"Could not instantiate requested agent '{requested_agent_id}'"
