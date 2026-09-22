@@ -10,7 +10,8 @@ import pytest
 
 from terrario.lab.hypergraph.primitive_composition import (
     EXCLUDED, NONE_OUTPUT, CompositionStatus, Cost, DegreeOfFreedom, Hyperedge,
-    DofStatus, MapRefused, MinimalityClaim, Primitive, delta_df, edges_v01,
+    BoundaryStatus, DerivationAuthority, DofStatus, MapRefused,
+    MinimalityStatus, Primitive, Sourcing, delta_df, edges_v01,
     genuine_interaction, primitives_v01, replicated, unlocking_element,
 )
 
@@ -316,15 +317,15 @@ def test_a_cannot_is_a_boundary_and_not_a_proof_of_minimality():
     """A thing can state exactly what it cannot do and still decompose."""
     with pytest.raises(MapRefused, match="claims minimality with no basis"):
         Primitive(id="P99", name="x", can="a", cannot="b", detection="c",
-                  minimality=MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY)
+                  minimality_status=MinimalityStatus.MINIMAL_UNDER_CURRENT_VOCABULARY)
 
 
 def test_the_strong_claim_is_available_with_a_written_basis():
     prim = Primitive(id="P99", name="x", can="a", cannot="b", detection="c",
-                     minimality=MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY,
+                     minimality_status=MinimalityStatus.MINIMAL_UNDER_CURRENT_VOCABULARY,
                      minimality_basis="no finer operational decomposition "
                                       "preserves the phenomenon under W-test")
-    assert prim.minimality is MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY
+    assert prim.minimality_status is MinimalityStatus.MINIMAL_UNDER_CURRENT_VOCABULARY
 
 
 def test_none_of_the_twenty_claims_to_be_minimal():
@@ -332,7 +333,8 @@ def test_none_of_the_twenty_claims_to_be_minimal():
     intelligence. Every one has a boundary; not one has a demonstration that
     nothing finer preserves the phenomenon."""
     for prim in primitives_v01():
-        assert prim.minimality is MinimalityClaim.BOUNDARY_KNOWN, prim.id
+        assert prim.boundary_status is BoundaryStatus.BOUNDARY_KNOWN, prim.id
+        assert prim.minimality_status is MinimalityStatus.NOT_ESTABLISHED, prim.id
 
 
 # --- las primitivas responden seis preguntas y ninguna más --------------------------------
@@ -374,6 +376,9 @@ def test_the_thirteen_decomposed_say_they_were_decomposed():
     nuevas = [p for p in primitives_v01() if int(p.id[1:]) >= 8]
     assert len(nuevas) == 13
     for prim in nuevas:
+        assert prim.sourcing is Sourcing.DERIVED_BY_DECOMPOSITION, prim.id
+        assert prim.source_concept.strip(), prim.id
+        assert prim.derivation_authority is DerivationAuthority.PROJECT_ANALYSIS
         assert prim.provenance.startswith("DECOMPOSED from"), prim.id
 
 
@@ -381,6 +386,7 @@ def test_the_seven_seeds_carry_their_frozen_campaign():
     semillas = [p for p in primitives_v01() if int(p.id[1:]) <= 7]
     assert len(semillas) == 7
     for prim in semillas:
+        assert prim.sourcing is Sourcing.HISTORICALLY_OPERATIONALIZED, prim.id
         assert "HISTORICAL seed" in prim.provenance, prim.id
 
 
@@ -426,3 +432,118 @@ def test_edges_carry_no_cost_of_the_old_ontology():
     for viejo in ("theory_operational", "TheoryOperationalHyperedge",
                   "HyperedgeCandidateRecord", "EpistemicStatus"):
         assert f"import {viejo}" not in fuente and f"{viejo}(" not in fuente
+
+
+# --- FASE E · procedencia · lo que el mapa se niega a sostener --------------------------
+
+def test_a_decomposed_primitive_without_its_source_concept_is_refused():
+    """Without it the record reads as «the corpus discovered P08», when what
+    happened is that a source concept was cut up during analysis."""
+    with pytest.raises(MapRefused, match="names no source concept"):
+        Primitive(id="P98", name="x", can="a", cannot="b", detection="c",
+                  sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+                  derivation_authority=DerivationAuthority.PROJECT_ANALYSIS)
+
+
+def test_a_decomposition_that_declares_no_authority_for_the_cut_is_refused():
+    """Who cut it is what separates analysis from attestation."""
+    with pytest.raises(MapRefused, match="declares no authority for the cut"):
+        Primitive(id="P98", name="x", can="a", cannot="b", detection="c",
+                  sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+                  source_concept="use_curiosity / CURIO-A1")
+
+
+def test_claiming_directly_sourced_with_no_claim_id_is_refused():
+    """Direct sourcing means a citable claim exists -- id, locator and hash."""
+    with pytest.raises(MapRefused, match="DIRECTLY_SOURCED with no claim id"):
+        Primitive(id="P98", name="x", can="a", cannot="b", detection="c",
+                  sourcing=Sourcing.DIRECTLY_SOURCED)
+
+
+def test_a_claim_id_on_something_that_is_not_directly_sourced_is_refused():
+    with pytest.raises(MapRefused, match="does not claim to be directly sourced"):
+        Primitive(id="P98", name="x", can="a", cannot="b", detection="c",
+                  sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
+                  corpus_claim_id="C-HEA-015-01")
+
+
+def test_a_source_concept_without_a_decomposition_is_refused():
+    with pytest.raises(MapRefused, match="not DERIVED_BY_DECOMPOSITION"):
+        Primitive(id="P98", name="x", can="a", cannot="b", detection="c",
+                  sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
+                  source_concept="use_curiosity / CURIO-A1")
+
+
+def test_an_edge_without_a_scope_is_refused():
+    """It was declared mandatory in prose and never checked, which made the
+    scope gate VACUOUS: two edges both left at the default compared equal and
+    licensed an inference with no conditions at all."""
+    with pytest.raises(MapRefused, match="no scope"):
+        _edge(scope="")
+
+
+def test_two_scopeless_edges_can_no_longer_fake_a_matched_pair():
+    """The defect the previous test describes, shown as behaviour."""
+    with pytest.raises(MapRefused, match="no scope"):
+        _edge(id="V", inputs=frozenset({"P01"}), output=NONE_OUTPUT,
+              status=CompositionStatus.NO_EFFECT, evidence="x", scope="")
+
+
+# --- FASE E · la prueba positiva · ida y vuelta sin pérdida -----------------------------
+
+def test_a_decomposed_primitive_serialises_and_reconstructs_without_loss():
+    """source concept → decomposition Pxx → boundary known → minimality not
+    established, through a record and back."""
+    original = Primitive(
+        id="P97", name="leer_el_propio_error", can="read its own error",
+        cannot="act on it", requires=("P06",), cost=Cost.MEDIUM,
+        detection="behaviour varies with the error at fixed observation",
+        provenance="DECOMPOSED from B5 metacognición · capa 2",
+        sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+        source_concept="B5 metacognición · HEA-017 · C-HEA-017-01",
+        derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
+        boundary_status=BoundaryStatus.BOUNDARY_KNOWN,
+        minimality_status=MinimalityStatus.NOT_ESTABLISHED)
+
+    registro = original.as_record()
+    assert registro["sourcing"] == "DERIVED_BY_DECOMPOSITION"
+    assert registro["source_concept"].startswith("B5 metacognición")
+    assert registro["derivation_authority"] == "PROJECT_ANALYSIS"
+    assert registro["boundary_status"] == "BOUNDARY_KNOWN"
+    assert registro["minimality_status"] == "NOT_ESTABLISHED"
+    assert registro["corpus_claim_id"] == ""
+
+    vuelta = Primitive.from_record(registro)
+    assert vuelta == original
+    assert vuelta.as_record() == registro
+
+
+def test_every_one_of_the_twenty_survives_the_round_trip():
+    for prim in primitives_v01():
+        assert Primitive.from_record(prim.as_record()) == prim, prim.id
+
+
+# --- FASE C · la clasificación real, sin simetría fabricada -----------------------------
+
+def test_not_one_primitive_is_directly_sourced():
+    """Audited one by one across the frozen trees: seven sealed campaigns and
+    thirteen decompositions, and ZERO citable corpus claims. The concept space
+    of P04 is named as a declared corpus hole by the inventory itself."""
+    assert not [p for p in primitives_v01() if p.sourcing is Sourcing.DIRECTLY_SOURCED]
+    assert not [p for p in primitives_v01() if p.corpus_claim_id]
+
+
+def test_the_seven_seeds_are_operationalized_and_that_is_a_weaker_claim():
+    """Built, run and gated is not the same as attested by a source. Saying
+    HISTORICALLY_OPERATIONALIZED says what happened, not what the corpus
+    supports."""
+    semillas = [p for p in primitives_v01() if int(p.id[1:]) <= 7]
+    assert all(p.sourcing is Sourcing.HISTORICALLY_OPERATIONALIZED for p in semillas)
+    assert all(not p.corpus_claim_id for p in semillas)
+
+
+def test_P01_is_the_one_rung_with_no_sealed_oracle_and_says_so():
+    """Audited independently and NOT smoothed into the others: 1.0 has seven
+    sealed gates and no pre-registered oracle document, unlike 1.1 to 1.7."""
+    p01 = next(p for p in primitives_v01() if p.id == "P01")
+    assert "NO sealed pre-registered oracle" in p01.provenance

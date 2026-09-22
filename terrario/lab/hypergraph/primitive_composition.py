@@ -76,20 +76,58 @@ class DofStatus(StrEnum):
     MEASURED = "MEASURED"
 
 
-class MinimalityClaim(StrEnum):
-    """Having a boundary is not the same as being minimal.
+class BoundaryStatus(StrEnum):
+    """Whether the negative boundary is written down."""
+
+    BOUNDARY_KNOWN = "BOUNDARY_KNOWN"
+    BOUNDARY_UNKNOWN = "BOUNDARY_UNKNOWN"
+
+
+class MinimalityStatus(StrEnum):
+    """Separate from the boundary, because a boundary is not a proof.
 
     A thing can state exactly what it cannot do and still decompose further.
-    The stronger claim needs the absence of a finer operational decomposition
-    that preserves the phenomenon we want to manipulate, and nothing in this
-    map demonstrates that for anything yet.
+    The strong claim needs the absence of a finer operational decomposition
+    pertinent to the current programme that preserves the phenomenon we want
+    to manipulate, and nothing here demonstrates that for anything yet.
     """
 
-    #: Su frontera negativa es explícita. Esto es lo que se puede afirmar hoy.
-    BOUNDARY_KNOWN = "BOUNDARY_KNOWN"
-    #: Y además no hay descomposición operacional más fina pertinente al
-    #: programa actual que preserve el fenómeno. Requiere base escrita.
+    NOT_ESTABLISHED = "NOT_ESTABLISHED"
     MINIMAL_UNDER_CURRENT_VOCABULARY = "MINIMAL_UNDER_CURRENT_VOCABULARY"
+
+
+class Sourcing(StrEnum):
+    """Where a primitive came from, which is not the same as who believes it.
+
+    Six existing vocabularies were audited before this one was added and each
+    breaks on a checkable point: `theory_operational.DERIVED` means composed
+    from two or more parents and its constructor refuses fewer than two, which
+    is the opposite direction; `HypothesisOrigin` is tied to
+    `EvidenceClass.HYPOTHESIS` and a catalogue entry is not a hypothesis;
+    `ProvenanceLevel` is confined to bibliographic sources with a reference id;
+    `AssertionClass`, `EpistemicStatus.ANALYST_INFERENCE` and
+    `MappingRelation.PART_OF` each answer a different question. The closest
+    pair in the repo, `crossgraph` `DERIVED_FROM` / `EXTRACTED_FROM`, needs
+    endpoints in a sovereign domain that a primitive is not registered in.
+    """
+
+    #: Hay un claim citable del corpus --claim_id, locator y hash-- que enuncia
+    #: este concepto. Hoy: NINGUNA primitiva.
+    DIRECTLY_SOURCED = "DIRECTLY_SOURCED"
+    #: Se construyó, corrió y se cerró con gates como un nivel histórico. Dice
+    #: que ocurrió, no que el corpus lo sostenga.
+    HISTORICALLY_OPERATIONALIZED = "HISTORICALLY_OPERATIONALIZED"
+    #: Salió de trocear un concepto más grande durante el análisis. El concepto
+    #: fuente está citado; el corte lo hizo el proyecto.
+    DERIVED_BY_DECOMPOSITION = "DERIVED_BY_DECOMPOSITION"
+    UNKNOWN = "UNKNOWN"
+
+
+class DerivationAuthority(StrEnum):
+    """Quién hizo el corte, cuando hubo corte."""
+
+    PROJECT_ANALYSIS = "PROJECT_ANALYSIS"
+    NOT_A_DERIVATION = "NOT_A_DERIVATION"
 
 
 class Cost(StrEnum):
@@ -163,7 +201,14 @@ class Primitive:
     #: Cómo sabemos que está presente. Sin esto no es una primitiva, es un deseo.
     detection: str = ""
     provenance: str = ""
-    minimality: MinimalityClaim = MinimalityClaim.BOUNDARY_KNOWN
+    #: De dónde salió, y --si salió de trocear algo-- de qué exactamente.
+    sourcing: Sourcing = Sourcing.UNKNOWN
+    source_concept: str = ""
+    derivation_authority: DerivationAuthority = DerivationAuthority.NOT_A_DERIVATION
+    #: La identidad del claim de corpus, cuando lo hay. Hoy no lo hay para nadie.
+    corpus_claim_id: str = ""
+    boundary_status: BoundaryStatus = BoundaryStatus.BOUNDARY_KNOWN
+    minimality_status: MinimalityStatus = MinimalityStatus.NOT_ESTABLISHED
     #: Por qué no hay descomposición más fina pertinente. Sólo para la
     #: afirmación fuerte, y sin ella la afirmación fuerte se rechaza.
     minimality_basis: str = ""
@@ -180,21 +225,80 @@ class Primitive:
                     f"is just short")
         if self.id in self.requires:
             raise MapRefused(f"{self.id} cannot require itself")
-        if self.minimality is MinimalityClaim.MINIMAL_UNDER_CURRENT_VOCABULARY \
+        if self.minimality_status is MinimalityStatus.MINIMAL_UNDER_CURRENT_VOCABULARY \
                 and not self.minimality_basis.strip():
             raise MapRefused(
                 f"{self.id} claims minimality with no basis. An explicit «cannot» "
                 f"is a boundary, not a proof: a thing can state what it cannot do "
                 f"and still decompose further, and the strong claim needs the "
                 f"absence of a finer decomposition that preserves the phenomenon")
+        if self.boundary_status is BoundaryStatus.BOUNDARY_KNOWN \
+                and self.minimality_status is \
+                MinimalityStatus.MINIMAL_UNDER_CURRENT_VOCABULARY \
+                and not self.minimality_basis.strip():
+            raise MapRefused(f"{self.id}: a known boundary is not minimality")
+
+        if self.sourcing is Sourcing.DERIVED_BY_DECOMPOSITION:
+            if not self.source_concept.strip():
+                raise MapRefused(
+                    f"{self.id} is DERIVED_BY_DECOMPOSITION and names no source "
+                    f"concept. Without it the record reads as «the corpus "
+                    f"discovered {self.id}», when what happened is that a source "
+                    f"concept was cut up during analysis")
+            if self.derivation_authority is DerivationAuthority.NOT_A_DERIVATION:
+                raise MapRefused(
+                    f"{self.id} was decomposed and declares no authority for the "
+                    f"cut; who cut it is what separates analysis from attestation")
+        elif self.source_concept.strip():
+            raise MapRefused(
+                f"{self.id} names a source concept and is not "
+                f"DERIVED_BY_DECOMPOSITION")
+
+        if self.sourcing is Sourcing.DIRECTLY_SOURCED and not self.corpus_claim_id.strip():
+            raise MapRefused(
+                f"{self.id} claims DIRECTLY_SOURCED with no claim id. Direct "
+                f"sourcing means a citable claim exists -- id, locator and hash -- "
+                f"and saying so without one is the whole error this field exists "
+                f"to make impossible")
+        if self.corpus_claim_id.strip() and self.sourcing is not Sourcing.DIRECTLY_SOURCED:
+            raise MapRefused(
+                f"{self.id} carries a corpus claim id and does not claim to be "
+                f"directly sourced")
 
     def as_record(self) -> Mapping[str, Any]:
         return {"id": self.id, "name": self.name, "can": self.can,
                 "cannot": self.cannot, "requires": list(self.requires),
                 "cost": self.cost.value, "detection": self.detection,
                 "provenance": self.provenance,
-                "minimality": self.minimality.value,
+                "sourcing": self.sourcing.value,
+                "source_concept": self.source_concept,
+                "derivation_authority": self.derivation_authority.value,
+                "corpus_claim_id": self.corpus_claim_id,
+                "boundary_status": self.boundary_status.value,
+                "minimality_status": self.minimality_status.value,
                 "minimality_basis": self.minimality_basis}
+
+    @classmethod
+    def from_record(cls, record: Mapping[str, Any]) -> "Primitive":
+        """Reconstruye sin pérdida lo que `as_record` serializó."""
+        return cls(
+            id=record["id"], name=record["name"], can=record["can"],
+            cannot=record["cannot"], requires=tuple(record.get("requires", ())),
+            cost=Cost(record.get("cost", Cost.UNKNOWN.value)),
+            detection=record.get("detection", ""),
+            provenance=record.get("provenance", ""),
+            sourcing=Sourcing(record.get("sourcing", Sourcing.UNKNOWN.value)),
+            source_concept=record.get("source_concept", ""),
+            derivation_authority=DerivationAuthority(
+                record.get("derivation_authority",
+                           DerivationAuthority.NOT_A_DERIVATION.value)),
+            corpus_claim_id=record.get("corpus_claim_id", ""),
+            boundary_status=BoundaryStatus(
+                record.get("boundary_status", BoundaryStatus.BOUNDARY_KNOWN.value)),
+            minimality_status=MinimalityStatus(
+                record.get("minimality_status",
+                           MinimalityStatus.NOT_ESTABLISHED.value)),
+            minimality_basis=record.get("minimality_basis", ""))
 
 
 @dataclass(frozen=True)
@@ -231,6 +335,15 @@ class Hyperedge:
                 f"{self.id}: no world. The same composition can hold in one world "
                 f"and not in another, and an edge that does not say which cannot "
                 f"be told apart from one that contradicts it")
+        if not str(self.scope).strip():
+            # Estaba declarado obligatorio en prosa y no se comprobaba, y eso
+            # hacía VACUA la puerta de scope: dos aristas con el defecto vacío
+            # comparaban iguales y autorizaban una inferencia sin condiciones.
+            raise MapRefused(
+                f"{self.id}: no scope. Two edges are only comparable under matched "
+                f"organism, budget and implementation, and two edges that both "
+                f"omit it would compare equal and license an inference with no "
+                f"conditions at all")
 
         if self.output != NONE_OUTPUT:
             premature = _premature(self.output)
@@ -432,13 +545,15 @@ def delta_df(stages: list[tuple[str, frozenset[str]]],
 def primitives_v01() -> tuple[Primitive, ...]:
     return (
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P01", name="sensorimotor_contingency",
             can="tell that its own act changed what it senses",
             cannot="say which act, in which direction, or how far",
             cost=Cost.LOW,
             detection="acting and not acting give different observation streams",
-            provenance="HISTORICAL seed · level 1.0 · frozen campaign 3ef016c"),
+            provenance="HISTORICAL seed · level 1.0 · frozen campaign 3ef016c · the ONLY rung with NO sealed pre-registered oracle: it has seven sealed gates and no oracle document, unlike 1.1-1.7"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P02", name="directional_orientation",
             can="use an external signal g_t to tell one direction from another",
             cannot="say how far, nor hold the direction once the signal is gone",
@@ -446,6 +561,7 @@ def primitives_v01() -> tuple[Primitive, ...]:
             detection="behaviour differs by the value of g_t alone",
             provenance="HISTORICAL seed · level 1.1 · frozen campaign 3ef016c"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P03", name="qualitative_proximity",
             can="tell near from far as a quality",
             cannot="measure a distance, order three distances, or keep it",
@@ -454,6 +570,7 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="HISTORICAL seed · level 1.2 · frozen campaign 3ef016c · "
                        "ceiling 8/55"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P04", name="persistence_one_step",
             can="keep one signal available for one tick after it is gone",
             cannot="recover episodes, select what to keep, or hold a sequence",
@@ -462,6 +579,7 @@ def primitives_v01() -> tuple[Primitive, ...]:
                       "different response; omitting the tick removes it",
             provenance="HISTORICAL seed · level 1.3 · frozen campaign 32d400f"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P05", name="minimal_conjunctive_binding",
             can="hold two references as one pair rather than two loose values",
             cannot="bind three, rebind on the fly, or name what it bound",
@@ -469,6 +587,7 @@ def primitives_v01() -> tuple[Primitive, ...]:
             detection="swapping which value goes with which changes the response",
             provenance="HISTORICAL seed · level 1.4 · frozen campaign 68d852d"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P06", name="observational_temporal_regularity",
             can="carry P(o_{t+1} | o_t)",
             cannot="condition on its own act, on a change bit, on an efferent "
@@ -478,6 +597,7 @@ def primitives_v01() -> tuple[Primitive, ...]:
             detection="prediction beats the frozen and temporally shuffled arms",
             provenance="HISTORICAL seed · level 1.6 · frozen campaign c2b808b"),
         Primitive(
+            sourcing=Sourcing.HISTORICALLY_OPERATIONALIZED,
             id="P07", name="own_action_contingency",
             can="carry C_17(O, A, O'), the deviation per action over the "
                 "temporal expectation",
@@ -489,6 +609,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="HISTORICAL seed · level 1.7 · frozen campaign 6cf55a4"),
 
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_online_learning / LEARN-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P08", name="outcome_driven_association_change",
             can="change one association as a result of what followed",
             cannot="choose what to change, keep a history of changes, or "
@@ -498,6 +621,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from use_online_learning / LEARN-A1 · "
                        "INVENTARIO_CONCEPTOS_01.md capa 1"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_homeostasis / HOMEO-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P09", name="internal_deviation_detection",
             can="tell that an internal magnitude sits away from a reference",
             cannot="act on it, move the reference, or hold more than one",
@@ -505,6 +631,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             detection="response varies with the internal magnitude at fixed input",
             provenance="DECOMPOSED from use_homeostasis / HOMEO-A1 · capa 1"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_uncertainty / UNC-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P10", name="observation_frequency_discrimination",
             can="tell a case it has met often from one it has met rarely",
             cannot="turn that into a confidence, a variance or a policy",
@@ -513,6 +642,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
                       "different count",
             provenance="DECOMPOSED from use_uncertainty / UNC-A1 · capa 1"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_episodic_memory / EPMEM-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P11", name="persistence_beyond_one_step",
             can="keep a signal available for more than one tick",
             cannot="index, retrieve by content, or choose what survives",
@@ -522,6 +654,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
                        "the module itself is NOT primitive: it contains "
                        "retrieval, indexing and selection"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_longterm_memory / LTMEM-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P12", name="persistence_across_an_episode_boundary",
             can="carry something through a reset that clears the rest",
             cannot="decide what deserves to cross, or merge what crossed",
@@ -530,6 +665,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
                       "organism does not show",
             provenance="DECOMPOSED from use_longterm_memory / LTMEM-A1 · capa 1"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_entropy_regularization / PLAST-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P13", name="same_present_variable_action",
             can="emit a different act for the same present",
             cannot="choose when to vary, or narrow the variation with experience",
@@ -539,6 +677,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from use_entropy_regularization / PLAST-A1 · "
                        "capa 1"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_curiosity / CURIO-A1",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P14", name="seen_versus_unseen_discrimination",
             can="tell a case it has met before from one it has not",
             cannot="value novelty, seek it, or rank degrees of it",
@@ -547,6 +688,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from use_curiosity / CURIO-A1 · capa 1 · the "
                        "module contains novelty detection AND a reward term"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="use_factored_action",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P15", name="two_factor_action_composition",
             can="build one act out of two independent factors",
             cannot="learn the factorisation, or add a third factor",
@@ -556,6 +700,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from use_factored_action · capa 1 · declared "
                        "there as «channel repair, not a corpus concept»"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="B1 ultraestabilidad / segundo lazo · HEA-014 · C-HEA-014-01",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P16", name="gradient_free_own_parameter_redraw",
             can="re-draw one of its own parameters without a gradient",
             cannot="choose which, know whether it helped, or keep the better one",
@@ -565,6 +712,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from B1 ultraestabilidad / second loop · "
                        "capa 2 · HEA-014 S.7/26 · C-HEA-014-01"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="B2 recompensa interoceptiva · HEA-001",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P17", name="internal_magnitude_as_reinforcement",
             can="treat the reduction of an internal deviation as the reinforcer",
             cannot="weigh it against an external one, or hold two of them",
@@ -574,6 +724,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from B2 recompensa interoceptiva · capa 2 · "
                        "HEA-001 · the seam `_policy_reward` already exists, inert"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="B3 alostasis · HEA-011 §2",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P18", name="movable_reference_point",
             can="change the reference an internal magnitude is compared against",
             cannot="anticipate when to move it, or learn where to move it",
@@ -583,6 +736,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from B3 alostasis · capa 2 · HEA-011 §2 · "
                        "anticipation is NOT included: that part is not primitive"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="B4 aversión al riesgo · HEA-001",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P19", name="spread_versus_mean_discrimination",
             can="tell two cases apart when their means match and their spreads "
                 "do not",
@@ -592,6 +748,9 @@ def primitives_v01() -> tuple[Primitive, ...]:
             provenance="DECOMPOSED from B4 aversion al riesgo · capa 2 · "
                        "HEA-001 · the preference itself is not included"),
         Primitive(
+            sourcing=Sourcing.DERIVED_BY_DECOMPOSITION,
+            source_concept="B5 metacognición · HEA-017 · C-HEA-017-01",
+            derivation_authority=DerivationAuthority.PROJECT_ANALYSIS,
             id="P20", name="own_error_signal_readable",
             can="read its own prediction error as an input",
             cannot="act on it, or change policy because of it",

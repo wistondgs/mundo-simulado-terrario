@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "65b13c3",
+  "head": "740a96d",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -427,8 +427,8 @@
     },
     "L · El mapa de composición primitiva · v0.1": {
       "files": {
-        "terrario/lab/hypergraph/primitive_composition.py": "5ca0583c30ef2d7e9b47348cac5cb004d8a501e561a5b2e23bd61d296d9db02e",
-        "tests/test_primitive_composition.py": "a4f40575968fc5aa93e5b108253f298c60e99bb9bd363f0d9b8d8844d27688f7"
+        "terrario/lab/hypergraph/primitive_composition.py": "6c834b336b08b8ffbef7a5949ead2c4cf0c43a32eae463e624e1955c80b0411e",
+        "tests/test_primitive_composition.py": "5f8acd35a6de1be868f93dce867ff08f1f7e83dbd251417813932c43f073fad9"
       }
     }
   }

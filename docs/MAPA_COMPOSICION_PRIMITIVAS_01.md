@@ -57,6 +57,21 @@ entera de llamarlas mínimas.
 Sus números de nivel son **cronología, no escalera**. Aquí son siete elementos
 disponibles del banco.
 
+Auditadas **una por una y por separado**, cada una contra su propio árbol
+congelado, con instrucción explícita de no elegir clasificación para que la
+tabla saliera simétrica. Las siete dieron `HISTORICALLY_OPERATIONALIZED`, y eso
+es una afirmación **más débil** de lo que parece: dice que se construyó, corrió
+y cerró con gates, no que ninguna fuente lo sostenga.
+
+**Ninguna de las veinte es `DIRECTLY_SOURCED`. Cero claims de corpus en todo el
+vocabulario.** Para `P04` el propio inventario nombra ese espacio conceptual
+como un hueco de corpus declarado.
+
+**Y `P01` es el único peldaño sin oráculo sellado**: tiene siete gates sellados
+y ningún documento de oráculo preregistrado, a diferencia de 1.1–1.7. Consta en
+su provenance y hay un contrato que lo fija; no se suaviza para que las siete
+filas se parezcan.
+
 | ID | nombre | puede | no puede |
 |---|---|---|---|
 | P01 | contingencia sensorimotora | notar que su acto cambió lo que siente | decir cuál, en qué dirección ni cuánto |
@@ -70,8 +85,21 @@ disponibles del banco.
 ### Las trece descompuestas del Mapa Global
 
 Salen de trocear `INVENTARIO_CONCEPTOS_01.md`. **El concepto fuente está citado;
-el troceo lo hice yo**, y la provenance de cada una lo dice con `DECOMPOSED
-from`.
+el troceo lo hizo el proyecto**, y eso ya no vive en una cadena de texto: es un
+campo tipado que el constructor comprueba.
+
+```
+sourcing              DERIVED_BY_DECOMPOSITION
+source_concept        obligatorio · sin él se rechaza
+derivation_authority  PROJECT_ANALYSIS
+boundary_status       BOUNDARY_KNOWN
+minimality_status     NOT_ESTABLISHED
+```
+
+Sin `source_concept` el registro se leería como «el corpus descubrió P08»,
+cuando lo cierto es «el corpus dio un concepto fuente, y el análisis lo
+troceó». Sin `derivation_authority` se pierde quién hizo el corte, que es lo
+que separa análisis de atestación.
 
 | ID | nombre | de dónde sale |
 |---|---|---|

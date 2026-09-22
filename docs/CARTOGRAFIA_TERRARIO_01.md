@@ -6487,3 +6487,87 @@ no puede hacer y seguir siendo descomponible, así que `BOUNDARY_KNOWN` y
 `MINIMAL_UNDER_CURRENT_VOCABULARY` son afirmaciones separadas y la segunda exige
 base escrita. **Las veinte son `BOUNDARY_KNOWN`**: v0.1 de un vocabulario
 experimental, no los átomos últimos de nada.
+
+## 50.7 · Cierre v0.1 · procedencia tipada, y el scope que no se comprobaba
+
+**Auditado con once agentes de sólo lectura antes de tocar nada.**
+
+**Seis vocabularios existentes examinados y descartados con razón**, antes de
+añadir uno: `theory_operational.DERIVED` significa compuesto de dos o más
+padres y su constructor rechaza menos de dos —dirección contraria a una
+descomposición—; `HypothesisOrigin` está atado a `EvidenceClass.HYPOTHESIS` y
+una entrada de catálogo no es una hipótesis; `ProvenanceLevel` se confina a
+fuentes bibliográficas con `reference_id`; `AssertionClass`,
+`EpistemicStatus.ANALYST_INFERENCE` y `MappingRelation.PART_OF` responden otra
+pregunta. El par más cercano —`crossgraph` `DERIVED_FROM`/`EXTRACTED_FROM`—
+exige extremos en un dominio soberano donde una primitiva no está registrada.
+
+```
+sourcing              DIRECTLY_SOURCED · HISTORICALLY_OPERATIONALIZED
+                      DERIVED_BY_DECOMPOSITION · UNKNOWN
+source_concept        obligatorio si hubo descomposición
+derivation_authority  PROJECT_ANALYSIS · NOT_A_DERIVATION
+boundary_status       separado de
+minimality_status     NOT_ESTABLISHED · MINIMAL_UNDER_CURRENT_VOCABULARY
+```
+
+**Las siete semillas, auditadas una por una contra su propio árbol congelado**,
+dieron las siete `HISTORICALLY_OPERATIONALIZED`. **Ninguna de las veinte es
+`DIRECTLY_SOURCED`: cero claims de corpus en todo el vocabulario.** Y `P01` es
+**el único peldaño sin oráculo sellado** —siete gates y ningún documento de
+oráculo—, lo que consta en su provenance y en un contrato, sin suavizar.
+
+**El `scope` estaba declarado obligatorio en prosa y no se comprobaba.** Su
+defecto por omisión era `""`, así que dos aristas sin scope comparaban iguales y
+**la puerta de scope era vacua**: autorizaba la inferencia de desbloqueo sin
+ninguna condición. Ahora se rechaza en el constructor.
+
+**Fuera de frontera, reportado y no rediseñado:** `delta_df` y
+`genuine_interaction` son instrumentación de DF; la taxonomía `DegreeOfFreedom`
+es vocabulario del instrumento; `primitives_v01`, `EXCLUDED` y `edges_v01` son
+**contenido** del mapa, no invariantes. El módulo sí está limpio de los tres
+acoplamientos peores: sólo importa stdlib, no toca `theory_operational` ni
+`EvidenceGraph`, y no contiene maquinaria de ejecución.
+
+**`AVAILABLE_INSTRUMENT` queda sin resolver y v0.1 NO congelado.** Detalle en
+§50.8.
+
+## 50.8 · `AVAILABLE_INSTRUMENT` · la retirada se detuvo, y por qué
+
+El encargo decía: retirar si no tiene consumidor semántico indispensable, y
+**detenerse y reportar si quitarlo rompe algo real**. Las dos cosas ocurrieron a
+la vez.
+
+**La clasificación se confirma.** `AVAILABLE_INSTRUMENT` es una **propiedad del
+aparato**, no un rol del Task Contract. Tres líneas de evidencia, todas internas
+al módulo: el tipo que lo contiene clasifica «lo que la tarea impone o lo que
+puede aprender» y el propio comentario del miembro dice que no es ni exigencia
+ni presión; el sujeto gramatical de sus cuatro precondiciones es **el
+experimentador**, nunca el organismo —un organismo no percibe si el arnés tiene
+permiso para rebobinar el mundo—; y nació en `d574aef` como residuo de una
+retirada, para aparcar unos booleanos que se habían quedado sin trabajo.
+
+**Pero la retirada tal como estaba especificada rompe el módulo.** Comprobado
+ejecutándola en memoria, sin tocar el repositorio: quitar la *naturaleza* y
+conservar el *tipo* `DIRECT_RETENTION_CREDIT_AVAILABLE` deja `NATURE[k]` como
+subíndice desnudo y produce `KeyError` en `acquisition_candidates`,
+`pressures`, `controls` y `as_record()` sobre toda una clase de contratos
+legales. Y el fallo es **latente**: T1–T6 y el mutante fijan
+`counterfactual_replay_allowed=False`, así que la suite mostraría un solo rojo y
+parecería cosmético. No hay contrato que exija que `NATURE` cubra todos los
+tipos.
+
+**Y las tres casas alternativas para el tipo fallan, medidas:**
+
+```
+LEARNABLE_CONTROL   el permiso del arnés entra en acquisition_candidates
+                    · exactamente lo que el tipado existe para impedir
+TASK_PRESSURE       el instrumento vuelve al cajón del que se le retiró
+                    · y toda la suite sigue verde. La retirada de d574aef
+                      se borraría en silencio
+COORDINATION_...    una exigencia sobre una pareja · falso de plano
+```
+
+Así que o se van los dos —naturaleza y tipo— o no se va ninguno. Y que se vaya
+el tipo arrastra tres campos del contrato que el propio encargo anterior pidió
+construir. Ésa es una decisión que no es mía.
