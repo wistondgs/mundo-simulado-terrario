@@ -1,0 +1,314 @@
+{
+  "schema": "terrario.n10-preregistration/v1",
+  "claim": "Under the preregistered scope of N1.0, U1 acquired by experience an association between a retained historical trace and a later action. With an equivalent present observation and learning frozen, that history functionally modulated the decision; interrupting its read or decoupling it from the real history reduced the appropriate behaviour.",
+  "claim_does_not_assert": [
+    "acquired memory",
+    "understanding of its past",
+    "learned causality",
+    "general experience",
+    "emergent intelligence",
+    "a general cognitive degree of freedom"
+  ],
+  "three_claims_kept_apart": {
+    "A_ACQUISITION": "U1 learns tau->action from experience",
+    "B_EXPRESSION": "frozen U1 uses tau to choose under identical O",
+    "C_CAUSAL_DEPENDENCE": "lesion and shuffle degrade that relation",
+    "rule": "NEW_DF_DETECTED requires all three"
+  },
+  "repo_commit": "7800679c3721fbb5be1eb77995977cc134a7ec73",
+  "sealed_code": {
+    "terrario/lab/n10_u1.py": "17d036ecc17912bb02d3a6a8395bd4b7eae0277947856292c15b741a5e4a9740",
+    "terrario/lab/n10_u1_spec.py": "25d0544c18dbca0db3c555926a68fabbb852a1784f2a187f3d07f5211d6ec199",
+    "terrario/lab/n10_instrument.py": "7445f17e52ca67863bdc3a531f512ab5aee3b49a1645a253fe0be2a3f80481f9",
+    "terrario/lab/world_generator.py": "529eb82d488fca42d326b6214e6dc315d6519548d9acc5e0efd6caa4e262ae75",
+    "terrario/lab/world_oracles.py": "2b1592b767f61915b859095ff1872238f8e9fb98c086c69ed776118933df3318",
+    "terrario/world/state.py": "9fdc7773f111f7c1a95bfa1cd8683e6a264875d7da65ed47fbccca9b043635ce",
+    "terrario/world/transition.py": "fd2a5ccdc73e86baadb6b2145299f55fc32975fba56c5ba969f86988ea6c6137",
+    "terrario/core/types.py": "c2a61dd4694b02a2781ef6246e3d2e282bedd6ad31749511a0dfe91dee63e73e",
+    "terrario/core/contracts.py": "77cd5a03cba72fb552b39b445e6d40fbf2e15b94fe62ef416fa25457ab44ad4a",
+    "scripts/n10_preregistration.py": "48a080c02e24df6bb492f3e23d3daccc1409ea339dfd7fbdb319e7d3ce0177bd"
+  },
+  "sealed_code_root_hash": "7de5ee08bc25c86a5159753a59e763fbff02f76e8929c8c69bce1c90a27842b3",
+  "config": {
+    "economy": {
+      "initial_energy": 250.0,
+      "max_energy": 400.0,
+      "step_energy_cost": 0.15,
+      "gain": 4.0,
+      "loss": 4.0,
+      "safe": 0.0,
+      "low_energy": 0.0
+    },
+    "apparatus_normalization": {
+      "enabled": true,
+      "baseline_energy": 250.0,
+      "applied": "after learn, before the next observation",
+      "kind": "APPARATUS_INTERVENTION"
+    },
+    "scenario": {
+      "capability": "EPMEM-A1",
+      "expose_time_fraction": false,
+      "num_channels": 4,
+      "view_radius": 2
+    },
+    "budget": {
+      "acquisition_decisions_per_train_seed": 512,
+      "acquisition_stations": 512,
+      "evaluation_decisions_per_eval_seed": 128,
+      "evaluation_stations": 128,
+      "derivation": "the pilot's own totals, read from its run: 8x64 acquisition decisions and 4x32 evaluation ones"
+    },
+    "learner": {
+      "alpha_train": 0.3,
+      "epsilon_train": 0.2,
+      "epsilon_primary_eval": 0.0,
+      "epsilon_secondary_eval": 0.2,
+      "rule": "Q(tau,a) <- Q(tau,a) + alpha * [c - Q(tau,a)]",
+      "feedback": "transition.consequence_t1.energy_delta",
+      "initialization": "memory EMPTY, Q empty, ties by a dedicated draw",
+      "frozen_from_pilot": true,
+      "not_optimised": "no grid search, no selection on confirmatory data"
+    }
+  },
+  "arms": {
+    "N": {
+      "name": "NAIVE",
+      "intervention": "none; the pre-acquisition snapshot",
+      "purpose": "shows behaviourally that no mapping is present before experience; CF8 already showed it structurally"
+    },
+    "A": {
+      "name": "COMPLETE",
+      "intervention": "none",
+      "memory_read": true,
+      "shuffle": false,
+      "learning": false
+    },
+    "B": {
+      "name": "MEMORY_READ_LESION",
+      "intervention": "the token keeps being written; the policy cannot consume its retained value",
+      "memory_read": false,
+      "shuffle": false,
+      "learning": false,
+      "not_called": "ablation — the write path continues"
+    },
+    "C": {
+      "name": "HISTORY_SHUFFLED",
+      "intervention": "a sealed deterministic permutation replaces the token the policy reads; world, Q, observations and consequences untouched",
+      "memory_read": true,
+      "shuffle": true,
+      "learning": false
+    }
+  },
+  "seeds": {
+    "n_replicas": 32,
+    "train": [
+      2600000,
+      2600001,
+      2600002,
+      2600003,
+      2600004,
+      2600005,
+      2600006,
+      2600007,
+      2600008,
+      2600009,
+      2600010,
+      2600011,
+      2600012,
+      2600013,
+      2600014,
+      2600015,
+      2600016,
+      2600017,
+      2600018,
+      2600019,
+      2600020,
+      2600021,
+      2600022,
+      2600023,
+      2600024,
+      2600025,
+      2600026,
+      2600027,
+      2600028,
+      2600029,
+      2600030,
+      2600031
+    ],
+    "eval": [
+      2700000,
+      2700001,
+      2700002,
+      2700003,
+      2700004,
+      2700005,
+      2700006,
+      2700007,
+      2700008,
+      2700009,
+      2700010,
+      2700011,
+      2700012,
+      2700013,
+      2700014,
+      2700015,
+      2700016,
+      2700017,
+      2700018,
+      2700019,
+      2700020,
+      2700021,
+      2700022,
+      2700023,
+      2700024,
+      2700025,
+      2700026,
+      2700027,
+      2700028,
+      2700029,
+      2700030,
+      2700031
+    ],
+    "shuffle": [
+      2800000,
+      2800001,
+      2800002,
+      2800003,
+      2800004,
+      2800005,
+      2800006,
+      2800007,
+      2800008,
+      2800009,
+      2800010,
+      2800011,
+      2800012,
+      2800013,
+      2800014,
+      2800015,
+      2800016,
+      2800017,
+      2800018,
+      2800019,
+      2800020,
+      2800021,
+      2800022,
+      2800023,
+      2800024,
+      2800025,
+      2800026,
+      2800027,
+      2800028,
+      2800029,
+      2800030,
+      2800031
+    ],
+    "reserve": [
+      2900000,
+      2900001,
+      2900002,
+      2900003,
+      2900004,
+      2900005,
+      2900006,
+      2900007
+    ],
+    "namespaces": "N10/TRAIN/i, N10/EVAL/i, N10/SHUFFLE/i — streams disjuntos",
+    "disjoint_from": {
+      "pilot_train": [
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107
+      ],
+      "pilot_eval": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fixtures": [
+        0,
+        7,
+        8
+      ]
+    }
+  },
+  "seed_manifest_hash": "3d92c56533bff2fad770f4aa95555acd3cb6a4358277242b4069455c8313450d",
+  "reserve_seed_rule": "A seed is replaced ONLY when the GENERATED WORLD makes it unevaluable — its evaluation contains a single history class, so balanced accuracy has no second term. Marked SEED_NOT_EVALUABLE and replaced by the next sealed reserve seed, in order. Never replaced because the agent did badly, and every replacement is recorded.",
+  "metrics": {
+    "primary": {
+      "balanced_functional_accuracy": "BA = [P(correct|H0) + P(correct|H1)] / 2, because the H0/H1 split is not exactly even; chance is 0.5",
+      "signed_branch": "B_s = P(UP|H_up) - P(UP|H_down); +1 perfect, 0 no governance, -1 fully inverted. The absolute value is reported too but is not the diagnostic of direction"
+    },
+    "contrasts_per_seed": {
+      "acquisition_gain": "BA(A) - BA(N)",
+      "lesion_loss": "BA(A) - BA(B)",
+      "shuffle_loss": "BA(A) - BA(C)"
+    },
+    "inference": {
+      "unit": "TRAINING SEED / TRAINED SNAPSHOT — decisions from one learner are not independent replicates",
+      "procedure": "paired bootstrap over seed-level deltas, 10000 resamples, 95% interval and lower bound",
+      "conjunction": "intersection-union: all three contrasts must clear their bound; no retrospective selection of the favourable one"
+    }
+  },
+  "thresholds": {
+    "structural": {
+      "snapshot_parity": "hash(theta_A) == hash(theta_B) == hash(theta_C), exact",
+      "decision_parity": "set(decision_ids) identical across A, B and C — not merely equal counts",
+      "evaluation_freeze": "theta digest identical before and after every evaluation, exact",
+      "same_present": "every comparable decision group collapses to ONE obs_hash holding both histories",
+      "world_truth_nonleakage": "PASS on the sealed commit",
+      "exposure": "both history classes present in acquisition and in evaluation for every seed"
+    },
+    "statistical": {
+      "BA_A_lower_bound": {
+        "value": 0.75,
+        "derivation": "halfway between the chance floor 0.5 and the ceiling 1.0: the mapping has to be more present than absent"
+      },
+      "acquisition_gain_lower_bound": {
+        "value": 0.0,
+        "derivation": "strictly positive"
+      },
+      "lesion_loss_lower_bound": {
+        "value": 0.1,
+        "derivation": "a learner with no usable history sits at 0.5 and the pilot's frozen BA at epsilon 0 was 1.0, so the expected loss is about 0.5; 0.10 is a fifth of that, set so a hair's-breadth difference is not called causal"
+      },
+      "shuffle_loss_lower_bound": {
+        "value": 0.1,
+        "derivation": "same as the lesion"
+      },
+      "per_history_lower_bound": {
+        "value": 0.5,
+        "derivation": "chance in the binary task; BOTH histories must clear it in arm A, so a high mean from solving one class is not enough"
+      }
+    }
+  },
+  "invalidation_rules": [
+    "observation leakage at a comparable decision",
+    "any instrument gate failing on the sealed commit",
+    "code differing from the sealed hashes",
+    "snapshot inequality across A, B and C",
+    "decision-id parity failure",
+    "any parameter update during evaluation",
+    "history_id reaching the organism by any route",
+    "feedback taken from anything but consequence_t1.energy_delta",
+    "a missing history class in a seed's evaluation",
+    "a corrupted or incomplete trace",
+    "any protocol deviation not registered before the run"
+  ],
+  "possible_verdicts": [
+    "INVALID",
+    "INDETERMINATE",
+    "MEASURED_ZERO",
+    "NEW_DF_DETECTED"
+  ],
+  "pilot_diagnostics": {
+    "EXPLORATION_EXPLAINS_RESIDUAL": "ESTABLISHED",
+    "evidence": "the same reproduced snapshot 785eef13841936be gives acc 0.9297 / BA 0.9274 / signed_branch +0.8548 at epsilon 0.2 and acc 1.0000 / BA 1.0000 / signed_branch +1.0000 at epsilon 0; the prediction under the exploration hypothesis is 0.90"
+  }
+}

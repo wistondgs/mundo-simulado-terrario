@@ -116,10 +116,15 @@ class U1:
     def freeze(self) -> None:
         self.mode = Mode.EVALUATION
 
-    def clone(self) -> "U1":
+    def clone(self, config: U1Config | None = None) -> "U1":
         """Un clon exacto de lo aprendido, para que los brazos difieran sólo
-        en la intervención y no en tres entrenamientos distintos."""
-        otro = U1(self.config)
+        en la intervención y no en tres entrenamientos distintos.
+
+        `config` permite leer el MISMO snapshot bajo otra exploración sin
+        volver a entrenar: la lectura primaria y la operacional tienen que
+        salir de los mismos parámetros aprendidos o no son comparables.
+        """
+        otro = U1(config or self.config)
         otro.memory = self.memory
         otro.theta = dict(self.theta)
         otro.mode = self.mode
