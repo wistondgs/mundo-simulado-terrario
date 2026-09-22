@@ -515,7 +515,7 @@ código.
 |---|---|
 | `numpy` | `core/rng.py`, `experiment/statistics.py`, `controller.materialize_scenario`, `world/opportunities.py`, `observer/checkpoints.py` |
 | `random` (stdlib) | `core/rng.py`, `lab/snapshot_bank.py`, `lab/capability_exam.py`, `lab/instrument_calibration.py` |
-| `torch` | `core/rng.py`, `agent/policy.py`, y **el RNG global de torch** en la construcción de todo `nn.Module` — fijado por `create_agent`, ver [90] |
+| `torch` | `core/rng.py`, `agent/policy.py`, y **el RNG global de torch** en la construcción de todo `nn.Module` — fijado por `create_agent`, ver [90]; dos consumidores más, hoy inertes, en [90 quater] |
 
 [85] No hay otras librerías con RNG.
 
@@ -539,17 +539,40 @@ semilla prometía un objeto que la semilla no determinaba. El determinismo lo po
 los bancos con `torch.manual_seed(seed)` y la ruta científica con `set_global_determinism`, en la
 línea inmediatamente anterior. Ésa es la línea que se ha movido dentro.
 
-[90 bis] **Ningún peso histórico se mueve con la reparación**, y esto se midió antes de hacerla:
-todos los llamantes sembraban con este mismo valor, y entre su siembra y la construcción nada
-consume el RNG global de torch —ni `build_episode_components` ni el bucle de episodio lo tocan; el
-único consumidor es la construcción de módulos—. La caracterización dorada de `system_baseline_02`
-devuelve los mismos `initial_parameters_hash` y las mismas trayectorias. El único llamante que
-corría **sin** sembrar era `AgentInspector` ([agent_inspector.py:56](terrario/lab/agent_inspector.py:56)),
-un modelo de lectura de la UI que no entra en ninguna campaña.
+[90 bis] **Ningún peso histórico se mueve con la reparación**, y esto se midió antes de hacerla.
+Dos mediciones, no una impresión:
+
+- **Quién siembra qué**, por AST sobre `terrario/`, `scripts/` y `tests/`: los **21 sitios** fuera
+  de `tests/` siembran con **la misma expresión** que pasan como argumento; las dos excepciones
+  son `controller._create_agent` —que siembran sus cuatro llamantes— y `AgentInspector`
+  ([agent_inspector.py:56](terrario/lab/agent_inspector.py:56)), un modelo de lectura de la UI.
+  Dentro de `tests/`, en cambio, **41 de 49 sitios no sembraban nada**: eran no deterministas y
+  dejaron de serlo con esta reparación.
+- **Quién consume el RNG global entre la siembra y la construcción**: nadie, comprobado sobre los
+  **12 escenarios × 5 arquitecturas, 40 pasos cada combinación**, comparando el estado del
+  generador antes y después. Ni `build_episode_components` ni el bucle de episodio lo tocan en
+  ninguna de las 60.
+
+La caracterización dorada de `system_baseline_02` devuelve, en consecuencia, los mismos
+`initial_parameters_hash` y las mismas trayectorias.
 
 [90 ter] `experiment_capability_acquisition.py` **verifica** además que los cuatro gemelos
 comparten `initial_parameters_hash` y aborta si no. Se queda: comprueba el organismo entero, no
 sólo que la semilla llegue.
+
+[90 quater] **Cuidado con la formulación**: «sólo la construcción de módulos consume el RNG
+global» es verdad de las rutas **vivas**, no del código. Hay dos consumidores más, y el primer
+barrido —por nombres de función— no los encontró:
+
+| Dónde | Qué sortea | Por qué hoy no corre |
+|---|---|---|
+| [policy.py:71](terrario/agent/policy.py:71) | `torch.distributions.Categorical(probs).sample()` | es la rama de `generator is None`, y las cinco llamadas a `policy_head.sample` pasan `generator=self._generator` |
+| [memory.py:264](terrario/agent/memory.py:264) | `torch.randn_like(self.M)` en `reset_memory` | sólo lo alcanza `A4.reset()` ([a4_advanced.py:841](terrario/agent/agents/a4_advanced.py:841)), y **nadie llama a `agent.reset()`** en todo el árbol |
+
+Los dos importan más ahora que antes: la fábrica **restaura** el estado global al salir, así que
+si alguno despierta, sortea de un flujo distinto del que sorteaba antes de la reparación. El de
+`policy.py` es el peligroso — un llamante que omita `generator=` cae en el RNG global **en
+silencio**, sin que nada falle.
 
 ## 91-92 · Claves derivadas vs. orden de llamada
 
@@ -1867,7 +1890,11 @@ olvide sembrar obtiene hoy el mismo organismo que las otras dos, y es
 ## 518-522 · Autoridad científica
 
 [518] Sólo desde el controller, vía `lab/execution/runtime.py` y el servicio de
-preregistro, puede sellarse evidencia.
+preregistro, puede sellarse evidencia. **Verificado sobre el almacén, no sobre esta frase**
+(2026-09-21): de los 1480 blobs de `.terrario`, **238 contienen `initial_parameters_hash` y los
+238 llevan `terrario.scientific-trial-identity/v1`** —A0 en 91, A4 en 147—, o sea pasaron por
+`run_materialized_trial`, que siembra antes de construir. Cero excepciones: ninguna evidencia
+sellada salió de la ruta sin sembrar de §V [90].
 [519-521] `screen_concepts`, P0, P1 y World2D Live → Sandbox.
 [522] **K1 · medido el 2026-09-17**: «la ruta autoritativa es la del
 `ExperimentController` y ninguno de los experimentos de esa noche corrió por

@@ -2,7 +2,7 @@
   "schema_version": "terrario.docs.cartography-manifest/v1",
   "document": "docs/CARTOGRAFIA_TERRARIO_01.md",
   "written_at": "2026-09-21",
-  "head": "97f13a1",
+  "head": "fbd4a1a",
   "sections": {
     "I · Topología real del repositorio": {
       "files": {
@@ -53,6 +53,9 @@
       "files": {
         "scripts/verify_reproducibility.py": "cf9b58e6022bbb07793437e778bea9929921927948da7a26b792a23c96417053",
         "terrario/agent/agents/__init__.py": "bb53a654bc2debd26f73a8ecd770a87a47a5f568c74aa6794b48ada22d72eb59",
+        "terrario/agent/agents/a4_advanced.py": "fe69b98fac25669b3fdd53d475fe34984648f7e7cbb62efcfa4ed8b05701df30",
+        "terrario/agent/memory.py": "9ebb773e44b95cbb9a762d0bc4180c7f20624638f05cc4f554df01f631d7f9f6",
+        "terrario/agent/policy.py": "3d8dc269986ea252aed56d409b3049ecadf36d2dcc84835193a63199a44450cf",
         "terrario/lab/agent_inspector.py": "c2eb29e9ea7901ae6b9f915e4dd8baa8d2df49b6ead66ab7966f4c8d49c65326",
         "terrario/lab/sandbox_runtime.py": "29ab859018125f84647645cefe6015564115b0f0d28e9c6b1ef9f7bc2a79e24f",
         "tests/test_reproducibility.py": "1c6a6f35750b55876d7040471cc202e98fb85c6a28fd84fdb9125eb4d0e2333c"
