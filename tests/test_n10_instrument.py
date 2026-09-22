@@ -395,3 +395,21 @@ def test_sufficiency_is_invalid_with_one_history_or_none():
     _, filas = corrida()
     una = [f for f in filas if f.history_id == filas[0].history_id]
     assert informational_sufficiency(una)["code"] == "SINGLE_HISTORY_CLASS"
+
+
+def test_feedback_of_works_on_a_real_transition_and_not_only_in_its_source():
+    """The gap that let a wrong field name pass.
+
+    The guard above reads the source and asserts it says `energy_delta`. It
+    said so — on a field called `consequence`, which `Transition` does not
+    have; the real name is `consequence_t1`. Nothing caught it until the
+    adapter ran. A contract that names something the object does not carry is
+    the 1.8 failure in miniature, so this one builds a real Transition."""
+    from terrario.core.contracts import Transition
+    from terrario.core.types import Consequence
+
+    t = Transition(observation_t=None, internal_state_ref=None, action_t=None,
+                   consequence_t1=Consequence(energy_delta=-4.15, events=[]),
+                   observation_t1=None, terminated=False, truncated=False,
+                   step=0, seed=0)
+    assert feedback_of(t) == pytest.approx(-4.15)

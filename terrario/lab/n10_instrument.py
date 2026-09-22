@@ -409,7 +409,11 @@ def feedback_of(transition: Any) -> float:
     que ninguna métrica de desempeño lo dijera. Es la forma que 1.8 dejó pasar:
     una variable presente en la especificación que no entra en la función.
     """
-    return float(transition.consequence.energy_delta)
+    # `consequence_t1`, no `consequence`: la primera versión de esta función
+    # nombraba un campo inexistente y su test sólo miraba el TEXTO del
+    # código, así que pasaba en verde. Es el defecto de 1.8 en pequeño --
+    # una especificación que nombra algo que no entra en la función.
+    return float(transition.consequence_t1.energy_delta)
 
 
 def feedback_channel_gate(update: Callable[[float], Any], *, delta: float = 4.0
