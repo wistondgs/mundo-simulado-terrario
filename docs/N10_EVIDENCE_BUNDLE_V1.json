@@ -1,0 +1,153 @@
+{
+  "schema": "terrario.n10-evidence-bundle/v1",
+  "claim": "Under the preregistered scope of N1.0, U1 acquired by experience a correspondence between a retained historical trace and an action. With learning frozen and the present observation equivalent, the correct history allowed the appropriate action to be selected differentially. Decoupling the trace from the real history removed the solution; blocking its read collapsed the expression to the naive regime.",
+  "non_claims": [
+    "acquisition of the memory mechanism",
+    "autonomous representation formation",
+    "episodic memory",
+    "spatial memory",
+    "semantic memory",
+    "causal understanding",
+    "planning",
+    "generalisation to arbitrary histories",
+    "general intelligence",
+    "consciousness",
+    "SUPPLIED and therefore not acquired: the tokenisation, the memory slot, the update rule and the action repertoire. What was acquired is the token-to-action correspondence and nothing else"
+  ],
+  "verdict": "NEW_DF_DETECTED",
+  "independent_contrast_count": 2,
+  "artifacts": {
+    "preregistration_v1_superseded": {
+      "path": "docs/N10_CAMPAIGN_MANIFEST_V1.json",
+      "sha256": "4d18ffcc29322f916901fe7c7b4738e5f016b7cc7d81bdd978aec5d7e143703f"
+    },
+    "preregistration_v2_superseded": {
+      "path": "docs/N10_CAMPAIGN_MANIFEST_V2.json",
+      "sha256": "762d5e6a7c7a1eaa680a2852569e2861078dd1dc86ea0a041c246bb3c645297f"
+    },
+    "preregistration_v3_authoritative": {
+      "path": "docs/N10_CAMPAIGN_MANIFEST_V3.json",
+      "sha256": "de93859afe4486440752fc3a335d45e6aca496e12bec84d4160bce1f4dfc861c"
+    },
+    "preregistration_doc_v1": {
+      "path": "docs/N10_PREREGISTRATION_V1.md",
+      "sha256": "47c15a844b325ce7ab836549ba9671e9023567baaae0a0f2ea30b6921a126428"
+    },
+    "preregistration_doc_v2": {
+      "path": "docs/N10_PREREGISTRATION_V2.md",
+      "sha256": "8e03d83682fe731a7b3505509111a7626ad47ca8732c7c318b8ccd1f324f3434"
+    },
+    "raw_results": {
+      "path": "docs/N10_RAW_RESULTS.json",
+      "sha256": "15e3d9598a57b75958afee734f8046c464ce537197a1fa1ed0b1d0583c5cc7c3"
+    },
+    "seed_summary": {
+      "path": "docs/N10_SEED_SUMMARY.json",
+      "sha256": "8e48c25e56d86a8fdf1da6e86fc223e562d94268854a2d6dc30f7f3b265f2b49"
+    },
+    "confirmatory_report": {
+      "path": "docs/N10_CONFIRMATORY_REPORT.md",
+      "sha256": "e3f7324543bb60a3863b6414823c6cc1285d05bdf15c28371612abee09694b48"
+    },
+    "campaign_runner": {
+      "path": "scripts/n10_confirmatory.py",
+      "sha256": "7a56167975edfc16c0f632f2a09d160d6065d9ba79079793a7c2eded4d2a868a"
+    },
+    "independent_reanalysis": {
+      "path": "scripts/n10_reanalysis.py",
+      "sha256": "367f936a1b2444146e57350a7879ab22a96ebabdb4325d2e6ede1406ae95d8da"
+    },
+    "learner": {
+      "path": "terrario/lab/n10_u1.py",
+      "sha256": "17d036ecc17912bb02d3a6a8395bd4b7eae0277947856292c15b741a5e4a9740"
+    },
+    "causal_form_spec": {
+      "path": "terrario/lab/n10_u1_spec.py",
+      "sha256": "25d0544c18dbca0db3c555926a68fabbb852a1784f2a187f3d07f5211d6ec199"
+    },
+    "instrument": {
+      "path": "terrario/lab/n10_instrument.py",
+      "sha256": "8956fbcdc04b9e414aaeb70dad0a41130d49f18d6c80e639820f7fb7d927cd6a"
+    },
+    "arms": {
+      "path": "terrario/lab/n10_arms.py",
+      "sha256": "8b4b5e08bd074377efb7ba5ae2d967cb0d20ad113c911fc42bf6cdad269343a1"
+    }
+  },
+  "sealed_code_root_hash": "f4231fb8a3adb0fb48b975659a0ee6298c8f5c98ff4c681848a560feacf3c410",
+  "seed_manifest_hash": "3d92c56533bff2fad770f4aa95555acd3cb6a4358277242b4069455c8313450d",
+  "campaign_head": "871fc41ebbcf9130343a089b6e5a69b9ef353df1",
+  "independent_reconstruction": {
+    "reproduces": true,
+    "verdict": "NEW_DF_DETECTED",
+    "bootstrap": {
+      "acquisition_gain": {
+        "estimate": 0.5149756132983874,
+        "lcb95": 0.5014622161158969,
+        "ci95": [
+          0.49871152895578436,
+          0.5311488538361193
+        ],
+        "n_seeds": 32
+      },
+      "lesion_loss": {
+        "estimate": 0.5149756132983874,
+        "lcb95": 0.5014622161158969,
+        "ci95": [
+          0.49871152895578436,
+          0.5311488538361193
+        ],
+        "n_seeds": 32
+      },
+      "shuffle_loss": {
+        "estimate": 0.4962376738664773,
+        "lcb95": 0.4816495949779938,
+        "ci95": [
+          0.4786270541038436,
+          0.5135063226720372
+        ],
+        "n_seeds": 32
+      },
+      "BA_A": {
+        "estimate": 1.0,
+        "lcb95": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n_seeds": 32
+      }
+    },
+    "per_class_bounds_degenerate": true
+  },
+  "limitations": {
+    "LIMIT-N10-01": {
+      "title": "MEMORY_READ_LESION collapses to the naive regime",
+      "statement": "Arm B sends the policy to the EMPTY token, whose context was never trained, so both table entries stay at the 0.0 default and the tie-break branch is always taken. The naive organism has an entirely empty table and reaches the same branch. Verified in code: both consume exactly two RNG draws per decision and return ACTIONS[second draw], so they are the same function of the same stream -- the equivalence is STRUCTURAL, not coincidental. Therefore lesion_loss is NOT statistically independent evidence from acquisition_gain: they are the same vector, and the intersection-union test has three named components and two distinct ones.",
+      "evidence": "BA(B) == BA(N) in 32/32 replicas in both readouts; the raw carries no per-decision actions, so from the raw alone the classification is BEHAVIORAL and the stronger STRUCTURAL reading comes from the code audit",
+      "conditional_on": "novelty = 0.0 in the sealed demand, and the cue-before-door geometry. Neither is enforced by an assertion. Under a demand with novelty > 0 a novel station's cue would go undetected and Q[EMPTY, a] WOULD be written, and arm B would stop tying",
+      "not_fixed_here": "a more discriminating lesion would have to preserve a context inside the learned support and remove the historical information specifically. That is another study"
+    },
+    "LIMIT-N10-02": {
+      "title": "The per-decision rows were produced and not preserved",
+      "statement": "DecisionRow carries the twelve primitive fields the closure asks for. The campaign runner reduced them to eight aggregates per arm and dropped the tuples: 32 replicas x 2 readouts x 4 arms x 128 decisions = 32,768 rows destroyed. The most primitive object recoverable is a per-arm 2x2 contingency table, and only by inference from per-class rates times class counts.",
+      "consequence": "the bundle reproduces its numbers from its own numbers. No third party can audit a balanced accuracy against anything more primitive than its own two components",
+      "minimal_artefact_that_would_have_closed_it": "one JSONL of DecisionRow.as_record() per arm per readout — the object already existed in memory and needed one write",
+      "not_fixed_here": "re-running the campaign would not repair a preservation gap, and is forbidden"
+    },
+    "LIMIT-N10-03": {
+      "title": "The decision-parity gate cannot fail as constructed",
+      "statement": "decision_id is assigned as len(filas) at append time, so it is always 0..n-1 and the parity check across A, B and C compares three copies of the same range. The gate declares itself as 'identical sequences, not merely equal counts' and, under this construction, it tests exactly the counts. The stored id arrays are about a third of the raw file and carry one bit each.",
+      "consequence": "a criterion that cannot fail is not a criterion, which is the defect class this project hunts. The parity it was meant to guarantee is real -- the arms share a world and a seed -- but this gate is not what establishes it",
+      "not_fixed_here": "it would need ids derived from the world (station index and step) rather than from the append order"
+    }
+  },
+  "version_genealogy": {
+    "V1": "initial preregistration · SUPERSEDED, preserved",
+    "V2": "statistical and protocol corrections · SUPERSEDED, preserved",
+    "V3": "added the executable B/C interventions and the confirmatory runner to the sealed set · AUTHORITATIVE"
+  },
+  "evidence_bundle_complete": false,
+  "evidence_bundle_incomplete_because": "LIMIT-N10-02: the question 'what data did it produce' is answered with aggregates. The primitive observations were produced and not written",
+  "not_admitted_to_evidence_graph": "evidence existing is not evidence admitted; admission is a separate decision and has not been taken"
+}
