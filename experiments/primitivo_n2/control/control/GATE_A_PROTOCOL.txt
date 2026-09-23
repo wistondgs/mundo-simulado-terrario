@@ -1,0 +1,16 @@
+GATE A - COMPARISON ORDER
+
+1. Freeze each blind replica before revealing reference outputs.
+2. Investigator certifies G0 (workspace/input custody) and G5 (freeze custody).
+3. Compare SHA-256 of por_sistema.jsonl first.
+   - If equal: all serialized per-system records match byte-for-byte.
+   - If unequal: compare in enumeration order, locate first F and first differing field.
+4. Only after per-system reconciliation compare resumen.json aggregates.
+5. Equal aggregates with unequal per-system records is NOT PASS.
+6. Classify each divergence as:
+   - ERROR_REPLICA
+   - ERROR_REFERENCIA
+   - AMBIGUEDAD_SPEC
+7. If AMBIGUEDAD_SPEC changes normative behavior, issue a new spec version and rerun affected implementations.
+8. Gate A may close only as REPLICADO or REPLICADO_CON_CORRECCIONES with no unresolved ambiguity.
+9. B remains blocked until Gate A closes.

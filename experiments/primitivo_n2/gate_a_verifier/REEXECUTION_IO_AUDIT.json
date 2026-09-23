@@ -1,0 +1,28 @@
+[
+  {
+    "assessment": "NO_EXTERNAL_RESULT_INPUT: all file paths resolve from __file__ into the fresh reexecution directory; no network or subprocess facility is used.",
+    "indicators": {
+      "absolute_path": 0,
+      "known_output_hash": 0,
+      "network": 0,
+      "open_or_read": 1,
+      "parent_navigation": 5,
+      "subprocess": 0
+    },
+    "replica": "A1",
+    "source": "replicas_ciegas/A1/replica.py"
+  },
+  {
+    "assessment": "NO_EXTERNAL_RESULT_INPUT: all file paths resolve from __file__ into the fresh reexecution directory; no network or subprocess facility is used.",
+    "indicators": {
+      "absolute_path": 0,
+      "known_output_hash": 0,
+      "network": 0,
+      "open_or_read": 1,
+      "parent_navigation": 1,
+      "subprocess": 0
+    },
+    "replica": "A2",
+    "source": "replicas_ciegas/A2/replica_a2.py"
+  }
+]

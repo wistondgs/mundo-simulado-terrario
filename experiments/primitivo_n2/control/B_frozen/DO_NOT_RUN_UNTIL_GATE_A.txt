@@ -1,0 +1,3 @@
+B v0.2.1 is preregistered and frozen.
+Do not execute any B alternative until Gate A is closed.
+Any normative change to B after this freeze requires a new version and preregistration.

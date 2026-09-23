@@ -1,0 +1,296 @@
+{
+  "created_utc": "2026-09-22T21:26:41.347352+00:00",
+  "expected_paths": {
+    "A1": "replicas_ciegas/A1",
+    "A1_freeze": "replicas_ciegas/A1/FREEZE_MANIFEST.sha256",
+    "A2": "replicas_ciegas/A2",
+    "A2_freeze": "MISSING: replicas_ciegas/A2/FREEZE_MANIFEST.sha256",
+    "reference_por_sistema": "not_present_before_verifier_generation",
+    "reference_source": "control/reference_nonblind/primitivo_n2.py"
+  },
+  "files": [
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/control/AUTHOR_PREDICTION_FROZEN.txt",
+      "sha256": "b068a8ec0ac5cc1dce8181fe00f9c95f5c0c81db94b910a3fbb346a464396602",
+      "size": 534
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/control/FREEZE_MANIFEST.json",
+      "sha256": "32c61ce67ed92ebf5bc55836035d7da84697564cff5f435e1c4f77f5edca630f",
+      "size": 871
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/control/GATE_A_PROTOCOL.txt",
+      "sha256": "caa6d63ca004bd10ea947d9e8e26427f475530c1b000f34d834d178a87896210",
+      "size": 861
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/control/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+      "size": 12266
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/control/WORKSPACE_CUSTODY.txt",
+      "sha256": "6edccd599f4e441429b92d618ccf93334bf38552729981e285f4f5c4d5430ce9",
+      "size": 640
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "control/reference_nonblind/primitivo_n2.py",
+      "sha256": "f2f6bcc93094714505223724134074a1d6bd338a49b7b5f0961ce62fe755e003",
+      "size": 12868
+    },
+    {
+      "mtime": "2026-09-22T19:57:08.376968+00:00",
+      "path": "custodia_zip/A1/PRIMITIVO_N2_REPLICA_A1_BLIND.zip",
+      "sha256": "99e6d56d0ea5378f59dffdd6038105361ab118cb71e8ded9d38024ef0f56a87f",
+      "size": 6540
+    },
+    {
+      "mtime": "2026-09-22T19:57:08.378853+00:00",
+      "path": "custodia_zip/A2/PRIMITIVO_N2_REPLICA_A2_BLIND.zip",
+      "sha256": "a29aa4bf871884b86b31287086f4648da90c8616a94453a8d9168696eefcffc1",
+      "size": 6540
+    },
+    {
+      "mtime": "2026-09-22T20:42:42.838477+00:00",
+      "path": "replicas_ciegas/A1/CAMBIOS_POR_CALIBRACION.md",
+      "sha256": "a45c2e4d6c1cd3aca56ad007c0ae2ff966e9bbde7faffc4ace7c7dc0c4301bee",
+      "size": 115
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.103600+00:00",
+      "path": "replicas_ciegas/A1/CONTROL_REPORT.json",
+      "sha256": "2aef5ef80462281f2d5b827d6adb3774d33ba3788ce34630bb450bdf096d1c31",
+      "size": 657
+    },
+    {
+      "mtime": "2026-09-22T20:48:01.616330+00:00",
+      "path": "replicas_ciegas/A1/FREEZE_MANIFEST.sha256",
+      "sha256": "090f067c0bc0fb360e638279ee96134bb93448ece74bd4ddec78d481fa59d59b",
+      "size": 1489
+    },
+    {
+      "mtime": "2026-09-22T20:42:42.839864+00:00",
+      "path": "replicas_ciegas/A1/IMPLEMENTATION_NOTES.md",
+      "sha256": "77bf1acba7fa0469baec7f803340e68f937b93e0ff61da5d6d9c1b1056dc95a1",
+      "size": 521
+    },
+    {
+      "mtime": "2026-09-22T20:47:37.380517+00:00",
+      "path": "replicas_ciegas/A1/PRECALIBRATION_MANIFEST.json",
+      "sha256": "be3568fed5b172e537960cb283886eee2cee42037b0164dc1d5f2e8b8ec9f016",
+      "size": 415
+    },
+    {
+      "mtime": "2026-09-22T20:42:42.838477+00:00",
+      "path": "replicas_ciegas/A1/PRE_IMPLEMENTATION_REVIEW.md",
+      "sha256": "94bd44b4e05823638a154466660ebd2bf6fe3b521561e6205c3d957110c3b397",
+      "size": 2746
+    },
+    {
+      "mtime": "2026-09-22T20:46:54.813855+00:00",
+      "path": "replicas_ciegas/A1/RUN1/CONTROL_REPORT.json",
+      "sha256": "2aef5ef80462281f2d5b827d6adb3774d33ba3788ce34630bb450bdf096d1c31",
+      "size": 657
+    },
+    {
+      "mtime": "2026-09-22T20:46:54.812614+00:00",
+      "path": "replicas_ciegas/A1/RUN1/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T20:46:54.813664+00:00",
+      "path": "replicas_ciegas/A1/RUN1/resumen.json",
+      "sha256": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+      "size": 2673
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.008462+00:00",
+      "path": "replicas_ciegas/A1/RUN2/CONTROL_REPORT.json",
+      "sha256": "2aef5ef80462281f2d5b827d6adb3774d33ba3788ce34630bb450bdf096d1c31",
+      "size": 657
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.008123+00:00",
+      "path": "replicas_ciegas/A1/RUN2/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.008367+00:00",
+      "path": "replicas_ciegas/A1/RUN2/resumen.json",
+      "sha256": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+      "size": 2673
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "replicas_ciegas/A1/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+      "size": 12266
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "replicas_ciegas/A1/TASK.txt",
+      "sha256": "97f6ce6242bea5c7058aed9265c4391c694a1da479357d3a711e2e72f4939fdb",
+      "size": 2207
+    },
+    {
+      "mtime": "2026-09-22T20:46:54.667899+00:00",
+      "path": "replicas_ciegas/A1/__pycache__/replica.cpython-312.pyc",
+      "sha256": "623a7672627d057b4f9eb85a267a982916d7084a9e5af6b6643961ad54d3e16e",
+      "size": 34478
+    },
+    {
+      "mtime": "2026-09-22T20:45:23.685953+00:00",
+      "path": "replicas_ciegas/A1/__pycache__/test_replica.cpython-312.pyc",
+      "sha256": "77a4fa910b87cf7fa3b69f5a9d85b1d5bcbafc6420a2cc8e3205b92ca697d567",
+      "size": 6180
+    },
+    {
+      "mtime": "2026-09-22T20:48:29.341980+00:00",
+      "path": "replicas_ciegas/A1/manifest_replica.json",
+      "sha256": "ef74c14a4eb83b20c1e0687be7d56833fdc726ae299481302d73003e265f9f63",
+      "size": 1918
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.099735+00:00",
+      "path": "replicas_ciegas/A1/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T20:42:42.838477+00:00",
+      "path": "replicas_ciegas/A1/registro_ambiguedades.md",
+      "sha256": "67fb1745e10337fe90e7320b797f1aeb7e8bf61091fcb18b8d61e011972c3373",
+      "size": 381
+    },
+    {
+      "mtime": "2026-09-22T20:46:45.950053+00:00",
+      "path": "replicas_ciegas/A1/replica.py",
+      "sha256": "6f19a7174b911cada2f3969a0339e8f448b7ed4f9907e158dc10e535a539b4ec",
+      "size": 16980
+    },
+    {
+      "mtime": "2026-09-22T20:46:55.102330+00:00",
+      "path": "replicas_ciegas/A1/resumen.json",
+      "sha256": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+      "size": 2673
+    },
+    {
+      "mtime": "2026-09-22T20:45:08.558936+00:00",
+      "path": "replicas_ciegas/A1/test_replica.py",
+      "sha256": "f591ae813bf154476c65229670eec5f03bd0ace34976f76043335e09f9d2c418",
+      "size": 3238
+    },
+    {
+      "mtime": "2026-09-22T20:46:45.950053+00:00",
+      "path": "replicas_ciegas/A1/validate_outputs.py",
+      "sha256": "b2315c4530b2c9c093db557070cd81144bc1b72419d84dd151aa8f5879b5c9b3",
+      "size": 4588
+    },
+    {
+      "mtime": "2026-09-22T21:00:41.389932+00:00",
+      "path": "replicas_ciegas/A2/ACCESO_INICIAL.md",
+      "sha256": "e287fdda323006d4b0a5f09bfe4312a6c6e0ee53e148a47560e2dbcebc1ea7f0",
+      "size": 469
+    },
+    {
+      "mtime": "2026-09-22T21:02:22.052391+00:00",
+      "path": "replicas_ciegas/A2/CONTROL_REPORT.md",
+      "sha256": "1691be7e2d026ae719ec1e288f26cba7a8d5ed90da3abbd9c974f54e15de09c5",
+      "size": 1270
+    },
+    {
+      "mtime": "2026-09-22T21:00:41.389932+00:00",
+      "path": "replicas_ciegas/A2/PRECALIBRATION_MANIFEST.json",
+      "sha256": "b3edf560531acebe3bce5e0ece5f393f473913ecc3acc833824f53ecd8f21c39",
+      "size": 354
+    },
+    {
+      "mtime": "2026-09-22T21:01:41.389224+00:00",
+      "path": "replicas_ciegas/A2/RUN1/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T21:01:41.414342+00:00",
+      "path": "replicas_ciegas/A2/RUN1/resumen.json",
+      "sha256": "433e6aca3aae3adc4be1375b3f6da91d9fde1d6f5a2f6a76bddbd7e60c1a0894",
+      "size": 2956
+    },
+    {
+      "mtime": "2026-09-22T21:01:51.567765+00:00",
+      "path": "replicas_ciegas/A2/RUN2/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T21:01:51.594409+00:00",
+      "path": "replicas_ciegas/A2/RUN2/resumen.json",
+      "sha256": "433e6aca3aae3adc4be1375b3f6da91d9fde1d6f5a2f6a76bddbd7e60c1a0894",
+      "size": 2956
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "replicas_ciegas/A2/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+      "size": 12266
+    },
+    {
+      "mtime": "2026-09-22T19:41:37+00:00",
+      "path": "replicas_ciegas/A2/TASK.txt",
+      "sha256": "6dad5924a9f50bf8a24a6acc32cfedd0ec5d533e30746ff994774e6b27a02c22",
+      "size": 2207
+    },
+    {
+      "mtime": "2026-09-22T21:01:12.441530+00:00",
+      "path": "replicas_ciegas/A2/cambios_por_calibracion.md",
+      "sha256": "7f7faf904ed00983e5cf4f160c15289ea6fb18e6803cc8ffd87d305b1d00cf79",
+      "size": 479
+    },
+    {
+      "mtime": "2026-09-22T21:02:22.052391+00:00",
+      "path": "replicas_ciegas/A2/manifest_replica.json",
+      "sha256": "0b9e94ceed2c1bcd4ca81c37068fc5d3a4c7f0406e3f82b36f26b5fe91b0f9a1",
+      "size": 1263
+    },
+    {
+      "mtime": "2026-09-22T21:01:59.018091+00:00",
+      "path": "replicas_ciegas/A2/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    {
+      "mtime": "2026-09-22T21:00:41.389932+00:00",
+      "path": "replicas_ciegas/A2/registro_ambiguedades.md",
+      "sha256": "3d1ecc0cef19e68b254e48e1c9b3962247186e3cfeda730735859f0db2d7406a",
+      "size": 268
+    },
+    {
+      "mtime": "2026-09-22T21:01:12.441530+00:00",
+      "path": "replicas_ciegas/A2/replica_a2.py",
+      "sha256": "a9782dc37e8e0c5aefc7d09cc492c7c75fcf95cf0c550d7829f774692a145f3a",
+      "size": 13885
+    },
+    {
+      "mtime": "2026-09-22T21:01:59.043370+00:00",
+      "path": "replicas_ciegas/A2/resumen.json",
+      "sha256": "433e6aca3aae3adc4be1375b3f6da91d9fde1d6f5a2f6a76bddbd7e60c1a0894",
+      "size": 2956
+    },
+    {
+      "mtime": "2026-09-22T21:01:46.797980+00:00",
+      "path": "replicas_ciegas/A2/validacion_independiente.py",
+      "sha256": "e86dd023d70f0a2b5c984329a1e3731ec2db855b5ca607e0236c1a06df32ecc6",
+      "size": 2182
+    }
+  ],
+  "scope": "/home/wis/mundo simulado terrario/experiments/primitivo_n2"
+}

@@ -1,0 +1,53 @@
+{
+  "audit_date": "2026-09-22",
+  "status": "PENDING_A1_ATTESTATION_AND_A2B_BLIND_REPLICATION",
+  "gate_a_math": "PASS",
+  "frozen_code_computation": "VERIFIED",
+  "control_zip": {
+    "status": "RECOVERED_BYTE_EXACT",
+    "classification": "VERIFIED",
+    "sha256": "79dc8eeadc9190220d66f21eeb002b1f72c8d274d6f74ed07398a667722d05a7",
+    "entries": 11
+  },
+  "A1": {
+    "attribution": "ATTRIBUTED",
+    "G0_log": "CLEAN_BY_LOG",
+    "G5_log": "LOG_SUPPORTS_G5",
+    "first_declared_hash": {
+      "value": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "ordinal": 174,
+      "timestamp": "2026-09-22T20:48:48.184Z"
+    },
+    "G0": "PENDING_INVESTIGATOR_ATTESTATION",
+    "G5": "PENDING_INVESTIGATOR_ATTESTATION"
+  },
+  "A2": {
+    "attribution": "ATTRIBUTED",
+    "G0_log": "CLEAN_BY_LOG",
+    "G5_log": "LOG_SUPPORTS_G5",
+    "first_declared_hash": {
+      "value": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "ordinal": 155,
+      "timestamp": "2026-09-22T21:03:03.928Z"
+    },
+    "G0": "NOT_ELIGIBLE_FOR_INDEPENDENT_GATE",
+    "G5": "NOT_ELIGIBLE_FOR_INDEPENDENT_GATE",
+    "legacy_status": "DEPENDENT_CORROBORATION · LINEAGE_NOT_AUDITABLE",
+    "lineage_limit": "A2 is recorded as /root/a2_blind_replica with A1 as parent thread; inherited context content is not preserved in readable form."
+  },
+  "A2b": {
+    "status": "WORKSPACE_PREPARED_NOT_EXECUTED",
+    "workspace": "/home/wis/primitivo_blind/A2b",
+    "initial_custody": "gate_a_verifier/A2B_CUSTODY/",
+    "session_lineage_independent": "NOT_YET_EVALUABLE"
+  },
+  "blind_replication_set_pending": "A1 + A2b",
+  "ambiguity_A1": "FORMAL_ONLY_NO_NORMATIVE_EFFECT",
+  "author_prediction_value": "SUPPORTED",
+  "author_prediction_formal_coverage": "SUPPORTED",
+  "A2_freeze_limitation": "FREEZE_MANIFEST_NOT_PRESERVED",
+  "precalibration_limitation": "HASH_ONLY",
+  "blind_workspace_policy": "OUTSIDE_REPOSITORY_REQUIRED",
+  "B_status": "BLOCKED_PENDING_GATE_A",
+  "required_next_action": "Investigator must complete A1's unsigned attestation, then manually launch a new blind Codex session in the prepared A2b workspace."
+}

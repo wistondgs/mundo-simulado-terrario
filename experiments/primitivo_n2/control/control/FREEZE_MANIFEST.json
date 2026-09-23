@@ -1,0 +1,26 @@
+{
+  "project": "PRIMITIVO_N2",
+  "date": "2026-09-22",
+  "gate": "A_PENDING_BLIND_REPLICATIONS",
+  "spec_A": {
+    "file": "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+    "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+    "status": "FROZEN_FOR_BLIND_REPLICATION"
+  },
+  "spec_B": {
+    "file": "SPEC_PRIMITIVO_N2_B_SENSIBILIDAD_v0_2_1.md",
+    "sha256": "677c5764eb4a519be089171404825ccc454fe8dc29771c2f577db88799f39e94",
+    "status": "FROZEN_PREREGISTERED_BLOCKED_BY_GATE_A"
+  },
+  "reference_nonblind": {
+    "file": "primitivo_n2.py",
+    "sha256": "f2f6bcc93094714505223724134074a1d6bd338a49b7b5f0961ce62fe755e003",
+    "status": "NONBLIND_REFERENCE_DO_NOT_EXPOSE_TO_REPLICATORS"
+  },
+  "comparison_order": [
+    "sha256_por_sistema",
+    "first_record_first_field",
+    "aggregates"
+  ],
+  "blind_replica_packages": ["A1", "A2"]
+}

@@ -1,0 +1,126 @@
+{
+  "deterministico": {
+    "H_K_bits": 3.343188,
+    "categoria_cambia_con_el_corte": 144,
+    "ciclo_muere_sin_reloj_por_cruzada": {
+      "mutua": 52
+    },
+    "con_al_menos_un_atractor": 256,
+    "con_ciclo_sincronico_por_cruzada": {
+      "mutua": 76,
+      "separable": 7,
+      "unidir": 48
+    },
+    "cruzada_en_C12": {
+      "mutua": 144,
+      "separable": 16,
+      "unidir": 96
+    },
+    "lesion_casos": 512,
+    "lesion_veredicto_difiere_congelar_vs_fijar0": 220,
+    "mutua_en_los_3_cortes": 104,
+    "n_dinamicas": 256,
+    "perfiles_consecuencia_K": 18,
+    "perfiles_robustez_C12": 6,
+    "robustez_cambia_con_el_corte": 105,
+    "scheduler_atractores_distintos": 68,
+    "scheduler_puntos_fijos_distintos": 0,
+    "separable_en_algun_corte": 32,
+    "tipos_C12": 43,
+    "tipos_S4": 19,
+    "vocabularios": {
+      "cruzada_C12": {
+        "H_V_bits": 1.247556,
+        "K": {
+          "AMI_max": 0.096374,
+          "E_I_permutacion_exacta_bits": 0.099352,
+          "I_bits": 0.411973
+        },
+        "clases": 3,
+        "clases_con_colision_en_K": 3,
+        "clases_con_colision_en_robustez": 3,
+        "colision_garantizada_por_conteo": true,
+        "solo_periodos": {
+          "AMI_max": 0.078914,
+          "E_I_permutacion_exacta_bits": 0.059075,
+          "I_bits": 0.279099
+        },
+        "solo_robustez_C12": {
+          "AMI_max": 0.042238,
+          "E_I_permutacion_exacta_bits": 0.030428,
+          "I_bits": 0.107574
+        }
+      },
+      "grafo_dependencias_C12": {
+        "H_V_bits": 3.09759,
+        "K": {
+          "AMI_max": 0.240447,
+          "E_I_permutacion_exacta_bits": 0.523005,
+          "I_bits": 1.20111
+        },
+        "clases": 16,
+        "clases_con_colision_en_K": 13,
+        "clases_con_colision_en_robustez": 13,
+        "colision_garantizada_por_conteo": true,
+        "solo_periodos": {
+          "AMI_max": 0.18744,
+          "E_I_permutacion_exacta_bits": 0.358321,
+          "I_bits": 0.871769
+        },
+        "solo_robustez_C12": {
+          "AMI_max": 0.076809,
+          "E_I_permutacion_exacta_bits": 0.203675,
+          "I_bits": 0.425953
+        }
+      },
+      "tipo_S4": {
+        "H_V_bits": 3.979899,
+        "K": {
+          "AMI_max": 0.693049,
+          "E_I_permutacion_exacta_bits": 0.67854,
+          "I_bits": 2.966543
+        },
+        "clases": 19,
+        "clases_con_colision_en_K": 8,
+        "clases_con_colision_en_robustez": 8,
+        "colision_garantizada_por_conteo": false,
+        "solo_periodos": {
+          "AMI_max": 0.678926,
+          "E_I_permutacion_exacta_bits": 0.45218,
+          "I_bits": 2.847239
+        },
+        "solo_robustez_C12": {
+          "AMI_max": 0.328387,
+          "E_I_permutacion_exacta_bits": 0.258043,
+          "I_bits": 1.480254
+        }
+      }
+    }
+  },
+  "estado": "REPORTED",
+  "montecarlo": {
+    "permutaciones": 10000,
+    "semilla": 20260922,
+    "vocabularios": {
+      "cruzada_C12": {
+        "media_nula_bits": 0.0995,
+        "p_valor": 0.0001,
+        "sd_nula_bits": 0.0213
+      },
+      "grafo_dependencias_C12": {
+        "media_nula_bits": 0.5227,
+        "p_valor": 0.0001,
+        "sd_nula_bits": 0.0386
+      },
+      "tipo_S4": {
+        "media_nula_bits": 0.6793,
+        "p_valor": 0.0001,
+        "sd_nula_bits": 0.0418
+      }
+    }
+  },
+  "sha256": {
+    "deterministico": "49c6ccfc6def80a108183bbbb8b51125fa8b0e07563f76f85874dec29cf94c99",
+    "por_sistema.jsonl": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e"
+  }
+}

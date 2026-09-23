@@ -1,0 +1,157 @@
+[
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "H_K_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.H_V_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.K.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.K.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.K.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.H_V_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.H_V_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.K.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.K.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.K.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.I_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.AMI_max"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.E_I_permutacion_exacta_bits"
+  },
+  {
+    "basis": "same real value under §14 precision",
+    "classification": "F2",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.I_bits"
+  }
+]

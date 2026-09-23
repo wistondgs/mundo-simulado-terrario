@@ -1,0 +1,30 @@
+{
+  "A1": {
+    "G0_LOG_RESULT": "CLEAN_BY_LOG",
+    "G5_LOG_RESULT": "LOG_SUPPORTS_G5",
+    "attribution": "ATTRIBUTED",
+    "first_hash_event": {
+      "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "ordinal": 174,
+      "timestamp": "2026-09-22T20:48:48.184Z"
+    },
+    "initial_cwd": "/home/wis/mundo simulado terrario",
+    "pre_hash_reference_evidence": null,
+    "record": "rollout-2026-09-22T14-39-25-01a0cad8-4198-7c50-b3c6-f819f50cbe23.jsonl"
+  },
+  "A2": {
+    "G0_LOG_RESULT": "CLEAN_BY_LOG",
+    "G5_LOG_RESULT": "LOG_SUPPORTS_G5",
+    "attribution": "ATTRIBUTED",
+    "first_hash_event": {
+      "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "ordinal": 155,
+      "timestamp": "2026-09-22T21:03:03.928Z"
+    },
+    "initial_cwd": "/home/wis/mundo simulado terrario",
+    "pre_hash_reference_evidence": null,
+    "record": "rollout-2026-09-22T14-57-33-01a0cae8-db17-7343-8e24-e062f914c26a.jsonl"
+  },
+  "custody_verified": true,
+  "replica_family_relation": "SAME_FAMILY_SEPARATE_SESSIONS"
+}

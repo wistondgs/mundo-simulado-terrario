@@ -1,0 +1,33 @@
+{
+  "A1": {
+    "expected": {
+      "replica.py": "3536df95e9018bb671a9b5d628894ea9441fdc15bdc45388933ad654c6ac031f",
+      "test_replica.py": "f591ae813bf154476c65229670eec5f03bd0ace34976f76043335e09f9d2c418"
+    },
+    "finding": "PRECALIBRATION_SOURCE_NOT_PRESERVED",
+    "matches": {
+      "replica.py": false,
+      "test_replica.py": true
+    },
+    "observed_current": {
+      "replica.py": "6f19a7174b911cada2f3969a0339e8f448b7ed4f9907e158dc10e535a539b4ec",
+      "test_replica.py": "f591ae813bf154476c65229670eec5f03bd0ace34976f76043335e09f9d2c418"
+    },
+    "precal_manifest": "replicas_ciegas/A1/PRECALIBRATION_MANIFEST.json",
+    "status": "HASH_ONLY"
+  },
+  "A2": {
+    "expected": {
+      "replica_a2.py": "39e46b423ec5a06d01d6e37e4faa495013aa53d42292331221d49fd7ab80ed80"
+    },
+    "finding": "PRECALIBRATION_SOURCE_NOT_PRESERVED",
+    "matches": {
+      "replica_a2.py": false
+    },
+    "observed_current": {
+      "replica_a2.py": "a9782dc37e8e0c5aefc7d09cc492c7c75fcf95cf0c550d7829f774692a145f3a"
+    },
+    "precal_manifest": "replicas_ciegas/A2/PRECALIBRATION_MANIFEST.json",
+    "status": "HASH_ONLY"
+  }
+}

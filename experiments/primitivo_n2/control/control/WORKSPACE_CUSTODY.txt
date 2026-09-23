@@ -1,0 +1,15 @@
+INVESTIGATOR CUSTODY CHECKLIST
+
+For each blind replica, before execution:
+- Record the model/family/version if known.
+- Confirm the workspace contains only TASK.txt and SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md.
+- Save a directory listing outside the replica's reach.
+- Do not provide reference code, reference outputs, B, project conversation, or prior hashes of outputs.
+
+At delivery:
+- Save the replica's code and outputs outside the replica's reach.
+- Compute hashes independently.
+- Record freeze time/date.
+- Only then reveal any reference output for comparison.
+
+G0 and G5 are certified by the investigator, not by the replicator.

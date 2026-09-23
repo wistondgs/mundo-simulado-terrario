@@ -1,0 +1,13 @@
+{
+  "A1": [
+    {
+      "classification": "PREREGISTERED_F1",
+      "reported": "formal summary schema ambiguity",
+      "resolution_changed_results": false,
+      "value_affecting": false
+    }
+  ],
+  "A2": [],
+  "author_prediction": "SUPPORTED",
+  "notes": "A1's reported summary-schema ambiguity is the preregistered vocabulary-nesting issue F1; no value-affecting ambiguity was found."
+}

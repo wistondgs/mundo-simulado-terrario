@@ -1,0 +1,662 @@
+[
+  {
+    "A1": 3.343188,
+    "A2": 3.3431881367632306,
+    "classification": "FORMAT_ONLY",
+    "field": "H_K_bits",
+    "notes": "real precision representation",
+    "reference": 3.343188,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3.343188
+  },
+  {
+    "A1": 144,
+    "A2": 144,
+    "classification": "IDENTICAL",
+    "field": "categoria_cambia_con_el_corte",
+    "notes": "",
+    "reference": 144,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 144
+  },
+  {
+    "A1": 52,
+    "A2": 52,
+    "classification": "IDENTICAL",
+    "field": "ciclo_muere_sin_reloj_por_cruzada.mutua",
+    "notes": "",
+    "reference": 52,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 52
+  },
+  {
+    "A1": 0,
+    "A2": 0,
+    "classification": "IDENTICAL",
+    "field": "ciclo_muere_sin_reloj_por_cruzada.separable",
+    "notes": "",
+    "reference": 0,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0
+  },
+  {
+    "A1": 0,
+    "A2": 0,
+    "classification": "IDENTICAL",
+    "field": "ciclo_muere_sin_reloj_por_cruzada.unidir",
+    "notes": "",
+    "reference": 0,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0
+  },
+  {
+    "A1": 256,
+    "A2": 256,
+    "classification": "IDENTICAL",
+    "field": "con_al_menos_un_atractor",
+    "notes": "",
+    "reference": 256,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 256
+  },
+  {
+    "A1": 76,
+    "A2": 76,
+    "classification": "IDENTICAL",
+    "field": "con_ciclo_sincronico_por_cruzada.mutua",
+    "notes": "",
+    "reference": 76,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 76
+  },
+  {
+    "A1": 7,
+    "A2": 7,
+    "classification": "IDENTICAL",
+    "field": "con_ciclo_sincronico_por_cruzada.separable",
+    "notes": "",
+    "reference": 7,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 7
+  },
+  {
+    "A1": 48,
+    "A2": 48,
+    "classification": "IDENTICAL",
+    "field": "con_ciclo_sincronico_por_cruzada.unidir",
+    "notes": "",
+    "reference": 48,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 48
+  },
+  {
+    "A1": 144,
+    "A2": 144,
+    "classification": "IDENTICAL",
+    "field": "cruzada_en_C12.mutua",
+    "notes": "",
+    "reference": 144,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 144
+  },
+  {
+    "A1": 16,
+    "A2": 16,
+    "classification": "IDENTICAL",
+    "field": "cruzada_en_C12.separable",
+    "notes": "",
+    "reference": 16,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 16
+  },
+  {
+    "A1": 96,
+    "A2": 96,
+    "classification": "IDENTICAL",
+    "field": "cruzada_en_C12.unidir",
+    "notes": "",
+    "reference": 96,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 96
+  },
+  {
+    "A1": 512,
+    "A2": 512,
+    "classification": "IDENTICAL",
+    "field": "lesion_casos",
+    "notes": "",
+    "reference": 512,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 512
+  },
+  {
+    "A1": 220,
+    "A2": 220,
+    "classification": "IDENTICAL",
+    "field": "lesion_veredicto_difiere_congelar_vs_fijar0",
+    "notes": "",
+    "reference": 220,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 220
+  },
+  {
+    "A1": 104,
+    "A2": 104,
+    "classification": "IDENTICAL",
+    "field": "mutua_en_los_3_cortes",
+    "notes": "",
+    "reference": 104,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 104
+  },
+  {
+    "A1": 256,
+    "A2": 256,
+    "classification": "IDENTICAL",
+    "field": "n_dinamicas",
+    "notes": "",
+    "reference": 256,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 256
+  },
+  {
+    "A1": 18,
+    "A2": 18,
+    "classification": "IDENTICAL",
+    "field": "perfiles_consecuencia_K",
+    "notes": "",
+    "reference": 18,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 18
+  },
+  {
+    "A1": 6,
+    "A2": 6,
+    "classification": "IDENTICAL",
+    "field": "perfiles_robustez_C12",
+    "notes": "",
+    "reference": 6,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 6
+  },
+  {
+    "A1": 105,
+    "A2": 105,
+    "classification": "IDENTICAL",
+    "field": "robustez_cambia_con_el_corte",
+    "notes": "",
+    "reference": 105,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 105
+  },
+  {
+    "A1": 68,
+    "A2": 68,
+    "classification": "IDENTICAL",
+    "field": "scheduler_atractores_distintos",
+    "notes": "",
+    "reference": 68,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 68
+  },
+  {
+    "A1": 0,
+    "A2": 0,
+    "classification": "IDENTICAL",
+    "field": "scheduler_puntos_fijos_distintos",
+    "notes": "",
+    "reference": 0,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0
+  },
+  {
+    "A1": 32,
+    "A2": 32,
+    "classification": "IDENTICAL",
+    "field": "separable_en_algun_corte",
+    "notes": "",
+    "reference": 32,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 32
+  },
+  {
+    "A1": 43,
+    "A2": 43,
+    "classification": "IDENTICAL",
+    "field": "tipos_C12",
+    "notes": "",
+    "reference": 43,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 43
+  },
+  {
+    "A1": 19,
+    "A2": 19,
+    "classification": "IDENTICAL",
+    "field": "tipos_S4",
+    "notes": "",
+    "reference": 19,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 19
+  },
+  {
+    "A1": 1.247556,
+    "A2": 1.2475562489182659,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.H_V_bits",
+    "notes": "real precision representation",
+    "reference": 1.247556,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 1.247556
+  },
+  {
+    "A1": 3,
+    "A2": 3,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.cruzada_C12.clases",
+    "notes": "",
+    "reference": 3,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3
+  },
+  {
+    "A1": 3,
+    "A2": 3,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.cruzada_C12.clases_con_colision_en_K",
+    "notes": "",
+    "reference": 3,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3
+  },
+  {
+    "A1": 3,
+    "A2": 3,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.cruzada_C12.clases_con_colision_en_robustez",
+    "notes": "",
+    "reference": 3,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3
+  },
+  {
+    "A1": true,
+    "A2": true,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.cruzada_C12.colision_garantizada_por_conteo",
+    "notes": "",
+    "reference": true,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": true
+  },
+  {
+    "A1": 0.096374,
+    "A2": 0.09637394978501673,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.K.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.096374,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.096374
+  },
+  {
+    "A1": 0.099352,
+    "A2": 0.09935199046276333,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.K.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.099352,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.099352
+  },
+  {
+    "A1": 0.411973,
+    "A2": 0.41197329233714675,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.K.I_bits",
+    "notes": "real precision representation",
+    "reference": 0.411973,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.411973
+  },
+  {
+    "A1": 0.078914,
+    "A2": 0.07891361996695208,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.078914,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.078914
+  },
+  {
+    "A1": 0.059075,
+    "A2": 0.05907521119743269,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.059075,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.059075
+  },
+  {
+    "A1": 0.279099,
+    "A2": 0.27909931756923717,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_periodos.I_bits",
+    "notes": "real precision representation",
+    "reference": 0.279099,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.279099
+  },
+  {
+    "A1": 0.042238,
+    "A2": 0.042237514599282364,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.042238,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.042238
+  },
+  {
+    "A1": 0.030428,
+    "A2": 0.030428205208919066,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.030428,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.030428
+  },
+  {
+    "A1": 0.107574,
+    "A2": 0.10757377591584338,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.cruzada_C12.targets.solo_robustez_C12.I_bits",
+    "notes": "real precision representation",
+    "reference": 0.107574,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.107574
+  },
+  {
+    "A1": 3.09759,
+    "A2": 3.097589881390797,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.H_V_bits",
+    "notes": "real precision representation",
+    "reference": 3.09759,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3.09759
+  },
+  {
+    "A1": 16,
+    "A2": 16,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.grafo_dependencias_C12.clases",
+    "notes": "",
+    "reference": 16,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 16
+  },
+  {
+    "A1": 13,
+    "A2": 13,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.grafo_dependencias_C12.clases_con_colision_en_K",
+    "notes": "",
+    "reference": 13,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 13
+  },
+  {
+    "A1": 13,
+    "A2": 13,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.grafo_dependencias_C12.clases_con_colision_en_robustez",
+    "notes": "",
+    "reference": 13,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 13
+  },
+  {
+    "A1": true,
+    "A2": true,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.grafo_dependencias_C12.colision_garantizada_por_conteo",
+    "notes": "",
+    "reference": true,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": true
+  },
+  {
+    "A1": 0.240447,
+    "A2": 0.24044716965326496,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.240447,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.240447
+  },
+  {
+    "A1": 0.523005,
+    "A2": 0.5230051896617266,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.523005,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.523005
+  },
+  {
+    "A1": 1.20111,
+    "A2": 1.2011101971966867,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.K.I_bits",
+    "notes": "real precision representation",
+    "reference": 1.20111,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 1.20111
+  },
+  {
+    "A1": 0.18744,
+    "A2": 0.1874397405764065,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.18744,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.18744
+  },
+  {
+    "A1": 0.358321,
+    "A2": 0.3583209803097937,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.358321,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.358321
+  },
+  {
+    "A1": 0.871769,
+    "A2": 0.871768832497435,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_periodos.I_bits",
+    "notes": "real precision representation",
+    "reference": 0.871769,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.871769
+  },
+  {
+    "A1": 0.076809,
+    "A2": 0.07680868852346259,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.076809,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.076809
+  },
+  {
+    "A1": 0.203675,
+    "A2": 0.20367531503874206,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.203675,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.203675
+  },
+  {
+    "A1": 0.425953,
+    "A2": 0.42595309757918837,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.grafo_dependencias_C12.targets.solo_robustez_C12.I_bits",
+    "notes": "real precision representation",
+    "reference": 0.425953,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.425953
+  },
+  {
+    "A1": 3.979899,
+    "A2": 3.97989887626859,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.H_V_bits",
+    "notes": "real precision representation",
+    "reference": 3.979899,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 3.979899
+  },
+  {
+    "A1": 19,
+    "A2": 19,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.tipo_S4.clases",
+    "notes": "",
+    "reference": 19,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 19
+  },
+  {
+    "A1": 8,
+    "A2": 8,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.tipo_S4.clases_con_colision_en_K",
+    "notes": "",
+    "reference": 8,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 8
+  },
+  {
+    "A1": 8,
+    "A2": 8,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.tipo_S4.clases_con_colision_en_robustez",
+    "notes": "",
+    "reference": 8,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 8
+  },
+  {
+    "A1": false,
+    "A2": false,
+    "classification": "IDENTICAL",
+    "field": "vocabularios.tipo_S4.colision_garantizada_por_conteo",
+    "notes": "",
+    "reference": false,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": false
+  },
+  {
+    "A1": 0.693049,
+    "A2": 0.6930489893614395,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.K.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.693049,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.693049
+  },
+  {
+    "A1": 0.67854,
+    "A2": 0.6785397666059315,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.K.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.67854,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.67854
+  },
+  {
+    "A1": 2.966543,
+    "A2": 2.966543361076819,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.K.I_bits",
+    "notes": "real precision representation",
+    "reference": 2.966543,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 2.966543
+  },
+  {
+    "A1": 0.678926,
+    "A2": 0.6789256872606119,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.678926,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.678926
+  },
+  {
+    "A1": 0.45218,
+    "A2": 0.45218046150784,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.45218,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.45218
+  },
+  {
+    "A1": 2.847239,
+    "A2": 2.8472391107111985,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_periodos.I_bits",
+    "notes": "real precision representation",
+    "reference": 2.847239,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 2.847239
+  },
+  {
+    "A1": 0.328387,
+    "A2": 0.32838746766462334,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.AMI_max",
+    "notes": "real precision representation",
+    "reference": 0.328387,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.328387
+  },
+  {
+    "A1": 0.258043,
+    "A2": 0.2580430233097762,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.E_I_permutacion_exacta_bits",
+    "notes": "real precision representation",
+    "reference": 0.258043,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 0.258043
+  },
+  {
+    "A1": 1.480254,
+    "A2": 1.4802538418756779,
+    "classification": "FORMAT_ONLY",
+    "field": "vocabularios.tipo_S4.targets.solo_robustez_C12.I_bits",
+    "notes": "real precision representation",
+    "reference": 1.480254,
+    "spec_basis": "SPEC §11; real tolerance §14",
+    "verifier": 1.480254
+  }
+]

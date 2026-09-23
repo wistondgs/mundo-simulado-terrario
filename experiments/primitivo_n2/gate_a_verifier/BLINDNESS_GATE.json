@@ -1,0 +1,67 @@
+{
+  "A1": {
+    "G0": {
+      "evidence": [
+        "CLEAN_BY_LOG"
+      ],
+      "evidence_level": "NONE",
+      "limitations": [
+        "researcher attestation absent",
+        "initial cwd recorded as project root, while operations must be interpreted from detailed log"
+      ],
+      "rollout": "rollout-2026-09-22T14-39-25-01a0cad8-4198-7c50-b3c6-f819f50cbe23.jsonl",
+      "status": "PENDING"
+    },
+    "G5": {
+      "evidence": [
+        "LOG_SUPPORTS_G5",
+        {
+          "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+          "ordinal": 174,
+          "timestamp": "2026-09-22T20:48:48.184Z"
+        }
+      ],
+      "evidence_level": "NONE",
+      "limitations": [
+        "rollout is documentary evidence, not an external cryptographic timestamp",
+        "researcher attestation absent"
+      ],
+      "rollout": "rollout-2026-09-22T14-39-25-01a0cad8-4198-7c50-b3c6-f819f50cbe23.jsonl",
+      "status": "PENDING"
+    }
+  },
+  "A2": {
+    "gate_role": "EXCLUDED_FROM_INDEPENDENT_GATE; DEPENDENT_CORROBORATION · LINEAGE_NOT_AUDITABLE",
+    "G0": {
+      "evidence": [
+        "CLEAN_BY_LOG"
+      ],
+      "evidence_level": "NONE",
+      "limitations": [
+        "researcher attestation absent",
+        "initial cwd recorded as project root, while operations must be interpreted from detailed log",
+        "A2 is recorded as a child agent of A1; inherited-context content is not readable in preserved custody and requires investigator adjudication"
+      ],
+      "rollout": "rollout-2026-09-22T14-57-33-01a0cae8-db17-7343-8e24-e062f914c26a.jsonl",
+      "status": "PENDING_LINEAGE_ADJUDICATION"
+    },
+    "G5": {
+      "evidence": [
+        "LOG_SUPPORTS_G5",
+        {
+          "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+          "ordinal": 155,
+          "timestamp": "2026-09-22T21:03:03.928Z"
+        }
+      ],
+      "evidence_level": "NONE",
+      "limitations": [
+        "rollout is documentary evidence, not an external cryptographic timestamp",
+        "researcher attestation absent",
+        "A2 is recorded as a child agent of A1; inherited-context content is not readable in preserved custody and requires investigator adjudication"
+      ],
+      "rollout": "rollout-2026-09-22T14-57-33-01a0cae8-db17-7343-8e24-e062f914c26a.jsonl",
+      "status": "PENDING_LINEAGE_ADJUDICATION"
+    }
+  }
+}

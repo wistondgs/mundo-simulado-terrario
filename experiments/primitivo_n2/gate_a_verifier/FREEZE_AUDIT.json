@@ -1,0 +1,128 @@
+{
+  "A1": {
+    "actual_freeze_sha256": "090f067c0bc0fb360e638279ee96134bb93448ece74bd4ddec78d481fa59d59b",
+    "circularity": false,
+    "entries": [
+      {
+        "actual": "a45c2e4d6c1cd3aca56ad007c0ae2ff966e9bbde7faffc4ace7c7dc0c4301bee",
+        "expected": "a45c2e4d6c1cd3aca56ad007c0ae2ff966e9bbde7faffc4ace7c7dc0c4301bee",
+        "path": "CAMBIOS_POR_CALIBRACION.md",
+        "status": "PASS"
+      },
+      {
+        "actual": "2aef5ef80462281f2d5b827d6adb3774d33ba3788ce34630bb450bdf096d1c31",
+        "expected": "2aef5ef80462281f2d5b827d6adb3774d33ba3788ce34630bb450bdf096d1c31",
+        "path": "CONTROL_REPORT.json",
+        "status": "PASS"
+      },
+      {
+        "actual": "77bf1acba7fa0469baec7f803340e68f937b93e0ff61da5d6d9c1b1056dc95a1",
+        "expected": "77bf1acba7fa0469baec7f803340e68f937b93e0ff61da5d6d9c1b1056dc95a1",
+        "path": "IMPLEMENTATION_NOTES.md",
+        "status": "PASS"
+      },
+      {
+        "actual": "be3568fed5b172e537960cb283886eee2cee42037b0164dc1d5f2e8b8ec9f016",
+        "expected": "be3568fed5b172e537960cb283886eee2cee42037b0164dc1d5f2e8b8ec9f016",
+        "path": "PRECALIBRATION_MANIFEST.json",
+        "status": "PASS"
+      },
+      {
+        "actual": "94bd44b4e05823638a154466660ebd2bf6fe3b521561e6205c3d957110c3b397",
+        "expected": "94bd44b4e05823638a154466660ebd2bf6fe3b521561e6205c3d957110c3b397",
+        "path": "PRE_IMPLEMENTATION_REVIEW.md",
+        "status": "PASS"
+      },
+      {
+        "actual": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "expected": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "path": "RUN1/por_sistema.jsonl",
+        "status": "PASS"
+      },
+      {
+        "actual": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "expected": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "path": "RUN1/resumen.json",
+        "status": "PASS"
+      },
+      {
+        "actual": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "expected": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "path": "RUN2/por_sistema.jsonl",
+        "status": "PASS"
+      },
+      {
+        "actual": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "expected": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "path": "RUN2/resumen.json",
+        "status": "PASS"
+      },
+      {
+        "actual": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+        "expected": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+        "path": "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+        "status": "PASS"
+      },
+      {
+        "actual": "97f6ce6242bea5c7058aed9265c4391c694a1da479357d3a711e2e72f4939fdb",
+        "expected": "97f6ce6242bea5c7058aed9265c4391c694a1da479357d3a711e2e72f4939fdb",
+        "path": "TASK.txt",
+        "status": "PASS"
+      },
+      {
+        "actual": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "expected": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "path": "por_sistema.jsonl",
+        "status": "PASS"
+      },
+      {
+        "actual": "67fb1745e10337fe90e7320b797f1aeb7e8bf61091fcb18b8d61e011972c3373",
+        "expected": "67fb1745e10337fe90e7320b797f1aeb7e8bf61091fcb18b8d61e011972c3373",
+        "path": "registro_ambiguedades.md",
+        "status": "PASS"
+      },
+      {
+        "actual": "6f19a7174b911cada2f3969a0339e8f448b7ed4f9907e158dc10e535a539b4ec",
+        "expected": "6f19a7174b911cada2f3969a0339e8f448b7ed4f9907e158dc10e535a539b4ec",
+        "path": "replica.py",
+        "status": "PASS"
+      },
+      {
+        "actual": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "expected": "274b02eb4cdc47c9c5d7edab226d90cdf5bdfb3d100984a6013aeda665db40e1",
+        "path": "resumen.json",
+        "status": "PASS"
+      },
+      {
+        "actual": "f591ae813bf154476c65229670eec5f03bd0ace34976f76043335e09f9d2c418",
+        "expected": "f591ae813bf154476c65229670eec5f03bd0ace34976f76043335e09f9d2c418",
+        "path": "test_replica.py",
+        "status": "PASS"
+      },
+      {
+        "actual": "b2315c4530b2c9c093db557070cd81144bc1b72419d84dd151aa8f5879b5c9b3",
+        "expected": "b2315c4530b2c9c093db557070cd81144bc1b72419d84dd151aa8f5879b5c9b3",
+        "path": "validate_outputs.py",
+        "status": "PASS"
+      }
+    ],
+    "findings": [
+      "no self-reference detected"
+    ],
+    "manifest": "replicas_ciegas/A1/FREEZE_MANIFEST.sha256",
+    "problems": [],
+    "reported_freeze_sha256": "090f067c0bc0fb360e638279ee96134bb93448ece74bd4ddec78d481fa59d59b",
+    "status": "PASS"
+  },
+  "A2": {
+    "actual_freeze_sha256": null,
+    "circularity": false,
+    "entries": [],
+    "findings": [
+      "FREEZE_MANIFEST.sha256 absent; no internal freeze integrity can be verified."
+    ],
+    "manifest": "MISSING",
+    "reported_freeze_sha256": null,
+    "status": "FAIL"
+  }
+}

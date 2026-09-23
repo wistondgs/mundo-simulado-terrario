@@ -1,0 +1,62 @@
+{
+  "A1": {
+    "byte_identity": true,
+    "command": [
+      "/usr/bin/python3",
+      "replica.py",
+      "--output",
+      "output",
+      "--oeis-status",
+      "PASS"
+    ],
+    "cwd": "/home/wis/mundo simulado terrario/experiments/primitivo_n2/gate_a_verifier/reexecution/A1_clean",
+    "exit_code": 0,
+    "files_after": [
+      "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "output/CONTROL_REPORT.json",
+      "output/por_sistema.jsonl",
+      "output/resumen.json",
+      "replica.py",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "files_before": [
+      "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "replica.py"
+    ],
+    "frozen_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+    "generated_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+    "replica": "A1",
+    "runtime_seconds": 0.142934,
+    "status": "REEXECUTION_EXACT"
+  },
+  "A2": {
+    "byte_identity": true,
+    "command": [
+      "/usr/bin/python3",
+      "replica_a2.py",
+      "--run",
+      "output"
+    ],
+    "cwd": "/home/wis/mundo simulado terrario/experiments/primitivo_n2/gate_a_verifier/reexecution/A2_clean",
+    "exit_code": 0,
+    "files_after": [
+      "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "output/por_sistema.jsonl",
+      "output/resumen.json",
+      "replica_a2.py",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "files_before": [
+      "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "replica_a2.py"
+    ],
+    "frozen_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+    "generated_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+    "replica": "A2",
+    "runtime_seconds": 0.136466,
+    "status": "REEXECUTION_EXACT"
+  },
+  "FROZEN_CODE_COMPUTATION": "VERIFIED"
+}

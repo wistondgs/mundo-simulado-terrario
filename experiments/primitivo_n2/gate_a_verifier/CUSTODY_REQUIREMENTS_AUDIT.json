@@ -1,0 +1,55 @@
+{
+  "audit_date": "2026-09-22",
+  "evidence_categories": {
+    "VERIFIED": "comprobado directamente mediante bytes, cálculo o inspección reproducible",
+    "REPORTED": "declarado por una fuente sin verificación independiente aquí",
+    "ATESTADO": "afirmación factual pendiente o emitida por el investigador",
+    "ATESTADO_PLUS_LOG": "atestación del investigador respaldada por logs auditados",
+    "HASH_ONLY": "sólo existe el hash histórico; no los bytes correspondientes",
+    "NO_REGISTRADO_EN_EL_ARMADO": "el protocolo pidió un registro y no existe evidencia de que fuera creado entonces"
+  },
+  "A1": {
+    "model_family_version_record": {
+      "status": "FOUND",
+      "classification": "VERIFIED",
+      "source": "session_custody/raw/rollout-2026-09-22T14-39-25-01a0cad8-4198-7c50-b3c6-f819f50cbe23.jsonl: session_meta ordinal 0",
+      "model_provider": "openai",
+      "model": "gpt-5.6-terra",
+      "timestamp": "2026-09-22T20:39:25.847Z"
+    },
+    "initial_directory_external_listing": {
+      "status": "NOT_FOUND",
+      "classification": "NO_REGISTRADO_EN_EL_ARMADO",
+      "reason": "No hay listado histórico conservado fuera del alcance de la réplica. El cwd registrado es la raíz del repositorio, no la carpeta A1. Un listado actual sería sólo RETROSPECTIVE_CURRENT_STATE."
+    },
+    "initial_cwd": "/home/wis/mundo simulado terrario",
+    "precalibration": "HASH_ONLY"
+  },
+  "A2": {
+    "model_family_version_record": {
+      "status": "FOUND",
+      "classification": "VERIFIED",
+      "source": "session_custody/raw/rollout-2026-09-22T14-57-33-01a0cae8-db17-7343-8e24-e062f914c26a.jsonl: session_meta ordinal 0",
+      "model_provider": "openai",
+      "model": "gpt-5.6-terra",
+      "timestamp": "2026-09-22T20:57:36.282Z"
+    },
+    "initial_directory_external_listing": {
+      "status": "NOT_FOUND",
+      "classification": "NO_REGISTRADO_EN_EL_ARMADO",
+      "reason": "ACCESO_INICIAL.md es un artefacto creado dentro de A2 y no un listado histórico externo. El cwd registrado es la raíz del repositorio."
+    },
+    "initial_cwd": "/home/wis/mundo simulado terrario",
+    "precalibration": "HASH_ONLY",
+    "freeze_limitation": "A2_FREEZE_MANIFEST_NOT_PRESERVED",
+    "lineage": {
+      "status": "REQUIRES_INVESTIGATOR_ADJUDICATION",
+      "agent_path": "/root/a2_blind_replica",
+      "parent_thread_id": "01a0cad8-4198-7c50-b3c6-f819f50cbe23",
+      "subagent_history_start_ordinal": 160,
+      "classification": "VERIFIED_METADATA; inherited context content NOT_PRESERVED"
+    }
+  },
+  "blind_workspace_policy": "OUTSIDE_REPOSITORY_REQUIRED",
+  "policy_reason": "A future blind workspace cannot be a subdirectory of a tree that contains control, reference and replica material."
+}

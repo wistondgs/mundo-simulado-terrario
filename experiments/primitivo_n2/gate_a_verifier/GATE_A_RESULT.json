@@ -1,0 +1,115 @@
+{
+  "A1_G0": "PENDING",
+  "A1_G5": "PENDING",
+  "A1_determinism_external": "PASS",
+  "A1_freeze_integrity": "PASS",
+  "A1_frozen_code_reexecution": "REEXECUTION_EXACT",
+  "A1_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "A1_precalibration_status": "HASH_ONLY",
+  "A2_G0": "NOT_ELIGIBLE_FOR_INDEPENDENT_GATE",
+  "A2_G5": "NOT_ELIGIBLE_FOR_INDEPENDENT_GATE",
+  "A2_legacy_status": "DEPENDENT_CORROBORATION · LINEAGE_NOT_AUDITABLE",
+  "A2b_status": "WORKSPACE_PREPARED_NOT_EXECUTED",
+  "A2b_workspace": "/home/wis/primitivo_blind/A2b",
+  "A2_determinism_external": "PASS",
+  "A2_freeze_integrity": "FAIL",
+  "A2_frozen_code_reexecution": "REEXECUTION_EXACT",
+  "A2_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "A2_precalibration_status": "HASH_ONLY",
+  "B_spec_freeze_already_verified": true,
+  "B_spec_sha256": "677c5764eb4a519be089171404825ccc454fe8dc29771c2f577db88799f39e94",
+  "B_status": "BLOCKED_PENDING_GATE_A",
+  "author_prediction_formal_coverage": "SUPPORTED",
+  "author_prediction_status": "SUPPORTED",
+  "author_prediction_value": "SUPPORTED",
+  "custody_manifest_sha256": "892eee89a7c4529b47e9a9203aee2eb026266fcb877126ae0cc8f688fe7ae80a",
+  "epistemic_status_if_pass": "VERIFIED · N=2 · SPEC A v0.1 (mathematical/computational only)",
+  "forensic_session_audit": {
+    "A1": {
+      "G0_LOG_RESULT": "CLEAN_BY_LOG",
+      "G5_LOG_RESULT": "LOG_SUPPORTS_G5",
+      "attribution": "ATTRIBUTED",
+      "first_hash_event": {
+        "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "ordinal": 174,
+        "timestamp": "2026-09-22T20:48:48.184Z"
+      },
+      "initial_cwd": "/home/wis/mundo simulado terrario",
+      "pre_hash_reference_evidence": null,
+      "record": "rollout-2026-09-22T14-39-25-01a0cad8-4198-7c50-b3c6-f819f50cbe23.jsonl"
+    },
+    "A2": {
+      "G0_LOG_RESULT": "CLEAN_BY_LOG",
+      "G5_LOG_RESULT": "LOG_SUPPORTS_G5",
+      "attribution": "ATTRIBUTED",
+      "first_hash_event": {
+        "hash": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+        "ordinal": 155,
+        "timestamp": "2026-09-22T21:03:03.928Z"
+      },
+      "initial_cwd": "/home/wis/mundo simulado terrario",
+      "pre_hash_reference_evidence": null,
+      "record": "rollout-2026-09-22T14-57-33-01a0cae8-db17-7343-8e24-e062f914c26a.jsonl"
+    }
+  },
+  "freeze_protocol_defects": [
+    {
+      "classification": "PROTOCOL_DEFECT",
+      "replica": "A2",
+      "type": "FREEZE_MANIFEST_MISSING"
+    }
+  ],
+  "frozen_code_computation": "VERIFIED",
+  "gate_a_blindness": "PENDING_A1_ATTESTATION_AND_A2B_BLIND_REPLICATION",
+  "gate_a_math": "PASS",
+  "gate_a_overall": "PENDING_A1_ATTESTATION_AND_A2B_BLIND_REPLICATION",
+  "new_formal_categories": [],
+  "notes": {
+    "per_system": "exact triple identity verified from external rehashes",
+    "provenance": "A2 is preserved as dependent corroboration and is excluded from the independent Gate A set due to non-auditable child lineage. A2b is prepared externally but has not been opened or executed. See PROVENANCE_BLOCKER_A2_LINEAGE.md and A2B_CUSTODY/."
+  },
+  "per_system_audits": {
+    "A1": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "replicas_ciegas/A1/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    "A2": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "replicas_ciegas/A2/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    "reference": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "gate_a_verifier/reference_generated/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    }
+  },
+  "reference_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "semantic_divergences": {
+    "ambiguous": 0,
+    "format_only": 31,
+    "value_affecting": 0
+  },
+  "semantic_summary_status": "FORMAT_ONLY_DIFFERENCES",
+  "spec_hashes": {
+    "SPEC_A1_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+    "SPEC_A2_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+    "SPEC_BYTE_IDENTITY": "PASS",
+    "SPEC_REFERENCE_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430"
+  },
+  "spec_identity": "PASS",
+  "triple_byte_identity": true
+}

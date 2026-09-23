@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-09-22T18:00:37-06:00",
+  "replica_id": "A2b",
+  "workspace": "/home/wis/primitivo_blind/A2b",
+  "workspace_outside_repository": true,
+  "workspace_metadata": {
+    "owner": "wis:wis",
+    "mode": "755",
+    "inode": 46268807,
+    "mtime": "2026-09-22 18:00:30.202172939 -0600"
+  },
+  "initial_entry_count": 2,
+  "symlinks_present": false,
+  "git_metadata_present": false,
+  "authorized_files": [
+    {
+      "name": "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "size_bytes": 12266,
+      "owner": "wis:wis",
+      "mode": "644",
+      "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430"
+    },
+    {
+      "name": "TASK_A2B.txt",
+      "size_bytes": 415,
+      "owner": "wis:wis",
+      "mode": "664",
+      "sha256": "245f922101df5cdfaaf5415efa9b4d87a2532c471c4e023ca9c2cfbf0133830a"
+    }
+  ],
+  "forbidden_material_present": false,
+  "notes": [
+    "The normative SPEC bytes were copied from control/control/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md after direct hash verification.",
+    "No experiment was run and no result was calculated in the A2b workspace during preparation.",
+    "This is an external custody record and must not be copied into A2b before the blind run."
+  ]
+}

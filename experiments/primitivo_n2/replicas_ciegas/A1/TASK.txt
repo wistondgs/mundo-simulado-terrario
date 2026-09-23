@@ -1,0 +1,50 @@
+REPLICA A - BLIND IMPLEMENTATION - REPLICA_ID=A1
+
+You are implementing a finite mathematical instrument from the attached specification only.
+Do not search for prior code, prior outputs, hashes of outputs, project discussions, or other implementations.
+Do not inspect files outside this package/workspace.
+
+INPUT NORMATIVE DOCUMENT
+- SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md
+
+REQUIRED PROCESS
+1. Read the whole specification before coding.
+2. Record any ambiguity that can change an output. Do not silently resolve it.
+3. Implement C1-C11 independently, from the text.
+4. Use the two calibration vectors only as calibration fixtures.
+   - If a calibration fixture fails, you may correct code only when you can cite the exact specification passage your implementation violated.
+   - Record every such correction under CAMBIOS_POR_CALIBRACION.
+   - If matching calibration requires a reading not supported by the text, STOP and report AMBIGUEDAD_SPEC.
+5. Run all mandatory controls.
+   - If OEIS cannot be reached, mark that control NO_VERIFICABLE, not FAIL.
+6. Execute the full 256-dynamics enumeration.
+7. Run the deterministic portion twice and confirm identical deterministic artifacts.
+   - Exclude timestamps/manifest fields from the determinism gate.
+   - Monte Carlo is optional; if used, fix and report the seed and do not include it in the deterministic artifact gate unless fully deterministic in your environment.
+8. Freeze code and outputs before seeing any reference output.
+
+REQUIRED OUTPUTS
+- source code
+- por_sistema.jsonl
+- resumen.json
+- registro_ambiguedades.md or .txt
+- cambios_por_calibracion.md or .txt
+- manifest_replica.json
+
+MANIFEST MINIMUM
+- replica_id
+- language and version
+- operating system/runtime
+- SHA-256 of the received specification
+- SHA-256 of source code
+- SHA-256 of por_sistema.jsonl
+- SHA-256 of resumen.json
+- mandatory controls and PASS/FAIL/NO_VERIFICABLE
+- deterministic rerun result
+
+IMPORTANT
+- Do not compare against aggregates first.
+- Do not claim correctness against an unseen reference.
+- Do not modify the specification.
+- Do not implement any sensitivity study or later protocol.
+- Your work ends when the frozen outputs and hashes are delivered.

@@ -1,0 +1,5 @@
+# A2b — hashes iniciales externos
+# Registrado por el custodio el 2026-09-22T18:00:37-06:00.
+
+f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430  /home/wis/primitivo_blind/A2b/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md
+245f922101df5cdfaaf5415efa9b4d87a2532c471c4e023ca9c2cfbf0133830a  /home/wis/primitivo_blind/A2b/TASK_A2B.txt

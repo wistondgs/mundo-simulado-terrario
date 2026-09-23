@@ -1,0 +1,12 @@
+AUTHOR PREDICTION - FROZEN BEFORE BLIND REPLICAS
+Status: REPORTED / author prediction, not a result.
+
+Prediction:
+- 0 ambiguities expected to change numerical values.
+- 4 expected form/serialization ambiguities:
+  1. nesting of vocabulary sections in resumen.json;
+  2. precision of real-valued numbers;
+  3. categories with zero counts;
+  4. behavior when the AMI denominator is zero.
+
+Any additional ambiguity, especially one changing values, is evidence of an author blind spot and must be logged rather than retroactively erased.

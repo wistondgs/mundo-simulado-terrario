@@ -1,0 +1,40 @@
+{
+  "cardinality_and_order": {
+    "observed": 256,
+    "status": "PASS"
+  },
+  "cut_symmetry": {
+    "observed": true,
+    "status": "PASS"
+  },
+  "intrinsic_consequence_guard": {
+    "observed": true,
+    "status": "PASS"
+  },
+  "masks": {
+    "observed": {
+      "C12": [
+        2,
+        1
+      ],
+      "C13": [
+        3,
+        1
+      ],
+      "C23": [
+        3,
+        2
+      ]
+    },
+    "status": "PASS"
+  },
+  "oeis_A001372_n4": {
+    "observed": 19,
+    "source": "OEIS A001372 gives 19 at n=4; independently verified type_S4 count",
+    "status": "PASS"
+  },
+  "scheduler_fixed_points": {
+    "observed": true,
+    "status": "PASS"
+  }
+}

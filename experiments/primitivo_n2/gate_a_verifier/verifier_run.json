@@ -1,0 +1,76 @@
+{
+  "A1_G0": "PENDING",
+  "A1_G5": "PENDING",
+  "A1_determinism_external": "PASS",
+  "A1_freeze_integrity": "PASS",
+  "A1_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "A1_precalibration_status": "HASH_ONLY",
+  "A2_G0": "PENDING",
+  "A2_G5": "PENDING",
+  "A2_determinism_external": "PASS",
+  "A2_freeze_integrity": "FAIL",
+  "A2_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "A2_precalibration_status": "HASH_ONLY",
+  "B_status": "BLOCKED",
+  "author_prediction_status": "SUPPORTED",
+  "custody_manifest_sha256": "892eee89a7c4529b47e9a9203aee2eb026266fcb877126ae0cc8f688fe7ae80a",
+  "epistemic_status_if_pass": "VERIFIED · N=2 · SPEC A v0.1 (mathematical/computational only)",
+  "freeze_protocol_defects": [
+    {
+      "classification": "PROTOCOL_DEFECT",
+      "replica": "A2",
+      "type": "FREEZE_MANIFEST_MISSING"
+    }
+  ],
+  "gate_a_blindness": "PENDING",
+  "gate_a_math": "PASS",
+  "gate_a_overall": "PENDING_PROVENANCE",
+  "notes": {
+    "per_system": "exact triple identity verified from external rehashes",
+    "provenance": "G0/G5 require investigator evidence; missing A2 freeze is a protocol defect, not a mathematical discrepancy."
+  },
+  "per_system_audits": {
+    "A1": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "replicas_ciegas/A1/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    "A2": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "replicas_ciegas/A2/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    },
+    "reference": {
+      "canonical": true,
+      "json_valid": true,
+      "lines": 256,
+      "order_and_coverage": true,
+      "path": "gate_a_verifier/reference_generated/por_sistema.jsonl",
+      "sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+      "size": 138084
+    }
+  },
+  "reference_por_sistema_sha256": "04078dfd296f43679c97dab57e7578684c98893e43730e9573e5b244d0cfe08e",
+  "semantic_divergences": {
+    "ambiguous": 0,
+    "format_only": 31,
+    "value_affecting": 0
+  },
+  "semantic_summary_status": "FORMAT_ONLY_DIFFERENCES",
+  "spec_hashes": {
+    "SPEC_A1_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+    "SPEC_A2_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+    "SPEC_BYTE_IDENTITY": "PASS",
+    "SPEC_REFERENCE_SHA256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430"
+  },
+  "spec_identity": "PASS",
+  "triple_byte_identity": true
+}

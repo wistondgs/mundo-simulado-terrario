@@ -1,0 +1,10 @@
+# A2b — inventario inicial externo
+# Registrado por el custodio el 2026-09-22T18:00:37-06:00.
+# No fue copiado al workspace ciego.
+
+Ruta: /home/wis/primitivo_blind/A2b
+Entradas inmediatas: 2
+Symlinks: ninguno
+
+SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md|f|12266 bytes|644|wis:wis
+TASK_A2B.txt|f|415 bytes|664|wis:wis
