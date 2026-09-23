@@ -13,3 +13,6 @@
 | D-08 | Cerrar ETP-PRE-01 como atlas basal verificado. | tomada; 8 P-DATA y 42 P-FULL reproducidos sin intervención. |
 | D-09 | Separar ACTION CUT, EARLY REPAIR y PATTERN INJECTION en experimentos posteriores. | tomada; no forman un único primer experimento. |
 | D-10 | Posponer PATTERN INJECTION. | tomada; es off-manifold y podría fabricar el patrón bajo estudio. |
+| D-11 | Cerrar EXP-01 como claim de instancia de necesidad de la arista RAAC. | tomada; los 8 cortes fallan y los 16 sham recuperan. |
+| D-12 | Distinguir terminación de pulso y terminación de soporte. | tomada; P termina sin recuperar DATA; D/E/L no. |
+| D-13 | Cerrar EXP-02 como mediación de restauración DATA para terminación D/E/L. | tomada; restauración x con q idéntico reingresa al estado natural t4 en 8/8. |
