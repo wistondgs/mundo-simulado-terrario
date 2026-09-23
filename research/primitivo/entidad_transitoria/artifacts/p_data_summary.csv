@@ -1,0 +1,9 @@
+trajectory_id,target,flipped_coordinate,T_PERTURBED,T_ONSET,T_FIRST_D,T_FIRST_E,T_FIRST_L,T_FIRST_P,T_FIRST_DIRECT_DATA_EFFECT,T_DATA_RECOVERY,T_FULL_RECOVERY,TAIL_LENGTH,MAX_AUX_HAMMING,T_MAX_AUX_HAMMING,duration_d12,duration_d13,duration_d23,duration_d14,duration_d24,duration_e1,duration_e2,duration_e3,duration_e4,duration_l1,duration_l2,duration_l3,duration_l4,duration_p1,duration_p2,duration_p3,duration_p4
+PDATA_0000_x1,0000,x1,0,1,1,2,3,3,3,4,7,3,6,3,4,4,0,4,0,4,0,0,0,4,0,0,0,1,0,0,0
+PDATA_0000_x2,0000,x2,0,1,1,2,3,3,3,4,7,3,6,3,4,0,4,0,4,0,4,0,0,0,4,0,0,0,1,0,0
+PDATA_0000_x3,0000,x3,0,1,1,2,3,3,3,4,7,3,5,3,0,4,4,0,0,0,0,4,0,0,0,4,0,0,0,1,0
+PDATA_0000_x4,0000,x4,0,1,1,2,3,3,3,4,7,3,5,3,0,0,0,4,4,0,0,0,4,0,0,0,4,0,0,0,1
+PDATA_1111_x1,1111,x1,0,1,1,2,3,3,3,4,7,3,6,3,4,4,0,4,0,4,0,0,0,4,0,0,0,1,0,0,0
+PDATA_1111_x2,1111,x2,0,1,1,2,3,3,3,4,7,3,6,3,4,0,4,0,4,0,4,0,0,0,4,0,0,0,1,0,0
+PDATA_1111_x3,1111,x3,0,1,1,2,3,3,3,4,7,3,5,3,0,4,4,0,0,0,0,4,0,0,0,4,0,0,0,1,0
+PDATA_1111_x4,1111,x4,0,1,1,2,3,3,3,4,7,3,5,3,0,0,0,4,4,0,0,0,4,0,0,0,4,0,0,0,1

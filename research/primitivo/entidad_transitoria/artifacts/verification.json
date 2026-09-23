@@ -1,0 +1,16 @@
+{
+  "model_verified": true,
+  "variables": 21,
+  "auxiliaries": 17,
+  "targets_fixed": true,
+  "maximum_essential_arity": 2,
+  "strict_synchronous_transition": true,
+  "hidden_clock": false,
+  "p_data_count": 8,
+  "p_full_count": 42,
+  "global_complement_verified": true,
+  "static_formula_automorphisms": [
+    "identity",
+    "(x1 x2)"
+  ]
+}
