@@ -11,6 +11,10 @@ scientific instance, invoke the scientific command, generate any A2b raw
 output, inspect outside the package, access the network, or request expected
 results.
 
+Read `protocol/A2B_OEIS_RESOLUTION.md`. OEIS A001372 is a post-seal
+adjudication control only; the solver must not obtain, embed, or compare its
+reference value. `resumen.json` must conform to `schemas/resumen.schema.json`.
+
 Freeze the source and synthetic tests in a commit, report its commit hash and
 file hashes, then STOP. If the SPEC has a value-affecting ambiguity, report it
 and STOP without inventing a resolution.

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resumen.schema.json",
+  "title": "A2b resumen.json",
+  "schema_version": "1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "deterministico", "vocabularios", "controles", "estado_ambiguedades", "errores"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "deterministico": {"$ref": "#/$defs/deterministico"},
+    "vocabularios": {"$ref": "#/$defs/vocabularios"},
+    "controles": {"$ref": "#/$defs/controles"},
+    "estado_ambiguedades": {"$ref": "#/$defs/estado_ambiguedades"},
+    "errores": {"type": "array", "items": {"$ref": "#/$defs/error"}}
+  },
+  "x-a2b-canonicalization": "UTF-8; sorted Unicode-code-point keys; compact separators; final LF. JSON numbers are finite. Information values are binary64-derived decimal numbers rounded to six places; exact fractions are reduced strings.",
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0},
+    "fraction": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"},
+    "real6": {"type": "number", "multipleOf": 0.000001},
+    "categories": {
+      "type": "object", "additionalProperties": false, "required": ["separable", "mutua", "unidir"],
+      "properties": {"separable": {"$ref": "#/$defs/count"}, "mutua": {"$ref": "#/$defs/count"}, "unidir": {"$ref": "#/$defs/count"}}
+    },
+    "information": {
+      "type": "object", "additionalProperties": false,
+      "required": ["I_bits", "E_I_permutacion_exacta_bits", "AMI_max"],
+      "properties": {"I_bits": {"$ref": "#/$defs/real6"}, "E_I_permutacion_exacta_bits": {"$ref": "#/$defs/real6"}, "AMI_max": {"$ref": "#/$defs/real6"}}
+    },
+    "vocabulario": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clases", "clases_con_colision_en_K", "clases_con_colision_en_robustez", "colision_garantizada_por_conteo", "H_V_bits", "consecuencias"],
+      "properties": {
+        "clases": {"$ref": "#/$defs/count"},
+        "clases_con_colision_en_K": {"$ref": "#/$defs/count"},
+        "clases_con_colision_en_robustez": {"$ref": "#/$defs/count"},
+        "colision_garantizada_por_conteo": {"type": "boolean"},
+        "H_V_bits": {"$ref": "#/$defs/real6"},
+        "consecuencias": {
+          "type": "object", "additionalProperties": false, "required": ["K", "solo_robustez_C12", "solo_periodos"],
+          "properties": {"K": {"$ref": "#/$defs/information"}, "solo_robustez_C12": {"$ref": "#/$defs/information"}, "solo_periodos": {"$ref": "#/$defs/information"}}
+        }
+      }
+    },
+    "vocabularios": {
+      "type": "object", "additionalProperties": false, "required": ["grafo_dependencias_C12", "cruzada_C12", "tipo_S4"],
+      "properties": {"grafo_dependencias_C12": {"$ref": "#/$defs/vocabulario"}, "cruzada_C12": {"$ref": "#/$defs/vocabulario"}, "tipo_S4": {"$ref": "#/$defs/vocabulario"}}
+    },
+    "deterministico": {
+      "type": "object", "additionalProperties": false,
+      "required": ["n_dinamicas", "tipos_S4", "tipos_C12", "cruzada_en_C12", "separable_en_algun_corte", "mutua_en_los_3_cortes", "categoria_cambia_con_el_corte", "con_al_menos_un_atractor", "robustez_cambia_con_el_corte", "scheduler_puntos_fijos_distintos", "scheduler_atractores_distintos", "con_ciclo_sincronico_por_cruzada", "ciclo_muere_sin_reloj_por_cruzada", "lesion_veredicto_difiere_congelar_vs_fijar0", "lesion_casos", "perfiles_consecuencia_K", "perfiles_robustez_C12", "H_K_bits"],
+      "properties": {
+        "n_dinamicas": {"const": 256}, "tipos_S4": {"$ref": "#/$defs/count"}, "tipos_C12": {"$ref": "#/$defs/count"}, "cruzada_en_C12": {"$ref": "#/$defs/categories"}, "separable_en_algun_corte": {"$ref": "#/$defs/count"}, "mutua_en_los_3_cortes": {"$ref": "#/$defs/count"}, "categoria_cambia_con_el_corte": {"$ref": "#/$defs/count"}, "con_al_menos_un_atractor": {"$ref": "#/$defs/count"}, "robustez_cambia_con_el_corte": {"$ref": "#/$defs/count"}, "scheduler_puntos_fijos_distintos": {"$ref": "#/$defs/count"}, "scheduler_atractores_distintos": {"$ref": "#/$defs/count"}, "con_ciclo_sincronico_por_cruzada": {"$ref": "#/$defs/categories"}, "ciclo_muere_sin_reloj_por_cruzada": {"$ref": "#/$defs/categories"}, "lesion_veredicto_difiere_congelar_vs_fijar0": {"$ref": "#/$defs/count"}, "lesion_casos": {"$ref": "#/$defs/count"}, "perfiles_consecuencia_K": {"$ref": "#/$defs/count"}, "perfiles_robustez_C12": {"$ref": "#/$defs/count"}, "H_K_bits": {"$ref": "#/$defs/real6"}
+      }
+    },
+    "mask_pair": {
+      "type": "object", "additionalProperties": false, "required": ["m_a", "m_b"],
+      "properties": {"m_a": {"type": "integer", "minimum": 1, "maximum": 3}, "m_b": {"type": "integer", "minimum": 1, "maximum": 3}}
+    },
+    "controles": {
+      "type": "object", "additionalProperties": false,
+      "required": ["finitud", "puntos_fijos_scheduler", "simetria_entre_cortes", "oeis_A001372_n4", "guardia_consecuencias_intrinsecas", "mascaras_derivadas"],
+      "properties": {
+        "finitud": {"type": "boolean"}, "puntos_fijos_scheduler": {"type": "boolean"},
+        "simetria_entre_cortes": {"type": "object", "additionalProperties": false, "required": ["cruzada_conteos_iguales", "H_robustez_iguales", "I_grafo_robustez_iguales", "I_tipo_S4_robustez_iguales"], "properties": {"cruzada_conteos_iguales": {"type": "boolean"}, "H_robustez_iguales": {"type": "boolean"}, "I_grafo_robustez_iguales": {"type": "boolean"}, "I_tipo_S4_robustez_iguales": {"type": "boolean"}}},
+        "oeis_A001372_n4": {"type": "object", "additionalProperties": false, "required": ["status", "adjudication_requirement"], "properties": {"status": {"const": "POST_SEAL_ONLY"}, "adjudication_requirement": {"const": "direct_source_check_after_raw_seal_before_interpretation"}}},
+        "guardia_consecuencias_intrinsecas": {"type": "boolean"},
+        "mascaras_derivadas": {"type": "object", "additionalProperties": false, "required": ["C12", "C13", "C23"], "properties": {"C12": {"$ref": "#/$defs/mask_pair"}, "C13": {"$ref": "#/$defs/mask_pair"}, "C23": {"$ref": "#/$defs/mask_pair"}}}
+      }
+    },
+    "estado_ambiguedades": {
+      "type": "object", "additionalProperties": false, "required": ["total", "hay_valor_afectante", "estado_cientifico"],
+      "properties": {"total": {"$ref": "#/$defs/count"}, "hay_valor_afectante": {"type": "boolean"}, "estado_cientifico": {"enum": ["VALID", "INVALID"]}}
+    },
+    "error": {"type": "object", "additionalProperties": false, "required": ["code", "message"], "properties": {"code": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}}}
+  }
+}

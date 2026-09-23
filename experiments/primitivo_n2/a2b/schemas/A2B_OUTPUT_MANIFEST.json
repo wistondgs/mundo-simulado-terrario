@@ -1,5 +1,5 @@
 {
-  "manifest_version": "1.0",
+  "manifest_version": "1.1",
   "root": "raw_results/",
   "canonical_text": {"encoding": "UTF-8", "line_ending": "LF", "json": "sorted Unicode-code-point keys, compact separators, final LF"},
   "artifacts": [
@@ -17,7 +17,7 @@
       "path": "resumen.json",
       "required": true,
       "format": "JSON",
-      "schema": "SPEC sections 11 and 12: deterministic, vocabularios, and controles; no omitted zero-count cruzada category",
+      "schema": "schemas/resumen.schema.json (version 1.0); SPEC sections 11 and 12; no omitted zero-count cruzada category",
       "ordering": "canonical JSON keys",
       "numeric_representation": "exact integers where defined; finite binary64-derived reals rounded to six decimal places",
       "empty_allowed": false,

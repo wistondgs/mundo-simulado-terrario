@@ -10,7 +10,7 @@ Verify the SPEC SHA-256 is
 TASK SHA-256 is
 `245f922101df5cdfaaf5415efa9b4d87a2532c471c4e023ca9c2cfbf0133830a`.
 
-Read the environment, execution, output, and synthetic-test contracts. Build
+Read the environment, execution, output, OEIS-resolution, and synthetic-test contracts. Build
 `blind_build/src/run_a2b.py` and synthetic-only tests, using CPython 3.12
 standard library only. The future scientific command is fixed as:
 
@@ -21,3 +21,7 @@ standard library only. The future scientific command is fixed as:
 Do **not** run that command. Commit the source and synthetic tests, report the
 commit and hashes, and STOP. Do not inspect or request any data outside this
 package.
+
+The OEIS A001372 anchor is explicitly `POST_SEAL_ONLY`; no OEIS value or
+reference is available to this session. Validate the package first with
+`/usr/bin/python3.12 -I validate_blind_package.py`.

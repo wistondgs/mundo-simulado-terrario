@@ -13,6 +13,11 @@
   "network": "disabled",
   "scientific_invocations_per_run_id": 1,
   "failure_policy": "Record failure as INVALID; do not patch, tune, or rerun under the same run identifier.",
+  "oeis_a001372_n4": {
+    "execution_status": "POST_SEAL_ONLY",
+    "resolution": "protocol/A2B_OEIS_RESOLUTION.md",
+    "blind_command_may_access_reference": false
+  },
   "preconditions": [
     "sealed input hashes verified",
     "fresh blind executor identity recorded without personal data",

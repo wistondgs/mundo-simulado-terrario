@@ -26,11 +26,14 @@ REQUIRED_FILES = set(EXPECTED_HASHES) | {
     "protocol/A2B_RAW_RESULT_QUARANTINE.md",
     "protocol/A2B_BLINDNESS_POLICY.md",
     "protocol/A2B_SYNTHETIC_TEST_POLICY.md",
+    "protocol/A2B_OEIS_RESOLUTION.md",
     "protocol/A2B_GATE_A_TRANSITION_RULES.md",
     "schemas/A2B_OUTPUT_MANIFEST.json",
+    "schemas/resumen.schema.json",
     "schemas/A2B_RUN_MANIFEST_TEMPLATE.json",
     "blind_build/A2B_BLIND_BUILD_TASK.md",
     "blind_build/A2B_FRESH_SESSION_HANDOFF.md",
+    "validate_blind_package.py",
 }
 EXPECTED_OUTPUTS = {
     "por_sistema.jsonl",
@@ -103,8 +106,20 @@ def main() -> int:
         raw_hash = next((item for item in artifacts if item["path"] == "raw_hashes.sha256"), None)
         if raw_hash is None or raw_hash["checksum"]:
             errors.append("raw hash manifest has an invalid circularity rule")
+        if "schemas/resumen.schema.json" not in next(item for item in artifacts if item["path"] == "resumen.json")["schema"]:
+            errors.append("output manifest does not reference the closed resumen schema")
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
         errors.append(f"invalid output manifest: {exc}")
+
+    try:
+        resumen_schema = load_json("schemas/resumen.schema.json")
+        required = set(resumen_schema["required"])
+        if not {"deterministico", "vocabularios", "controles", "estado_ambiguedades", "errores"}.issubset(required):
+            errors.append("resumen schema omits required top-level contracts")
+        if resumen_schema.get("additionalProperties") is not False:
+            errors.append("resumen schema permits arbitrary top-level fields")
+    except (KeyError, TypeError, json.JSONDecodeError) as exc:
+        errors.append(f"invalid resumen schema: {exc}")
 
     try:
         run_template = load_json("schemas/A2B_RUN_MANIFEST_TEMPLATE.json")

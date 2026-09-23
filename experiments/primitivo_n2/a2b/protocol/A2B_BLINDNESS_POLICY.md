@@ -6,6 +6,7 @@
 - this environment and execution contract;
 - output manifest and run-manifest template;
 - scientific-freedom freeze and synthetic-test policy;
+- OEIS-resolution contract, which contains no OEIS value or reference artifact;
 - blind-build task and clean handoff;
 - generic language/runtime documentation needed for CPython 3.12.
 
@@ -36,7 +37,8 @@ session receives only that new repository. It may not have filesystem mounts
 to the parent repository, `/home/wis/mundo simulado terrario`, or the source
 workspace.
 
-`BLIND_INPUT_ALLOWLIST`:
+`BLIND_INPUT_ALLOWLIST` (the complete tracked-file inventory of the new
+independent repository):
 
 ```text
 input/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md
@@ -49,17 +51,25 @@ protocol/A2B_EXECUTION_CONTRACT.json
 protocol/A2B_EXECUTION_CONTRACT.md
 protocol/A2B_RAW_RESULT_QUARANTINE.md
 protocol/A2B_SYNTHETIC_TEST_POLICY.md
+protocol/A2B_BLINDNESS_POLICY.md
+protocol/A2B_OEIS_RESOLUTION.md
 schemas/A2B_OUTPUT_MANIFEST.json
+schemas/resumen.schema.json
 schemas/A2B_RUN_MANIFEST_TEMPLATE.json
 blind_build/A2B_BLIND_BUILD_TASK.md
 blind_build/A2B_FRESH_SESSION_HANDOFF.md
 custody/BLIND_PACKAGE_SOURCE.json
+custody/BLIND_PACKAGE_SOURCE.md
+validate_blind_package.py
 ```
 
 `BLIND_INPUT_DENYLIST`: every path not explicitly allowlisted, especially
-`.git/`, `custody/A2B_INPUT_PROVENANCE.*`,
+`custody/A2B_INPUT_PROVENANCE.*`,
 `protocol/A2B_GATE_A_TRANSITION_RULES.md`, all historical verifier paths, and
 all Gate B paths.
 
-The custodian, not the blind executor, creates `BLIND_PACKAGE_SOURCE.json`
-with only source commit, input hashes, allowlist hash, and creation timestamp.
+The new repository's own `.git/` is permitted only as its local, independent
+package history; it must have no parent-repository metadata, remotes,
+submodules, or inherited PRIMITIVO history. The custodian, not the blind
+executor, creates the two `BLIND_PACKAGE_SOURCE` records with source commits,
+file hashes and sizes, exact inventory, and the defined manifest self-hash.
