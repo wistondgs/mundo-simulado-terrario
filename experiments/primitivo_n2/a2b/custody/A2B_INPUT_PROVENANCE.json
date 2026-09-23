@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "recorded_at": "2026-09-23T16:43:17-06:00",
+  "repository_parent": {
+    "commit": "f0fdf00c6661b466ffbf1806ab13afb4be616d13",
+    "classification": "REPOSITORY_PARENT_ONLY",
+    "not_historical_a2b_base": true
+  },
+  "provenance_statement": "The original inputs were hash-sealed externally but were not historically Git-anchored. This record is a prospective Git anchor created during A2b-PREP and makes no retrospective provenance claim.",
+  "inputs": [
+    {
+      "name": "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "original_external_source_path": "/home/wis/primitivo_blind/A2b/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "tracked_destination_path": "experiments/primitivo_n2/a2b/input/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+      "sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+      "size_bytes": 12266,
+      "copy_method": "byte-for-byte filesystem copy after source-hash verification",
+      "post_copy_hash_verified": true
+    },
+    {
+      "name": "TASK_A2B.txt",
+      "original_external_source_path": "/home/wis/primitivo_blind/A2b/TASK_A2B.txt",
+      "tracked_destination_path": "experiments/primitivo_n2/a2b/input/TASK_A2B.txt",
+      "sha256": "245f922101df5cdfaaf5415efa9b4d87a2532c471c4e023ca9c2cfbf0133830a",
+      "size_bytes": 415,
+      "copy_method": "byte-for-byte filesystem copy after source-hash verification",
+      "post_copy_hash_verified": true
+    }
+  ]
+}
