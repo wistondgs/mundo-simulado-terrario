@@ -1,0 +1,23 @@
+{
+  "protocol_version": "1.0",
+  "command": [
+    "/usr/bin/python3.12",
+    "-I",
+    "blind_build/src/run_a2b.py",
+    "--spec", "input/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md",
+    "--task", "input/TASK_A2B.txt",
+    "--output", "raw_results"
+  ],
+  "working_directory": "A2B_BLIND_PACKAGE_ROOT",
+  "interactive_input": false,
+  "network": "disabled",
+  "scientific_invocations_per_run_id": 1,
+  "failure_policy": "Record failure as INVALID; do not patch, tune, or rerun under the same run identifier.",
+  "preconditions": [
+    "sealed input hashes verified",
+    "fresh blind executor identity recorded without personal data",
+    "blindness precheck passed",
+    "raw_results directory absent or empty",
+    "output manifest available"
+  ]
+}

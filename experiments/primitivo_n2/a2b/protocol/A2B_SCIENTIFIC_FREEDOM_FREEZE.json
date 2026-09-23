@@ -1,0 +1,42 @@
+{
+  "protocol_version": "1.0",
+  "input_anchor_commit": "64ba4fbc8db9dae0968d93cd38eefaed123c4c30",
+  "principle": "All scientific choices are fixed before implementation and before any scientific A2b run. Implementation choices may be delegated only when they preserve the normative SPEC semantics and canonical output contract.",
+  "choices": [
+    {
+      "choice": "normative mathematics and enumeration",
+      "classification": "SCIENTIFIC",
+      "freeze": "SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md sections 1-12 are authoritative; no alternate interpretation may change values without INVALID status."
+    },
+    {
+      "choice": "Monte Carlo diagnostic",
+      "classification": "OPTIONAL_DIAGNOSTIC",
+      "freeze": "disabled"
+    },
+    {
+      "choice": "implementation language and source organization",
+      "classification": "IMPLEMENTATION_ONLY",
+      "freeze": "CPython 3.12 standard library only; source organization may vary, but the sealed execution interface and canonical outputs may not."
+    },
+    {
+      "choice": "numeric computation",
+      "classification": "SCIENTIFIC",
+      "freeze": "Use exact integer/rational arithmetic where the SPEC defines exact values. Compute information measures with IEEE-754 binary64 and serialize finite real values rounded to six decimal places using a decimal point."
+    },
+    {
+      "choice": "ambiguity handling",
+      "classification": "SCIENTIFIC",
+      "freeze": "Record every encountered ambiguity before its result is used. A value-affecting ambiguity without a unique SPEC resolution stops the run as INVALID; formal-only choices use the deterministic convention stated in the ambiguity record."
+    },
+    {
+      "choice": "run count and recovery",
+      "classification": "SCIENTIFIC",
+      "freeze": "Exactly one scientific invocation of the fixed command. A nonzero exit, incomplete manifest, or output-schema failure is INVALID; no repair-and-rerun is allowed under the same run identifier."
+    },
+    {
+      "choice": "comparison",
+      "classification": "SCIENTIFIC",
+      "freeze": "No comparison occurs in the blind workspace. The investigator applies SPEC section 14 only after raw results are sealed."
+    }
+  ]
+}

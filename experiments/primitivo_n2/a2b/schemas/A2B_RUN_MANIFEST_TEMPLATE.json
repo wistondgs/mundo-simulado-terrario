@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "protocol_version": "1.0",
+  "input_anchor_commit": "64ba4fbc8db9dae0968d93cd38eefaed123c4c30",
+  "prep_protocol_commit": null,
+  "future_executable_commit": null,
+  "spec_sha256": "f19324cd5039cc6f83176a77afe8ff23b07e817e1a1471e5e56d05823515a430",
+  "task_sha256": "245f922101df5cdfaaf5415efa9b4d87a2532c471c4e023ca9c2cfbf0133830a",
+  "runtime": {"executable": "/usr/bin/python3.12", "version": "3.12.3", "os": "Linux x86_64 glibc>=2.39"},
+  "command": ["/usr/bin/python3.12", "-I", "blind_build/src/run_a2b.py", "--spec", "input/SPEC_PRIMITIVO_N2_A_REPLICA_CERRADA_v0_1.md", "--task", "input/TASK_A2B.txt", "--output", "raw_results"],
+  "start_timestamp": null,
+  "end_timestamp": null,
+  "exit_code": null,
+  "network_disabled": null,
+  "blind_allowlist": ["input/", "protocol/", "schemas/", "blind_build/"],
+  "output_manifest_version": "1.0",
+  "result_artifact_hashes": {},
+  "stdout_sha256": null,
+  "stderr_sha256": null,
+  "deviations": [],
+  "executor_session_id": null,
+  "required_at_raw_seal": ["prep_protocol_commit", "future_executable_commit", "start_timestamp", "end_timestamp", "exit_code", "network_disabled", "result_artifact_hashes", "stdout_sha256", "stderr_sha256", "executor_session_id"]
+}

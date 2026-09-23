@@ -1,0 +1,89 @@
+{
+  "manifest_version": "1.0",
+  "root": "raw_results/",
+  "canonical_text": {"encoding": "UTF-8", "line_ending": "LF", "json": "sorted Unicode-code-point keys, compact separators, final LF"},
+  "artifacts": [
+    {
+      "path": "por_sistema.jsonl",
+      "required": true,
+      "format": "JSONL",
+      "schema": "SPEC section 9 exact record keys: F, atractores, dependencias, lesion, periodos, robustez, scheduler, tipo_C12, tipo_S4",
+      "ordering": "exactly 256 lines in SPEC section 1 lexicographic F order",
+      "numeric_representation": "integers, booleans, ascending integer lists, reduced-fraction strings as specified",
+      "empty_allowed": false,
+      "checksum": true
+    },
+    {
+      "path": "resumen.json",
+      "required": true,
+      "format": "JSON",
+      "schema": "SPEC sections 11 and 12: deterministic, vocabularios, and controles; no omitted zero-count cruzada category",
+      "ordering": "canonical JSON keys",
+      "numeric_representation": "exact integers where defined; finite binary64-derived reals rounded to six decimal places",
+      "empty_allowed": false,
+      "checksum": true
+    },
+    {
+      "path": "ambiguity_register.jsonl",
+      "required": true,
+      "format": "JSONL",
+      "schema": "each line has section, readings, chosen_reading, value_affecting, resolution_basis; zero lines means none encountered",
+      "ordering": "ascending SPEC section then encounter order",
+      "numeric_representation": "JSON primitives only",
+      "empty_allowed": true,
+      "checksum": true
+    },
+    {
+      "path": "runtime_environment.json",
+      "required": true,
+      "format": "JSON",
+      "schema": "runtime executable/version, OS, architecture, locale, timezone, environment determinism variables, dependency declaration, network_disabled=true",
+      "ordering": "canonical JSON keys",
+      "numeric_representation": "JSON primitives only",
+      "empty_allowed": false,
+      "checksum": true
+    },
+    {
+      "path": "execution_manifest.json",
+      "required": true,
+      "format": "JSON",
+      "schema": "A2B_RUN_MANIFEST_TEMPLATE.json instantiated; all required-at-seal fields populated",
+      "ordering": "canonical JSON keys",
+      "numeric_representation": "timestamps RFC3339; exit code integer",
+      "empty_allowed": false,
+      "checksum": true
+    },
+    {
+      "path": "stdout.log",
+      "required": true,
+      "format": "UTF-8 text",
+      "schema": "verbatim process stdout; empty file allowed",
+      "ordering": "process order",
+      "numeric_representation": "not applicable",
+      "empty_allowed": true,
+      "checksum": true
+    },
+    {
+      "path": "stderr.log",
+      "required": true,
+      "format": "UTF-8 text",
+      "schema": "verbatim process stderr; empty file allowed",
+      "ordering": "process order",
+      "numeric_representation": "not applicable",
+      "empty_allowed": true,
+      "checksum": true
+    },
+    {
+      "path": "raw_hashes.sha256",
+      "required": true,
+      "format": "sha256sum-compatible text",
+      "schema": "one SHA-256 plus two spaces plus relative path for every mandatory artifact except raw_hashes.sha256 itself",
+      "ordering": "ascending bytewise path order",
+      "numeric_representation": "lowercase hexadecimal SHA-256",
+      "empty_allowed": false,
+      "checksum": false
+    }
+  ],
+  "prohibited_before_seal": ["comparison results", "reference values", "A1/A2 material", "Gate B material"],
+  "validation_rule": "Every required artifact must exist, conform to its declared format, and appear in raw_hashes.sha256 except the hash manifest itself."
+}

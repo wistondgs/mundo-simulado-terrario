@@ -1,0 +1,37 @@
+{
+  "protocol_version": "1.0",
+  "operating_system": {
+    "family": "Linux",
+    "architecture": "x86_64",
+    "minimum_glibc": "2.39"
+  },
+  "runtime": {
+    "implementation": "CPython",
+    "exact_version": "3.12.3",
+    "executable": "/usr/bin/python3.12",
+    "isolated_mode_required": true
+  },
+  "locale": "C.UTF-8",
+  "timezone": "UTC",
+  "floating_point": {
+    "format": "IEEE-754 binary64",
+    "radix": 2,
+    "mantissa_bits": 53,
+    "real_serialization": "finite decimal rounded to six places"
+  },
+  "dependencies": {
+    "allowed": ["Python 3.12 standard library"],
+    "forbidden": ["third-party packages", "network services", "native extensions"]
+  },
+  "network": "disabled",
+  "filesystem": {
+    "read_allowlist": ["input/", "protocol/", "schemas/", "blind_build/"],
+    "write_allowlist": ["blind_build/src/", "blind_build/tests/", "raw_results/"],
+    "forbidden": ["parent directories", "sibling directories", "repository metadata", "all historical Gate A material", "all Gate B material"]
+  },
+  "determinism": {
+    "environment": {"LC_ALL": "C.UTF-8", "TZ": "UTC", "PYTHONHASHSEED": "0"},
+    "json": "UTF-8, sorted Unicode-code-point keys, compact separators, final LF",
+    "hash": "SHA-256"
+  }
+}
