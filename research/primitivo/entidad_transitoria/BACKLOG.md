@@ -1,8 +1,9 @@
 # Backlog científico priorizado
 
 1. Custodiar las fuentes brutas heredadas que PRE-01 no pudo localizar.
-2. Especificar, sin ejecutar, EXP-03 ONSET BLOCK.
-3. Posponer EXP-04 PATTERN INJECTION: es off-manifold.
+2. Especificar, sin ejecutar, el experimento de output remapping E/P→x para
+   localizar dónde está suministrada la dirección reconstructiva.
+3. Posponer PATTERN INJECTION: sigue siendo off-manifold.
 4. Separar INFORMATION_AVAILABLE de INFORMATION_USED_CAUSALLY.
 5. Contrastar T0–T6 mediante controles e intervenciones autorizadas.
 6. Examinar frontera fija frente a proceso distribuido espaciotemporal.

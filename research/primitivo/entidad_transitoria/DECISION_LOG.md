@@ -16,3 +16,6 @@
 | D-11 | Cerrar EXP-01 como claim de instancia de necesidad de la arista RAAC. | tomada; los 8 cortes fallan y los 16 sham recuperan. |
 | D-12 | Distinguir terminación de pulso y terminación de soporte. | tomada; P termina sin recuperar DATA; D/E/L no. |
 | D-13 | Cerrar EXP-02 como mediación de restauración DATA para terminación D/E/L. | tomada; restauración x con q idéntico reingresa al estado natural t4 en 8/8. |
+| D-14 | Cerrar EXP-03 como prueba de necesidad causal x→D para onset P-DATA. | tomada; bloqueo persistente conserva x perturbada y q basal en 8/8. |
+| D-15 | Registrar equivalencia de fase de un paso tras bloqueo transitorio. | tomada; 64 comparaciones de estado son exactas. |
+| D-16 | Mantener H0–H3 abiertas tras EXP-03. | tomada; onset causal no implica entityhood. |
