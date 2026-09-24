@@ -1,0 +1,72 @@
+{
+  "record": "GATE_A_A1B_AMENDMENT_v1_CUSTODY_MANIFEST",
+  "amendment": "GATE_A_A1B_PROSPECTIVE_AMENDMENT_v1",
+  "amendment_version": 1,
+  "parent_commit": "d2824ba18f3c83003635fdb10304f08d002a76ec",
+  "branch": "protocol/gate-a-a1b-amendment-v1",
+  "worktree": "/home/wis/worktrees/primitivo-gate-a-a1b-amendment-v1",
+  "sealing_timestamp_utc": "2026-09-24T18:35:44Z",
+  "files": [
+    {
+      "path": "experiments/primitivo_n2/gate_a_amendments/a1b_v1/GATE_A_A1B_PROSPECTIVE_AMENDMENT_v1.md",
+      "bytes": 45153,
+      "sha256": "20aacf4e268fde973b8ec996f0fadcf8d93647f9e435b7a64503d385d47266d8"
+    },
+    {
+      "path": "experiments/primitivo_n2/gate_a_amendments/a1b_v1/A1B_GATE_A_TRANSITION_RULES_v1.md",
+      "bytes": 13240,
+      "sha256": "8c0a1bffe83c78a01c7aef04bc175301b94cd207d3f3fd3789c2a9847f22a67b"
+    }
+  ],
+  "amendment_sha256": "20aacf4e268fde973b8ec996f0fadcf8d93647f9e435b7a64503d385d47266d8",
+  "transition_rules_sha256": "8c0a1bffe83c78a01c7aef04bc175301b94cd207d3f3fd3789c2a9847f22a67b",
+  "operative_extract": {
+    "definition": "Byte-for-byte concatenation of amendment sections 1 and 6-15, then transition rules sections 1, 2, 5 and 6; each section runs from its '## N.' heading line up to, but not including, the next '## ' heading (amendment section 1).",
+    "bytes": 35252,
+    "sha256": "6038f4a4c899062bb44f57e2cd97eca8da313a17b61d4e76f8cc82f9b9ccc1a0"
+  },
+  "commit_produced": "The commit that introduces this manifest and the two documents. It is the prospective boundary. A commit cannot contain its own hash, so the following commit records it in GATE_A_A1B_AMENDMENT_v1_SEAL_RECORD.txt.",
+  "investigator_decision": "Option 2 approved on 2026-09-23 (local time, UTC-6); sealing authorized and nothing else.",
+  "governance_session": {
+    "role": "A",
+    "session_id": "eca00e90-44e9-499d-a11b-8338e076412b",
+    "harness": "Claude Code (desktop app)",
+    "model": "claude-opus-5-5",
+    "carries_project_result_context": true,
+    "a2b_functions_performed": [
+      "A2b readiness audit v3 (GO), with READINESS_INDEPENDENCE_DEVIATION = DOCUMENTED",
+      "operated the single authorized sealed A2b run",
+      "A2b post-seal adjudication",
+      "A1 attestation adjudication"
+    ],
+    "barred_from": [
+      "material preparation of the A1b workspace, including the TASK",
+      "A1b custody",
+      "A1b execution",
+      "A1b scientific construction",
+      "roles B and C"
+    ]
+  },
+  "result_material_screen": {
+    "status": "PASS",
+    "scope": "every hexadecimal token of 7 to 64 characters in the two documents",
+    "method": "Each token was matched against the SHA-256, git blob ids and git tree ids of every file and directory under experiments/primitivo_n2 at the parent commit, under experiments/primitivo_n2/a2b at c3d11a9, and of the A2b package at 60626c7 and 9ebc0cc, and against every 40-64 hex string inside those files. Every token identifies a governance document or a whole-repository commit; none identifies a result file or result directory.",
+    "matched_result_hashes_listed": false
+  },
+  "gate_b_note": "The screen above read the bytes of every file under experiments/primitivo_n2 at the parent commit mechanically, which includes the two files under control/B_frozen/, in order to hash them. Nothing from them was displayed or interpreted, and none matched. The entry names of the control archive were also listed, names only, to check whether its hash could be cited. Gate B was not opened, read, prepared or executed.",
+  "state_at_seal": {
+    "A1_HISTORICAL": "CORROBORATIVE · SCIENTIFIC_BLINDNESS_SUPPORTED · CUSTODY_NOT_FULLY_CERTIFIABLE",
+    "A2_HISTORICAL": "DEPENDENT_CORROBORATION · LINEAGE_NOT_AUDITABLE",
+    "A2B_BLIND_REPLICATION": "PASS",
+    "A1B_BLIND_REPLICATION": "NOT_STARTED",
+    "GATE_A": "PENDING_PROVENANCE",
+    "GATE_A_CLOSABLE_UNDER_V1": "YES",
+    "GATE_B": "BLOCKED"
+  },
+  "A1B_NOT_PREPARED": true,
+  "A1B_NOT_EXECUTED": true,
+  "GATE_B_ACCESSED": false,
+  "GATE_A_RESULT_JSON_MODIFIED": false,
+  "HISTORICAL_RECORDS_MODIFIED": false,
+  "A2B_PACKAGE_MODIFIED": false
+}
