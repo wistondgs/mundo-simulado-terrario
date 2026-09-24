@@ -19,3 +19,8 @@
 | D-14 | Cerrar EXP-03 como prueba de necesidad causal x→D para onset P-DATA. | tomada; bloqueo persistente conserva x perturbada y q basal en 8/8. |
 | D-15 | Registrar equivalencia de fase de un paso tras bloqueo transitorio. | tomada; 64 comparaciones de estado son exactas. |
 | D-16 | Mantener H0–H3 abiertas tras EXP-03. | tomada; onset causal no implica entityhood. |
+| D-17 | Abrir ETP-AUTOPSY-01 en rama y worktree propios desde `f0fdf00`, sin material de Gate A. | tomada; las pistas no se mezclan por construcción. |
+| D-18 | Auditar G sobre los 2²¹ estados y probar H-CORE con intervenciones nombradas y shams no-op; EXP-04A no se ejecuta. | tomada; serie de análisis, predicciones escritas antes de correr, no selladas. |
+| D-19 | Cerrar la autopsia como CAUSAL_MECHANISM_IDENTIFIED: decodificación por síndrome del código de repetición con actuador de flanco. | tomada; 320/320 predicciones, 84/84 shams; alcance A × P-DATA/P-FULL × sincronía. |
+| D-20 | Registrar la frontera global: 38.57 % del espacio a blancos, ciclos de 12, alarmas enclavadas, fallo asíncrono y ventana de corrección en vuelo. | tomada; el mecanismo es local a la región autorizada. |
+| D-21 | Mantener H0–H3 abiertas tras la autopsia. | tomada; explicar la función de un circuito suministrado no adjudica entityhood. |

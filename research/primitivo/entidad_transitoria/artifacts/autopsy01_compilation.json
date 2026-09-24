@@ -1,0 +1,84 @@
+{
+  "first_t_with_x_equal_Phi_on_R_X": 4,
+  "F4_essential_inputs": {
+    "x1(4)": [
+      "x1",
+      "x2",
+      "x3"
+    ],
+    "x2(4)": [
+      "x1",
+      "x2",
+      "x3"
+    ],
+    "x3(4)": [
+      "x1",
+      "x2",
+      "x3"
+    ],
+    "x4(4)": [
+      "x1",
+      "x2",
+      "x4"
+    ]
+  },
+  "F4_equals_maj3_of_x_i_and_its_two_witnesses_on_all_16_x": true,
+  "one_step_extensions_of_Phi_by_coordinate_and_arity": {
+    "x1_arity3": 4,
+    "x1_arity4": 60,
+    "x2_arity3": 4,
+    "x2_arity4": 60,
+    "x3_arity3": 4,
+    "x3_arity4": 60,
+    "x4_arity3": 4,
+    "x4_arity4": 60
+  },
+  "extensions_with_essential_arity_le_2": 0,
+  "minimum_essential_arity_to_extend_Phi_i": {
+    "x1": 3,
+    "x2": 3,
+    "x3": 3,
+    "x4": 3
+  },
+  "x_only_rules_fixing_both_codewords_with_fan_in_le_2": 16,
+  "those_rules_are_all_monotone": true,
+  "discovery03_allowed_functions_C4_dmax2_per_coordinate": [
+    16,
+    16,
+    16,
+    16
+  ],
+  "discovery02_n3_candidates": {
+    "dmax1": 0,
+    "dmax2": 0
+  },
+  "discovery03_candidates": {
+    "DISTANCE_4_dmax1": 0,
+    "DISTANCE_4_dmax2": 0,
+    "DISTANCE_3_dmax1": 0,
+    "DISTANCE_3_dmax2": 0
+  },
+  "auxiliaries": {
+    "D": 5,
+    "E": 4,
+    "L": 4,
+    "P": 4,
+    "total": 17
+  },
+  "causal_depth_steps_x_to_x": 4,
+  "gate_layers": [
+    "XOR (D, fan-in 2)",
+    "AND (E, fan-in 2)",
+    "AND-NOT with 1-step memory (P, fan-in 2)",
+    "XOR toggle (X, fan-in 2)"
+  ],
+  "static_edges": 38,
+  "effective_edges_over_8_natural_trajectories": 1584,
+  "temporal_phases": {
+    "detection": "t1 (D)",
+    "localization": "t2 (E)",
+    "one-shot gating": "t3 (L, P)",
+    "actuation": "t3->t4 (X)",
+    "drain": "t5 (D), t6 (E), t7 (L)"
+  }
+}

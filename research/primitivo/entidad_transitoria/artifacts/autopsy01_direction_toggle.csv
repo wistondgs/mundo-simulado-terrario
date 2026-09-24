@@ -1,0 +1,5 @@
+position,pulse_pattern_same_in_both,x_k_change_from_0000_lesion,x_k_change_from_1111_lesion
+x1,True,1->0,0->1
+x2,True,1->0,0->1
+x3,True,1->0,0->1
+x4,True,1->0,0->1

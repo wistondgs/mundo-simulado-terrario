@@ -1,0 +1,569 @@
+{
+  "instrument": "run_autopsy01_mechanism.py",
+  "basis_commit": "f0fdf00c6661b466ffbf1806ab13afb4be616d13",
+  "verdict": "CAUSAL_MECHANISM_IDENTIFIED",
+  "hcore_checks": {
+    "code_theory_A_to_D": true,
+    "locator_exact_one_E_is_damaged_bit_8_of_8": true,
+    "locator_exact_on_R_X": true,
+    "q_carries_no_target_information": true,
+    "no_target_variable_or_oracle": true,
+    "one_shot_rising_edge": true,
+    "all_intervention_predictions_met": true,
+    "all_shams_identical_to_natural": true,
+    "F4_is_maj3_per_coordinate": true,
+    "no_fan_in_2_direct_extension": true,
+    "exact_global_restoration": true,
+    "law_verified": true
+  },
+  "equation_audit": {
+    "states_audited": 2097152,
+    "rebuilt_rules_equal_frozen_step": true,
+    "equations": {
+      "D": "d12'=x1^x2; d13'=x1^x3; d23'=x2^x3; d14'=x1^x4; d24'=x2^x4",
+      "E": "e1'=d12&d13; e2'=d12&d23; e3'=d13&d23; e4'=d14&d24",
+      "L": "l_i'=e_i",
+      "P": "p_i'=e_i & ~l_i",
+      "X": "x_i'=x_i ^ p_i"
+    },
+    "observed_essential_inputs": {
+      "x1": [
+        "x1",
+        "p1"
+      ],
+      "x2": [
+        "x2",
+        "p2"
+      ],
+      "x3": [
+        "x3",
+        "p3"
+      ],
+      "x4": [
+        "x4",
+        "p4"
+      ],
+      "d12": [
+        "x1",
+        "x2"
+      ],
+      "d13": [
+        "x1",
+        "x3"
+      ],
+      "d23": [
+        "x2",
+        "x3"
+      ],
+      "d14": [
+        "x1",
+        "x4"
+      ],
+      "d24": [
+        "x2",
+        "x4"
+      ],
+      "e1": [
+        "d12",
+        "d13"
+      ],
+      "e2": [
+        "d12",
+        "d23"
+      ],
+      "e3": [
+        "d13",
+        "d23"
+      ],
+      "e4": [
+        "d14",
+        "d24"
+      ],
+      "l1": [
+        "e1"
+      ],
+      "l2": [
+        "e2"
+      ],
+      "l3": [
+        "e3"
+      ],
+      "l4": [
+        "e4"
+      ],
+      "p1": [
+        "e1",
+        "l1"
+      ],
+      "p2": [
+        "e2",
+        "l2"
+      ],
+      "p3": [
+        "e3",
+        "l3"
+      ],
+      "p4": [
+        "e4",
+        "l4"
+      ]
+    },
+    "observed_equals_declared_parents": true,
+    "max_observed_fan_in": 2,
+    "inputs_outside_the_21_state_bits": "none: G is a function of the 21 bits (exhaustive table)",
+    "time_homogeneous": "one transition table for every t (the audited table)",
+    "complement_equivariant_all_states": true,
+    "swap_x1_x2_equivariant_all_states": true,
+    "aux_baseline_per_target": {
+      "0000": "00000000000000000",
+      "1111": "00000000000000000"
+    },
+    "coordinates_that_differ_between_the_two_targets": [
+      "x1",
+      "x2",
+      "x3",
+      "x4"
+    ],
+    "fixed_point_count": 16
+  },
+  "ledger_reproduction": {
+    "pdata_traces_reproduced": 8,
+    "exp01_cut_fixed_point_reproduced": 8,
+    "exp01_cut_rows": 8
+  },
+  "code_theory": {
+    "A_RX_equals_union_of_radius1_balls": true,
+    "B_unique_nearest_codeword_on_RX": true,
+    "C_weight2_is_exact_tie_set": true,
+    "D_Phi_equals_nearest_codeword_decoding": true,
+    "E_minimum_distance": 4,
+    "E_unique_decoding_radius": 1,
+    "E_error_detection_capability": 3,
+    "radius1_ball_sizes": [
+      5,
+      5
+    ],
+    "states_covered_by_balls": 10,
+    "tie_states": 6,
+    "code_is_linear": true,
+    "parity_checks_used": [
+      "d12",
+      "d13",
+      "d23",
+      "d14",
+      "d24"
+    ],
+    "parity_check_rank_gf2": 3,
+    "cosets": 8,
+    "coset_table": [
+      {
+        "syndrome": "00000",
+        "members": "0000|1111",
+        "leader_weight": 0,
+        "unique_leader": true
+      },
+      {
+        "syndrome": "00011",
+        "members": "0001|1110",
+        "leader_weight": 1,
+        "unique_leader": true
+      },
+      {
+        "syndrome": "01100",
+        "members": "0010|1101",
+        "leader_weight": 1,
+        "unique_leader": true
+      },
+      {
+        "syndrome": "01111",
+        "members": "0011|1100",
+        "leader_weight": 2,
+        "unique_leader": false
+      },
+      {
+        "syndrome": "10101",
+        "members": "0100|1011",
+        "leader_weight": 1,
+        "unique_leader": true
+      },
+      {
+        "syndrome": "10110",
+        "members": "0101|1010",
+        "leader_weight": 2,
+        "unique_leader": false
+      },
+      {
+        "syndrome": "11001",
+        "members": "0110|1001",
+        "leader_weight": 2,
+        "unique_leader": false
+      },
+      {
+        "syndrome": "11010",
+        "members": "0111|1000",
+        "leader_weight": 1,
+        "unique_leader": true
+      }
+    ]
+  },
+  "locator": {
+    "lesions_with_exactly_one_E_equal_to_damaged_bit": 8,
+    "locator_exact_on_all_R_X_states": true,
+    "witness_assignments_with_exact_locator_on_R_X": "81/81"
+  },
+  "direction": {
+    "complementary_lesions_share_q_trajectory": true,
+    "max_MI_q_codeword_bits": 0.0,
+    "MI_x_codeword_bits_all_t": [
+      1.0
+    ],
+    "target_search": {
+      "target_variable": "none: at both targets q = 0^17; only x1..x4 differ between them",
+      "reward_or_goal_token": "none: no coordinate outside x1..x4 differs between targets, and every coordinate's observed inputs are its declared <=2 parents",
+      "oracle_or_external_state": "none: G is an exhaustive table over the 21 state bits (audited)",
+      "hardcoded_direction_switch": "none: G commutes with complementing x on all 2**21 states, so any repair toward 0000 has a mirror toward 1111",
+      "clock_or_step_counter": "none: a single time-homogeneous table"
+    },
+    "complement_equivariant": true
+  },
+  "temporal": {
+    "L_equals_E_delayed_one_step": "256/256",
+    "P_equals_rising_edge_of_E": "224/224",
+    "all_E_blocks_contiguous_single_rising_edge": true,
+    "E_block_length": [
+      4
+    ]
+  },
+  "interventions": {
+    "runs": 320,
+    "predictions_met": 320,
+    "shams": 84,
+    "shams_identical_to_natural": 84,
+    "per_family": {
+      "A1_DETECTOR_ABLATION": {
+        "runs": 40,
+        "met": 40
+      },
+      "A2_WITNESS_REMOVAL": {
+        "runs": 64,
+        "met": 64
+      },
+      "B_LOCATOR_ABLATION": {
+        "runs": 32,
+        "met": 32
+      },
+      "C_LOCATOR_RESCUE": {
+        "runs": 32,
+        "met": 32
+      },
+      "D_WRONG_LOCATOR": {
+        "runs": 56,
+        "met": 56
+      },
+      "E_ACTUATOR_ABLATION": {
+        "runs": 32,
+        "met": 32
+      },
+      "F_ACTUATOR_RESCUE": {
+        "runs": 48,
+        "met": 48
+      },
+      "G_TEMPORAL_GATE_REMOVAL": {
+        "runs": 16,
+        "met": 16
+      }
+    },
+    "failed_predictions": []
+  },
+  "weight2": {
+    "weight2_states": 6,
+    "all_reach_a_codeword_with_q_star": true,
+    "cycles_or_stalls": 0,
+    "E_firing_rule_holds": true,
+    "global_law_final_codeword_equals_majority_of_x1_x2_x3_for_all_16_x": true,
+    "complementary_starts_share_q": true,
+    "rounds_distribution": {
+      "1": 2,
+      "2": 4
+    }
+  },
+  "exact_vs_functional": {
+    "all_lesions_return_to_identical_21_bit_state": true,
+    "functional_restoration_t": [
+      4
+    ],
+    "exact_restoration_t": [
+      7
+    ],
+    "distinct_internal_trajectories": 4,
+    "lesions": 8,
+    "residual_memory_after_exact_restoration": "none: the restored state equals the never-lesioned state bit for bit, and G is memoryless (Markov in the 21 bits)",
+    "pfull_exact_returns": "42/42",
+    "double_flip_exact_returns": "366/420"
+  },
+  "compilation": {
+    "first_t_with_x_equal_Phi_on_R_X": 4,
+    "F4_essential_inputs": {
+      "x1(4)": [
+        "x1",
+        "x2",
+        "x3"
+      ],
+      "x2(4)": [
+        "x1",
+        "x2",
+        "x3"
+      ],
+      "x3(4)": [
+        "x1",
+        "x2",
+        "x3"
+      ],
+      "x4(4)": [
+        "x1",
+        "x2",
+        "x4"
+      ]
+    },
+    "F4_equals_maj3_of_x_i_and_its_two_witnesses_on_all_16_x": true,
+    "one_step_extensions_of_Phi_by_coordinate_and_arity": {
+      "x1_arity3": 4,
+      "x1_arity4": 60,
+      "x2_arity3": 4,
+      "x2_arity4": 60,
+      "x3_arity3": 4,
+      "x3_arity4": 60,
+      "x4_arity3": 4,
+      "x4_arity4": 60
+    },
+    "extensions_with_essential_arity_le_2": 0,
+    "minimum_essential_arity_to_extend_Phi_i": {
+      "x1": 3,
+      "x2": 3,
+      "x3": 3,
+      "x4": 3
+    },
+    "x_only_rules_fixing_both_codewords_with_fan_in_le_2": 16,
+    "those_rules_are_all_monotone": true,
+    "discovery03_allowed_functions_C4_dmax2_per_coordinate": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "discovery02_n3_candidates": {
+      "dmax1": 0,
+      "dmax2": 0
+    },
+    "discovery03_candidates": {
+      "DISTANCE_4_dmax1": 0,
+      "DISTANCE_4_dmax2": 0,
+      "DISTANCE_3_dmax1": 0,
+      "DISTANCE_3_dmax2": 0
+    },
+    "auxiliaries": {
+      "D": 5,
+      "E": 4,
+      "L": 4,
+      "P": 4,
+      "total": 17
+    },
+    "causal_depth_steps_x_to_x": 4,
+    "gate_layers": [
+      "XOR (D, fan-in 2)",
+      "AND (E, fan-in 2)",
+      "AND-NOT with 1-step memory (P, fan-in 2)",
+      "XOR toggle (X, fan-in 2)"
+    ],
+    "static_edges": 38,
+    "effective_edges_over_8_natural_trajectories": 1584,
+    "temporal_phases": {
+      "detection": "t1 (D)",
+      "localization": "t2 (E)",
+      "one-shot gating": "t3 (L, P)",
+      "actuation": "t3->t4 (X)",
+      "drain": "t5 (D), t6 (E), t7 (L)"
+    }
+  },
+  "minimality": {
+    "variants_evaluated": 366,
+    "baseline_passes": true,
+    "baseline_qstar_to_codeword": "16/16",
+    "every_aux_individually_necessary": true,
+    "aux_clamps_that_still_pass": [],
+    "edge_substitutions_that_still_pass": [],
+    "gate_replacements_that_still_pass": [],
+    "structural_variants": {
+      "P=E (no one-shot memory)": {
+        "passes": false,
+        "pdata": "0/8",
+        "cycles": 46,
+        "failed": "0000:x1,0000:x2,0000:x3,0000:x4,1111:x1,1111:x2,1111:x3,1111:x4"
+      },
+      "X toggles on E (no L, no P)": {
+        "passes": false,
+        "pdata": "0/8",
+        "cycles": 38,
+        "failed": "0000:x1,0000:x2,0000:x3,0000:x4,1111:x1,1111:x2,1111:x3,1111:x4"
+      },
+      "P = E AND NOT P (own output as memory, no L)": {
+        "passes": false,
+        "pdata": "0/8",
+        "cycles": 46,
+        "failed": "0000:x1,0000:x2,0000:x3,0000:x4,1111:x1,1111:x2,1111:x3,1111:x4"
+      },
+      "MERGE_D_INTO_E_fanin3": {
+        "passes": true,
+        "pdata": "8/8",
+        "cycles": 0,
+        "failed": ""
+      },
+      "MERGE_P_INTO_X_fanin3": {
+        "passes": true,
+        "pdata": "8/8",
+        "cycles": 0,
+        "failed": ""
+      }
+    },
+    "witness_assignments": 81,
+    "witness_assignments_passing": 75,
+    "min_D_among_passing": 4,
+    "passing_by_n_D": {
+      "5": 48,
+      "6": 24,
+      "4": 3
+    },
+    "passing_with_all_weight2_resolved_by_n_D": {
+      "5": 12,
+      "6": 24
+    },
+    "specimen_A_row": {
+      "n_D": 5,
+      "passes_battery": true,
+      "weight2_resolved": 6,
+      "pfull_full_recovery": 42
+    }
+  },
+  "law": {
+    "law_verified_on_8_lesions": true
+  },
+  "state_space": {
+    "states": 2097152,
+    "max_transient": 22,
+    "transient_histogram": {
+      "0": 88,
+      "1": 3608,
+      "2": 22056,
+      "3": 104856,
+      "4": 68032,
+      "5": 84816,
+      "6": 63632,
+      "7": 165600,
+      "8": 192576,
+      "9": 216432,
+      "10": 151568,
+      "11": 311520,
+      "12": 230160,
+      "13": 198960,
+      "14": 121232,
+      "15": 78336,
+      "16": 38240,
+      "17": 26624,
+      "18": 9088,
+      "19": 5120,
+      "20": 2752,
+      "21": 1344,
+      "22": 512
+    },
+    "qstar_start_attractor": {
+      "0000": 0,
+      "1000": 0,
+      "0100": 0,
+      "1100": 15,
+      "0010": 0,
+      "1010": 15,
+      "0110": 15,
+      "1110": 15,
+      "0001": 0,
+      "1001": 0,
+      "0101": 0,
+      "1101": 15,
+      "0011": 0,
+      "1011": 15,
+      "0111": 15,
+      "1111": 15
+    },
+    "single_coordinate_flips_returning_to_same_target": 42,
+    "single_coordinate_flips_total": 42,
+    "double_coordinate_flips_returning_to_same_target": 366,
+    "double_coordinate_flips_total": 420,
+    "attractor_kinds": {
+      "TARGET": 2,
+      "CYCLE_12": 6,
+      "LATCHED_ALARM_FIXED_POINT": 14
+    },
+    "target_basin_sizes": [
+      404408,
+      404408
+    ],
+    "latched_alarm_basin_sizes": [
+      56,
+      56,
+      1280,
+      1280,
+      1280,
+      1280,
+      1280,
+      1280,
+      1280,
+      1280,
+      2120,
+      2120,
+      2504,
+      2504
+    ],
+    "cycle_basin_sizes": [
+      199680,
+      199680,
+      199680,
+      199680,
+      235008,
+      235008
+    ],
+    "states_reaching_a_target": 808816,
+    "states_reaching_a_cycle": 1268736,
+    "states_reaching_a_latched_alarm": 19600
+  },
+  "log": [
+    "[    0.0s] \u00a70 exhaustive audit of the frozen transition on 2**21 states",
+    "[   17.8s]   frozen step vs rebuilt rules: 0 mismatches",
+    "[   20.4s]   observed essential inputs equal declared parents: True",
+    "[   20.6s]   complement equivariance G(c z) = c G(z): True",
+    "[   21.4s]   (x1 x2) automorphism on all states: True",
+    "[   21.5s]   fixed points: 16",
+    "[   23.2s]   attractors: 22; transient max 22",
+    "[   23.2s] \u00a71 inherited causal ledger: committed artifacts versus the audited network",
+    "[   23.2s]   committed P-DATA traces reproduced bit for bit: 8/8",
+    "[   23.2s]   EXP-01 cut fixed point reproduced by this runner: 8/8",
+    "[   23.2s] \u00a72 code-theoretic characterization of R_X and Phi",
+    "[   23.2s] \u00a73 error-detection mechanism: 8-lesion table from the real dynamics",
+    "[   23.2s]   exactly-one-E = damaged bit: 8/8; all witness assignments exact: 81/81",
+    "[   23.2s] \u00a74 direction of repair: where the target identity lives",
+    "[   23.2s]   q identical for complementary lesions: True; max MI(q;codeword) = 0.0",
+    "[   23.2s] \u00a75 temporal mechanism: L as delayed E, P as rising-edge detector",
+    "[   23.2s]   L=E(t-1): 256/256; P=rising edge: 224/224",
+    "[   23.2s] \u00a76 causal interventions with no-op shams",
+    "[   23.2s]   interventions: 320/320 predictions met; shams identical to natural: 84/84",
+    "[   23.2s] \u00a77 boundary: the six weight-2 DATA states from q*",
+    "[   23.2s]   weight-2: all to codeword True; triangle law on 16 x: True",
+    "[   23.2s] \u00a78 exact versus functional restoration",
+    "[   23.2s]   exact 21-bit return: True; distinct internal trajectories: 4",
+    "[   23.2s] \u00a79 causal compilation of the non-extendable Phi",
+    "[   23.5s]   running DISCOVERY-02/03 instruments (read-only, print-free calls)",
+    "[   26.4s]   DISCOVERY-02 n=3 candidates d<=1: 0, d<=2: 0; DISCOVERY-03: {'DISTANCE_4_dmax1': 0, 'DISTANCE_4_dmax2': 0, 'DISTANCE_3_dmax1': 0, 'DISTANCE_3_dmax2': 0}",
+    "[   26.5s]   x = Phi on R_X from t=4; F4 = maj3(x_i, witnesses): True; arity<=2 extensions: 0",
+    "[   26.5s] \u00a710 minimality: ablations, gate replacements, merges, witness family",
+    "[   28.4s]   366 variants; passing aux clamps: []; witness family passing: 75/81, min D 4",
+    "[   28.4s] \u00a711 equation-level law"
+  ]
+}

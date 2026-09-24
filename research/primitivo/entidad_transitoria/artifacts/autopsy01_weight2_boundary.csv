@@ -1,0 +1,7 @@
+x,pairing,D_t1,E_t2,E_firing,E_rule_check,pulse_times,pulse_rounds,pulse_events,terminal_x,terminal_q_star,full_settle_t,cycle_length,triangle_majority_prediction,unique_nearest_codeword
+0011,34|12,01111,0011,"e3,e4",True,3,1,p3@t3;p4@t3,0000,True,7,1,0000,none (tie at distance 2)
+0101,24|13,10110,0100,e2,True,"3,7",2,p2@t3;p4@t7,0000,True,11,1,0000,none (tie at distance 2)
+0110,23|14,11001,1000,e1,True,"3,7",2,p1@t3;p4@t7,1111,True,11,1,1111,none (tie at distance 2)
+1001,14|23,11001,1000,e1,True,"3,7",2,p1@t3;p4@t7,0000,True,11,1,0000,none (tie at distance 2)
+1010,13|24,10110,0100,e2,True,"3,7",2,p2@t3;p4@t7,1111,True,11,1,1111,none (tie at distance 2)
+1100,12|34,01111,0011,"e3,e4",True,3,1,p3@t3;p4@t3,1111,True,7,1,1111,none (tie at distance 2)

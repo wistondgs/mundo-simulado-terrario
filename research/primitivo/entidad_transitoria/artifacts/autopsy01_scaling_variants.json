@@ -1,0 +1,67 @@
+{
+  "instrument": "run_autopsy01_scaling_variants.py",
+  "arity_lower_bound_checks": [
+    {
+      "n": 4,
+      "t": 1,
+      "functions_with_arity_le_2t_that_restore_x1": 0,
+      "majority_of_2t_plus_1_coordinates_restores_x1": true
+    },
+    {
+      "n": 5,
+      "t": 2,
+      "functions_with_arity_le_2t_that_restore_x1": 0,
+      "majority_of_2t_plus_1_coordinates_restores_x1": true
+    },
+    {
+      "n": 6,
+      "t": 2,
+      "functions_with_arity_le_2t_that_restore_x1": 0,
+      "majority_of_2t_plus_1_coordinates_restores_x1": true
+    }
+  ],
+  "architecture": {
+    "P1_all_met": true,
+    "P2_all_met": true
+  },
+  "variants_with_prediction": 17,
+  "variants_prediction_met": 17,
+  "log": [
+    "[    0.0s] \u00a712 mathematical scaling of the repetition code",
+    "[    0.0s] \u00a712 arity lower bound 2t+1, checked by brute force",
+    "[    2.1s]   {'n': 4, 't': 1, 'functions_with_arity_le_2t_that_restore_x1': 0, 'majority_of_2t_plus_1_coordinates_restores_x1': True}",
+    "[    2.1s]   {'n': 5, 't': 2, 'functions_with_arity_le_2t_that_restore_x1': 0, 'majority_of_2t_plus_1_coordinates_restores_x1': True}",
+    "[    2.1s]   {'n': 6, 't': 2, 'functions_with_arity_le_2t_that_restore_x1': 0, 'majority_of_2t_plus_1_coordinates_restores_x1': True}",
+    "[    2.1s] \u00a712 specimen-A architecture at other n",
+    "[    2.1s]   n=3 triangle_plus_pendants: singles 6/6, doubles 0/6",
+    "[    2.1s]   n=4 triangle_plus_pendants: singles 8/8, doubles 6/12",
+    "[    2.1s]   n=4 cycle: singles 8/8, doubles 0/12",
+    "[    2.1s]   n=5 triangle_plus_pendants: singles 10/10, doubles 14/20",
+    "[    2.1s]   n=5 cycle: singles 10/10, doubles 0/20",
+    "[    2.1s]   n=6 triangle_plus_pendants: singles 12/12, doubles 24/30",
+    "[    2.1s]   n=6 cycle: singles 12/12, doubles 6/30",
+    "[    2.2s]   n=7 triangle_plus_pendants: singles 14/14, doubles 36/42",
+    "[    2.2s]   n=7 cycle: singles 14/14, doubles 14/42",
+    "[    2.2s]   n=8 triangle_plus_pendants: singles 16/16, doubles 50/56",
+    "[    2.2s]   n=8 cycle: singles 16/16, doubles 24/56",
+    "[    2.2s] \u00a713 nearby variants",
+    "[    3.3s]   C3_0000_1110: met=True | 8/8 restaurados; q id\u00e9ntico por posici\u00f3n: True",
+    "[    3.3s]   A_translated_0101: met=True | 8/8 restaurados; q id\u00e9ntico por posici\u00f3n: True",
+    "[    3.3s]   distance_2_pair_0000_1100: met=True | estados en ambas bolas: 0100,1000",
+    "[    3.3s]   distance_1_pair_0000_1000: met=True | estados en ambas bolas: 0000,1000",
+    "[    3.3s]   Rep3_plus_Rep3: met=True | simples 24/24; dobles uno por bloque 36/36; dobles dentro de un bloque a otra palabra 24/24",
+    "[    3.3s]   linear_[5,2,3]_code: met=True | checks de peso <=2: ['00011', '11000']; generan 2 de 3 dimensiones del dual",
+    "[    3.3s]   A_two_simultaneous_errors: met=True | {'FULL_OPPOSITE_TARGET': 6, 'FULL_ORIGINAL_TARGET': 6}",
+    "[    3.3s]   A_extra_delay_D_to_E: met=True | 8/8 restaurados; toggles por lesi\u00f3n [1]; latencia full [9]; desenlaces {'FULL_ORIGINAL_TARGET': 8}",
+    "[    3.3s]   A_extra_delay_P_to_X: met=True | 8/8 restaurados; toggles por lesi\u00f3n [1]; latencia full [8]; desenlaces {'FULL_ORIGINAL_TARGET': 8}",
+    "[    3.3s]   A_one_shot_memory_two_steps_old: met=True | 8/8 restaurados; toggles por lesi\u00f3n [3]; latencia full [14]; desenlaces {'FULL_ORIGINAL_TARGET': 8}",
+    "[    3.3s]   A_async_random_sweep: met=True | {'LATCHED_ALARM': 1471, 'ORIGINAL_TARGET': 529} de 2000 (8 lesiones \u00d7 250 semillas)",
+    "[    3.3s]   A_async_random_single_coordinate: met=True | {'LATCHED_ALARM': 1519, 'ORIGINAL_TARGET': 481} de 2000 (8 lesiones \u00d7 250 semillas)",
+    "[    3.3s]   A_pulse_loss_0.1: met=True | restaurados 3637/4000 = 0.9093",
+    "[    3.3s]   A_pulse_loss_0.25: met=True | restaurados 3019/4000 = 0.7548",
+    "[    3.3s]   A_pulse_loss_0.5: met=True | restaurados 1986/4000 = 0.4965",
+    "[    3.3s]   A_stuck_at_fault: met=True | 8/8",
+    "[    3.3s]   A_self_reverting_lesion: met=True | 8/8; recuperaci\u00f3n completa en t=[11]",
+    "[    3.3s]   A_second_lesion_during_repair: met=None | {\"1\": {\"FULL_ORIGINAL_TARGET\": 20, \"CYCLE_X_MOVING\": 12}, \"2\": {\"FULL_ORIGINAL_TARGET\": 20, \"CYCLE_X_MOVING\": 12}, \"3\": {\"FULL_ORIGINAL_TARGET\": 20, \"CYCLE_X_MO"
+  ]
+}

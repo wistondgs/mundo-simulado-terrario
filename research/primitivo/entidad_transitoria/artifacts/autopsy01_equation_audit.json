@@ -1,0 +1,110 @@
+{
+  "states_audited": 2097152,
+  "rebuilt_rules_equal_frozen_step": true,
+  "equations": {
+    "D": "d12'=x1^x2; d13'=x1^x3; d23'=x2^x3; d14'=x1^x4; d24'=x2^x4",
+    "E": "e1'=d12&d13; e2'=d12&d23; e3'=d13&d23; e4'=d14&d24",
+    "L": "l_i'=e_i",
+    "P": "p_i'=e_i & ~l_i",
+    "X": "x_i'=x_i ^ p_i"
+  },
+  "observed_essential_inputs": {
+    "x1": [
+      "x1",
+      "p1"
+    ],
+    "x2": [
+      "x2",
+      "p2"
+    ],
+    "x3": [
+      "x3",
+      "p3"
+    ],
+    "x4": [
+      "x4",
+      "p4"
+    ],
+    "d12": [
+      "x1",
+      "x2"
+    ],
+    "d13": [
+      "x1",
+      "x3"
+    ],
+    "d23": [
+      "x2",
+      "x3"
+    ],
+    "d14": [
+      "x1",
+      "x4"
+    ],
+    "d24": [
+      "x2",
+      "x4"
+    ],
+    "e1": [
+      "d12",
+      "d13"
+    ],
+    "e2": [
+      "d12",
+      "d23"
+    ],
+    "e3": [
+      "d13",
+      "d23"
+    ],
+    "e4": [
+      "d14",
+      "d24"
+    ],
+    "l1": [
+      "e1"
+    ],
+    "l2": [
+      "e2"
+    ],
+    "l3": [
+      "e3"
+    ],
+    "l4": [
+      "e4"
+    ],
+    "p1": [
+      "e1",
+      "l1"
+    ],
+    "p2": [
+      "e2",
+      "l2"
+    ],
+    "p3": [
+      "e3",
+      "l3"
+    ],
+    "p4": [
+      "e4",
+      "l4"
+    ]
+  },
+  "observed_equals_declared_parents": true,
+  "max_observed_fan_in": 2,
+  "inputs_outside_the_21_state_bits": "none: G is a function of the 21 bits (exhaustive table)",
+  "time_homogeneous": "one transition table for every t (the audited table)",
+  "complement_equivariant_all_states": true,
+  "swap_x1_x2_equivariant_all_states": true,
+  "aux_baseline_per_target": {
+    "0000": "00000000000000000",
+    "1111": "00000000000000000"
+  },
+  "coordinates_that_differ_between_the_two_targets": [
+    "x1",
+    "x2",
+    "x3",
+    "x4"
+  ],
+  "fixed_point_count": 16
+}

@@ -1,0 +1,9 @@
+lesion,x_lesioned,D_t1_d12_d13_d23_d14_d24,D_active_checks,E_t2_e1_e4,selected_coordinate,is_damaged_coordinate,P_t3_p1_p4,X_t4_repaired,X_t4_equals_codeword,E_active_only_on_lesion_at_all_t,p_pulses_total,data_recovery_t,full_recovery_t,outcome
+0000:x1,1000,11010,"d12,d13,d14",1000,x1,True,1000,0000,True,True,1,4,7,FULL_ORIGINAL_TARGET
+0000:x2,0100,10101,"d12,d23,d24",0100,x2,True,0100,0000,True,True,1,4,7,FULL_ORIGINAL_TARGET
+0000:x3,0010,01100,"d13,d23",0010,x3,True,0010,0000,True,True,1,4,7,FULL_ORIGINAL_TARGET
+0000:x4,0001,00011,"d14,d24",0001,x4,True,0001,0000,True,True,1,4,7,FULL_ORIGINAL_TARGET
+1111:x1,0111,11010,"d12,d13,d14",1000,x1,True,1000,1111,True,True,1,4,7,FULL_ORIGINAL_TARGET
+1111:x2,1011,10101,"d12,d23,d24",0100,x2,True,0100,1111,True,True,1,4,7,FULL_ORIGINAL_TARGET
+1111:x3,1101,01100,"d13,d23",0010,x3,True,0010,1111,True,True,1,4,7,FULL_ORIGINAL_TARGET
+1111:x4,1110,00011,"d14,d24",0001,x4,True,0001,1111,True,True,1,4,7,FULL_ORIGINAL_TARGET
