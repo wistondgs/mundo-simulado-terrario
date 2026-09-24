@@ -53,9 +53,15 @@ Lo siguiente se observó sobre la tabla completa, no se infirió del código:
 
 ## 3. Ledger causal heredado
 
-Se leyeron los artefactos comiteados, sin regenerarlos. Las 8 trazas P-DATA
-comiteadas se reproducen bit a bit, y el punto fijo de EXP-01 se reproduce 8/8 con el
-runner de esta autopsia ([ledger](artifacts/autopsy01_causal_ledger.csv)).
+Se leyeron los artefactos comiteados, sin regenerarlos
+([ledger](artifacts/autopsy01_causal_ledger.csv)):
+
+- las 8 trazas P-DATA comiteadas se reproducen bit a bit;
+- el punto fijo de EXP-01 se reproduce 8/8 con el runner de esta autopsia;
+- las filas registradas de EXP-02 y EXP-03 coinciden con sus informes, y las 64
+  comparaciones de fase son exactas;
+- los dos bloqueos de EXP-03, el persistente y el transitorio, se reproducen 8/8 con la
+  maquinaria de esta autopsia.
 
 | fase | intervención | observación | prueba | no prueba |
 | --- | --- | --- | --- | --- |

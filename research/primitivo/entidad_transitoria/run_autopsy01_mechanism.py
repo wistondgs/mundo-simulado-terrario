@@ -325,6 +325,51 @@ def section1_ledger():
                         A.pattern(term, "D") + A.pattern(term, "E") + A.pattern(term, "L") + A.pattern(term, "P") == row["terminal_q"])
     log(f"  EXP-01 cut fixed point reproduced by this runner: {exp01_match}/{len(cut_rows)}")
 
+    # The ledger must not rest on prose: check the recorded EXP-02/03 rows.
+    def arm_rows(rows, arm):
+        return [row for row in rows if row["arm"] == arm]
+
+    exp02_ok = (
+        all(row["DATA_RECOVERY_TIME"] == "4" and row["FULL_RECOVERY_TIME"] == "7"
+            for arm in ("NATURAL", "TARGET_RESTORATION") for row in arm_rows(exp02, arm))
+        and all(row["FULL_RECOVERY_TIME"] == "" and row["outcome"] == "STATE_REPEAT"
+                for arm in ("ACTION_CUT_ONLY", "NO_OP_WRITE") for row in arm_rows(exp02, arm))
+        and all(len(arm_rows(exp02, arm)) == 8 for arm in ("NATURAL", "TARGET_RESTORATION", "ACTION_CUT_ONLY", "NO_OP_WRITE")))
+    exp03_ok = (
+        all((row["T_ONSET"], row["DATA_RECOVERY_TIME"], row["FULL_RECOVERY_TIME"]) == ("1", "4", "7")
+            for arm in ("NATURAL", "NO_OP_SPATIAL_SHAM") for row in arm_rows(exp03, arm))
+        and all((row["T_ONSET"], row["DATA_RECOVERY_TIME"], row["FULL_RECOVERY_TIME"]) == ("2", "5", "8")
+                for row in arm_rows(exp03, "TRANSIENT_ONSET_BLOCK"))
+        and all(row["T_ONSET"] == "" and row["outcome"] == "STATE_REPEAT"
+                for row in arm_rows(exp03, "PERSISTENT_ONSET_BLOCK"))
+        and all(len(arm_rows(exp03, arm)) == 8 for arm in ("NATURAL", "NO_OP_SPATIAL_SHAM", "TRANSIENT_ONSET_BLOCK", "PERSISTENT_ONSET_BLOCK")))
+    phase = read("exp03_phase_shift_comparison.csv")
+    phase_ok = len(phase) == 64 and all(row["exact_equal"] == "True" and row["mismatched_coordinates"] == "" for row in phase)
+
+    # Independent reproduction of EXP-03 with this module: the lesioned
+    # parent is read as its target value in every incident D rule.
+    persistent_ok = transient_ok = 0
+    recorded = {(row["target"], row["flipped_coordinate"]): row for row in arm_rows(exp03, "PERSISTENT_ONSET_BLOCK")}
+    for c, k, x in lesions():
+        blocked = A
+        for d in A.families["D"]:
+            if f"x{k + 1}" in ENDPOINTS[d]:
+                blocked = edge_constant(blocked, d, f"x{k + 1}", c[k], f"A_onset_block_x{k + 1}")
+        r = run(blocked, A.from_x(x))
+        term = r.states[r.cycle_start]
+        row = recorded[(bstr(c), f"x{k + 1}")]
+        persistent_ok += (r.cycle_start == 0 and r.cycle_length == 1 and bstr(A.x_of(term)) == row["terminal_x"]
+                          and A.aux_zero(term))
+        z1 = blocked.step(A.from_x(x))
+        tail = run(A, z1).states
+        states = [A.from_x(x)] + tail
+        onset = next(t for t, s in enumerate(states) if not A.aux_zero(s))
+        data_t = next(t for t, s in enumerate(states) if A.x_of(s) == c)
+        full_t = next(t for t, s in enumerate(states) if s == A.from_x(c))
+        transient_ok += (onset, data_t, full_t) == (2, 5, 8)
+    log(f"  EXP-02/03 recorded rows match their reports: {exp02_ok}/{exp03_ok}; phase shift 64 exact: {phase_ok}; "
+        f"EXP-03 reproduced here: persistent {persistent_ok}/8, transient {transient_ok}/8")
+
     ledger = [
         {"phase": "ONSET", "question": "¿Qué lleva de la perturbación DATA a q != q*?",
          "intervention": "EXP-03: sustitución del padre DATA perturbado en las D incidentes (transitoria y persistente), con sham no-op",
@@ -362,9 +407,21 @@ def section1_ledger():
          "source": "CONTEXT.md (RESEARCHER_SUPPLIED); §9 de este instrumento",
          "committed_rows": ""},
     ]
+    checks = {
+        "ONSET": f"recorded EXP-03 rows match report: {exp03_ok}; 64/64 phase comparisons exact: {phase_ok}; "
+                 f"reproduced here: persistent block {persistent_ok}/8, transient block {transient_ok}/8",
+        "ACTION": f"EXP-01 cut fixed point reproduced here: {exp01_match}/{len(cut_rows)}",
+        "TERMINATION": f"recorded EXP-02 rows match report: {exp02_ok}",
+        "BASELINE": f"committed P-DATA traces reproduced bit for bit: {reproduced}/8",
+        "PROJECTED_APD": "enumerated in §9 (autopsy01_compilation.json)",
+    }
+    for row in ledger:
+        row["verified_against_recorded_artifacts"] = checks[row["phase"]]
     write_csv("causal_ledger.csv", ledger)
     return {"pdata_traces_reproduced": reproduced, "exp01_cut_fixed_point_reproduced": exp01_match,
-            "exp01_cut_rows": len(cut_rows)}
+            "exp01_cut_rows": len(cut_rows), "exp02_recorded_rows_match_report": exp02_ok,
+            "exp03_recorded_rows_match_report": exp03_ok, "exp03_phase_shift_64_exact": phase_ok,
+            "exp03_persistent_block_reproduced": persistent_ok, "exp03_transient_block_reproduced": transient_ok}
 
 
 # ====================================================================== §2
