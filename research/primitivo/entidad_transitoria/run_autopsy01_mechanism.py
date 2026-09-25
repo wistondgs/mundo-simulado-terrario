@@ -517,7 +517,7 @@ def section3_lesion_table():
         s1, s2, s3, s4 = states[1], states[2], states[3], states[4]
         e_on = [i for i in range(4) if A.get(s2, f"e{i + 1}")]
         p_on = [i for i in range(4) if A.get(s3, f"p{i + 1}")]
-        # exactly one E_i at every t of the trajectory, and it is the lesion
+        # at most one E_i at every t of the trajectory, and only the lesion's
         only_lesion = all(
             [i for i in range(4) if A.get(s, f"e{i + 1}")] in ([], [k]) for s in states)
         exact_single_locator += (e_on == [k] and p_on == [k] and only_lesion)

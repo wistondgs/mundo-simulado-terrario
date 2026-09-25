@@ -36,7 +36,7 @@
     "asynchronous updates",
     "pulse loss or actuator ablation (latched alarm)",
     "stuck-at DATA faults (one pulse spent, alarm latched)",
-    "mixed x+e, x+p, e+p double perturbations (12-cycle)",
+    "mixed-family double perturbations (x+e, x+p, e+p) on two distinct triangle coordinates, e.g. x1+e2 (12-cycle; 36 of the 420 double flips; same-coordinate mixtures and those touching x4 return)",
     "a second DATA error while a correction is in flight"
   ],
   "FAILURE_BOUNDARY": {

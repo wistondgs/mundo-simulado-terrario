@@ -19,6 +19,7 @@ Estado: **CAUSAL_MECHANISM_IDENTIFIED**.
   - [autopsy01_core.py](autopsy01_core.py): red booleana genérica, intervenciones explícitas y batería de evaluación.
   - [run_autopsy01_mechanism.py](run_autopsy01_mechanism.py): §0–§11.
   - [run_autopsy01_scaling_variants.py](run_autopsy01_scaling_variants.py): §12–§13, que sólo se corrió tras cerrar el núcleo.
+  - [run_autopsy01_errata_check.py](run_autopsy01_errata_check.py): se añadió tras el cierre, al corregir siete frases que afirmaban más que su evidencia (§6, §8, §11, §16). Recalcula en sólo lectura las cifras de esas correcciones y no regenera ningún artefacto.
 - **Artefactos:** `artifacts/autopsy01_*`. El índice de veredictos está en
   [autopsy01_verdicts.json](artifacts/autopsy01_verdicts.json).
 - **Cómo se trataron las predicciones.**
@@ -135,8 +136,12 @@ Fuente: [lesion_table.csv](artifacts/autopsy01_lesion_table.csv). D sigue el ord
 | 1111:x3 | 1101 | 01100 | 0010 | x3 | 0010 | 1111 |
 | 1111:x4 | 1110 | 00011 | 0001 | x4 | 0001 | 1111 |
 
-**¿Se activa exactamente un E_i, y es siempre el bit dañado?** **Sí**, en las 8
-lesiones y en todos los pasos de cada trayectoria.
+**¿Se activa exactamente un E_i, y es siempre el bit dañado?** **Sí, cuando E se
+activa.** En las 8 lesiones hay a lo sumo un E alto en cada paso, y es siempre e_k:
+
+- **Cuándo:** e_k está alto de t2 a t5, 4 pasos (patrón en t0–t8: `001111000`).
+- **Sin E:** en t0, t1, t6 y t7 no hay ninguno.
+- **Ningún otro:** ningún E_i con i ≠ k se activa en ningún paso.
 
 *Demostración.*
 
@@ -145,6 +150,8 @@ lesiones y en todos los pasos de cada trayectoria.
 - **`e_k = 1`**: los dos testigos de k son sanos.
 - **`e_i = 0` para i ≠ k**: x_i tiene el valor mayoritario, y a lo sumo uno de sus
   testigos es k.
+- **Duración:** x está lesionada de t0 a t3, así que D lleva el síndrome del error en
+  t1–t4 y E_k está alto en t2–t5. La x corregida en t4 anula D en t5 y E en t6.
 - **Generalidad:** el argumento vale para cualquier asignación de testigos, y la
   comprobación exhaustiva da 81 de 81 exactas en R_X.
 
@@ -201,7 +208,7 @@ lesiones y en todos los pasos de cada trayectoria.
 | | shams | 24 | idénticos |
 | C rescate de localizador (D amputada) | sin inyección | 8 | lesión fija con q=q* |
 | | un evento `e_k=1` en t2 | 8 | x reparada en t4 y estado completo en t4; **E basta para toda la cadena posterior** |
-| | `e_k` sostenido desde t2 | 8 | exactamente 1 conmutación; x restaurada, alarma enclavada |
+| | `e_k` sostenido desde t2 | 8 | exactamente 1 conmutación y x restaurada al blanco en t4; E_k y L_k quedan en 1 mientras dura la sujeción (D amputada, P=0). No es una alarma enclavada: x es correcta |
 | | sham | 8 | idéntico |
 | D localizador erróneo | intacto, `e_j` en t2 | 24 | error transitorio de x_j en t4, detectado y deshecho en t8; estado completo en t11 (3 pulsos) |
 | | D amputada, `e_j` en t2 | 24 | doble error permanente: **el tramo posterior ejecuta la ubicación que reciba** |
@@ -281,18 +288,30 @@ Fuente: [compilation.json](artifacts/autopsy01_compilation.json).
   `F4 = (maj(x1,x2,x3), maj(x2,x1,x3), maj(x3,x1,x2), maj(x4,x1,x2))` en los 16 estados
   de x: es de aridad 3 por coordenada, y es igual a Φ en R_X desde t4.
 - **Aridad mínima.** Ninguna función de aridad esencial ≤2 extiende Φ_i: hay 0. La
-  aridad mínima es 3; existen 4 extensiones por coordenada, la mayoría de cualquier
-  terna.
+  aridad mínima es 3.
+  - Φ_i fija 10 de los 16 estados de x y deja libres los 6 empates, así que admite
+    2⁶ = 64 extensiones por coordenada.
+  - De ellas, 4 tienen aridad 3, que son la mayoría de cada una de las 4 ternas, y
+    las otras 60 tienen aridad 4.
 - **Reglas sólo-X.** Si cada coordenada lee a lo sumo 2 variables de X y ambos códigos
   son fijos, quedan sólo 16 reglas por coordenada (`x_a`, `x_a∧x_b`, `x_a∨x_b`), todas
-  monótonas. Por eso DISCOVERY-03 no encuentra solución.
+  monótonas y ninguna XOR. Eso no explica por sí solo que DISCOVERY-03 no encuentre
+  solución:
+  - maj3, que A realiza en t4, también es monótona; lo que impide una regla directa es
+    la aridad (punto anterior), no la monotonía;
+  - con los centros 0000/1110 (clave `C3`) sí hay reglas sólo-X no monótonas: 6 de 18
+    en x1, x2 y x3, y 12 de 17 en x4. DISCOVERY-03 da igualmente 0 candidatos.
+
+  Lo que descarta las redes sólo-X iteradas de fan-in ≤2 es la enumeración exhaustiva
+  de DISCOVERY-03 (§3), no un argumento de monotonía.
 - **Qué compran los auxiliares:**
   1. **Registros de resultados intermedios.** Guardan el XOR y luego el AND, lo que da
      aridad 3 en 2 capas. Es la profundidad mínima posible con fan-in 2
      (`⌈log2 3⌉ = 2`).
   2. **Un sistema de coordenadas nulo en ambos códigos, el síndrome.** Permite usar
      operaciones no monótonas (XOR) sin romper los puntos fijos, algo imposible para
-     reglas sólo-X.
+     reglas sólo-X de fan-in 2 con los códigos de A (0000/1111). No es imposible en
+     general: con 0000/1110, `x_j' = x_j ⊕ x4` (j ∈ {1,2,3}) deja fijos ambos centros.
   3. **Compuerta temporal.** E queda alto 4 pasos por la latencia de la tubería, y el
      actuador es una conmutación, así que hace falta convertir ese nivel en un evento
      único.
@@ -478,13 +497,30 @@ Fuente: [censo](artifacts/autopsy01_state_space_census.json).
 **Perturbaciones del blanco:**
 
 - las de un bit vuelven todas (42/42);
-- las de dos bits vuelven 366/420. De las 54 que no:
-  - 18 van al código opuesto: dos errores dentro del triángulo, sea en x, en e o en p;
-  - 36 caen en el ciclo de 12: son las mezclas x+e, x+p y e+p.
+- las de dos bits vuelven 366/420, 183 de 210 en cada blanco. De las 54 que no:
+  - 18 van al código opuesto (9 por blanco): dos errores dentro del triángulo en una
+    misma familia, `x_i+x_j`, `e_i+e_j` o `p_i+p_j`;
+  - 36 caen en un ciclo de 12 (18 por blanco): mezclas de dos familias (x+e, x+p o
+    e+p) sobre dos coordenadas distintas del triángulo, como `x1+e2`.
+- de las 96 mezclas x+e, x+p o e+p sólo ciclan esas 36. Vuelven al blanco las 24 que
+  caen en la misma coordenada y las 36 que tocan la coordenada 4. Los dobles volteos
+  que involucran d o l vuelven todos.
 
-**Los ciclos de 12** son correcciones rancias que se persiguen. x cambia cada dos
-pasos, y cada coordenada se conmuta dos veces por periodo, porque la tubería de 3 pasos
-actúa sobre copias viejas de x. Aquí sólo se describen; no se diseccionaron.
+**Los ciclos de 12** son correcciones rancias que se persiguen, porque la tubería de 3
+pasos actúa sobre copias viejas de x.
+
+- **En los seis ciclos, por periodo:** x cambia 6 veces (2 de esos cambios mueven dos
+  bits a la vez), cada coordenada se conmuta exactamente 2 veces y hay 8 pulsos P.
+- **El ritmo no es el mismo en todos:**
+  - en 2 ciclos (cuenca de 235,008 estados cada uno), x cambia exactamente cada dos
+    pasos;
+  - en los otros 4 (199,680 estados cada uno), los cambios de x se separan alternando
+    1 y 3 pasos.
+- **Estado del análisis:** aquí sólo se describen; no se diseccionaron.
+
+Las cifras de este apartado, del §6, de la rama C del §8 y del §11 las recalcula
+[run_autopsy01_errata_check.py](run_autopsy01_errata_check.py), en sólo lectura
+([resultado](artifacts/autopsy01_errata_check.json)).
 
 **Condiciones necesarias medidas:**
 
