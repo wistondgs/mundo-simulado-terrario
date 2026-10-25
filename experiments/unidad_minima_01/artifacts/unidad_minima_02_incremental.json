@@ -1,0 +1,394 @@
+{
+ "mundos": {
+  "latch-edge (aliasado)": {
+   "hitos": {
+    "8": {
+     "estados": 2,
+     "errores_unidad": 3,
+     "errores_reactivo": 4,
+     "refutaciones": 2,
+     "repasados": 12
+    },
+    "16": {
+     "estados": 2,
+     "errores_unidad": 3,
+     "errores_reactivo": 5,
+     "refutaciones": 2,
+     "repasados": 12
+    },
+    "32": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 8,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "64": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 13,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "128": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 21,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "256": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 46,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "512": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 83,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "1024": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 178,
+     "refutaciones": 6,
+     "repasados": 79
+    },
+    "1538": {
+     "estados": 2,
+     "errores_unidad": 4,
+     "errores_reactivo": 272,
+     "refutaciones": 6,
+     "repasados": 79
+    }
+   },
+   "ultimo_error_unidad": 21,
+   "ultimo_error_reactivo": 1533,
+   "sin_ruta": 2,
+   "contadores": {
+    "refutaciones": 6,
+    "distinciones_abiertas": 1,
+    "pasos_repasados": 79,
+    "repaso_max": 20
+   },
+   "coincide_con_01": true,
+   "futuro": {
+    "unidad": 1.0,
+    "reactivo": 0.8333834134615384,
+    "solo_letra": 0.8332331730769231,
+    "lesion": 0.8332331730769231,
+    "sin_ruta": 0,
+    "decidio": 3328
+   },
+   "testigo": "B",
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad": true,
+     "reactivo": false
+    },
+    {
+     "k": 15,
+     "verdad_B": 1,
+     "unidad": true,
+     "reactivo": true
+    }
+   ],
+   "palabras": {
+    "ε": {
+     "clase": "identidad",
+     "iguales": [
+      "AA"
+     ]
+    },
+    "A": {
+     "clase": "permuta",
+     "iguales": [
+      "AAA"
+     ]
+    },
+    "B": {
+     "clase": "escribe",
+     "iguales": [
+      "AB",
+      "BB",
+      "AAB",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBB"
+     ]
+    },
+    "BA": {
+     "clase": "escribe",
+     "iguales": [
+      "ABA",
+      "BBA"
+     ]
+    }
+   },
+   "monoide_igual_al_real": true
+  },
+  "visible (control)": {
+   "hitos": {
+    "8": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "16": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "32": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "64": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "128": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "256": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "512": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "1024": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    },
+    "1538": {
+     "estados": 2,
+     "errores_unidad": 2,
+     "errores_reactivo": 1,
+     "refutaciones": 4,
+     "repasados": 10
+    }
+   },
+   "ultimo_error_unidad": 4,
+   "ultimo_error_reactivo": 1,
+   "sin_ruta": 3,
+   "contadores": {
+    "refutaciones": 4,
+    "distinciones_abiertas": 1,
+    "pasos_repasados": 10,
+    "repaso_max": 4
+   },
+   "coincide_con_01": true,
+   "futuro": {
+    "unidad": 1.0,
+    "reactivo": 1.0,
+    "solo_letra": 0.8333834134615384,
+    "lesion": 0.6666165865384616,
+    "sin_ruta": 0,
+    "decidio": 3328
+   },
+   "testigo": "A",
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad": true,
+     "reactivo": true
+    },
+    {
+     "k": 15,
+     "verdad_B": 0,
+     "unidad": true,
+     "reactivo": true
+    }
+   ],
+   "palabras": {
+    "ε": {
+     "clase": "identidad",
+     "iguales": [
+      "AA"
+     ]
+    },
+    "A": {
+     "clase": "permuta",
+     "iguales": [
+      "AAA"
+     ]
+    },
+    "B": {
+     "clase": "escribe",
+     "iguales": [
+      "AB",
+      "BB",
+      "AAB",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBB"
+     ]
+    },
+    "BA": {
+     "clase": "escribe",
+     "iguales": [
+      "ABA",
+      "BBA"
+     ]
+    }
+   },
+   "monoide_igual_al_real": true
+  },
+  "bit inerte (control)": {
+   "hitos": {
+    "8": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "16": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "32": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "64": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "128": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "256": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "512": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "1024": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    },
+    "1538": {
+     "estados": 1,
+     "errores_unidad": 1,
+     "errores_reactivo": 2,
+     "refutaciones": 0,
+     "repasados": 0
+    }
+   },
+   "ultimo_error_unidad": 1,
+   "ultimo_error_reactivo": 4,
+   "sin_ruta": 2,
+   "contadores": {},
+   "coincide_con_01": true,
+   "futuro": {
+    "unidad": 1.0,
+    "reactivo": 1.0,
+    "solo_letra": 1.0,
+    "lesion": 1.0,
+    "sin_ruta": 0,
+    "decidio": 0
+   },
+   "testigo": null,
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad": true,
+     "reactivo": true
+    },
+    {
+     "k": 15,
+     "verdad_B": 0,
+     "unidad": true,
+     "reactivo": true
+    }
+   ],
+   "palabras": {
+    "ε": {
+     "clase": "escribe",
+     "iguales": [
+      "A",
+      "B",
+      "AA",
+      "AB",
+      "BA",
+      "BB",
+      "AAA",
+      "AAB",
+      "ABA",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBA",
+      "BBB"
+     ]
+    }
+   },
+   "monoide_igual_al_real": false
+  }
+ },
+ "determinismo": {
+  "identicas": true,
+  "random_importado": false
+ },
+ "sha256_codigo": "b4b67a111fc632a15a88886861465a6503add32b255dc53ff7c6f12380fdb6b0"
+}

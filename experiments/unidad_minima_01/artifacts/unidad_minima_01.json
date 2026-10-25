@@ -1,0 +1,580 @@
+{
+ "mundos": {
+  "latch-edge (aliasado)": {
+   "esperado": "la distinción hace falta y no está en la observación",
+   "curva": [
+    {
+     "T": 2,
+     "estados": 1,
+     "unica": true,
+     "unidad": 0.6667668269230769,
+     "reactivo": 0.5,
+     "solo_letra": 0.6667668269230769,
+     "lesion": 0.6667668269230769,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 4,
+     "estados": 1,
+     "unica": true,
+     "unidad": 0.6667668269230769,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.6667668269230769,
+     "lesion": 0.6667668269230769,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 8,
+     "estados": 2,
+     "unica": false,
+     "unidad": 0.8333834134615384,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.6667668269230769,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 16,
+     "estados": 2,
+     "unica": false,
+     "unidad": 0.8333834134615384,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.6667668269230769,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 32,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 64,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 128,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 256,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 512,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 1024,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 1538,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.8333834134615384,
+     "solo_letra": 0.8332331730769231,
+     "lesion": 0.8332331730769231,
+     "sin_ruta": 0,
+     "decidio": 3328
+    }
+   ],
+   "estados": 2,
+   "maquina": {
+    "0,A": [
+     1,
+     1
+    ],
+    "0,B": [
+     0,
+     0
+    ],
+    "1,A": [
+     0,
+     1
+    ],
+    "1,B": [
+     0,
+     1
+    ]
+   },
+   "testigo": "B",
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": false
+    },
+    {
+     "k": 15,
+     "verdad_B": 1,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": true
+    }
+   ],
+   "palabras_aprendidas": {
+    "A": {
+     "clase": "permuta",
+     "iguales": [
+      "AAA"
+     ]
+    },
+    "B": {
+     "clase": "escribe",
+     "iguales": [
+      "AB",
+      "BB",
+      "AAB",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBB"
+     ]
+    },
+    "ε": {
+     "clase": "identidad",
+     "iguales": [
+      "AA"
+     ]
+    },
+    "BA": {
+     "clase": "escribe",
+     "iguales": [
+      "ABA",
+      "BBA"
+     ]
+    }
+   },
+   "monoide_igual_al_real": true,
+   "elementos_aprendidos": 4,
+   "elementos_reales_visibles": 4
+  },
+  "visible (control)": {
+   "esperado": "la observación ya lo dice; el reactivo debe acertar",
+   "curva": [
+    {
+     "T": 2,
+     "estados": 1,
+     "unica": true,
+     "unidad": 0.8333834134615384,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.8333834134615384,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 4,
+     "estados": 2,
+     "unica": false,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 2218,
+     "decidio": 3328
+    },
+    {
+     "T": 8,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 16,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 32,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 64,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 128,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 256,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 512,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 1024,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    },
+    {
+     "T": 1538,
+     "estados": 2,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 0.8333834134615384,
+     "lesion": 0.6666165865384616,
+     "sin_ruta": 0,
+     "decidio": 3328
+    }
+   ],
+   "estados": 2,
+   "maquina": {
+    "0,A": [
+     1,
+     1
+    ],
+    "0,B": [
+     0,
+     0
+    ],
+    "1,A": [
+     0,
+     0
+    ],
+    "1,B": [
+     0,
+     0
+    ]
+   },
+   "testigo": "A",
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": true
+    },
+    {
+     "k": 15,
+     "verdad_B": 0,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": true
+    }
+   ],
+   "palabras_aprendidas": {
+    "A": {
+     "clase": "permuta",
+     "iguales": [
+      "AAA"
+     ]
+    },
+    "B": {
+     "clase": "escribe",
+     "iguales": [
+      "AB",
+      "BB",
+      "AAB",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBB"
+     ]
+    },
+    "ε": {
+     "clase": "identidad",
+     "iguales": [
+      "AA"
+     ]
+    },
+    "BA": {
+     "clase": "escribe",
+     "iguales": [
+      "ABA",
+      "BBA"
+     ]
+    }
+   },
+   "monoide_igual_al_real": true,
+   "elementos_aprendidos": 4,
+   "elementos_reales_visibles": 4
+  },
+  "bit inerte (control)": {
+   "esperado": "la distinción no hace falta; no debe inventarse",
+   "curva": [
+    {
+     "T": 2,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 0.75,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 4,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 8,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 16,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 32,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 64,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 128,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 256,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 512,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 1024,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    },
+    {
+     "T": 1538,
+     "estados": 1,
+     "unica": true,
+     "unidad": 1.0,
+     "reactivo": 1.0,
+     "solo_letra": 1.0,
+     "lesion": 1.0,
+     "sin_ruta": 0,
+     "decidio": 0
+    }
+   ],
+   "estados": 1,
+   "maquina": {
+    "0,A": [
+     0,
+     1
+    ],
+    "0,B": [
+     0,
+     0
+    ]
+   },
+   "testigo": null,
+   "sondas": [
+    {
+     "k": 14,
+     "verdad_B": 0,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": true
+    },
+    {
+     "k": 15,
+     "verdad_B": 0,
+     "unidad_acierta_B": true,
+     "reactivo_acierta_todo": true
+    }
+   ],
+   "palabras_aprendidas": {
+    "ε": {
+     "clase": "escribe",
+     "iguales": [
+      "A",
+      "B",
+      "AA",
+      "AB",
+      "BA",
+      "BB",
+      "AAA",
+      "AAB",
+      "ABA",
+      "ABB",
+      "BAA",
+      "BAB",
+      "BBA",
+      "BBB"
+     ]
+    }
+   },
+   "monoide_igual_al_real": false,
+   "elementos_aprendidos": 1,
+   "elementos_reales_visibles": 4
+  }
+ },
+ "determinismo": {
+  "hash_1": "02fb74cb0843c2d5eacf9df0c267775884780a0dcb5c80c7b52f6297809d6ab9",
+  "hash_2": "02fb74cb0843c2d5eacf9df0c267775884780a0dcb5c80c7b52f6297809d6ab9",
+  "identicas": true,
+  "random_importado": false
+ },
+ "sha256_codigo": "13c8870eb040918cd6a4d0500277699ab111b563c7a59b469f0db3e533da2dea",
+ "python": "3.14.4"
+}
