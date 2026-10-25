@@ -1,0 +1,292 @@
+{
+ "casos": [
+  {
+   "mundo": "latch-edge (aliasado)",
+   "meta": "reacción a B = 1",
+   "estados": 2,
+   "la_distincion_decide_la_meta": true,
+   "minimo_del_mundo": "BA",
+   "minimo_longitud": 2,
+   "unidad robusto": {
+    "palabra": "BA",
+    "longitud": 2,
+    "evaluadas": 6,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "unidad desde_q": {
+    "palabra": "A",
+    "longitud": 1,
+    "evaluadas": 2,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": false,
+    "detalle_por_estado": [
+     true,
+     false
+    ],
+    "es_minima": false
+   },
+   "lesionada robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "reactivo": {
+    "palabra": "A",
+    "longitud": 1,
+    "evaluadas": 2,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": false,
+    "detalle_por_estado": [
+     true,
+     false
+    ],
+    "es_minima": false
+   }
+  },
+  {
+   "mundo": "latch-edge (aliasado)",
+   "meta": "reacción a A = 1",
+   "estados": 2,
+   "la_distincion_decide_la_meta": false,
+   "minimo_del_mundo": "ε",
+   "minimo_longitud": 0,
+   "unidad robusto": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "unidad desde_q": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "lesionada robusto": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "reactivo": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   }
+  },
+  {
+   "mundo": "visible (control)",
+   "meta": "reacción a B = 1",
+   "estados": 2,
+   "la_distincion_decide_la_meta": false,
+   "minimo_del_mundo": null,
+   "minimo_longitud": null,
+   "unidad robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "unidad desde_q": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "lesionada robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "reactivo": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   }
+  },
+  {
+   "mundo": "visible (control)",
+   "meta": "reacción a A = 1",
+   "estados": 2,
+   "la_distincion_decide_la_meta": true,
+   "minimo_del_mundo": "B",
+   "minimo_longitud": 1,
+   "unidad robusto": {
+    "palabra": "B",
+    "longitud": 1,
+    "evaluadas": 3,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "unidad desde_q": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": false,
+    "detalle_por_estado": [
+     true,
+     false
+    ],
+    "es_minima": false
+   },
+   "lesionada robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "reactivo": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": false,
+    "detalle_por_estado": [
+     true,
+     false
+    ],
+    "es_minima": false
+   }
+  },
+  {
+   "mundo": "bit inerte (control)",
+   "meta": "reacción a B = 1",
+   "estados": 1,
+   "la_distincion_decide_la_meta": false,
+   "minimo_del_mundo": null,
+   "minimo_longitud": null,
+   "unidad robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "unidad desde_q": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "lesionada robusto": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   },
+   "reactivo": {
+    "palabra": null,
+    "declara_insatisfacible": true,
+    "evaluadas": 31
+   }
+  },
+  {
+   "mundo": "bit inerte (control)",
+   "meta": "reacción a A = 1",
+   "estados": 1,
+   "la_distincion_decide_la_meta": false,
+   "minimo_del_mundo": "ε",
+   "minimo_longitud": 0,
+   "unidad robusto": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "unidad desde_q": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "lesionada robusto": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   },
+   "reactivo": {
+    "palabra": "ε",
+    "longitud": 0,
+    "evaluadas": 1,
+    "cumple_desde_el_estado_actual": true,
+    "cumple_desde_los_dos_estados": true,
+    "detalle_por_estado": [
+     true,
+     true
+    ],
+    "es_minima": true
+   }
+  }
+ ],
+ "max_len": 4,
+ "puerta": {
+  "criterios": {
+   "aliasado: la unidad elige BA": true,
+   "aliasado: la palabra de la unidad cumple desde los dos estados": true,
+   "aliasado: y es la mínima del mundo": true,
+   "aliasado: la lesionada no cumple desde los dos estados": true,
+   "aliasado: el reactivo no cumple desde los dos estados": true,
+   "aliasado: la distinción decide la meta (actividad)": true,
+   "visible: el reactivo cumple desde el estado actual (el test discrimina)": true,
+   "bit inerte: las tres declaran insatisfacible": true
+  },
+  "veredicto": "PASS"
+ },
+ "determinismo": {
+  "hash_1": "83a5905e0c5b7c426f16cf88f08bef9b3664485f032553782bf72009ef0e5201",
+  "hash_2": "83a5905e0c5b7c426f16cf88f08bef9b3664485f032553782bf72009ef0e5201",
+  "identicas": true,
+  "random_importado": false
+ },
+ "sha256_codigo": "a437d5167a9869319c804505a2b5d5e3910f2ca7e01a4947d0c9125181adad8e",
+ "python": "3.14.4"
+}
