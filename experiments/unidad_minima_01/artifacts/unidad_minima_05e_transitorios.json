@@ -1,0 +1,240 @@
+{
+ "umbral_visitas": 2,
+ "n6_completo": {
+  "nmin2_admite menor": {
+   "sistemas": 557,
+   "estados_medios": 4.77,
+   "transitorios_medios": 1.133,
+   "pct_transitorios": 23.75,
+   "pct_sistemas_con_transitorio": 100.0
+  },
+  "nmin2_identificada": {
+   "sistemas": 5658,
+   "estados_medios": 2.759,
+   "transitorios_medios": 0.27,
+   "pct_transitorios": 9.77,
+   "pct_sistemas_con_transitorio": 23.08
+  },
+  "nmin2_mismo tamaño": {
+   "sistemas": 1124,
+   "estados_medios": 2.508,
+   "transitorios_medios": 0.981,
+   "pct_transitorios": 39.13,
+   "pct_sistemas_con_transitorio": 86.48
+  },
+  "nmin3_admite menor": {
+   "sistemas": 1903,
+   "estados_medios": 3.714,
+   "transitorios_medios": 1.857,
+   "pct_transitorios": 49.99,
+   "pct_sistemas_con_transitorio": 99.74
+  },
+  "nmin3_identificada": {
+   "sistemas": 7723,
+   "estados_medios": 3.464,
+   "transitorios_medios": 0.124,
+   "pct_transitorios": 3.57,
+   "pct_sistemas_con_transitorio": 10.68
+  },
+  "nmin3_mismo tamaño": {
+   "sistemas": 2207,
+   "estados_medios": 3.473,
+   "transitorios_medios": 0.847,
+   "pct_transitorios": 24.38,
+   "pct_sistemas_con_transitorio": 49.75
+  },
+  "nmin4_admite menor": {
+   "sistemas": 4203,
+   "estados_medios": 4.409,
+   "transitorios_medios": 2.348,
+   "pct_transitorios": 53.25,
+   "pct_sistemas_con_transitorio": 100.0
+  },
+  "nmin4_identificada": {
+   "sistemas": 11130,
+   "estados_medios": 4.34,
+   "transitorios_medios": 0.076,
+   "pct_transitorios": 1.75,
+   "pct_sistemas_con_transitorio": 6.96
+  },
+  "nmin4_mismo tamaño": {
+   "sistemas": 4166,
+   "estados_medios": 4.378,
+   "transitorios_medios": 0.44,
+   "pct_transitorios": 10.06,
+   "pct_sistemas_con_transitorio": 27.82
+  },
+  "nmin5_admite menor": {
+   "sistemas": 6279,
+   "estados_medios": 5.202,
+   "transitorios_medios": 2.643,
+   "pct_transitorios": 50.81,
+   "pct_sistemas_con_transitorio": 99.47
+  },
+  "nmin5_identificada": {
+   "sistemas": 13326,
+   "estados_medios": 5.181,
+   "transitorios_medios": 0.041,
+   "pct_transitorios": 0.79,
+   "pct_sistemas_con_transitorio": 4.01
+  },
+  "nmin5_mismo tamaño": {
+   "sistemas": 6603,
+   "estados_medios": 5.187,
+   "transitorios_medios": 0.199,
+   "pct_transitorios": 3.84,
+   "pct_sistemas_con_transitorio": 15.98
+  },
+  "nmin6_admite menor": {
+   "sistemas": 5251,
+   "estados_medios": 6.0,
+   "transitorios_medios": 2.796,
+   "pct_transitorios": 46.6,
+   "pct_sistemas_con_transitorio": 99.31
+  },
+  "nmin6_identificada": {
+   "sistemas": 10215,
+   "estados_medios": 6.0,
+   "transitorios_medios": 0.02,
+   "pct_transitorios": 0.33,
+   "pct_sistemas_con_transitorio": 1.97
+  },
+  "nmin6_mismo tamaño": {
+   "sistemas": 6016,
+   "estados_medios": 6.0,
+   "transitorios_medios": 0.11,
+   "pct_transitorios": 1.83,
+   "pct_sistemas_con_transitorio": 9.13
+  }
+ },
+ "n8_prefijo_canónico": {
+  "nmin2_identificada": {
+   "sistemas": 519,
+   "estados_medios": 2.578,
+   "transitorios_medios": 0.102,
+   "pct_transitorios": 3.96,
+   "pct_sistemas_con_transitorio": 9.06
+  },
+  "nmin2_mismo tamaño": {
+   "sistemas": 43,
+   "estados_medios": 3.047,
+   "transitorios_medios": 0.674,
+   "pct_transitorios": 22.14,
+   "pct_sistemas_con_transitorio": 51.16
+  },
+  "nmin3_identificada": {
+   "sistemas": 628,
+   "estados_medios": 3.435,
+   "transitorios_medios": 0.011,
+   "pct_transitorios": 0.32,
+   "pct_sistemas_con_transitorio": 1.11
+  },
+  "nmin3_mismo tamaño": {
+   "sistemas": 87,
+   "estados_medios": 3.598,
+   "transitorios_medios": 0.713,
+   "pct_transitorios": 19.81,
+   "pct_sistemas_con_transitorio": 37.93
+  },
+  "nmin4_admite menor": {
+   "sistemas": 36,
+   "estados_medios": 4.25,
+   "transitorios_medios": 2.833,
+   "pct_transitorios": 66.67,
+   "pct_sistemas_con_transitorio": 100.0
+  },
+  "nmin4_identificada": {
+   "sistemas": 838,
+   "estados_medios": 4.422,
+   "transitorios_medios": 0.0,
+   "pct_transitorios": 0.0,
+   "pct_sistemas_con_transitorio": 0.0
+  },
+  "nmin4_mismo tamaño": {
+   "sistemas": 109,
+   "estados_medios": 4.587,
+   "transitorios_medios": 0.284,
+   "pct_transitorios": 6.2,
+   "pct_sistemas_con_transitorio": 12.84
+  },
+  "nmin5_admite menor": {
+   "sistemas": 66,
+   "estados_medios": 5.242,
+   "transitorios_medios": 3.652,
+   "pct_transitorios": 69.65,
+   "pct_sistemas_con_transitorio": 100.0
+  },
+  "nmin5_identificada": {
+   "sistemas": 843,
+   "estados_medios": 5.32,
+   "transitorios_medios": 0.002,
+   "pct_transitorios": 0.04,
+   "pct_sistemas_con_transitorio": 0.24
+  },
+  "nmin5_mismo tamaño": {
+   "sistemas": 189,
+   "estados_medios": 5.407,
+   "transitorios_medios": 0.042,
+   "pct_transitorios": 0.78,
+   "pct_sistemas_con_transitorio": 3.17
+  },
+  "nmin6_admite menor": {
+   "sistemas": 75,
+   "estados_medios": 6.147,
+   "transitorios_medios": 4.32,
+   "pct_transitorios": 70.28,
+   "pct_sistemas_con_transitorio": 97.33
+  },
+  "nmin6_identificada": {
+   "sistemas": 785,
+   "estados_medios": 6.236,
+   "transitorios_medios": 0.001,
+   "pct_transitorios": 0.02,
+   "pct_sistemas_con_transitorio": 0.13
+  },
+  "nmin6_mismo tamaño": {
+   "sistemas": 205,
+   "estados_medios": 6.337,
+   "transitorios_medios": 0.029,
+   "pct_transitorios": 0.46,
+   "pct_sistemas_con_transitorio": 1.95
+  },
+  "nmin7_admite menor": {
+   "sistemas": 43,
+   "estados_medios": 7.093,
+   "transitorios_medios": 4.884,
+   "pct_transitorios": 68.85,
+   "pct_sistemas_con_transitorio": 100.0
+  },
+  "nmin7_identificada": {
+   "sistemas": 528,
+   "estados_medios": 7.163,
+   "transitorios_medios": 0.004,
+   "pct_transitorios": 0.05,
+   "pct_sistemas_con_transitorio": 0.38
+  },
+  "nmin7_mismo tamaño": {
+   "sistemas": 162,
+   "estados_medios": 7.148,
+   "transitorios_medios": 0.0,
+   "pct_transitorios": 0.0,
+   "pct_sistemas_con_transitorio": 0.0
+  },
+  "nmin8_identificada": {
+   "sistemas": 163,
+   "estados_medios": 8.0,
+   "transitorios_medios": 0.0,
+   "pct_transitorios": 0.0,
+   "pct_sistemas_con_transitorio": 0.0
+  },
+  "nmin8_mismo tamaño": {
+   "sistemas": 52,
+   "estados_medios": 8.0,
+   "transitorios_medios": 0.0,
+   "pct_transitorios": 0.0,
+   "pct_sistemas_con_transitorio": 0.0
+  }
+ },
+ "sha256_codigo": "665c99aa30726b5620198c845b9a5ffa5d7285d9def171580910adc0d99a2a0b",
+ "python": "3.14.4"
+}

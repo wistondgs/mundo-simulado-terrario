@@ -13,7 +13,7 @@ Si la respuesta es sí con el mecanismo que ya existe, **no se escribe ningún a
 ## 0 · Quince minutos antes de empezar (y no más)
 
 1. En `ROADMAP_UNIDAD_MINIMA_01.md`, **en el sitio y con fecha**: reemplazar el párrafo «Entorno» de §1 por la receta real (`/usr/bin/python3` = 3.14.4; el `.venv` apunta a un 3.12 que ya no existe; numpy sólo con `PYTHONPATH=.deps-level19 python3`); y bajo el ítem 0.2 añadir el desenlace (FAIL del enunciado, PASS de la reparación) con puntero a `CIERRE_FASE_0.md`. No reescribir la predicción.
-2. Un solo commit con la Fase 0 completa más esas correcciones. Wis aceptó la revisión del 25-oct; ese commit está autorizado. Después, **ningún commit más hasta cerrar la fase**.
+2. Un solo commit con la Fase 0 completa más esas correcciones **y los tres ficheros nuevos del 25-oct: `ERRORES_Y_GUARDAS.md`, `PLANTILLA_FICHA_APERTURA.md` y `.claude/skills/apertura/SKILL.md`**. Wis aceptó la revisión del 25-oct; ese commit está autorizado. Después, **ningún commit más hasta cerrar la fase**.
 3. No tocar los 14 worktrees `prunable` (están movidos a `~/Aplicaciones/`, no perdidos); el `repair` lo decide Wis. No arreglar el gate de cartografía: no hace falta en esta fase.
 
 ---
@@ -49,6 +49,8 @@ Veredicto esperado: `MULTIPLE_NEAR_SOLUTIONS`. Residuo propio probable: la vida 
 ---
 
 ## 3 · Diseño · lo que la ficha de apertura tiene que fijar
+
+*Añadido el 25-oct, por decisión de Wis («no repetir los mismos errores una y otra vez»):* la ficha se escribe sobre `PLANTILLA_FICHA_APERTURA.md` (13 puntos; el **punto 0** son las guardas de `ERRORES_Y_GUARDAS.md` que aplican y cómo se cumple cada una), con el skill `/apertura` si la sesión lo ve, o leyendo los dos ficheros si no. Orden: gate → ficha → mutantes → enmienda prospectiva → corrida; **la ficha no es final hasta pasar sus mutantes**. Para esta fase aplican al menos E-01, E-03, E-05, E-06, E-07, E-08, E-09, E-12.
 
 ### 3.1 El banco (antes que el umbral)
 
@@ -115,7 +117,7 @@ No refactorizar 01–04. No construir infraestructura más allá del JSONL reanu
 2. `APERTURA_ESCALADO_SIN_AZAR.md` con la puerta numérica, el falsador, los mutantes y su resultado, y las enmiendas prospectivas si las hay.
 3. `unidad_minima_05_banco.py` (la campaña) y, si §3.7 se activa, `unidad_minima_06_<mecanismo>.py`.
 4. `artifacts/unidad_minima_05_banco.jsonl` (una línea por sistema, reanudable) y `artifacts/unidad_minima_05_banco.json` (resumen por n, curvas, clasificación de los no identificados, mutantes).
-5. `CIERRE_FASE_1.md`: tabla por n, las curvas en texto, qué se integró de la literatura frente a qué se escribió, los hallazgos laterales, y **una sola pregunta para Wis** al final.
+5. `CIERRE_FASE_1.md`: tabla por n, las curvas en texto, qué se integró de la literatura frente a qué se escribió, los hallazgos laterales, **qué guardas del registro saltaron y qué entradas nuevas se añaden a `ERRORES_Y_GUARDAS.md` (cada una con su guarda; sin guarda quedan ABIERTAS)**, qué parte de la sesión fue experimento y qué parte custodia, y **una sola pregunta para Wis** al final.
 6. Un commit, al cerrar, con todo lo anterior, sólo cuando Wis lo autorice.
 
 **Regla de cierre, recordada:** si la puerta da FAIL, una reparación declarada antes de correrla y una segunda medición. Dos FAIL cierran el programa y se informa sin adornos. Un FAIL bien medido vale más que un PASS con el criterio aflojado.

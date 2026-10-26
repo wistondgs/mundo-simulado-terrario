@@ -40,7 +40,7 @@ Estamos criando una **unidad computacional elemental**, determinista, que adquie
 
 1. **No inventar lo inventado.** PRIOR-ART GATE antes de construir, con veredicto (`SOLVED · PARTIALLY_SOLVED · MULTIPLE_NEAR_SOLUTIONS · OPEN_UNDER_CURRENT_SEARCH · INCOMPLETE_GATE`) y dos columnas: *qué dice la literatura* ≠ *qué tenemos comprobado*. Fuentes bloqueadas desde aquí: ScienceDirect, ACM, AMS, OUP, Springer, DBLP (anti-bot). Funcionan: arXiv (API, abs, pdf), Crossref API, GitHub API, bioRxiv/PLOS XML. Para un PDF bloqueado, pedir a Wis que lo baje.
 2. **Nivel de evidencia en cada afirmación**: LITERATURE-CLAIM → SOURCE-VERIFIED → THEOREM-CHECKED → APPLICABILITY-CHECKED → COMPUTATIONALLY-REPRODUCED → EMPIRICALLY-REPRODUCED → INDEPENDENTLY-REPLICATED → PROJECT-VERIFIED. Leer un resumen no da SOURCE-VERIFIED para el contenido de un teorema.
-3. **Ficha de apertura antes de escribir código** (12 puntos; veredictos `OPEN · OPEN_AS_REPLICATION · REVISE · DESCEND_OR_REFORMULATE · BLOCKED_* · CLOSED_BY_THEORY`). Sólo `OPEN`/`OPEN_AS_REPLICATION` autorizan código.
+3. **Ficha de apertura antes de escribir código** (veredictos `OPEN · OPEN_AS_REPLICATION · REVISE · DESCEND_OR_REFORMULATE · BLOCKED_* · CLOSED_BY_THEORY`). Sólo `OPEN`/`OPEN_AS_REPLICATION` autorizan código. *Ampliado el 25-oct por decisión de Wis:* la ficha se escribe sobre `PLANTILLA_FICHA_APERTURA.md` (13 puntos) y su **punto 0** son las guardas de `ERRORES_Y_GUARDAS.md` que aplican y cómo se cumplen; **la ficha no es final hasta pasar sus mutantes**; cada cierre de fase añade al registro los errores nuevos con su guarda (skill `/apertura`).
 4. **Determinismo.** Prohibido `random` y cualquier semilla; dos corridas, un hash. Si se integra una biblioteca con aleatoriedad interna (p. ej. un solucionador SAT), se fija su semilla y versión y se **declara** como disposición suministrada.
 5. **Tres capas declaradas** en cada experimento: *programado* (lo que escribimos), *disposición* (desempates, umbrales, políticas), *adquirido* (lo que la unidad construyó). Chollet cobra lo que no se declara.
 6. **Contador de actividad por mecanismo.** Todo mecanismo trae el conteo de cuántas veces su componente distintivo se ejecutó. Contador en 0 ⇒ el experimento no probó lo que dice probar (resultado nulo por inactividad, no negativo).
@@ -57,14 +57,15 @@ Estamos criando una **unidad computacional elemental**, determinista, que adquie
 ## 3 · El ciclo de cada ítem
 
 ```
-PRIOR-ART GATE  →  ficha de apertura  →  construir (sólo el residuo)  →  medir con controles y banco
-     ↓                                                                          ↓
-  integrar lo que existe                                       veredicto PASS / FAIL / NULO-POR-INACTIVIDAD
-                                                                                ↓
-                                                  custodia (JSON + hash) · informe sólo al cerrar la fase
+PRIOR-ART GATE  →  ficha de apertura (punto 0: guardas)  →  MUTANTES del gate  →  construir (sólo el residuo)  →  medir con controles y banco
+     ↓                                                            ↓                                                      ↓
+  integrar lo que existe                          enmienda prospectiva si refutan un criterio          veredicto PASS / FAIL / NULO-POR-INACTIVIDAD
+                                                                                                                         ↓
+                                                        custodia (JSON + hash) · informe sólo al cerrar la fase · el cierre alimenta ERRORES_Y_GUARDAS.md
 ```
+*Ciclo corregido el 25-oct: los mutantes van antes de construir y la ficha no es final hasta pasarlos (registro E-05).*
 
-Entregable por ítem: `PRIOR_ART_<ítem>.md`, `APERTURA_<ítem>.md`, código, `artifacts/<ítem>.json`, y al cierre de fase un `CIERRE_FASE_<n>.md` con los números y las predicciones escritas antes de correr.
+Entregable por ítem: `PRIOR_ART_<ítem>.md`, `APERTURA_<ítem>.md` (sobre la plantilla), código, `artifacts/<ítem>.json`, y al cierre de fase un `CIERRE_FASE_<n>.md` con los números, las predicciones escritas antes de correr, las guardas que saltaron y las entradas nuevas del registro.
 
 ---
 
