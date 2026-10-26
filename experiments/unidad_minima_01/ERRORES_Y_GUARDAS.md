@@ -140,7 +140,84 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Guarda** `[MECÁNICA]`: toda fila guarda **el objeto adquirido serializado** —la máquina como lista de `(estado, letra) → (estado, salida)` más el estado final—, no sólo los estadísticos. Son decenas de bytes frente a horas de re-cómputo. Regla corta: **si re-derivar cuesta más que guardar, se guarda.**
 **Aplicada en:** obligatoria en las filas de 1-bis (`APERTURA_FUSION_POLINOMICA.md` §12). En la Fase 1 queda **ABIERTA**: las filas ya grabadas no la tienen y no se van a repetir 11 h de cómputo para añadirla.
 
+## E-22 · Criterio estadístico con el umbral por debajo del ruido de muestreo
+**26-oct-2026, Fase 1 (error de Opus).** Implementé el criterio de parada de E-18 exigiendo que dos bloques consecutivos difirieran **menos de 3 puntos fijos** en la identificación por `n_min`. Con 60–140 sistemas por estrato y por bloque, el error estándar es de 3,7 a 10,5 puntos, así que el |diferencia| esperado **sólo por azar** va de **5,8 a 16,8 puntos en todos los estratos**. El criterio no podía cumplirse nunca: la corrida habría seguido hasta agotar el banco diciendo «todavía aprendo». Y cuando lo corregí a z < 2, un mutante de mismo-tramo dio z = 1,91 contra umbral 2,0 — había reintroducido el mismo error en versión suave, porque el criterio compara ~10 estratos y clases **a la vez** y el máximo de 10 z's supera 2 por azar a menudo. Dos correcciones al mismo criterio en una sesión.
+**Por qué.** El umbral se eligió en la unidad del resultado (puntos porcentuales) sin compararlo con la **dispersión** del resultado. Y es E-15 otra vez: ningún mutante probaba el criterio de parada.
+**Severidad:** media (no contamina medidas; habría gastado el banco entero de n=8 por nada).
+**Firma (cómo se detecta):** el criterio nunca se cumple aunque los datos ya no se muevan; o el umbral en puntos es menor que el error estándar del estrato más chico; o se compara más de un estrato sin ajustar por el número de comparaciones.
+**Guarda** `[MECÁNICA]`: todo umbral sobre una proporción medida se declara como **alfa**, no como puntos, y se compara contra el ruido de los dos bloques (`z = |p₁−p₂| / √(EE₁²+EE₂²)`), con el umbral ajustado por el **número de comparaciones** que de hecho se hacen. Y el criterio pasa **dos mutantes obligatorios**: dos mitades del mismo tramo deben dar **estable**, y dos tramos de distinta distribución deben dar **inestable**.
+**Aplicada en:** `unidad_minima_05b_paralelo.py` (`_ee`, `_estable`, `ALFA_E18`), con sus cuatro mutantes corridos.
+
+## E-23 · Separar estratos por posición en el fichero en vez de por identidad
+**26-oct-2026, Fase 1 (error de Opus).** Para separar los dos estratos de n=8 —prefijo canónico y tramo esparcido— corté la lista de filas en la posición 6566. Mal por dos motivos a la vez: 6566 era el total de filas **incluyendo** los mundos inertes, y en orden esparcido los índices altos **vienen entremezclados** con los bajos, así que el orden del fichero ya no es el orden del recorrido. Resultado: «tramo esparcido: 0 sistemas» y un estrato de prefijo contaminado. El corte correcto es por **rango** (`idx // k`).
+**Por qué.** Se usó una propiedad del fichero (el orden de escritura) para recuperar una propiedad del experimento (a qué tramo pertenece el sistema), justo después de haber cambiado deliberadamente el orden de escritura.
+**Severidad:** alta si no se detecta (habría informado los dos estratos mezclados, que es exactamente lo que el paquete prohibía).
+**Firma (cómo se detecta):** un estrato sale vacío o con un tamaño que no cuadra con lo que el corredor informó; o la suma de los estratos no da el total.
+**Guarda** `[MECÁNICA]`: la pertenencia a un estrato se deriva de un **campo de la fila** (`idx`, `n`, o un campo explícito), nunca de la posición en el fichero ni del orden de llegada. Y se comprueba con una aserción: los estratos **suman** el total y ninguno está vacío si el corredor dijo que lo llenó.
+**Aplicada en:** `unidad_minima_05e_transitorios.py` (corte por `idx // k8`) y en los análisis de estructura y de escala.
+
+## E-24 · Generalizar una invariancia más allá del rango medido
+**26-oct-2026, Fase 1 (error de Opus).** Con la primera variante de cobertura —una letra más de vida, factor 2,5— concluí y escribí que la fracción no determinada es «**invariante a la longitud de la vida**». Luego n=8, que vive **71 veces** la vida de n=3, mostró 20 puntos más de identificación a igual `n_min`, y tuve que dudar de mi propia conclusión y volver a medir a factor 5. (La conclusión se sostuvo: a factor 5 no se mueve ni un decimal. Pero eso no la salva: la había afirmado sin derecho.)
+**Por qué.** Una invariancia medida en un factor 2,5 se enunció como invariancia sin rango. El enunciado no llevaba el rango en el que se midió.
+**Severidad:** media (la conclusión resultó cierta; el modo de afirmarla era injustificado y pudo haber ido al cierre como ley).
+**Firma (cómo se detecta):** una afirmación de invariancia, monotonía o ausencia de efecto **sin el rango** del parámetro en que se midió; o un resultado posterior en otro punto del rango que la contradice.
+**Guarda** `[PREGUNTA → punto 11, puerta]`: toda afirmación de invariancia o de ausencia de efecto se escribe **con el rango medido** («invariante entre 258 y 642 pasos», no «invariante a la longitud»), y el cierre no la extiende fuera de ese rango sin medirlo. Si el rango es menor que un orden de magnitud, se dice.
+**Aplicada en:** `APERTURA_ESCALADO_SIN_AZAR.md`, segunda variante de cobertura, con su rango declarado.
+
+## E-25 · Umbral absoluto para comparar cosas de escala distinta
+**26-oct-2026, Fase 1 (error de Opus).** Medí la transitoriedad de un estado como «visitado **≤ 2 veces** en la vida» y comparé ese porcentaje entre n=3 (vida de 258 pasos) y n=8 (vida de 18 434). Con 71 veces más vida, el mismo umbral absoluto mide otra cosa: en n=8 un estado visitado dos veces es 1 500 veces más raro que en n=3. La diferencia aparente (0,6 % frente a 17,6 %) era en parte artefacto del umbral.
+**Por qué.** Se comparó una cantidad acotada por un número fijo entre poblaciones cuya escala difiere en dos órdenes de magnitud.
+**Severidad:** baja (lo detecté antes de informarlo, y con umbral relativo el efecto resultó **más** nítido, no menos).
+**Firma (cómo se detecta):** un umbral en unidades absolutas aplicado a series cuya longitud, duración o tamaño difiere en más de un factor 2; o un porcentaje que cambia de orden de magnitud justo donde cambia la escala.
+**Guarda** `[MECÁNICA]`: todo umbral que se compara entre poblaciones de escala distinta se expresa **relativo a la escala de cada población** (fracción de la media, cuantil, tasa por paso), y se informa junto al absoluto para que se vea cuánto aporta el umbral.
+**Aplicada en:** la medida de transitoriedad relativa (visitas < 10 % de la media del propio sistema).
+
+## E-26 · Un patrón de `pkill` que coincide con el propio proceso
+**26-oct-2026, Fase 1 (error de Opus).** Para matar un análisis usé `pkill -f 05e_transitorios`. El patrón coincidió también con **mi propia shell**, cuya línea de órdenes contenía el nombre del script, y el comando se mató a sí mismo antes de ejecutar la edición que venía después. La edición se perdió en silencio y sólo lo noté porque comprobé que había llegado.
+**Por qué.** `pkill -f` compara contra la línea de órdenes completa, y la línea de órdenes del propio shell contiene el patrón.
+**Severidad:** baja (coste: una edición perdida y un turno).
+**Firma (cómo se detecta):** un comando con `pkill -f` devuelve un código de salida raro (143/144) y lo que venía después del `;` no se ejecutó.
+**Guarda** `[MECÁNICA]`: matar por **PID** obtenido antes (`pgrep` filtrando el propio `$$`), no por patrón; y nunca poner un `pkill -f` seguido de más trabajo en el mismo comando. Si se usa patrón, comprobar después que el trabajo posterior llegó a ejecutarse.
+
+## E-27 · Muestra 1-de-k cuyo paso comparte factores con la estructura del espacio
+**26-oct-2026, Fase 1 (error de Opus). El error más caro de la fase.** El banco se indexa como `2n` dígitos en base `n`, y la submuestra se tomó como `range(0, total, k)` con `k` elegido por ser un número redondo del presupuesto de reloj: **k = 20 000** para n=6 y **k = 10¹⁰** para n=8. Esos pasos comparten factores con el espacio, así que la muestra no recorre el banco: recorre un **retículo** con dígitos bajos clavados.
+
+Demostrado de las dos formas, aritmética y empírica:
+- **n=8**: `k = 10¹⁰ = 2¹⁰·5¹⁰` y `2¹⁰ = 1024 = 2·8³`, así que **todo índice es múltiplo de 8³** y los tres últimos dígitos base-8 son 0. Eso clava `B[5] = B[6] = B[7] = 0` en los **28 148** sistemas, y deja `B[4]` con 4 de 8 valores. **4 de 16 entradas de las tablas restringidas.**
+- **n=6**: `20 000 mod 6 = 2`, así que el último dígito base-6 es `2r mod 6` y `B[5]` sólo toma `{0, 2, 4}`. **1 de 12 entradas restringida**, con la mitad de sus valores.
+- **n=3 y n=4**: bancos **completos**, sin muestreo. Limpios.
+
+Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundos de n=8 colapsan hacia el estado 0 y son estructuralmente más simples. Eso explica las dos anomalías que no sabía explicar — que n=8 identificara **20 puntos por encima** de n=6 a igual `n_min`, y que su tasa fuera **plana** en `n_min` (76–82 % de `n_min`=2 a 8) en vez de decreciente.
+**Por qué.** `k` se eligió por el reloj (cuántos sistemas caben en el presupuesto) y nadie comprobó su relación aritmética con la base del espacio. La norma de la casa dice «enumeración canónica, no muestreo aleatorio», y yo cumplí la letra —el muestreo es determinista— rompiendo el motivo: ser representativo.
+**Severidad:** **alta.** Invalida n=8 como estimación de su banco y pone un asterisco en n=6. No toca n=3 ni n=4, que son completos, ni la ley de reversibilidad, que se sostiene sobre 1 200 sistemas de banco completo.
+**Firma (cómo se detecta):** una estratificación sale **plana** donde debería tener gradiente; o un n se sale de una tendencia que los demás respetan; o `mcd(k, base)` > 1.
+**Guarda** `[MECÁNICA]`: toda submuestra de un espacio indexado por dígitos comprueba, **antes de correr**, que cada posición de dígito recorre **todos** sus valores a lo largo de la muestra (una aserción de 10 líneas sobre mil rangos repartidos por todo el conjunto, no sobre los primeros mil: los dígitos altos salen fijos por efecto de prefijo y eso es un falso positivo). Si alguna posición queda restringida, se cambia el paso. Preferible: tomar la muestra por **inversión de bits del rango** sobre el conjunto entero en vez de por paso multiplicativo.
+**Aplicada en:** pendiente — obligatoria antes de cualquier submuestra de 1-bis.
+
 ---
+
+## E-28 · El supervisor relayó a Wis una interpretación del ejecutor sin reproducirla
+**25/26-oct-2026 (error de Fable).** Opus analizó los 24 mundos de n=4 con futuro < 1 y escribió que la palabra separadora tiene longitud 7 y «la vida se quedó una letra corta». Yo se lo transmití a Wis como hecho. Reproducido el 26-oct con L = 7: **sólo 6 de los 24 se identifican**. Opus ya había retractado la lectura en su ficha (E-24); yo no la había verificado antes de repetirla.
+**Por qué.** Una interpretación causal plausible, con un número al lado, se tomó por medida. Es E-12 en el rol de supervisor.
+**Severidad:** baja en medida (nada entró a un entregable), media en confianza: Wis recibió una afirmación falsa con tono de hecho.
+**Firma (cómo se detecta):** una frase causal del ejecutor («se quedó corta», «es por X») reaparece en un mensaje del supervisor sin un número propio ni la marca «sin verificar».
+**Guarda** `[PREGUNTA → cada revisión]`: el supervisor no transmite a Wis una interpretación causal del ejecutor sin reproducirla con un cómputo propio o sin marcarla explícitamente como «lectura de Opus, no verificada». Lo que sí puede transmitir sin reproducir son cifras con su comando (E-12).
+**Lección que vale más que el error:** una palabra separadora presente en la vida **no es experiencia** si no se ejecuta desde el estado que discrimina. Es la razón exacta de la clase recurrente y de la Fase 2.
+
+## E-29 · Salida por tubería que almacena, y un tope de reloj que la borra
+**26-oct-2026, n=8 limpio (error de Opus).** Lancé el paso de mutantes como `python3 … | tail -30` con un `timeout 2400`. El paso tardaba más de 40 minutos, el `timeout` lo mató, y **`tail` no había entregado una sola línea**: la salida de 40 minutos de cómputo se perdió entera y no supe ni por dónde iba.
+**Por qué.** Dos cosas a la vez: `tail` —como `head`, `sort` o `grep` sin `--line-buffered`— no entrega nada hasta que el proceso termina, y un proceso que va a morir por tope **no termina**; y además la función escribía a un `StringIO` que sólo se volcaba al final. Y de fondo: puse el tope sin estimar el coste, cuando un mutante que ejecuta el aprendiz completo cuesta una vida entera y a n=8 una vida son 18 434 pasos.
+**Severidad:** baja en medida, media en coste (40 min de máquina y un turno).
+**Firma (cómo se detecta):** un proceso largo cuya salida está vacía mientras corre; o un código de salida 143/124 con cero líneas útiles.
+**Guarda** `[MECÁNICA]`: todo proceso que pueda durar más que su tope escribe **directo y con `flush()`** —`python3 -u`, `out.flush()` tras cada hito— a un fichero, y **nunca** a través de `tail`, `head` o `sort`. Antes de poner un tope se estima el coste del paso contra la longitud de la vida.
+**Aplicada en:** `unidad_minima_07_n8_limpio.py`: salida a `sys.stdout` con flush por hito, lanzado con `python3 -u`, y los mutantes partidos en caros (capacidad, 20 mundos) y baratos (instrumento, 200), con el motivo del tamaño declarado en el código.
+
+## E-30 · Verificar sobre una lista vacía y leer el «ninguno» como confirmación
+**26-oct-2026, n=8 limpio (error de Opus).** Para probar que añadir la máquina serializada a `un_sistema` no cambiaba ninguna cifra, comparé «150 filas de n=4»… tomadas de las **primeras 200 líneas del JSONL, que son todas de n=3**. El filtro quedó vacío, el bucle no se ejecutó ni una vez, y el mensaje «campos viejos que difieren: NINGUNO (150 sistemas de n=4)» era una **cadena escrita por mí**, no un resultado. Un falso verde perfecto. Lo delató un `NameError` posterior: la variable del bucle no existía porque el bucle nunca corrió.
+**Por qué.** El mensaje de éxito llevaba el tamaño de muestra **escrito a mano** en vez de contado, así que era incapaz de delatar una muestra vacía. Es el patrón de la fixtura vacía que el registro ya conoce en otra forma, aplicado a una verificación en vez de a un test.
+**Severidad:** alta como clase (una verificación que no puede fallar no verifica), baja en consecuencia aquí porque se detectó y se repitió bien: 150 sistemas de n=4 comparados de verdad, ningún campo viejo distinto.
+**Firma (cómo se detecta):** un informe de verificación cuyo tamaño de muestra es una constante del texto y no una variable contada; o una comprobación que pasa en cero iteraciones.
+**Guarda** `[MECÁNICA]`: toda verificación **cuenta** lo que comparó, lo imprime **desde la variable**, y **asevera que el recuento es mayor que cero** antes de declarar nada. Un «ninguno» sin su recuento al lado no es un resultado.
 
 ## Ejes no vigilados (agujeros declarados)
 
