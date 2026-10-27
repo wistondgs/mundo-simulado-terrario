@@ -1,0 +1,14 @@
+[Unit]
+Description=Terrario · n=8 muestra limpia · punto de entrada idempotente
+Documentation=file:///home/wis/Aplicaciones/worktrees/unidad-minima-01/experiments/unidad_minima_01/APERTURA_N8_MUESTRA_LIMPIA.md
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/wis/Aplicaciones/worktrees/unidad-minima-01/experiments/unidad_minima_01
+ExecStart=/usr/bin/python3 -u orquestar_n8.py
+# Ni Restart ni reintentos aquí: el temporizador vuelve a dispararlo y el cerrojo por PID
+# hace que un disparo de más no haga nada. Un corte de luz cuesta sólo el rato entre el
+# corte y el arranque (E-31).
+Nice=5
+StandardOutput=append:/home/wis/Aplicaciones/worktrees/unidad-minima-01/experiments/unidad_minima_01/artifacts/pruebas/orquestador.log
+StandardError=append:/home/wis/Aplicaciones/worktrees/unidad-minima-01/experiments/unidad_minima_01/artifacts/pruebas/orquestador.log

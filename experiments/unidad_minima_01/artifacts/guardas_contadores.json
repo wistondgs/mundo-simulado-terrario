@@ -1,0 +1,22 @@
+{
+ "no_vacio": {
+  "consultada": 8,
+  "salto": 2,
+  "ultimo_salto": "2026-10-26T15:31:40"
+ },
+ "muestreo_verificado": {
+  "consultada": 4,
+  "salto": 2,
+  "ultimo_salto": "2026-10-26T15:31:40"
+ },
+ "estrato_de": {
+  "consultada": 4,
+  "salto": 2,
+  "ultimo_salto": "2026-10-26T15:31:40"
+ },
+ "matar_por_pid": {
+  "consultada": 8,
+  "salto": 2,
+  "ultimo_salto": "2026-10-26T15:31:40"
+ }
+}

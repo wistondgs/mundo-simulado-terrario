@@ -1,0 +1,57 @@
+{
+ "n": 6,
+ "L_corta": 8,
+ "L_larga": 10,
+ "vida_corta": 3586,
+ "vida_larga": 18434,
+ "por_estrato": 200,
+ "estratos": {
+  "2": {
+   "sistemas": 200,
+   "ident_corta": 75.0,
+   "ident_larga": 75.0,
+   "delta": 0.0,
+   "transit_corta": 18.59,
+   "transit_larga": 18.59,
+   "s_por_sistema": 0.0194
+  },
+  "3": {
+   "sistemas": 200,
+   "ident_corta": 64.0,
+   "ident_larga": 64.0,
+   "delta": 0.0,
+   "transit_corta": 14.52,
+   "transit_larga": 14.52,
+   "s_por_sistema": 0.0202
+  },
+  "4": {
+   "sistemas": 200,
+   "ident_corta": 65.0,
+   "ident_larga": 65.0,
+   "delta": 0.0,
+   "transit_corta": 15.26,
+   "transit_larga": 15.26,
+   "s_por_sistema": 0.0215
+  },
+  "5": {
+   "sistemas": 200,
+   "ident_corta": 44.5,
+   "ident_larga": 44.5,
+   "delta": 0.0,
+   "transit_corta": 16.67,
+   "transit_larga": 16.67,
+   "s_por_sistema": 0.0487
+  },
+  "6": {
+   "sistemas": 200,
+   "ident_corta": 46.0,
+   "ident_larga": 46.0,
+   "delta": 0.0,
+   "transit_corta": 14.58,
+   "transit_larga": 14.58,
+   "s_por_sistema": 0.7229
+  }
+ },
+ "sha256_codigo": "ecd78401861674b2ccdb1341ddc660e60c2ef523849770f04286825901a69152",
+ "python": "3.14.4"
+}

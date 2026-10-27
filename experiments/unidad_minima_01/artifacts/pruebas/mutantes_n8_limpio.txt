@@ -1,0 +1,8 @@
+
+# reintento del orquestador · 2026-10-26T20:13:59
+=== MUTANTES, antes de la corrida real ===
+  M-4 · paso limpio, 1000 muestras: LIMPIA
+  M-4 · paso limpio, 5000 muestras: LIMPIA
+  M-4 · paso limpio, 5000 muestras: LIMPIA
+  M-4 · el paso viejo 10^10 DEBE fallar la aserción: falla, bien ['A[0]', 'B[4]', 'B[5]', 'B[6]', 'B[7]']
+  M-4: OK

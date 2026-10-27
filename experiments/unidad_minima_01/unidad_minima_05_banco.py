@@ -280,7 +280,12 @@ def un_sistema(n, idx, life, futuro, con_identificabilidad, vida_invertida=False
              retrocedidos=u.c["pasos_repasados"], retroceso_max=u.c["repaso_max"],
              trabajo=u.c["pasos_avanzados"],
              futuro=hits / len(futuro), futuro_sin_ruta=nr, futuro_decidio=dec,
-             vida_len=len(vida), reloj_s=round(reloj, 6))
+             vida_len=len(vida), reloj_s=round(reloj, 6),
+             # E-21, 26-oct: la fila guarda el OBJETO adquirido, no sólo sus estadísticos.
+             # Adición pura: no entra en ningún cálculo anterior. Decenas de bytes frente a
+             # horas de re-cómputo. Las filas de la Fase 1 no lo tienen y no se repiten.
+             maquina=[[q, a, t[0], t[1]] for (q, a), t in sorted(u.trans.items())],
+             estado_final=u.q)
 
     # Clasificación obligatoria de los que no coinciden. REPARACIÓN ÚNICA del 2026-10-25,
     # declarada en la ficha antes de volver a medir: se decide por comparación de tamaños,

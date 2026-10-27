@@ -12,78 +12,93 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 ---
 
 ## E-01 · Afirmar el entorno sin ejecutar
+**Clase:** banco · **Veces que saltó:** 0 · *el entorno se afirmó sin ejecutar un comando*
 **25-oct-2026.** El plano §1 decía «`.venv` con Python 3.12, numpy y torch». Falso: el intérprete es 3.14.4 y ese `.venv` apunta a un 3.12 que ya no existe; sin numpy. Lo encontró el ejecutor al correr. Fuente: `CIERRE_FASE_0.md` §0.4.
 **Por qué.** Se infirió de un nombre de directorio (`lib/python3.12/site-packages/torch`) sin ejecutar nada.
 **Guarda** `[MECÁNICA]`: toda línea de entorno en plano, ficha o cierre lleva **el comando y su salida** (como `CIERRE_FASE_0.md` §0.4); los artefactos registran la versión exacta del intérprete (campo `python`). Una línea de entorno sin comando es inválida.
 **Aplicada en:** plano §1 (corregido en el sitio), artefactos 01–04.
 
 ## E-02 · Un cero comprado con una señal suministrada
+**Clase:** criterio · **Veces que saltó:** 0 · *el brazo medía una capacidad suministrada*
 **25-oct-2026.** En 0.2, el brazo «con traza y repaso» costaba 0 pasos de vida nueva porque **el experimentador** disparaba la relectura; el plano lo daba por capacidad de la unidad. Fuente: `APERTURA_REGENERACION_TRAS_LESION.md`, «Resultado y la reparación única».
 **Por qué.** No se preguntó quién dispara cada paso del mecanismo.
 **Guarda** `[PREGUNTA → punto 8, tres capas]`: por cada brazo, «¿quién dispara cada paso, y qué sabe este brazo que el organismo no sabría?». Si la respuesta incluye al experimentador, el resultado se etiqueta **SUMINISTRADO** y no cuenta como capacidad. `[MECÁNICA]`: el disparo del mecanismo tiene contador interno (p. ej. `autorelecturas`) y el veredicto lo lee.
 **Aplicada en:** 03 (`UnidadQueSeRelee`, contador `autorelecturas`).
 
 ## E-03 · Criterio con la unidad equivocada
+**Clase:** criterio · **Veces que saltó:** continua (guarda siempre activa) · *el número de la puerta no nombraba su unidad*
 **25-oct-2026.** En 0.2, mundo del bit inerte: «sin traza, no más de 2 pasos» contaba *pares letra→reacción* por reaprender; el programa mide el *paso del último error*, que depende de cuándo aparecen A y B. Midió 4, 1, 3, 2, 3. Fuente: `CIERRE_FASE_0.md` §0.2.
 **Por qué.** El número de la puerta no nombraba su unidad ni el campo contra el que se compara.
 **Guarda** `[PREGUNTA → punto 11, puerta]`: cada número de la puerta nombra **su unidad y el campo del JSON** con el que se compara. `[MECÁNICA]`: el veredicto lo calcula el programa leyendo ese campo (`veredicto()` en 03 y 04), nunca a mano.
 
 ## E-04 · Exigir al control lo que allí no le aplica
+**Clase:** criterio · **Veces que saltó:** 0 · *se exigió al control lo que allí no le aplica*
 **25-oct-2026.** En 0.3, mundo visible: se pedía al reactivo robustez frente a la ignorancia del estado, y en ese mundo el reactivo **no es ignorante** (su reacción previa *es* el bit). Lo encontró el mutante «reactivo mudo». Fuente: `APERTURA_ELECCION_BAJO_ORIENTACION.md`, segunda enmienda.
 **Por qué.** El criterio se escribió para un mundo y se copió a otro.
 **Guarda** `[PREGUNTA → punto 7, banco]`: por cada **control × mundo**, escribir antes de correr qué puede hacer ese control allí; el mundo donde el control **debe** acertar es el que prueba que el test discrimina. `[MECÁNICA]`: mutante «control mudo» en el punto 10.
 
 ## E-05 · Un mundo de control que no controla lo que dice
+**Clase:** criterio · **Veces que saltó:** 6 · *el mundo de control no controlaba lo que decía*
 **25-oct-2026.** En 0.2: «en el bit inerte la lesión no puede costar nada». Falso: ese mundo controla que **no se inventen distinciones** al reparar, no el coste. Lo encontró el paso de mutantes antes de la corrida real. Fuente: `APERTURA_REGENERACION_TRAS_LESION.md`, enmienda prospectiva.
 **Por qué.** La ficha se dio por terminada antes de correr los mutantes. Tres criterios mal escritos en una sesión.
 **Guarda** `[PREGUNTA → punto 7]`: por cada mundo de control, **la afirmación exacta que controla**, una por mundo. `[MECÁNICA/ORDEN]`: ficha → mutantes → enmienda prospectiva → corrida real; **una ficha no es final hasta pasar sus mutantes**.
 
 ## E-06 · La ecuación sellada no era la implementada
+**Clase:** instrumento · **Veces que saltó:** 0 · *el código no implementaba la ecuación sellada*
 **Nivel 1.8, sep-2026.** El oráculo selló `Z_{t+1} = F(Z_t, A_t, O_{t+1})`; el código implementó `F(Z_t, A_t)`. Prueba hermética: 0/400 diferencias con observaciones distintas. Ningún gate leía la forma de F. Fuente: `LEVEL18_ANALISIS_CAUSA_RAIZ.md` §1 y §5; `CONGELACION_HISTORICA_01.md`.
 **Por qué.** La ecuación del estado era una frase del oráculo que ningún test certificaba.
 **Guarda** `[MECÁNICA]`: test hermético **positivo** de la forma de F: mismas acciones con observaciones distintas ⇒ el estado difiere; mismas observaciones con acciones distintas ⇒ también. Se escribe antes que el aprendiz.
 **Aplicada en:** 01/02 lo cumplen de hecho (la hipótesis se refuta por lo leído); en la Fase 1 va como mutante «ciego a la observación».
 
 ## E-07 · Resultado irreproducible: semillas quemadas, parámetros sin registrar
+**Clase:** banco · **Veces que saltó:** continua (guarda siempre activa) · *azar sin custodia y parámetros fuera del artefacto*
 **Nivel 1.5, sep-2026.** El segundo piloto dio 529/540 = 97,96 %; sus semillas no están en ningún `.py` de ningún árbol y la magnitud del paso «no consta». `NON_REDERIVABLE`; no se deja contar como éxito. Fuente: `CONGELACION_HISTORICA_01.md`; cartografía §43.4.
 **Por qué.** Azar sin custodia y parámetros en la conversación, no en el artefacto.
 **Guarda** `[MECÁNICA]`: sin `random`; dos corridas, un hash; el JSON lleva sha256 del código, versión del intérprete y **todo** parámetro. `NON_REDERIVABLE` es FAIL de custodia, no matiz.
 **Aplicada en:** los cuatro programas de la Fase 0.
 
 ## E-08 · Presupuesto elegido donde la curva ya saturó
+**Clase:** criterio · **Veces que saltó:** continua (guarda siempre activa) · *una puerta sobre un único presupuesto*
 **Nivel 1.6, sep-2026.** Se selló T = 4096 «porque la curva ya saturó»; la cobertura era 1,0000 en las 16 vidas: el mecanismo nunca se probó bajo escasez y una categoría del resultado quedó inalcanzable. Fuente: memoria «la saturación no es virtud».
 **Por qué.** Un punto en vez de una curva; captura sin cobertura.
 **Guarda** `[MECÁNICA]`: el artefacto contiene la **curva** (varios presupuestos) y la **cobertura** aparte de la captura; una puerta sobre un único presupuesto es inválida.
 **Aplicada en:** 01 (curva por T); Fase 1 (paso del último error frente a n).
 
 ## E-09 · Mecanismo que nunca se ejecutó, contado como negativo
+**Clase:** instrumento · **Veces que saltó:** continua (guarda siempre activa) · *sin contador, «no ayudó» y «no corrió» dan lo mismo*
 **Nivel 1.2, sep-2026.** 0 sorpresas en 131 072 experiencias: el umbral coincidía con el techo; corrió el respaldo y el resultado se publicó como si midiera curiosidad. Fuente: memoria «contador de actividad por mecanismo».
 **Por qué.** Sin contador del componente distintivo, «no ayudó» y «no corrió» dan el mismo número.
 **Guarda** `[MECÁNICA]`: contador de actividad por mecanismo en el JSON; el veredicto declara **NULO-POR-INACTIVIDAD** si es 0 (03 ya lo hace con `act`).
 
 ## E-10 · Releer el código en vez de consultar el mapa
+**Clase:** banco · **Veces que saltó:** 0 · *se releyó el código en vez de consultar el mapa*
 **Atlas 02 y 03, sep-2026.** No se corrió el gate sobre las secciones vigentes de la cartografía; cinco hallazgos que ya estaban en el mapa se re-derivaron. Fuente: cartografía §XLII; memoria «leer la cartografía antes de mapear».
 **Guarda** `[MECÁNICA]`: `scripts/cartografia_check.py --section` antes de abrir un volumen (hoy caído por E-01; mientras tanto, leer la sección a mano). `[PREGUNTA → punto 0]`: «¿qué sección vigente del mapa cubre esto?».
 
 ## E-11 · Iniciativa fuera del encargo
+**Clase:** banco · **Veces que saltó:** 0 · *se construyó lo que la pregunta no pedía*
 **21-sep y 24-oct-2026.** Una clase extra, una conjunción extra y un módulo donde bastaba un documento; y escaleras de experimentos cuando se pedía una demostración. Fuente: memorias «limitarse a la orientación» y «unidad-minima-01-demo».
 **Por qué.** Construir lo que la pregunta no pide.
 **Guarda** `[PREGUNTA → punto 1]`: «¿qué estoy construyendo que la pregunta no pide?» Lo que sobre se lista aparte como propuesta y **no se construye**.
 
 ## E-12 · Cifra o negación sin su comando y sin su alcance
+**Clase:** banco · **Veces que saltó:** 1 · *una cifra sin el comando que la produjo*
 **16-sep y 25-oct-2026.** «En RNFE nada aprende» se midió con un comando correcto sobre el árbol equivocado (genesis-v2, no v16): un cero en el alcance equivocado se lee igual que un cero real. Y «18 worktrees prunable» frente a 14 contados con el comando. Fuente: `CARTOGRAFIA_GENESIS_01.md` §I; revisión de la Fase 0.
 **Guarda** `[MECÁNICA]`: toda cifra y toda afirmación negativa de un informe lleva **el comando que la produjo y el árbol/commit** donde corrió. Se escribe «no hemos encontrado», nunca «no existe».
 
 ## E-13 · Dos relatos del mismo mecanismo; gate en verde sobre prosa vieja
+**Clase:** instrumento · **Veces que saltó:** 0 · *el gate quedó verde sobre prosa obsoleta*
 **sep-2026.** Se regeneró el manifiesto de cartografía con `--write` tras cambiar código sin reescribir la sección: el gate quedó verde sobre texto obsoleto. Fuente: memoria «`--write` no prueba que se releyera».
 **Guarda** `[PREGUNTA → cierre]`: una corrección va **en el sitio, con fecha**; nunca un documento paralelo; `--write` sólo tras reescribir la prosa.
 **Aplicada en:** plano §1 y §4-0.2, corregidos en el sitio el 25-oct.
 
 ## E-14 · Custodia tomada por trabajo
+**Clase:** banco · **Veces que saltó:** 0 · *la custodia se tomó por el trabajo*
 **25-oct-2026.** Wis: «el trabajo principal no es estar commiteando; es la experimentación de la creación del ser».
 **Guarda** `[PREGUNTA → cierre]`: un commit por fase, al cerrar; el cierre dice qué parte de la sesión fue experimento y qué parte custodia o documentos. Si la custodia pesa más que el experimento, la sesión se reporta como perdida en parte.
 
 ## E-15 · Mutantes que prueban la capacidad pero no el instrumento
+**Clase:** criterio · **Veces que saltó:** 1 · *los mutantes probaban la capacidad y no el instrumento*
 **25-oct-2026, Fase 1.** Los cuatro mutantes del banco (memorizador, ciego a la observación, oráculo, vida invertida) pasaron, y el banco corrió aun así con **dos instrumentos roídos**: el tope de estados declarado (`n_max = n+1`) nunca se aplicó —`vivir_una_vida` instanciaba la unidad sin pasarlo, así que corrió con el 4 por omisión de 02— y el contador de coste sumaba la **distancia retrocedida**, no el trabajo. El primero fabricó un falso hallazgo (35 % y 43 % de sistemas «tocando el tope» en n=6 y n=8) y me llevó a afirmar, en falso, que el mecanismo incremental era incompleto. Fuente: `APERTURA_ESCALADO_SIN_AZAR.md`, «Dos defectos de instrumento y una corrida nula».
 **Por qué.** Todos los mutantes atacaban la **capacidad** del aprendiz. Ninguno pasaba por el tope ni por el contador: el oráculo recibe la máquina verdadera, así que no aprende, no se fragmenta y no repasa.
 **Severidad:** **alta** (produjo una conclusión falsa que se afirmó como hallazgo).
@@ -92,6 +107,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** pendiente — va a los mutantes de 1-bis.
 
 ## E-16 · Calibrar el reloj sobre la mediana cuando el coste tiene cola
+**Clase:** instrumento · **Veces que saltó:** 0 · *se calibró el reloj sobre la mediana de una cola*
 **25-oct-2026, Fase 1.** Calibré el coste de n=6 con 24 índices repartidos y me dio 4 ms/sistema; el real fue 160 ms. **Error de ×40.** La causa: la distribución tiene una cola brutal (mediana 4 ms, peor sistema 182 s, ×45 000), y 24 muestras no la ven. De ahí salió un «cabe en el presupuesto» falso y una estimación de 9 h que debió ser de 2–3 h paralelizada. Fuente: esta ficha, §4 y la estimación revisada.
 **Por qué.** Se calibró con la medida de centro de una distribución cuyo total lo decide la cola.
 **Severidad:** baja en medida, media en planificación (estimaciones erradas por ×40 y una decisión de paralelizar tomada tarde).
@@ -100,6 +116,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** la estimación revisada de la Fase 1 (deciles de n=6: de 7,6 a 250 ms).
 
 ## E-17 · Gate de antecedentes sin la complejidad del problema
+**Clase:** criterio · **Veces que saltó:** 0 · *el gate no preguntó cuánto cuesta el problema*
 **25-oct-2026, Fase 1.** El gate de la fase buscó **mecanismos** (AALpy, MooreMI, RPNI, L#, `dfa-identify`) y no buscó la **complejidad del problema** que el mecanismo resuelve. El problema que 02 resuelve es «la máquina mínima consistente con los datos», que es NP-difícil (Gold 1978, *Information and Control* 37:302–320, `10.1016/s0019-9958(78)90562-4`; Angluin 1978, ibíd. 39:337–350, `10.1016/s0019-9958(78)90683-6`) y no aproximable dentro de ningún polinomio (Pitt & Warmuth 1993, *JACM* 40:95–142, `10.1145/138027.138042`). La cola de la Fase 1 no es un defecto de implementación: es el precio de exigir el mínimo exacto sin maestro, y **estaba en la literatura antes de medirlo**.
 **Por qué.** Se preguntó «¿quién lo ha hecho?» y no «¿cuánto cuesta hacerlo, en teoría?».
 **Severidad:** **alta** (se midió durante horas algo que la teoría ya acotaba).
@@ -110,6 +127,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 ---
 
 ## E-18 · Correr sin criterio de parada por información
+**Clase:** criterio · **Veces que saltó:** 0 · *se declaró un límite de reloj y no de información*
 **25-oct-2026, Fase 1 (error de Fable, en el paquete; y de Opus, al no parar).** El paquete `ORIENTACIONES_FASE_1_PARALELIZAR_Y_CERRAR.md` fijó un **tope de sesión** (horas) y ninguna **parada por información**. Cuando n=6 terminó y los primeros miles de n=8 mostraron que el coste es `f(n_min)` y explota en 7–8, el veredicto (FAIL de iii) y la forma de la respuesta ya estaban; se siguió corriendo horas a 11 s/mundo, con 35 sistemas comiéndose el 80 % del cómputo y truncados por el tope de 900 s. Wis lo vio: «si ya sé lo que va a pasar, gastar energía en balde». Fuente: esta conversación, 25-oct.
 **Por qué.** Es E-08 en el eje del tiempo: seguir midiendo donde la curva ya habló. Se declaró un límite de **reloj** y no un límite de **información**.
 **Severidad:** media (gastó horas de máquina y de sesión; no contaminó ninguna medida).
@@ -118,6 +136,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** 1-bis (banco: n=3 y n=4 completos; n=6 y n=8 por muestra estratificada por n_min, chica y declarada; parada cuando la curva coste(n_min) e identificación(n_min) se estabilicen).
 
 ## E-19 · El supervisor orientó proceso mientras el experimento corría
+**Clase:** banco · **Veces que saltó:** 0 · *el supervisor orientó proceso sin leer el artefacto*
 **25-oct-2026 (error de Fable).** Con el banco ya corriendo, el supervisor dedicó varios turnos a registro, plantilla y skill, y Wis tuvo que preguntar «sobre el avance del experimento no te enfocaste nada; sólo me estás diciendo cosmética». El estado del experimento estaba en el JSONL todo el tiempo.
 **Por qué.** Lo pedido (el registro) se construyó alrededor del experimento en vez de leer primero el experimento. Es E-11 y E-14 en el rol de supervisor.
 **Severidad:** baja en medida, alta en coste de atención de Wis.
@@ -125,6 +144,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Guarda** `[PREGUNTA → cada revisión]`: la primera acción del supervisor en cada turno es **leer el artefacto en curso** (filas, clases, colas, proceso vivo) y abrir con su estado; el proceso y la custodia van después y sólo si queda espacio.
 
 ## E-20 · Parada que arrastra: el tope detiene el envío pero no cancela lo encolado
+**Clase:** instrumento · **Veces que saltó:** 0 · *la parada detenía el envío y no cancelaba lo encolado*
 **25-oct-2026, Fase 1 (error de Opus).** El corredor paralelo mantenía una ventana de 32 futuros para no dejar trabajadores ociosos. Al morder un tope, dejaba de **enviar** sistemas nuevos pero **no cancelaba los ya encolados y sin empezar**, así que la parada podía arrastrar un drenaje de hasta 32/4 × 900 s = **2 h** después de haber decidido parar. Lo detecté yo al estimar el tiempo restante y lo dije antes de que mordiera; Wis no tuvo que verlo.
 **Por qué.** La ventana se dimensionó para el rendimiento (que el pool no se vacíe) sin pensar en la terminación (que la parada sea un corte). Son dos requisitos distintos sobre el mismo número.
 **Severidad:** baja (no contamina ninguna medida; gasta máquina después de la decisión de parar).
@@ -133,6 +153,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** `unidad_minima_05b_paralelo.py`, bloque `if motivo_parada:` (`fut.cancel()`, cuenta `canceladas`), declarada en `APERTURA_ESCALADO_SIN_AZAR.md`.
 
 ## E-21 · La fila no guarda el objeto medido, sólo lo que se le calculó
+**Clase:** instrumento · **Veces que saltó:** 0 · *la fila guardaba estadísticos y no el objeto*
 **25-oct-2026, Fase 1 (error de Opus).** Las filas del banco guardan los números **sobre** la máquina aprendida —estados, identidad salvo isomorfismo, clase, coste, acierto en el futuro— pero **no la máquina**. Consecuencia concreta y ya pagada: el acierto en el futuro se midió con una ventana de 2 048 pasos (`FUTURO_MAX`) y **no se puede recalcular con una ventana mayor sin volver a correr el sistema entero**, que en n=8 cuesta hasta 900 s. Lo mismo vale para cualquier pregunta nueva sobre la máquina adquirida. La pregunta de la estructura cíclica (`unidad_minima_05d_estructura.py`) se pudo contestar en segundos **sólo porque las tablas A y B del mundo sí estaban en la fila**; si hubiera dependido de la máquina aprendida, habría costado otra campaña.
 **Por qué.** Se guardó lo que la puerta de entonces necesitaba leer, no el objeto del que se derivan las preguntas siguientes. El coste de re-derivar no se estimó.
 **Severidad:** media (no contamina ninguna medida; impide preguntas nuevas sin repetir el cómputo).
@@ -141,6 +162,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** obligatoria en las filas de 1-bis (`APERTURA_FUSION_POLINOMICA.md` §12). En la Fase 1 queda **ABIERTA**: las filas ya grabadas no la tienen y no se van a repetir 11 h de cómputo para añadirla.
 
 ## E-22 · Criterio estadístico con el umbral por debajo del ruido de muestreo
+**Clase:** criterio · **Veces que saltó:** 0 · *el umbral estaba por debajo del ruido de muestreo*
 **26-oct-2026, Fase 1 (error de Opus).** Implementé el criterio de parada de E-18 exigiendo que dos bloques consecutivos difirieran **menos de 3 puntos fijos** en la identificación por `n_min`. Con 60–140 sistemas por estrato y por bloque, el error estándar es de 3,7 a 10,5 puntos, así que el |diferencia| esperado **sólo por azar** va de **5,8 a 16,8 puntos en todos los estratos**. El criterio no podía cumplirse nunca: la corrida habría seguido hasta agotar el banco diciendo «todavía aprendo». Y cuando lo corregí a z < 2, un mutante de mismo-tramo dio z = 1,91 contra umbral 2,0 — había reintroducido el mismo error en versión suave, porque el criterio compara ~10 estratos y clases **a la vez** y el máximo de 10 z's supera 2 por azar a menudo. Dos correcciones al mismo criterio en una sesión.
 **Por qué.** El umbral se eligió en la unidad del resultado (puntos porcentuales) sin compararlo con la **dispersión** del resultado. Y es E-15 otra vez: ningún mutante probaba el criterio de parada.
 **Severidad:** media (no contamina medidas; habría gastado el banco entero de n=8 por nada).
@@ -149,6 +171,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** `unidad_minima_05b_paralelo.py` (`_ee`, `_estable`, `ALFA_E18`), con sus cuatro mutantes corridos.
 
 ## E-23 · Separar estratos por posición en el fichero en vez de por identidad
+**Clase:** instrumento · **Veces que saltó:** 0 · *el estrato se derivó de la posición en el fichero*
 **26-oct-2026, Fase 1 (error de Opus).** Para separar los dos estratos de n=8 —prefijo canónico y tramo esparcido— corté la lista de filas en la posición 6566. Mal por dos motivos a la vez: 6566 era el total de filas **incluyendo** los mundos inertes, y en orden esparcido los índices altos **vienen entremezclados** con los bajos, así que el orden del fichero ya no es el orden del recorrido. Resultado: «tramo esparcido: 0 sistemas» y un estrato de prefijo contaminado. El corte correcto es por **rango** (`idx // k`).
 **Por qué.** Se usó una propiedad del fichero (el orden de escritura) para recuperar una propiedad del experimento (a qué tramo pertenece el sistema), justo después de haber cambiado deliberadamente el orden de escritura.
 **Severidad:** alta si no se detecta (habría informado los dos estratos mezclados, que es exactamente lo que el paquete prohibía).
@@ -157,6 +180,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** `unidad_minima_05e_transitorios.py` (corte por `idx // k8`) y en los análisis de estructura y de escala.
 
 ## E-24 · Generalizar una invariancia más allá del rango medido
+**Clase:** criterio · **Veces que saltó:** 0 · *una invariancia enunciada sin su rango*
 **26-oct-2026, Fase 1 (error de Opus).** Con la primera variante de cobertura —una letra más de vida, factor 2,5— concluí y escribí que la fracción no determinada es «**invariante a la longitud de la vida**». Luego n=8, que vive **71 veces** la vida de n=3, mostró 20 puntos más de identificación a igual `n_min`, y tuve que dudar de mi propia conclusión y volver a medir a factor 5. (La conclusión se sostuvo: a factor 5 no se mueve ni un decimal. Pero eso no la salva: la había afirmado sin derecho.)
 **Por qué.** Una invariancia medida en un factor 2,5 se enunció como invariancia sin rango. El enunciado no llevaba el rango en el que se midió.
 **Severidad:** media (la conclusión resultó cierta; el modo de afirmarla era injustificado y pudo haber ido al cierre como ley).
@@ -165,6 +189,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** `APERTURA_ESCALADO_SIN_AZAR.md`, segunda variante de cobertura, con su rango declarado.
 
 ## E-25 · Umbral absoluto para comparar cosas de escala distinta
+**Clase:** instrumento · **Veces que saltó:** 0 · *un umbral absoluto comparado entre escalas distintas*
 **26-oct-2026, Fase 1 (error de Opus).** Medí la transitoriedad de un estado como «visitado **≤ 2 veces** en la vida» y comparé ese porcentaje entre n=3 (vida de 258 pasos) y n=8 (vida de 18 434). Con 71 veces más vida, el mismo umbral absoluto mide otra cosa: en n=8 un estado visitado dos veces es 1 500 veces más raro que en n=3. La diferencia aparente (0,6 % frente a 17,6 %) era en parte artefacto del umbral.
 **Por qué.** Se comparó una cantidad acotada por un número fijo entre poblaciones cuya escala difiere en dos órdenes de magnitud.
 **Severidad:** baja (lo detecté antes de informarlo, y con umbral relativo el efecto resultó **más** nítido, no menos).
@@ -173,6 +198,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Aplicada en:** la medida de transitoriedad relativa (visitas < 10 % de la media del propio sistema).
 
 ## E-26 · Un patrón de `pkill` que coincide con el propio proceso
+**Clase:** banco · **Veces que saltó:** 0 · *un patrón de pkill que coincidió con su propia shell*
 **26-oct-2026, Fase 1 (error de Opus).** Para matar un análisis usé `pkill -f 05e_transitorios`. El patrón coincidió también con **mi propia shell**, cuya línea de órdenes contenía el nombre del script, y el comando se mató a sí mismo antes de ejecutar la edición que venía después. La edición se perdió en silencio y sólo lo noté porque comprobé que había llegado.
 **Por qué.** `pkill -f` compara contra la línea de órdenes completa, y la línea de órdenes del propio shell contiene el patrón.
 **Severidad:** baja (coste: una edición perdida y un turno).
@@ -180,6 +206,7 @@ Formato de entrada: número · fecha · **qué pasó** (hecho, con fuente) · **
 **Guarda** `[MECÁNICA]`: matar por **PID** obtenido antes (`pgrep` filtrando el propio `$$`), no por patrón; y nunca poner un `pkill -f` seguido de más trabajo en el mismo comando. Si se usa patrón, comprobar después que el trabajo posterior llegó a ejecutarse.
 
 ## E-27 · Muestra 1-de-k cuyo paso comparte factores con la estructura del espacio
+**Clase:** instrumento · **Veces que saltó:** 0 · *el paso de la muestra compartía factores con la base*
 **26-oct-2026, Fase 1 (error de Opus). El error más caro de la fase.** El banco se indexa como `2n` dígitos en base `n`, y la submuestra se tomó como `range(0, total, k)` con `k` elegido por ser un número redondo del presupuesto de reloj: **k = 20 000** para n=6 y **k = 10¹⁰** para n=8. Esos pasos comparten factores con el espacio, así que la muestra no recorre el banco: recorre un **retículo** con dígitos bajos clavados.
 
 Demostrado de las dos formas, aritmética y empírica:
@@ -197,6 +224,7 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 ---
 
 ## E-28 · El supervisor relayó a Wis una interpretación del ejecutor sin reproducirla
+**Clase:** banco · **Veces que saltó:** 0 · *el supervisor relayó una interpretación sin reproducirla*
 **25/26-oct-2026 (error de Fable).** Opus analizó los 24 mundos de n=4 con futuro < 1 y escribió que la palabra separadora tiene longitud 7 y «la vida se quedó una letra corta». Yo se lo transmití a Wis como hecho. Reproducido el 26-oct con L = 7: **sólo 6 de los 24 se identifican**. Opus ya había retractado la lectura en su ficha (E-24); yo no la había verificado antes de repetirla.
 **Por qué.** Una interpretación causal plausible, con un número al lado, se tomó por medida. Es E-12 en el rol de supervisor.
 **Severidad:** baja en medida (nada entró a un entregable), media en confianza: Wis recibió una afirmación falsa con tono de hecho.
@@ -205,6 +233,7 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 **Lección que vale más que el error:** una palabra separadora presente en la vida **no es experiencia** si no se ejecuta desde el estado que discrimina. Es la razón exacta de la clase recurrente y de la Fase 2.
 
 ## E-29 · Salida por tubería que almacena, y un tope de reloj que la borra
+**Clase:** banco · **Veces que saltó:** 0 · *salida por tubería que almacena, borrada por un tope*
 **26-oct-2026, n=8 limpio (error de Opus).** Lancé el paso de mutantes como `python3 … | tail -30` con un `timeout 2400`. El paso tardaba más de 40 minutos, el `timeout` lo mató, y **`tail` no había entregado una sola línea**: la salida de 40 minutos de cómputo se perdió entera y no supe ni por dónde iba.
 **Por qué.** Dos cosas a la vez: `tail` —como `head`, `sort` o `grep` sin `--line-buffered`— no entrega nada hasta que el proceso termina, y un proceso que va a morir por tope **no termina**; y además la función escribía a un `StringIO` que sólo se volcaba al final. Y de fondo: puse el tope sin estimar el coste, cuando un mutante que ejecuta el aprendiz completo cuesta una vida entera y a n=8 una vida son 18 434 pasos.
 **Severidad:** baja en medida, media en coste (40 min de máquina y un turno).
@@ -213,11 +242,23 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 **Aplicada en:** `unidad_minima_07_n8_limpio.py`: salida a `sys.stdout` con flush por hito, lanzado con `python3 -u`, y los mutantes partidos en caros (capacidad, 20 mundos) y baratos (instrumento, 200), con el motivo del tamaño declarado en el código.
 
 ## E-30 · Verificar sobre una lista vacía y leer el «ninguno» como confirmación
+**Clase:** banco · **Veces que saltó:** 0 · *se verificó sobre una lista vacía y se leyó como éxito*
 **26-oct-2026, n=8 limpio (error de Opus).** Para probar que añadir la máquina serializada a `un_sistema` no cambiaba ninguna cifra, comparé «150 filas de n=4»… tomadas de las **primeras 200 líneas del JSONL, que son todas de n=3**. El filtro quedó vacío, el bucle no se ejecutó ni una vez, y el mensaje «campos viejos que difieren: NINGUNO (150 sistemas de n=4)» era una **cadena escrita por mí**, no un resultado. Un falso verde perfecto. Lo delató un `NameError` posterior: la variable del bucle no existía porque el bucle nunca corrió.
 **Por qué.** El mensaje de éxito llevaba el tamaño de muestra **escrito a mano** en vez de contado, así que era incapaz de delatar una muestra vacía. Es el patrón de la fixtura vacía que el registro ya conoce en otra forma, aplicado a una verificación en vez de a un test.
 **Severidad:** alta como clase (una verificación que no puede fallar no verifica), baja en consecuencia aquí porque se detectó y se repitió bien: 150 sistemas de n=4 comparados de verdad, ningún campo viejo distinto.
 **Firma (cómo se detecta):** un informe de verificación cuyo tamaño de muestra es una constante del texto y no una variable contada; o una comprobación que pasa en cero iteraciones.
 **Guarda** `[MECÁNICA]`: toda verificación **cuenta** lo que comparó, lo imprime **desde la variable**, y **asevera que el recuento es mayor que cero** antes de declarar nada. Un «ninguno» sin su recuento al lado no es un resultado.
+
+## E-31 · Salida a fichero, pero en un directorio que no sobrevive a la sesión
+**Clase:** banco de trabajo · **Veces que saltó:** 0 · *la custodia de la salida se puso en el temporal de la sesión*
+**26-oct-2026, n=8 limpio (error de Opus). Es E-29 otra vez, en la variante que mi propia guarda no cubría.** Tras perder cuarenta minutos de salida por una tubería, escribí la guarda «salida **a fichero**, nunca a una tubería que un tope pueda cortar». Y acto seguido lancé los mutantes de n=8 y el encadenado de la corrida real escribiendo a ficheros… **en el directorio temporal de la sesión**. La sesión se cortó, el temporal se vació (0 bytes), y perdí: la salida cruda de los mutantes —incluido el M-5 enmendado, que no llegó a terminar—, el guion del encadenado, y el paso que debía **escribir los resultados en la ficha**. De todo aquello sólo sobrevive lo que había citado en la conversación.
+**Por qué.** La guarda nombraba el **mecanismo** malo (la tubería) en vez de la **propiedad** que importa (que la salida dure más que el proceso). Un fichero en un temporal de sesión es tan efímero como una tubería para este fin, así que cumplí la letra de mi propia guarda rompiendo su motivo. Es el mismo patrón que E-27, donde cumplí «muestreo determinista, no aleatorio» rompiendo el motivo, que era ser representativo.
+**Severidad:** media. No contamina ninguna medida —no se midió nada—, pero tiró el paso de mutantes de n=8 y dejó sin cumplir el requisito explícito del paquete: «mutantes corridos **y escritos en la ficha** antes de la corrida real».
+**Firma (cómo se detecta):** la ruta de salida empieza por `/tmp`, `/var/tmp`, `/dev/shm` o contiene `scratchpad`; o una pregunta sobre un resultado de hace horas no se puede contestar porque su fichero ya no está.
+**Guarda** `[MECÁNICA]`: `salida_a_fichero()` deja de ser sólo preventiva y **también detecta**: levanta excepción si la ruta está en un directorio efímero, y exige `permitir_efimero=True` explícito para lo verdaderamente desechable. Con sus dos mutantes: detecta `/tmp/...` y deja pasar una ruta del árbol. Regla corta: **lo que no dura más que el proceso no es salida, es humo.**
+**Aplicada en:** `guardas.py` en este árbol y en el modelo portátil de `~/Documentos/modelo-errores-y-guardas/`.
+
+**Lección de método, que vale más que la entrada:** dos de mis guardas fallaron por nombrar el mecanismo en vez de la propiedad. Al escribir una guarda hay que preguntarse **qué propiedad quiero garantizar**, no **qué forma de hacerlo mal he visto**: la segunda deja la puerta abierta a la siguiente forma.
 
 ## Ejes no vigilados (agujeros declarados)
 

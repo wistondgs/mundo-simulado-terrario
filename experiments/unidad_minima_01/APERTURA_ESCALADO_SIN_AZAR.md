@@ -207,3 +207,23 @@ No es sesgo de **composición** —eso también lo hay, los índices bajos tiene
 **Parada limpia.** Al detenerse —por E-18 o por tope—, se **cancelan los futuros encolados sin empezar** y sólo se espera a los que ya corrían. Eso arregla el defecto de la versión anterior, donde la ventana de 32 podía arrastrar un drenaje de hasta 32/4 × 900 s = 2 h.
 
 **El reloj de sesión se reinicia con el relanzamiento**, y se dice: el tope de 4 h pasa a ser el respaldo, y la regla de parada principal es ahora E-18.
+
+---
+
+## Segunda variante de cobertura · n=6 con la vida de n=8 · declarada el 2026-10-26
+
+**Por qué hace falta, y por qué pone en duda lo que ya escribí.** Estratificando por `n_min` —la única comparación que no mezcla dificultad con estructura— la identificación resulta **plana en n** para n=3, 4 y 6: 76,7 / 76,3 / 77,1 % en `n_min`=2; 63,8 / 62,7 / 65,3 % en `n_min`=3; 54,5 / 57,1 % en `n_min`=4. La caída de la tasa cruda (69,4 → 62,6 → 55,6 %) era **enteramente composición**: los mundos grandes tienen `n_min` grande.
+
+Pero n=8 **salta a 76–82 % en todos los estratos**, y lo hace junto a un colapso de la transitoriedad: con umbral **relativo** (visitas por debajo del 10 % de la media del propio sistema), los estados alcanzables infravisitados son **13,7–18,2 %** en n=3/4/6 y **0,6–3,5 %** en n=8. Esos 14–18 puntos son del mismo orden que la distancia al techo de n=8.
+
+La diferencia entre n=6 y n=8 no es el tamaño del mundo —a igual `n_min` los conjuntos alcanzables son casi iguales: 4,38 frente a 4,53 estados— sino **la longitud de la vida**: 3 586 pasos frente a 18 434, que son 598 frente a 2 304 pasos por estado del mundo.
+
+**Lo que esto le hace a una conclusión mía.** Escribí, con la primera variante, que la fracción no determinada es «invariante a la longitud de la vida». Esa variante añadía **una sola letra** (258→642 y 642→1538 pasos) y no movió nada. Pero n=8 vive **71 veces** la vida de n=3. Una invariancia medida en un factor 2,5 no autoriza a hablar de invariancia en un factor 71, y yo lo hice.
+
+**El test decisivo:** correr **n=6 con L = 10**, la vida de n=8 (18 434 pasos), sobre una submuestra estratificada por `n_min` y declarada. Mismo tamaño de mundo, misma salida observable, mismo aprendiz, mismo tope; **sólo cambia cuánto se vive**.
+
+**Predicción, escrita antes de correr, y contraria a lo que afirmé antes.** La identificación de n=6 a igual `n_min` **sube** hacia el entorno del 75–80 % y la transitoriedad relativa **baja** por debajo del 5 %. Es decir: el hueco de ~20 puntos es **transitorio** y lo cura vivir mucho más, no un poco más.
+
+**Falsador:** que la identificación de n=6 con L=10 se quede en 47–57 % como con L=8. Eso diría que el salto de n=8 no es de la vida y hay que buscarlo en la estructura de su muestra, y entonces sí quedaría en pie que el límite es de itinerario.
+
+**Lo que está en juego.** Si la predicción acierta, el argumento de la Fase 2 cambia de forma: elegir qué vivir dejaría de ser «la única salida» y pasaría a ser **la salida barata** frente a vivir muchísimo más, lo cual es una afirmación distinta y más débil. Si falla, el argumento queda como estaba. En los dos casos, la parte que **no** se cura es la recurrente, y ésa es la que define el objetivo de la Fase 2.

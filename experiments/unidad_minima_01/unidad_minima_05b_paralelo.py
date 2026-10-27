@@ -34,7 +34,9 @@ import os
 import sys
 import time
 import itertools
+import math
 import signal
+from statistics import NormalDist
 from collections import Counter
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 
@@ -69,7 +71,20 @@ TOPE_SESION_S = 4 * 3600
 # cualquier prefijo de lo recorrido es una muestra aproximadamente uniforme del conjunto.
 BLOQUE_E18 = 1000      # tamaño de bloque del criterio de parada por información (E-18)
 ESTRATO_MIN = 50       # estratos con menos de esto no entran en la comparación
-DELTA_E18 = 3.0        # puntos porcentuales
+# CORREGIDO el 2026-10-26. La versión anterior exigía que dos bloques consecutivos
+# difirieran menos de 3 PUNTOS FIJOS. Medido: con 60–140 sistemas por estrato y por
+# bloque, el error estándar es 3,7–10,5 puntos, así que el |diferencia| esperado SÓLO
+# POR AZAR va de 5,8 a 16,8 puntos en todos los estratos. La tolerancia estaba por
+# debajo del ruido: el criterio no podía cumplirse nunca, que es el defecto «un
+# criterio que sólo falla tampoco es criterio». No se cambia porque el resultado
+# incomode, se cambia porque era matemáticamente incumplible, y se prueba con mutantes.
+# Ahora la estabilidad se juzga contra el ruido de muestreo de los dos bloques.
+# SEGUNDA corrección, el mismo día: con Z fijo = 2 el criterio compara siete estratos
+# más las proporciones de clase A LA VEZ, y el máximo de ~10 z's supera 2 por azar a
+# menudo (un mutante de mismo-tramo dio z = 1,91, demasiado justo). El umbral tiene que
+# ser el cuantil del MÁXIMO de m comparaciones, no el de una sola. Se ajusta por Bonferroni
+# sobre el número de comparaciones que de hecho se hacen, y se declara el alfa, no el z.
+ALFA_E18 = 0.05        # falso «inestable» admitido, repartido entre todas las comparaciones
 
 
 def orden_esparcido(M):
@@ -164,26 +179,47 @@ def _stats_bloque(bloque):
     return ident, clases
 
 
+def _ee(p, n):
+    """Error estándar de una proporción, en puntos porcentuales."""
+    p = min(max(p / 100.0, 1e-9), 1 - 1e-9)
+    return 100.0 * math.sqrt(p * (1 - p) / max(1, n))
+
+
 def _estable(a, b):
-    """¿Dos bloques consecutivos difieren menos de DELTA_E18 puntos en todos los estratos
-    con más de ESTRATO_MIN sistemas, y en las proporciones de clase? (E-18)"""
+    """¿Dos bloques consecutivos son indistinguibles DADO su ruido de muestreo? (E-18)
+
+    Estable cuando, en todos los estratos con más de ESTRATO_MIN sistemas y en las
+    proporciones de clase, la diferencia observada cabe en Z_E18 errores estándar de la
+    diferencia. Comparar contra un número fijo de puntos no sirve cuando los estratos
+    tienen decenas de sistemas: el ruido se los come.
+    """
     if a is None or b is None:
         return False, "primer bloque"
-    ia, ca = a
-    ib, cb = b
+    ia, ib = a[0], b[0]
+    ca, cb = a[1], b[1]
     comunes = [k for k in set(ia) & set(ib) if ia[k][1] > ESTRATO_MIN and ib[k][1] > ESTRATO_MIN]
     if not comunes:
         return False, "ningún estrato con suficientes sistemas"
-    peor_n, peor_v = None, 0.0
+    peor_n, peor_z = None, 0.0
     for k in comunes:
-        d = abs(ia[k][0] - ib[k][0])
-        if d > peor_v:
-            peor_n, peor_v = f"n_min={k}", d
+        pa, na = ia[k]
+        pb, nb = ib[k]
+        sd = math.sqrt(_ee(pa, na) ** 2 + _ee(pb, nb) ** 2)
+        z = abs(pa - pb) / sd if sd > 0 else 0.0
+        if z > peor_z:
+            peor_n, peor_z = f"n_min={k} ({abs(pa - pb):.1f} pts, ruido {sd:.1f})", z
+    nta, ntb = sum(v[1] for v in ia.values()), sum(v[1] for v in ib.values())
     for k in set(ca) | set(cb):
-        d = abs(ca.get(k, 0.0) - cb.get(k, 0.0))
-        if d > peor_v:
-            peor_n, peor_v = f"clase «{k}»", d
-    return peor_v < DELTA_E18, f"peor diferencia {peor_v:.1f} pts en {peor_n}"
+        pa, pb = ca.get(k, 0.0), cb.get(k, 0.0)
+        sd = math.sqrt(_ee(pa, nta) ** 2 + _ee(pb, ntb) ** 2)
+        z = abs(pa - pb) / sd if sd > 0 else 0.0
+        if z > peor_z:
+            peor_n, peor_z = f"clase «{k}» ({abs(pa - pb):.1f} pts, ruido {sd:.1f})", z
+    m = len(comunes) + len(set(ca) | set(cb))
+    z_umbral = NormalDist().inv_cdf(1 - ALFA_E18 / (2 * m))
+    return (peor_z < z_umbral,
+            f"peor z = {peor_z:.2f} en {peor_n}; umbral {z_umbral:.2f} "
+            f"(alfa {ALFA_E18} sobre {m} comparaciones)")
 
 
 def correr(n, jsonl, out, trabajadores=TRABAJADORES, tope=TOPE_SISTEMA_S,
@@ -204,7 +240,8 @@ def correr(n, jsonl, out, trabajadores=TRABAJADORES, tope=TOPE_SISTEMA_S,
               f" · {trabajadores} trabajadores, ventana {EN_VUELO}"
               f" · tope por sistema {tope} s · tope de sesión {tope_sesion / 3600:.1f} h"
               f" · parada por información {'sí' if parar_por_informacion else 'no'} "
-              f"(bloques de {BLOQUE_E18}, {DELTA_E18} pts, estratos > {ESTRATO_MIN})\n")
+              f"(bloques de {BLOQUE_E18}, alfa {ALFA_E18} ajustado por comparaciones, "
+              f"estratos > {ESTRATO_MIN})\n")
     out.flush()
     t0 = time.perf_counter()
     it = iter(pend)
