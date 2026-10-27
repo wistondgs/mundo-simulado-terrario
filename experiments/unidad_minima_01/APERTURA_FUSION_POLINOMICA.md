@@ -67,6 +67,14 @@ Renunciar al mínimo exacto no cuesta casi identificación en este banco, porque
 
 ---
 
+### Predicción añadida el 2026-10-27 · dónde hay que medir a 1-bis
+
+Si la muestra limpia de n=8 confirma que la identificación **cae a igual `n_min`** respecto de n=6 —hoy va en esa dirección con 1 669 de 5 000 mundos, aunque varias diferencias caben todavía en el ruido—, entonces la Fase 1 corrige su §3 a **«no degrada entre 3 y 6; degrada en 8»**, y eso fija dónde se mide 1-bis.
+
+**La consecuencia para esta ficha:** el aprendiz polinómico **no se juzga en n=3 ni n=4**, donde 02 identifica bien y en milisegundos y cualquier mecanismo razonable empata. Se juzga **en el estrato exacto donde 02 empieza a perder**, que es donde un intercambio de exactitud por coste acotado puede ganar o perder de verdad. La comparación pareada por índice contra las filas de 02 se concentra ahí, y la pérdida de identificación admitida (≤ 15 puntos) se evalúa **por estrato** y no sobre el agregado.
+
+Si en cambio la caída de n=8 resulta ser composición —el falsador declarado en la ficha de n=8—, entonces 02 no degrada con el tamaño del mundo en ningún punto medido, y 1-bis se juzga sólo por la cola de coste, que es el FAIL que sí está establecido.
+
 ## 5 · Predicciones escritas antes de correr
 
 - Coste: trabajo/vida con **máximo ≤ 50** y **p99 ≤ 10** en los cuatro n. Frente a 02: p99 de 1 308 y máximo de 132 573 en n=6.

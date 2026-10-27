@@ -157,3 +157,17 @@ EL GATE SIRVE
 
 python 3.14.4 · random importado: SÍ · sha256 be8ac51eaecf5fb2…
 ```
+
+---
+
+## Regla de lectura del cierre · declarada el 2026-10-27, antes de tener la muestra completa
+
+**n=8 se informa por `n_min` contra n=6 por `n_min`, nunca agregado.** Comparar tasas crudas mezclaría distribuciones de `n_min` distintas, que es exactamente el error que ya cometí una vez en esta fase: informé una curva de escala decreciente que era **composición** y no escala. No se repite.
+
+**Lo que se corrige en el cierre de la Fase 1 si la caída a igual `n_min` se confirma con los 5 000 mundos.** La §3 dice hoy «la escala no degrada», apoyada en la planitud entre n=3, n=4 y n=6. Pasaría a decir **«no degrada entre 3 y 6; degrada en 8»**, con los números por estrato. Es una corrección sustantiva, no de redacción: cambia la conclusión de la fase sobre el comportamiento del mecanismo al crecer el mundo.
+
+**Y entra como predicción en la ficha de 1-bis.** Si la degradación aparece en n=8 y sólo ahí, entonces **ese es el sitio donde el aprendiz polinómico tiene que medirse**: no en n=3 y n=4, donde 02 ya identifica bien y en milisegundos, sino exactamente en el estrato donde 02 empieza a perder. La comparación pareada por índice contra las filas de 02 se concentra ahí.
+
+**Estado provisional, que no se informa como resultado** (1 669 de 5 000, ~33 %): la dirección apunta a confirmarse —la identificación agregada va en 42,4 % frente al 55,6 % de n=6, y por estrato las diferencias son negativas en los cinco comparables, de −1,3 a −21,1 puntos—. Pero los estratos de n=8 tienen entre 50 y 357 mundos, así que varias de esas diferencias **caben dentro del ruido de muestreo** y no se declara ninguna hasta que la muestra esté completa o la parada por información la cierre.
+
+**Falsador de la corrección, escrito ahora:** que con la muestra completa las diferencias por estrato queden dentro de dos errores estándar. En ese caso §3 **no** se toca y la caída agregada se explica entera por composición — los estratos de `n_min` alto, que en n=8 son muchos más, son los difíciles.
