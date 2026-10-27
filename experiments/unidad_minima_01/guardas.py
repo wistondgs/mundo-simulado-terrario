@@ -172,6 +172,50 @@ def matar_por_pid(pid, espera=3.0):
     return "terminado con SIGKILL"
 
 
+def sin_azar_usado(modulos, nombre="nuestros módulos"):
+    """E-07 corregida el 27-oct · comprobar USO de azar, no su importación.
+
+    El error: el artefacto registraba «random importado: SÍ» y la frase «sin random» dejó
+    de ser verificable. Pero `random` estaba en sys.modules porque lo importa `statistics`
+    —que nosotros usamos para un cuantil normal— y también `tempfile`. Ninguna línea
+    nuestra llama a `random`. Comprobar la importación mide a las dependencias; lo que hay
+    que medir es si NOSOTROS lo usamos.
+
+    Se analiza el ÁRBOL SINTÁCTICO, no el texto. La primera versión usaba una expresión
+    regular y se cazó a sí misma: encontró `import random` dentro de una cadena de su
+    propio mutante. Una guarda que da falsos positivos se acaba ignorando, y eso es peor
+    que no tenerla. La regex nombraba el mecanismo (un patrón de texto); el AST nombra la
+    propiedad (un uso real en el código).
+
+    Devuelve la lista de usos, vacía si está limpia.
+    """
+    import ast as _ast
+    usos = []
+    for ruta in modulos:
+        try:
+            arbol = _ast.parse(open(ruta, encoding="utf-8").read())
+        except (OSError, SyntaxError):
+            continue
+        for nodo in _ast.walk(arbol):
+            if isinstance(nodo, _ast.Import):
+                for a in nodo.names:
+                    if a.name.split(".")[0] == "random":
+                        usos.append((os.path.basename(ruta), nodo.lineno, f"import {a.name}"))
+            elif isinstance(nodo, _ast.ImportFrom):
+                if (nodo.module or "").split(".")[0] == "random":
+                    usos.append((os.path.basename(ruta), nodo.lineno, f"from {nodo.module} import …"))
+            elif isinstance(nodo, _ast.Attribute):
+                v = nodo.value
+                if isinstance(v, _ast.Name) and v.id == "random":
+                    usos.append((os.path.basename(ruta), nodo.lineno, f"random.{nodo.attr}"))
+    _contar("sin_azar_usado", bool(usos))
+    if usos:
+        raise GuardaViolada(
+            f"«{nombre}» usa azar en {len(usos)} sitio(s): {usos[:5]}. La afirmación "
+            f"«determinista» no se sostiene.")
+    return usos
+
+
 def informe(out=sys.stdout):
     """Lo que el cierre de fase necesita: qué guardas saltaron y cuáles callaron."""
     if not os.path.exists(CONTADORES):
@@ -246,6 +290,24 @@ if __name__ == "__main__":
         ok["salida_a_fichero deja pasar el destino durable"] = False
     import shutil as _sh
     _sh.rmtree(_d, ignore_errors=True)
+
+    import tempfile as _t2
+    _f = os.path.join(_t2.mkdtemp(dir=AQUI), "usa_azar.py")
+    open(_f, "w").write("import random\nx = random.random()\n")
+    try:
+        sin_azar_usado([_f], "fichero que sí usa azar")
+        ok["sin_azar_usado detecta el uso real"] = False
+    except GuardaViolada:
+        ok["sin_azar_usado detecta el uso real"] = True
+    _g = os.path.join(os.path.dirname(_f), "solo_importa_dependencia.py")
+    open(_g, "w").write("from statistics import NormalDist\n# random entra por statistics\n")
+    try:
+        sin_azar_usado([_g], "fichero limpio")
+        ok["sin_azar_usado NO se queja de la dependencia"] = True
+    except GuardaViolada:
+        ok["sin_azar_usado NO se queja de la dependencia"] = False
+    import shutil as _s2
+    _s2.rmtree(os.path.dirname(_f), ignore_errors=True)
 
     for k, v in ok.items():
         print(f"  [{'OK' if v else 'ROTO'}] {k}")

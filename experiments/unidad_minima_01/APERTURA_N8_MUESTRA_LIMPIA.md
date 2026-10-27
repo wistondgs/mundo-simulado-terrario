@@ -124,3 +124,36 @@ Así además queda más afilado que antes: distingue los dos casos en vez de mez
 - **M-4 muestreo: OK.** El paso limpio deja cero posiciones restringidas con 1 000, 5 000 y 30 000 muestras; y el paso viejo `10¹⁰` **falla** la misma aserción nombrando `B[4]`, `B[5]`, `B[6]`, `B[7]`. La aserción detecta lo que debe detectar.
 - **M-6 contador: 39/39 exactos.** En la clase inerte `trabajo` es *exactamente* la longitud de la vida, que es el número calculable a mano.
 - **M-5 tope:** pendiente de volver a correr con el criterio enmendado.
+
+### Resultado de los mutantes · escrito por el orquestador · 2026-10-27 12:33
+
+Corridos y escritos aquí **antes** de medir, con la salida en el árbol y no en un temporal (E-31):
+
+```
+
+# reintento del orquestador · 2026-10-27T12:22:58
+=== MUTANTES, antes de la corrida real ===
+  M-4 · paso limpio, 1000 muestras: LIMPIA
+  M-4 · paso limpio, 5000 muestras: LIMPIA
+  M-4 · paso limpio, 5000 muestras: LIMPIA
+  M-4 · el paso viejo 10^10 DEBE fallar la aserción: falla, bien ['A[0]', 'B[4]', 'B[5]', 'B[6]', 'B[7]']
+  M-4: OK
+  M-5 tope: 157/157 de los que la vida FUERZA a >=2 estados lo tocan con n_max=1 · 0/4 de los que tienen n_min>=2 pero vida de 1 estado (deben ser 0) · 0/39 de los inertes (deben ser 0)
+  M-6 contador: 39/39 exactos (trabajo == longitud de la vida en la clase inerte)
+  M-1 memorizador: identidad 0/20, futuro perfecto 3/20
+  M-2 ciego: 0/13 identidad, 0 con más de un estado
+  M-3 oráculo: 18/20 identidad, 18/20 futuro
+  [OK] M-1 memorizador FALLA la identidad
+  [OK] M-1 memorizador FALLA el futuro
+  [OK] quedaron mundos evaluables tras el tope
+  [OK] M-2 ciego a la observación FALLA donde n_min>=2
+  [OK] M-2 ciego no abre ninguna distinción
+  [OK] M-3 oráculo PASA identidad y futuro
+  [OK] M-4 la aserción de muestreo sirve
+  [OK] M-5 con n_max=1 tocan el tope TODOS los que la vida fuerza a >=2
+  [OK] M-5 y NINGUNO cuya vida sea de un estado
+  [OK] M-6 en la clase inerte el trabajo es exactamente la vida
+EL GATE SIRVE
+
+python 3.14.4 · random importado: SÍ · sha256 be8ac51eaecf5fb2…
+```

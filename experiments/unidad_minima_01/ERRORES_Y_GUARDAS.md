@@ -260,6 +260,16 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 
 **Lección de método, que vale más que la entrada:** dos de mis guardas fallaron por nombrar el mecanismo en vez de la propiedad. Al escribir una guarda hay que preguntarse **qué propiedad quiero garantizar**, no **qué forma de hacerlo mal he visto**: la segunda deja la puerta abierta a la siguiente forma.
 
+## E-32 · Un paso de pruebas sin tope, que bloquea la puerta que protege
+**Clase:** instrumento · **Veces que saltó:** 0 · *las pruebas tenían menos guardas que lo que validan*
+**27-oct-2026, n=8 limpio (error de Opus).** El paso de mutantes estuvo **4 h 24 min de CPU masticando un solo mundo** y no escribió ni una línea de avance. La campaña no arrancó en toda la noche, porque la puerta —correctamente— no deja correr lo real hasta que los mutantes pasen. Cero filas medidas.
+**Por qué, en dos capas.** La inmediata: al enmendar el criterio de M-5 necesitaba saber si la traza fuerza dos estados, y lo resolví con un **aprendiz completo con búsqueda** sobre 200 mundos de ocho estados. Convertí el bucle que había declarado «barato» en el más caro de todos, y la enmienda de un criterio me rompió el coste. La de fondo, que es la que importa: **la campaña tenía tope por sistema y tope de sesión, y lo que valida la campaña no tenía ninguno.** Puse guardas en el experimento y dejé sin guardas al instrumento que lo autoriza.
+**Y era innecesario.** La pregunta no requiere búsqueda: una traza es consistente con un solo estado si y sólo si cada letra produce siempre la misma reacción. Una pasada sobre la vida, O(T), en vez de una búsqueda exponencial. El coste venía de no haber pensado la pregunta, no del problema.
+**Severidad:** alta en coste de oportunidad. No contamina ninguna medida —no se midió nada—, y eso es justamente el daño: una noche entera de máquina y de espera por cero filas.
+**Firma (cómo se detecta):** un paso de pruebas sin avance mientras su CPU crece; o un bucle declarado «barato» en el comentario que tarda más que el que se declaró caro; o una enmienda de criterio que añade una llamada con búsqueda donde antes no había ninguna.
+**Guarda** `[MECÁNICA]`: **todo paso de validación lleva los mismos topes que lo que valida** — tope por elemento (120 s por mundo aquí, con SIGALRM) y salto declarado del elemento que lo pase, contándolo en el denominador. Y un criterio extra en la propia puerta: «quedaron suficientes elementos evaluables tras el tope». Al enmendar un criterio se vuelve a estimar su coste antes de relanzar: **una enmienda es código nuevo y se calibra como código nuevo.**
+**Aplicada en:** `unidad_minima_07_n8_limpio.py` (`TOPE_MUTANTE_S = 120`, el predicado en una pasada, y el criterio «quedaron mundos evaluables tras el tope»).
+
 ## Ejes no vigilados (agujeros declarados)
 
 *Tomado del `failure_atlas.py` de RNE (`unmeasured_axes`): un registro sin eventos pero con ejes no vigilados no es un certificado de salud, es un certificado con agujeros declarados.*

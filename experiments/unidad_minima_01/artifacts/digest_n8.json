@@ -1,0 +1,21 @@
+{
+ "actualizado": "2026-10-27T12:33:36",
+ "experimento": "n=8 muestra limpia",
+ "medidos": 0,
+ "objetivo": 5000,
+ "pct": 0.0,
+ "cortados_por_reloj": 0,
+ "identificacion_por_nmin": {},
+ "trabajo_sobre_vida": {
+  "p50": null,
+  "p90": null,
+  "p99": null,
+  "max": null
+ },
+ "refutaciones_totales": 0,
+ "transit_rel_pct": null,
+ "mutantes_ok": true,
+ "mutantes_rotos": false,
+ "mutantes_en_ficha": true,
+ "proceso_vivo": null
+}

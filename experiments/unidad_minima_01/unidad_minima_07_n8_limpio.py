@@ -265,6 +265,11 @@ MUESTRA_CAPACIDAD = 20
 MUESTRA_INSTRUMENTO = 200
 
 
+TOPE_MUTANTE_S = 120           # tope por mundo DENTRO del paso de mutantes. Sin esto, un
+                               # solo mundo patológico cuelga la puerta para siempre y
+                               # bloquea la campaña (27-oct).
+
+
 def mutantes(out):
     from unidad_minima_05_banco import (CiegoALaObservacion, UnidadMedida, canonica,
                                         cociente, maquina_memorizador, predict,
@@ -290,7 +295,26 @@ def mutantes(out):
             return y, int(y != x)
 
         ut, mt = vivir_una_vida(UnidadMedida, step, vida, 1)
-        uu, _ = vivir_una_vida(UnidadMedida, step, vida, N + 1)
+        # DEFECTO CORREGIDO el 27-oct. Aquí había `vivir_una_vida(..., N+1)`, un aprendiz
+        # COMPLETO con búsqueda, sobre 200 mundos de ocho estados y sin tope. Lo metí al
+        # enmendar M-5, porque el criterio nuevo necesita saber si la traza fuerza dos
+        # estados; y con eso convertí el bucle «barato» en el más caro de todos. Estuvo
+        # 4 h 24 min masticando un solo mundo monstruoso y bloqueó la puerta, que
+        # correctamente no deja correr lo real hasta que los mutantes pasen.
+        #
+        # Pero esa pregunta NO necesita búsqueda: una traza es consistente con UN estado
+        # si y sólo si cada letra produce siempre la misma reacción. Eso es una pasada
+        # sobre la vida, O(T), en vez de una búsqueda exponencial.
+        reacciones = {}
+        x = 0
+        una_sola = True
+        for a in vida:
+            y = A[x] if a == "A" else B[x]
+            o = int(y != x)
+            if reacciones.setdefault(a, o) != o:
+                una_sola = False
+                break
+            x = y
         # ENMIENDA PROSPECTIVA del 26-oct, hallada en este paso de mutantes y ANTES de la
         # corrida real. El criterio decía «todo mundo con n_min >= 2 debe tocar el tope con
         # n_max = 1», y midió 157/161. Los 4 que no lo tocan tienen n_min de 2 y 7 pero su
@@ -298,7 +322,7 @@ def mutantes(out):
         # la unidad no tiene nada que refutar. El tope depende de lo que la TRAZA fuerza, no
         # de lo que el mundo es. El criterio pasa a ser ése, y así además es más afilado:
         # distingue los dos casos en vez de mezclarlos.
-        fuerza_dos = uu.n >= 2
+        fuerza_dos = not una_sola
         if fuerza_dos:
             con_dist_i += 1
             tope_toca_dist += int(mt["tope_de_estados_tocado"])
@@ -308,6 +332,7 @@ def mutantes(out):
         if n_min < 2:
             inertes += 1
             tope_toca_inerte += int(mt["tope_de_estados_tocado"])
+            uu, _ = vivir_una_vida(UnidadMedida, step, vida, N + 1)
             contador_total += 1
             contador_exacto += int(uu.c["pasos_avanzados"] == len(vida))
     out.write(f"  M-5 tope: {tope_toca_dist}/{con_dist_i} de los que la vida FUERZA a >=2 "
@@ -321,7 +346,10 @@ def mutantes(out):
     # --- M-1, M-2, M-3, de capacidad: caros, sobre MUESTRA_CAPACIDAD
     mem_ident = mem_fut = ciego_ident = ciego_estados = 0
     orac_ident = orac_fut = con_dist = 0
+    saltados = 0
     for r in range(MUESTRA_CAPACIDAD):
+        signal.signal(signal.SIGALRM, _alarma)
+        signal.setitimer(signal.ITIMER_REAL, TOPE_MUTANTE_S)
         A, B = sistema_por_indice(N, indice(r))
         est = alcanzables(A, B)
         Tv = mealy_verdadera(A, B, est)
@@ -334,7 +362,15 @@ def mutantes(out):
             y = _t[a][x]
             return y, int(y != x)
 
-        u, m = vivir_una_vida(UnidadMedida, step, vida, N + 1)
+        try:
+            u, m = vivir_una_vida(UnidadMedida, step, vida, N + 1)
+        except TimeoutError:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            saltados += 1
+            out.write(f"    capacidad {r + 1}/{MUESTRA_CAPACIDAD} · SALTADO por tope "
+                      f"de {TOPE_MUTANTE_S} s (mundo patológico)\n")
+            out.flush()
+            continue
         truth, xx = [], m["x_final"]
         for a in futuro:
             xx, o = step(xx, a)
@@ -354,16 +390,19 @@ def mutantes(out):
         ho, _, _ = predict(Mmin, q, futuro, truth)
         orac_ident += int(canonica(Mmin, ini) == canon_v)
         orac_fut += int(ho == len(futuro))
+        signal.setitimer(signal.ITIMER_REAL, 0)
         out.write(f"    capacidad {r + 1}/{MUESTRA_CAPACIDAD}\n")
         out.flush()
 
     g = {}
     g["M-1 memorizador FALLA la identidad"] = mem_ident == 0
-    g["M-1 memorizador FALLA el futuro"] = mem_fut < MUESTRA_CAPACIDAD
+    evaluados = MUESTRA_CAPACIDAD - saltados
+    g["M-1 memorizador FALLA el futuro"] = mem_fut < max(1, evaluados)
+    g["quedaron mundos evaluables tras el tope"] = evaluados >= 10
     g["M-2 ciego a la observación FALLA donde n_min>=2"] = con_dist > 0 and ciego_ident == 0
     g["M-2 ciego no abre ninguna distinción"] = ciego_estados == 0
-    g["M-3 oráculo PASA identidad y futuro"] = (orac_ident == MUESTRA_CAPACIDAD
-                                                and orac_fut == MUESTRA_CAPACIDAD)
+    g["M-3 oráculo PASA identidad y futuro"] = (orac_ident == evaluados
+                                                and orac_fut == evaluados)
     g["M-4 la aserción de muestreo sirve"] = rep["M4_muestreo"]["ok"]
     g["M-5 con n_max=1 tocan el tope TODOS los que la vida fuerza a >=2"] = (
         con_dist_i > 0 and tope_toca_dist == con_dist_i)
