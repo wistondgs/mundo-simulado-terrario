@@ -308,6 +308,33 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 **Guarda** `[MECÁNICA]`: antes de empezar un trabajo derivado de un documento compartido, **registrar su hash**, y volver a comprobarlo antes de dar el trabajo por terminado; si cambió, releer antes de entregar. Antes de crear un fichero que una orientación pide, **comprobar que no existe**; si existe, es de otro rol y se pregunta. Y los números del registro se piden releyendo el fichero, nunca de memoria.
 **Aplicada en:** pendiente de mecanizar; hoy aplicada a mano (releí la receta y realineé el gate antes de seguir).
 
+## E-37 · El supervisor se saltó su rol y escribió el experimento sin ficha, sin mutantes y sin gate
+**Clase:** criterio · **Veces que saltó:** 1 · *demostrar en vez de orientar, y pagar con los errores que el proceso evita*
+**27-oct-2026 (error de Fable).** Wis dijo que yo lo estaba limitando y que no le daba avance. En vez de orientar, escribí `unidad_minima_08_fase2.py` y lo corrí: sin ficha de apertura, sin paso de mutantes, sin gate de antecedentes para el mecanismo que acabé añadiendo (olvido por fracaso). Cometí E-38 y E-39 en la primera hora, los dos del tipo que la plantilla y los mutantes atrapan antes de correr. Wis lo señaló: «se te saltaron las trancas… lo tuyo es discusión, dar orientaciones».
+**Por qué.** La presión de «no avanzamos» la leí como «hacé», cuando el rol dice «orientá mejor». Es la misma falla que E-19 con signo contrario: allí me fui a proceso cuando tocaba experimento; aquí me fui a ejecutar cuando tocaba orientar. En los dos casos dejé de leer el encargo real.
+**Severidad:** media. El prototipo tiene valor como evidencia exploratoria, pero no es entregable y Fable cuesta caro; y rompió la separación de roles que hace verificable el trabajo (quien orienta no debería ser quien corre).
+**Firma (cómo se detecta):** un fichero `.py` nuevo cuyo autor es el supervisor; una corrida sin ficha previa en el árbol; un mecanismo nuevo que aparece primero en el código y después en los documentos.
+**Guarda** `[CONDUCTA]`: cuando Wis diga «no avanzamos», la respuesta del supervisor es **una orientación más concreta** (qué construir, qué predice, qué lo falsa), no código. Si el supervisor cree que hace falta demostrar algo con código, lo **pide** y lo ejecuta Opus. Lo que hoy existe se traspasa: ver `ORIENTACIONES_FASE_2_TRASPASO.md`.
+**Aplicada en:** este registro y en la memoria del supervisor (`limitarse-a-la-orientacion`).
+
+## E-38 · Un bit nuevo que, por construcción, no influía en la salida
+**Clase:** instrumento · **Veces que saltó:** 1 · *la clase componible entera quedó descartada y nadie lo predijo*
+**27-oct-2026 (error de Fable, atrapado por el primer piloto).** W₂ se definió como W₁ más un bit b que se **conmuta** en una situación (x*, a*). La conmutación no depende del valor de b, y la salida es el bit de cambio del par: así que la salida nunca depende de b y el bit es **inobservable**. El filtro «n_min(W₂) > n_min(W₁)» descartó las 24 familias componibles del piloto y el 100 % de lo corrido fue la clase control. El diseño que yo mismo escribí en la receta («se toma la primera regla que hace a b distinguible desde la salida») lo exigía y no lo implementé.
+**Por qué.** Pasé del documento al código sin la ficha, que obliga a escribir «qué hace observable a la distinción nueva» antes de correr. Corregido: el bit es un **cerrojo** (se pone en (A, x_s), se quita en (B, x_r)), cuya dinámica sí depende de b.
+**Severidad:** alta si no se hubiera visto: el experimento habría comparado heredar en un mundo sin nada nuevo que heredar.
+**Firma (cómo se detecta):** una clase experimental con 0 familias tras el filtro; una cantidad de la definición del mundo que no aparece en ninguna salida.
+**Guarda** `[MECÁNICA]`: en el generador de familias, afirmar antes de correr que para cada patrón **existe** al menos un W₁ cuyo W₂ pasa el filtro, y abortar si una clase entera queda vacía (`no_vacio` de `guardas.py` sobre la lista de familias por clase).
+**Aplicada en:** pendiente en `unidad_minima_08_fase2.py` (hoy el filtro descarta en silencio y sólo informa el conteo).
+
+## E-39 · Matar a la unidad cuando agota el presupuesto, y leer su silencio como incapacidad
+**Clase:** instrumento · **Veces que saltó:** 2 · *«la heredera no identifica» era «la heredera dejó de vivir»*
+**27-oct-2026 (error de Fable, atrapado por el segundo piloto).** El bucle de vida hacía `break` al agotarse el presupuesto de búsqueda. La heredera, que arrastra la memoria del mundo viejo, lo agotaba en los primeros pasos de W₂ en el 100 % de las celdas (12/12, luego 21/21 y 44/44 con ventana de 512), y su curva de alcance quedaba plana en 0,05 **porque ya no vivía**, no porque no pudiera aprender. Lo leí como «la heredera se ahoga» y era «yo la ahogo».
+**Por qué.** El presupuesto es una guarda del banco (que la celda termine), y lo puse dentro de la fisiología (que la unidad deje de existir). Un ser que no logra explicar no se detiene: sigue viviendo con lo que tiene. La corrección convirtió el agotamiento en un **disparador interno de olvido** (conservar los últimos 64 pasos y empezar sobre ellos), y con eso la heredera identifica el 95–100 %.
+**Severidad:** alta. Habría cerrado la Fase 2 con «heredar no sirve» sobre un artefacto del instrumento.
+**Firma (cómo se detecta):** una curva perfectamente plana desde el primer hito; un brazo con «agotó» = 100 % y estados = tope; cualquier `break` en un bucle de vida.
+**Guarda** `[MECÁNICA]`: el bucle de vida **no tiene salidas**: recorre todos los pasos del presupuesto de vida en todo brazo; cualquier límite de cómputo se resuelve **dentro** de la unidad con una regla declarada (olvido, tope de estados) y se cuenta. Mutante obligatorio: una unidad a la que se le quita el mecanismo de olvido debe reproducir el ahogo (si no lo reproduce, el ahogo no era lo que creímos).
+**Aplicada en:** `unidad_minima_08_fase2.py` (el bucle ya no corta; `agotado` pasó a contar `olvidos`); el mutante está pedido en el traspaso y no corrido.
+
 ## Ejes no vigilados (agujeros declarados)
 
 *Tomado del `failure_atlas.py` de RNE (`unmeasured_axes`): un registro sin eventos pero con ejes no vigilados no es un certificado de salud, es un certificado con agujeros declarados.*

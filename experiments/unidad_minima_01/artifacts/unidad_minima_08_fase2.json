@@ -1,0 +1,320 @@
+{
+ "resumen": {
+  "componible": {
+   "F1": {
+    "alcance": 0.9960835509138382,
+    "exactitud": 0.9999847013707572,
+    "repertorio": 1.4033942558746737,
+    "delta_repertorio": -0.783289817232376,
+    "instruibilidad": 1.3237597911227155,
+    "estados": 3.6527415143603132,
+    "agotados": 240,
+    "trabajo": 135608.54308093994,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.6422976501305483,
+     "128": 0.8315926892950392,
+     "256": 0.933420365535248,
+     "512": 0.9647519582245431,
+     "1024": 0.9882506527415144,
+     "2048": 0.9882506527415144,
+     "3586": 0.9960835509138382
+    },
+    "alcance_medio_curva": 0.906378217083178
+   },
+   "F3": {
+    "alcance": 0.9960835509138382,
+    "exactitud": 0.9999847013707572,
+    "repertorio": 1.447780678851175,
+    "delta_repertorio": -0.7389033942558747,
+    "instruibilidad": 1.3224543080939948,
+    "estados": 3.647519582245431,
+    "agotados": 238,
+    "trabajo": 133376.95822454308,
+    "elegidos": 2.1932114882506526,
+    "curva_alcance": {
+     "64": 0.6566579634464752,
+     "128": 0.8224543080939948,
+     "256": 0.9099216710182768,
+     "512": 0.9647519582245431,
+     "1024": 0.9843342036553525,
+     "2048": 0.9882506527415144,
+     "3586": 0.9960835509138382
+    },
+    "alcance_medio_curva": 0.9032077582991421
+   },
+   "C1": {
+    "alcance": 0.9921671018276762,
+    "exactitud": 0.9999694027415144,
+    "repertorio": 1.283289817232376,
+    "delta_repertorio": -0.9033942558746736,
+    "instruibilidad": 1.3563968668407311,
+    "estados": 3.941253263707572,
+    "agotados": 1590,
+    "trabajo": 696404.5522193211,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.54177545691906,
+     "128": 0.758485639686684,
+     "256": 0.9203655352480418,
+     "512": 0.9647519582245431,
+     "1024": 0.9843342036553525,
+     "2048": 0.9882506527415144,
+     "3586": 0.9921671018276762
+    },
+    "alcance_medio_curva": 0.8785900783289817
+   },
+   "C3": {
+    "alcance": 0.9921671018276762,
+    "exactitud": 0.9999694027415144,
+    "repertorio": 1.283289817232376,
+    "delta_repertorio": -0.9033942558746736,
+    "instruibilidad": 1.3550913838120104,
+    "estados": 3.9425587467362924,
+    "agotados": 1561,
+    "trabajo": 679580.9203655353,
+    "elegidos": 1.6906005221932114,
+    "curva_alcance": {
+     "64": 0.5691906005221932,
+     "128": 0.7845953002610966,
+     "256": 0.9412532637075718,
+     "512": 0.9686684073107049,
+     "1024": 0.9843342036553525,
+     "2048": 0.9882506527415144,
+     "3586": 0.9921671018276762
+    },
+    "alcance_medio_curva": 0.8897799328608728
+   },
+   "C2": {
+    "alcance": 0.9921671018276762,
+    "exactitud": 0.9999694027415144,
+    "repertorio": 1.248041775456919,
+    "delta_repertorio": -0.9386422976501305,
+    "instruibilidad": 1.3590078328981723,
+    "estados": 3.868146214099217,
+    "agotados": 1519,
+    "trabajo": 675348.9007832898,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.5378590078328982,
+     "128": 0.7637075718015666,
+     "256": 0.9242819843342036,
+     "512": 0.9647519582245431,
+     "1024": 0.9843342036553525,
+     "2048": 0.9882506527415144,
+     "3586": 0.9921671018276762
+    },
+    "alcance_medio_curva": 0.8793360686311077
+   },
+   "C4": {
+    "alcance": 0.9921671018276762,
+    "exactitud": 0.9999694027415144,
+    "repertorio": 1.248041775456919,
+    "delta_repertorio": -0.9386422976501305,
+    "instruibilidad": 1.3577023498694516,
+    "estados": 3.8694516971279374,
+    "agotados": 1522,
+    "trabajo": 669309.3616187989,
+    "elegidos": 1.6618798955613576,
+    "curva_alcance": {
+     "64": 0.5691906005221932,
+     "128": 0.7898172323759791,
+     "256": 0.9412532637075718,
+     "512": 0.9647519582245431,
+     "1024": 0.9804177545691906,
+     "2048": 0.9843342036553525,
+     "3586": 0.9921671018276762
+    },
+    "alcance_medio_curva": 0.8888474449832151
+   },
+   "C1_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 3
+   },
+   "C3_vs_F3": {
+    "solo_primero": 0,
+    "solo_segundo": 3
+   },
+   "F3_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C3_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C2_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 3
+   },
+   "C2_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   }
+  },
+  "no_componible": {
+   "F1": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.8494152046783626,
+    "delta_repertorio": -1.5760233918128654,
+    "instruibilidad": 1.3464912280701755,
+    "estados": 4.344298245614035,
+    "agotados": 391,
+    "trabajo": 156540.04093567253,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.6842105263157895,
+     "128": 0.8925438596491229,
+     "256": 0.9649122807017544,
+     "512": 0.9802631578947368,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9310776942355891
+   },
+   "F3": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.8406432748538012,
+    "delta_repertorio": -1.5847953216374269,
+    "instruibilidad": 1.3559941520467835,
+    "estados": 4.359649122807017,
+    "agotados": 375,
+    "trabajo": 157986.91593567253,
+    "elegidos": 3.2865497076023393,
+    "curva_alcance": {
+     "64": 0.6557017543859649,
+     "128": 0.8706140350877193,
+     "256": 0.9692982456140351,
+     "512": 0.9890350877192983,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9257518796992482
+   },
+   "C1": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.7631578947368421,
+    "delta_repertorio": -1.662280701754386,
+    "instruibilidad": 1.3603801169590644,
+    "estados": 4.518274853801169,
+    "agotados": 2699,
+    "trabajo": 720948.5899122807,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.6133040935672515,
+     "128": 0.8647660818713451,
+     "256": 0.9597953216374269,
+     "512": 0.9802631578947368,
+     "1024": 0.9978070175438597,
+     "2048": 0.9978070175438597,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.91624895572264
+   },
+   "C3": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.7631578947368421,
+    "delta_repertorio": -1.662280701754386,
+    "instruibilidad": 1.3603801169590644,
+    "estados": 4.52046783625731,
+    "agotados": 2703,
+    "trabajo": 729453.6915204679,
+    "elegidos": 3.3326023391812867,
+    "curva_alcance": {
+     "64": 0.5899122807017544,
+     "128": 0.8574561403508771,
+     "256": 0.9546783625730995,
+     "512": 0.9839181286549707,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9116541353383459
+   },
+   "C2": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.7631578947368421,
+    "delta_repertorio": -1.662280701754386,
+    "instruibilidad": 1.3603801169590644,
+    "estados": 4.43859649122807,
+    "agotados": 2435,
+    "trabajo": 668392.072368421,
+    "elegidos": 0.0,
+    "curva_alcance": {
+     "64": 0.6133040935672515,
+     "128": 0.8596491228070176,
+     "256": 0.9597953216374269,
+     "512": 0.9802631578947368,
+     "1024": 0.9978070175438597,
+     "2048": 0.9978070175438597,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9155179615705932
+   },
+   "C4": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.7631578947368421,
+    "delta_repertorio": -1.662280701754386,
+    "instruibilidad": 1.3603801169590644,
+    "estados": 4.440789473684211,
+    "agotados": 2455,
+    "trabajo": 680797.7375730994,
+    "elegidos": 3.323830409356725,
+    "curva_alcance": {
+     "64": 0.5855263157894737,
+     "128": 0.8486842105263158,
+     "256": 0.9532163742690059,
+     "512": 0.9839181286549707,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9095655806182121
+   },
+   "C1_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C3_vs_F3": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "F3_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C3_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C2_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C2_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   }
+  }
+ },
+ "puerta": {
+  "P1 acumulación: C1 > F1 en alcance a lo largo de la vida (componible)": false,
+  "P2 elegir: F3 > F1 en alcance a lo largo de la vida": false,
+  "P2 elegir: C3 > C1 en alcance a lo largo de la vida": true,
+  "P4 lesión: C2 ≈ F1 (|Δ alcance medio| <= 0.02)": false,
+  "P5 repertorio: C1 >= F1 al final de W2": false,
+  "P5 instruibilidad: C1 >= F1": true,
+  "actividad: el órgano 'elegir' actuó": true,
+  "P1 control: C1 <= F1 en alcance a lo largo de la vida (no componible)": true
+ },
+ "sha256_codigo": "621c0534a939c9d1c599aed6cfb05380791b56f6effa1613eadcc6d5beec9b9f",
+ "texto": "vida en W1: 258 pasos; vida en W2: 3586 pasos; futuro W2: 1280 pasos; tope de estados 8; presupuesto 200000 pasos avanzados por celda\nW1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles\nfamilias (W1, W2) corridas: 2134; descartadas por no abrir distinción nueva: 998\n\n=== clase componible: 766 familias\nbrazo   alcance  exactitud  repert.  Δrep.  instr.  estados olvidos  trabajo medio  elegidos  (alcance/exactitud = al FINAL de W2)\nF1        0.996     1.0000     1.40  -0.78    1.32     3.65     240         135609       0.0\nF3        0.996     1.0000     1.45  -0.74    1.32     3.65     238         133377       2.2\nC1        0.992     1.0000     1.28  -0.90    1.36     3.94    1590         696405       0.0\nC3        0.992     1.0000     1.28  -0.90    1.36     3.94    1561         679581       1.7\nC2        0.992     1.0000     1.25  -0.94    1.36     3.87    1519         675349       0.0\nC4        0.992     1.0000     1.25  -0.94    1.36     3.87    1522         669309       1.7\ncurva de alcance (fracción que identifica W2) por pasos vividos en W2:\nbrazo       64     128     256     512    1024    2048    3586   media\nF1       0.642   0.832   0.933   0.965   0.988   0.988   0.996   0.906\nF3       0.657   0.822   0.910   0.965   0.984   0.988   0.996   0.903\nC1       0.542   0.758   0.920   0.965   0.984   0.988   0.992   0.879\nC3       0.569   0.785   0.941   0.969   0.984   0.988   0.992   0.890\nC2       0.538   0.764   0.924   0.965   0.984   0.988   0.992   0.879\nC4       0.569   0.790   0.941   0.965   0.980   0.984   0.992   0.889\n  pareado C1 vs F1: identifica sólo C1 en 0 familias; sólo F1 en 3\n  pareado C3 vs F3: identifica sólo C3 en 0 familias; sólo F3 en 3\n  pareado F3 vs F1: identifica sólo F3 en 0 familias; sólo F1 en 0\n  pareado C3 vs C1: identifica sólo C3 en 0 familias; sólo C1 en 0\n  pareado C2 vs F1: identifica sólo C2 en 0 familias; sólo F1 en 3\n  pareado C2 vs C1: identifica sólo C2 en 0 familias; sólo C1 en 0\n\n=== clase no_componible: 1368 familias\nbrazo   alcance  exactitud  repert.  Δrep.  instr.  estados olvidos  trabajo medio  elegidos  (alcance/exactitud = al FINAL de W2)\nF1        1.000     1.0000     0.85  -1.58    1.35     4.34     391         156540       0.0\nF3        1.000     1.0000     0.84  -1.58    1.36     4.36     375         157987       3.3\nC1        1.000     1.0000     0.76  -1.66    1.36     4.52    2699         720949       0.0\nC3        1.000     1.0000     0.76  -1.66    1.36     4.52    2703         729454       3.3\nC2        1.000     1.0000     0.76  -1.66    1.36     4.44    2435         668392       0.0\nC4        1.000     1.0000     0.76  -1.66    1.36     4.44    2455         680798       3.3\ncurva de alcance (fracción que identifica W2) por pasos vividos en W2:\nbrazo       64     128     256     512    1024    2048    3586   media\nF1       0.684   0.893   0.965   0.980   0.996   1.000   1.000   0.931\nF3       0.656   0.871   0.969   0.989   0.996   1.000   1.000   0.926\nC1       0.613   0.865   0.960   0.980   0.998   0.998   1.000   0.916\nC3       0.590   0.857   0.955   0.984   0.996   1.000   1.000   0.912\nC2       0.613   0.860   0.960   0.980   0.998   0.998   1.000   0.916\nC4       0.586   0.849   0.953   0.984   0.996   1.000   1.000   0.910\n  pareado C1 vs F1: identifica sólo C1 en 0 familias; sólo F1 en 0\n  pareado C3 vs F3: identifica sólo C3 en 0 familias; sólo F3 en 0\n  pareado F3 vs F1: identifica sólo F3 en 0 familias; sólo F1 en 0\n  pareado C3 vs C1: identifica sólo C3 en 0 familias; sólo C1 en 0\n  pareado C2 vs F1: identifica sólo C2 en 0 familias; sólo F1 en 0\n  pareado C2 vs C1: identifica sólo C2 en 0 familias; sólo C1 en 0\n\n--- puerta (receta §4)\n  [FAIL] P1 acumulación: C1 > F1 en alcance a lo largo de la vida (componible)\n  [FAIL] P2 elegir: F3 > F1 en alcance a lo largo de la vida\n  [PASS] P2 elegir: C3 > C1 en alcance a lo largo de la vida\n  [FAIL] P4 lesión: C2 ≈ F1 (|Δ alcance medio| <= 0.02)\n  [FAIL] P5 repertorio: C1 >= F1 al final de W2\n  [PASS] P5 instruibilidad: C1 >= F1\n  [PASS] actividad: el órgano 'elegir' actuó\n  [PASS] P1 control: C1 <= F1 en alcance a lo largo de la vida (no componible)\n  [no] falsador: heredar no cambia el alcance ni con ni sin elegir\n"
+}

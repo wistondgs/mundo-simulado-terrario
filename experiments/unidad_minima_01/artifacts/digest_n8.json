@@ -1,19 +1,48 @@
 {
- "actualizado": "2026-10-27T12:33:36",
+ "actualizado": "2026-10-27T23:06:49",
  "experimento": "n=8 muestra limpia",
- "medidos": 0,
+ "medidos": 5000,
  "objetivo": 5000,
- "pct": 0.0,
- "cortados_por_reloj": 0,
- "identificacion_por_nmin": {},
- "trabajo_sobre_vida": {
-  "p50": null,
-  "p90": null,
-  "p99": null,
-  "max": null
+ "pct": 100.0,
+ "cortados_por_reloj": 80,
+ "identificacion_por_nmin": {
+  "2": {
+   "sistemas": 152,
+   "identif": 65.1
+  },
+  "3": {
+   "sistemas": 233,
+   "identif": 60.9
+  },
+  "4": {
+   "sistemas": 351,
+   "identif": 49.6
+  },
+  "5": {
+   "sistemas": 694,
+   "identif": 45.5
+  },
+  "6": {
+   "sistemas": 897,
+   "identif": 41.5
+  },
+  "7": {
+   "sistemas": 1019,
+   "identif": 36.5
+  },
+  "8": {
+   "sistemas": 696,
+   "identif": 35.9
+  }
  },
- "refutaciones_totales": 0,
- "transit_rel_pct": null,
+ "trabajo_sobre_vida": {
+  "p50": 1.67,
+  "p90": 1467.49,
+  "p99": 36913.46,
+  "max": 85527.2
+ },
+ "refutaciones_totales": 18429355108,
+ "transit_rel_pct": 14.37,
  "mutantes_ok": true,
  "mutantes_rotos": false,
  "mutantes_en_ficha": true,

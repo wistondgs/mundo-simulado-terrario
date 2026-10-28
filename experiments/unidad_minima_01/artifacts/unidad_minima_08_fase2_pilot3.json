@@ -1,0 +1,101 @@
+{
+ "resumen": {
+  "no_componible": {
+   "F1": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "delta_repertorio": -1.0,
+    "instruibilidad": 1.5,
+    "estados": 3.75,
+    "agotados": 0,
+    "trabajo": 5166.5,
+    "elegidos": 0.0
+   },
+   "F3": {
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "delta_repertorio": -1.0,
+    "instruibilidad": 1.5,
+    "estados": 3.75,
+    "agotados": 0,
+    "trabajo": 5759.5,
+    "elegidos": 1.5
+   },
+   "C1": {
+    "alcance": 0.0,
+    "exactitud": 0.6192921605603449,
+    "repertorio": 1.0,
+    "delta_repertorio": -2.0,
+    "instruibilidad": 0.75,
+    "estados": 6.0,
+    "agotados": 12,
+    "trabajo": 3000001.0,
+    "elegidos": 0.0
+   },
+   "C3": {
+    "alcance": 0.0,
+    "exactitud": 0.6192921605603449,
+    "repertorio": 1.0,
+    "delta_repertorio": -2.0,
+    "instruibilidad": 0.75,
+    "estados": 6.0,
+    "agotados": 12,
+    "trabajo": 3000001.0,
+    "elegidos": 0.0
+   },
+   "C2": {
+    "alcance": 0.0,
+    "exactitud": 0.6192753232758621,
+    "repertorio": 0.75,
+    "delta_repertorio": -2.25,
+    "instruibilidad": 0.75,
+    "estados": 6.0,
+    "agotados": 12,
+    "trabajo": 3000001.0,
+    "elegidos": 0.0
+   },
+   "C4": {
+    "alcance": 0.0,
+    "exactitud": 0.6192753232758621,
+    "repertorio": 0.75,
+    "delta_repertorio": -2.25,
+    "instruibilidad": 0.75,
+    "estados": 6.0,
+    "agotados": 12,
+    "trabajo": 3000001.0,
+    "elegidos": 0.0
+   },
+   "C1_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 12
+   },
+   "C3_vs_F3": {
+    "solo_primero": 0,
+    "solo_segundo": 12
+   },
+   "F3_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C3_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   },
+   "C2_vs_F1": {
+    "solo_primero": 0,
+    "solo_segundo": 12
+   },
+   "C2_vs_C1": {
+    "solo_primero": 0,
+    "solo_segundo": 0
+   }
+  }
+ },
+ "puerta": {
+  "P1 control: C1 <= F1 en alcance (no componible)": true
+ },
+ "sha256_codigo": "3270c9e04a28a42860c02777abd0276ed531371be12cbef402a61a61f99f4b3d",
+ "texto": "vida en W1: 258 pasos; vida en W2: 3586 pasos; futuro W2: 14848 pasos; tope de estados 8; presupuesto 3000000 pasos avanzados por celda\nW1: 729 sistemas de 3 estados; 530 con n_min >= 2; 530 identificados por la unidad en su vida → elegibles\nfamilias (W1, W2) corridas: 12; descartadas por no abrir distinción nueva: 24; reloj 96.7 s\n\n=== clase no_componible: 12 familias\nbrazo   alcance  exactitud  repert.  Δrep.  instr.  estados  agotó  trabajo medio  elegidos\nF1        1.000     1.0000     2.00  -1.00    1.50     3.75      0           5166       0.0\nF3        1.000     1.0000     2.00  -1.00    1.50     3.75      0           5760       1.5\nC1        0.000     0.6193     1.00  -2.00    0.75     6.00     12        3000001       0.0\nC3        0.000     0.6193     1.00  -2.00    0.75     6.00     12        3000001       0.0\nC2        0.000     0.6193     0.75  -2.25    0.75     6.00     12        3000001       0.0\nC4        0.000     0.6193     0.75  -2.25    0.75     6.00     12        3000001       0.0\n  pareado C1 vs F1: identifica sólo C1 en 0 familias; sólo F1 en 12\n  pareado C3 vs F3: identifica sólo C3 en 0 familias; sólo F3 en 12\n  pareado F3 vs F1: identifica sólo F3 en 0 familias; sólo F1 en 0\n  pareado C3 vs C1: identifica sólo C3 en 0 familias; sólo C1 en 0\n  pareado C2 vs F1: identifica sólo C2 en 0 familias; sólo F1 en 12\n  pareado C2 vs C1: identifica sólo C2 en 0 familias; sólo C1 en 0\n\n--- puerta (receta §4)\n  [PASS] P1 control: C1 <= F1 en alcance (no componible)\n"
+}

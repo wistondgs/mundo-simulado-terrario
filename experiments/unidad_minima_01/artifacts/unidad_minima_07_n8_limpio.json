@@ -6,75 +6,97 @@
  "L": 10,
  "tope_sistema_s": 900,
  "umbral_relativo": 0.1,
- "mutantes": {
-  "muestra_capacidad": 20,
-  "muestra_instrumento": 200,
-  "M4_muestreo": {
-   "ok": true,
-   "detalle": {
-    "limpio_1000": [
-     true,
-     []
-    ],
-    "limpio_5000": [
-     true,
-     []
-    ],
-    "viejo_falla": [
-     true,
-     [
-      [
-       "A[0]",
-       [
-        0,
-        1
-       ]
-      ],
-      [
-       "B[4]",
-       [
-        0,
-        2,
-        4,
-        6
-       ]
-      ],
-      [
-       "B[5]",
-       [
-        0
-       ]
-      ],
-      [
-       "B[6]",
-       [
-        0
-       ]
-      ],
-      [
-       "B[7]",
-       [
-        0
-       ]
-      ]
-     ]
-    ]
+ "resumen": {
+  "sistemas": 5000,
+  "medibles": 4920,
+  "con_distincion": 4042,
+  "cortados": 80,
+  "identificadas": 1725,
+  "inertes": 958,
+  "distinciones_en_inertes": 0,
+  "inertes_con_mas_de_un_estado": 0,
+  "vida": 18434,
+  "trabajo_p50": 4.644,
+  "trabajo_p90": 2376.16,
+  "trabajo_p99": 41191.9,
+  "trabajo_max": 85527.2,
+  "transit_rel_pct": 14.37,
+  "transit_abs_pct": 12.84,
+  "sin_explicacion": 0,
+  "clases": {
+   "identificada": 2683,
+   "la vida no determina la verdad: admite una máq": 1106,
+   "la vida no determina la verdad: dos máquinas d": 1131,
+   "sin terminar por reloj (900 s)": 80
+  },
+  "reloj_total_s": 78069.0,
+  "por_nmin": {
+   "2": {
+    "sistemas": 152,
+    "identif": 65.13,
+    "transit_rel": 19.96,
+    "trabajo_p99": 1.0
+   },
+   "3": {
+    "sistemas": 233,
+    "identif": 60.94,
+    "transit_rel": 19.96,
+    "trabajo_p99": 1.1
+   },
+   "4": {
+    "sistemas": 351,
+    "identif": 49.57,
+    "transit_rel": 21.06,
+    "trabajo_p99": 2.0
+   },
+   "5": {
+    "sistemas": 694,
+    "identif": 45.53,
+    "transit_rel": 17.84,
+    "trabajo_p99": 44.2
+   },
+   "6": {
+    "sistemas": 897,
+    "identif": 41.47,
+    "transit_rel": 17.08,
+    "trabajo_p99": 1701.0
+   },
+   "7": {
+    "sistemas": 1019,
+    "identif": 36.51,
+    "transit_rel": 15.47,
+    "trabajo_p99": 28547.9
+   },
+   "8": {
+    "sistemas": 696,
+    "identif": 35.92,
+    "transit_rel": 13.9,
+    "trabajo_p99": 73444.1
    }
   },
-  "criterios": {
-   "M-1 memorizador FALLA la identidad": true,
-   "M-1 memorizador FALLA el futuro": true,
-   "quedaron mundos evaluables tras el tope": true,
-   "M-2 ciego a la observación FALLA donde n_min>=2": true,
-   "M-2 ciego no abre ninguna distinción": true,
-   "M-3 oráculo PASA identidad y futuro": true,
-   "M-4 la aserción de muestreo sirve": true,
-   "M-5 con n_max=1 tocan el tope TODOS los que la vida fuerza a >=2": true,
-   "M-5 y NINGUNO cuya vida sea de un estado": true,
-   "M-6 en la clase inerte el trabajo es exactamente la vida": true
+  "por_permutacion": {
+   "A0_B0": {
+    "sistemas": 3705,
+    "identif": 41.03
+   },
+   "A0_B1": {
+    "sistemas": 170,
+    "identif": 49.41
+   },
+   "A1_B0": {
+    "sistemas": 154,
+    "identif": 70.13
+   },
+   "A1_B1": {
+    "sistemas": 13,
+    "identif": 100.0
+   }
   },
-  "gate_sirve": true
+  "coste_del_1pct_mas_caro": 35.0,
+  "perm_alguna_en_el_1pct_caro": 2.6,
+  "perm_alguna_en_el_resto": 8.4
  },
+ "hash_filas_ordenadas_sin_reloj": "50b5b3b4f8800723b1b7fd593e40bc68c223684e920e19cec37a53ec24402cd9",
  "sha256_codigo": "be8ac51eaecf5fb2093f53616be523c53af5613eeae50472128cce283fd0cc15",
  "sha256_banco": "2672a004bf5c3dbd176a316911162d017c1b0f16f9b0b3af83f7c0771ab3b3da",
  "python": "3.14.4",

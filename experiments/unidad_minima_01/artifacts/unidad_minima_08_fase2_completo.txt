@@ -1,0 +1,61 @@
+vida en W1: 258 pasos; vida en W2: 3586 pasos; futuro W2: 1280 pasos; tope de estados 8; presupuesto 200000 pasos avanzados por celda
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+familias (W1, W2) corridas: 2134; descartadas por no abrir distinción nueva: 998
+
+=== clase componible: 766 familias
+brazo   alcance  exactitud  repert.  Δrep.  instr.  estados olvidos  trabajo medio  elegidos  (alcance/exactitud = al FINAL de W2)
+F1        0.996     1.0000     1.40  -0.78    1.32     3.65     240         135609       0.0
+F3        0.996     1.0000     1.45  -0.74    1.32     3.65     238         133377       2.2
+C1        0.992     1.0000     1.28  -0.90    1.36     3.94    1590         696405       0.0
+C3        0.992     1.0000     1.28  -0.90    1.36     3.94    1561         679581       1.7
+C2        0.992     1.0000     1.25  -0.94    1.36     3.87    1519         675349       0.0
+C4        0.992     1.0000     1.25  -0.94    1.36     3.87    1522         669309       1.7
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo       64     128     256     512    1024    2048    3586   media
+F1       0.642   0.832   0.933   0.965   0.988   0.988   0.996   0.906
+F3       0.657   0.822   0.910   0.965   0.984   0.988   0.996   0.903
+C1       0.542   0.758   0.920   0.965   0.984   0.988   0.992   0.879
+C3       0.569   0.785   0.941   0.969   0.984   0.988   0.992   0.890
+C2       0.538   0.764   0.924   0.965   0.984   0.988   0.992   0.879
+C4       0.569   0.790   0.941   0.965   0.980   0.984   0.992   0.889
+  pareado C1 vs F1: identifica sólo C1 en 0 familias; sólo F1 en 3
+  pareado C3 vs F3: identifica sólo C3 en 0 familias; sólo F3 en 3
+  pareado F3 vs F1: identifica sólo F3 en 0 familias; sólo F1 en 0
+  pareado C3 vs C1: identifica sólo C3 en 0 familias; sólo C1 en 0
+  pareado C2 vs F1: identifica sólo C2 en 0 familias; sólo F1 en 3
+  pareado C2 vs C1: identifica sólo C2 en 0 familias; sólo C1 en 0
+
+=== clase no_componible: 1368 familias
+brazo   alcance  exactitud  repert.  Δrep.  instr.  estados olvidos  trabajo medio  elegidos  (alcance/exactitud = al FINAL de W2)
+F1        1.000     1.0000     0.85  -1.58    1.35     4.34     391         156540       0.0
+F3        1.000     1.0000     0.84  -1.58    1.36     4.36     375         157987       3.3
+C1        1.000     1.0000     0.76  -1.66    1.36     4.52    2699         720949       0.0
+C3        1.000     1.0000     0.76  -1.66    1.36     4.52    2703         729454       3.3
+C2        1.000     1.0000     0.76  -1.66    1.36     4.44    2435         668392       0.0
+C4        1.000     1.0000     0.76  -1.66    1.36     4.44    2455         680798       3.3
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo       64     128     256     512    1024    2048    3586   media
+F1       0.684   0.893   0.965   0.980   0.996   1.000   1.000   0.931
+F3       0.656   0.871   0.969   0.989   0.996   1.000   1.000   0.926
+C1       0.613   0.865   0.960   0.980   0.998   0.998   1.000   0.916
+C3       0.590   0.857   0.955   0.984   0.996   1.000   1.000   0.912
+C2       0.613   0.860   0.960   0.980   0.998   0.998   1.000   0.916
+C4       0.586   0.849   0.953   0.984   0.996   1.000   1.000   0.910
+  pareado C1 vs F1: identifica sólo C1 en 0 familias; sólo F1 en 0
+  pareado C3 vs F3: identifica sólo C3 en 0 familias; sólo F3 en 0
+  pareado F3 vs F1: identifica sólo F3 en 0 familias; sólo F1 en 0
+  pareado C3 vs C1: identifica sólo C3 en 0 familias; sólo C1 en 0
+  pareado C2 vs F1: identifica sólo C2 en 0 familias; sólo F1 en 0
+  pareado C2 vs C1: identifica sólo C2 en 0 familias; sólo C1 en 0
+
+--- puerta (receta §4)
+  [FAIL] P1 acumulación: C1 > F1 en alcance a lo largo de la vida (componible)
+  [FAIL] P2 elegir: F3 > F1 en alcance a lo largo de la vida
+  [PASS] P2 elegir: C3 > C1 en alcance a lo largo de la vida
+  [FAIL] P4 lesión: C2 ≈ F1 (|Δ alcance medio| <= 0.02)
+  [FAIL] P5 repertorio: C1 >= F1 al final de W2
+  [PASS] P5 instruibilidad: C1 >= F1
+  [PASS] actividad: el órgano 'elegir' actuó
+  [PASS] P1 control: C1 <= F1 en alcance a lo largo de la vida (no componible)
+  [no] falsador: heredar no cambia el alcance ni con ni sin elegir
+random usado en nuestros módulos: no (no se importa); sha256 del código: 621c0534a939c9d1…
