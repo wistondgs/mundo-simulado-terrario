@@ -10,7 +10,9 @@
 
 **Y la fase entrega dos resultados que valen más que la puerta**: una ley estructural sobre qué mundos puede aprender una vida no elegida, y la constatación de que **más vida no compra cobertura**.
 
-**Y un error de muestreo mío invalida n=8** como estimación de su banco. Eso se explica en §6 y es la razón por la que esta fase no tiene cuarto punto de escala.
+**Un error de muestreo mío invalidó la primera muestra de n=8**; está rehecha y la fase cierra con sus **cuatro** puntos de escala. El defecto y su alcance se explican en §6. *(Actualizado el 27-oct: la versión anterior decía que la fase no tenía cuarto punto.)*
+
+**Y el cuarto punto corrige una conclusión de esta misma fase:** la escala **no degrada entre 3 y 6, y degrada en 8**. Los números están en §3.
 
 ---
 
@@ -21,7 +23,8 @@
 | 3 | 729 | **729 (completo)** | 258 | 530 | 368 · 69,4 % | 162 · 30,6 % |
 | 4 | 65 536 | **65 536 (completo)** | 642 | 51 222 | 32 040 · 62,6 % | 19 182 · 37,4 % |
 | 6 | 2 176 782 336 | 108 840 · 1-de-20 000 | 3 586 | 86 361 | 48 052 · 55,6 % | 38 309 · 44,4 % |
-| 8 | 281 474 976 710 656 | 9 581 · **muestra inválida, §6** | 18 434 | 1 793 | 78,3 % | — |
+| 8 | 281 474 976 710 656 | **5 000 · muestra limpia** (80 cortados por reloj) | 18 434 | 4 042 | 42,7 % | 958, **0 distinciones abiertas** |
+| 8 | *(descartada)* | 9 581 · muestra con retículo, §6 | 18 434 | — | no se usa | — |
 
 Determinismo: sin `random`; dos corridas del banco completo de n=3 difieren **sólo** en el campo del reloj de pared. Python 3.14.4.
 
@@ -66,7 +69,25 @@ Informado contra la **longitud de vida** y no contra n, que es lo que separa los
 
 Eso cambia lo que §3 concluye. No dice «este mundo es inaprendible desde una vida»; dice **«esta unidad no elige qué vivir»**. Y ésa sí es la pregunta de la Fase 2.
 
-**Y la escala no degrada.** Estratificando por `n_min` —la única comparación que no mezcla dificultad con estructura— la identificación es **plana** en n: 76,7 / 76,3 / 77,1 % en `n_min`=2 y 63,8 / 62,7 / 65,3 % en `n_min`=3 para n=3/4/6. La curva decreciente de la tabla de §1 era **composición**: los mundos grandes tienen `n_min` grande. Esto corrige lo que yo mismo informé como curva de escala durante la corrida.
+**La escala no degrada entre 3 y 6, y degrada en 8** *(corregido el 27-oct con la muestra limpia completa; la versión anterior decía «la escala no degrada» apoyándose en tres puntos).*
+
+Entre n=3, n=4 y n=6, a igual `n_min`, la identificación es **plana**: 76,7 / 76,3 / 77,1 % en `n_min`=2 y 63,8 / 62,7 / 65,3 % en `n_min`=3. Para esos tres puntos la curva decreciente de §1 era **composición**: los mundos grandes tienen `n_min` grande.
+
+**En n=8 ya no.** Con los 5 000 mundos sin retículo, y juzgando cada diferencia contra el ruido de muestreo de los dos estratos:
+
+| `n_min` | n=6 | n=8 limpio | diferencia | ruido (2 EE) | veredicto |
+|---|---|---|---|---|---|
+| 2 | 77,1 % (7 339) | 65,1 % (152) | **−12,0** | 7,8 | real |
+| 3 | 65,3 % (11 833) | 60,9 % (233) | −4,3 | 6,5 | en el ruido |
+| 4 | 57,1 % (19 499) | 49,6 % (351) | **−7,5** | 5,4 | real |
+| 5 | 50,8 % (26 208) | 45,5 % (694) | **−5,3** | 3,8 | real |
+| 6 | 47,6 % (21 482) | 41,5 % (897) | **−6,1** | 3,4 | real |
+
+**Cuatro de cinco estratos caen por encima del ruido.** La predicción y su falsador se escribieron antes de correr, en la ficha de n=8; el falsador —que las diferencias quedaran dentro de dos errores estándar— **no se cumplió**. No es composición: el mecanismo degrada al crecer el mundo. Los estratos `n_min` 7 y 8 no tienen comparación posible porque no existen en n=6; valen 1 017 y 618 mundos.
+
+**Los controles aguantan en el punto nuevo**, que es lo que hace creíble la cifra: **958** mundos inertes con **cero** distinciones abiertas, y los **13** mundos con las dos letras permutación identificados **los 13**. La ley de reversibilidad sobrevive al cuarto punto.
+
+**Consecuencia para 1-bis**, declarada en su ficha antes de este resultado: el aprendiz polinómico se juzga **en el estrato donde 02 empieza a perder**, no en n=3 ni n=4 donde cualquier mecanismo empata, y la pérdida admitida se evalúa por estrato y no sobre el agregado. Esto corrige lo que yo mismo informé como curva de escala durante la corrida.
 
 ---
 
@@ -200,4 +221,6 @@ Y un detalle estructural que decide el diseño: con una sola vida sin reset, los
 
 ## 10 · Una sola pregunta para Wis
 
-n=8 hay que rehacerlo con una muestra sin retículo, y eso cuesta otra campaña. **¿Se rehace ahora, antes de 1-bis, o se cierra la Fase 1 con tres puntos de escala y n=8 se mide ya con el mecanismo de 1-bis, que es polinómico y lo haría mucho más barato?**
+n=8 ya está rehecho y la fase cierra con sus cuatro puntos, así que la pregunta anterior quedó contestada por los hechos. La que queda es la que abre el resultado nuevo:
+
+**La degradación en n=8 es real y está acotada a cuatro estratos. ¿Se mide 1-bis sólo ahí —`n_min` ≥ 4 de n=8, que es donde 02 pierde y donde un aprendiz polinómico puede ganar o perder de verdad— o se corre el banco entero para tener la comparación pareada completa, sabiendo que en n=3 y n=4 va a empatar por construcción?**

@@ -335,6 +335,23 @@ Consecuencia medida: con tres de los ocho estados mandando a 0 bajo B, los mundo
 **Guarda** `[MECÁNICA]`: el bucle de vida **no tiene salidas**: recorre todos los pasos del presupuesto de vida en todo brazo; cualquier límite de cómputo se resuelve **dentro** de la unidad con una regla declarada (olvido, tope de estados) y se cuenta. Mutante obligatorio: una unidad a la que se le quita el mecanismo de olvido debe reproducir el ahogo (si no lo reproduce, el ahogo no era lo que creímos).
 **Aplicada en:** `unidad_minima_08_fase2.py` (el bucle ya no corta; `agotado` pasó a contar `olvidos`); el mutante está pedido en el traspaso y no corrido.
 
+## E-40 · Hash copiado de la terminal de una corrida previa, no del artefacto de la que se lanzó
+**Clase:** banco de trabajo · **Veces que saltó:** 1 · *un hash equivocado casi me hace tirar un artefacto válido*
+**27-oct-2026 (error de Fable; la guarda la aporta Opus).** El traspaso de la Fase 2 registraba el prototipo con sha256 `359d5ff1…` «al lanzar»; en disco había `621c0534…`. Lo perseguí porque un fichero modificado **después** del lanzamiento habría roto la procedencia de los 10 MB que la campaña estaba escribiendo. No era el caso: el mtime (16:50:25) es **anterior** al arranque del proceso (16:52:02), así que el código que corría era el de disco. El hash se había copiado de la salida de un piloto anterior a la última edición y no se recalculó al lanzar.
+**Por qué.** Un hash en un documento es una afirmación sobre un artefacto, y se copió de una terminal en vez de leerse del artefacto que la corrida de verdad escribió.
+**Severidad:** media. Ninguna medida afectada; la consecuencia posible era desconfiar de un artefacto válido y tirar 43 minutos de campaña. El riesgo simétrico es peor: un hash que coincidiera por casualidad con una versión vieja **ocultaría** una procedencia de verdad rota.
+**Firma (cómo se detecta):** el hash de un documento no coincide con el del fichero en disco; o un hash aparece en prosa sin que exista un artefacto de esa corrida que lo contenga.
+**Guarda** `[MECÁNICA]`: todo hash que entre en un documento se copia del **campo `sha256_codigo` del artefacto que la propia corrida escribió**, nunca de una terminal previa. Y al heredar una corrida ajena se comprueban **tres cosas, no una**: hash del fichero, **mtime del fichero frente a la hora de arranque del proceso**, y que el pid viva. El mtime es lo único que distingue «el hash del documento está mal» de «el fichero se tocó y la procedencia está rota»: sin él los dos casos se ven igual.
+**Aplicada en:** traspaso corregido con el hash bueno; instantánea en `artifacts/procedencia/`.
+
+## E-41 · Varias sustituciones y una sola escritura: una aserción fallida tira el trabajo bueno
+**27-oct-2026 (error de Opus).** Para corregir el cierre de la Fase 1 escribí un guion con cuatro sustituciones y **una sola escritura al final**. La segunda aserción falló —apuntaba a un ancla de §8 que yo buscaba en §6— y el fichero **no se escribió nunca**, así que se perdió también la primera, que sí había acertado. Peor: el commit que venía detrás en la misma orden **sí se ejecutó**, y su mensaje describía con detalle una corrección que el commit no contenía.
+**Por qué.** Un lote de ediciones con una sola escritura es todo-o-nada, y lo encadené con un commit que no comprobaba si el lote había funcionado. Es la misma forma del error que ya tengo registrado como falso verde: afirmar en prosa algo que el artefacto no respalda.
+**Severidad:** alta en credibilidad. El mensaje de un commit es la custodia del trabajo; uno que afirma lo que no contiene es peor que no commitear.
+**Firma (cómo se detecta):** un guion de edición con varios `assert` y un único `write_text` al final; o un mensaje de commit que menciona un cambio que `git show` no muestra.
+**Guarda** `[MECÁNICA]`: una sustitución, **una escritura** — si falla la tercera, las dos primeras ya están guardadas; cada una informa «hecho» o «no encontrado» por separado y ninguna aborta las demás. Y **nunca** encadenar un commit detrás de un lote de ediciones en la misma orden: primero se comprueba que el lote llegó, luego se commitea.
+**Aplicada en:** la función `sustituir()` con la que se aplicó esta corrección, que escribe tras cada una e informa de cada una.
+
 ## Ejes no vigilados (agujeros declarados)
 
 *Tomado del `failure_atlas.py` de RNE (`unmeasured_axes`): un registro sin eventos pero con ejes no vigilados no es un certificado de salud, es un certificado con agujeros declarados.*
