@@ -1,0 +1,62 @@
+{
+ "resumen": {
+  "6": {
+   "n": 6,
+   "muestra": 4000,
+   "medidos": 4000,
+   "con_nmin": 2581,
+   "paso_coprimo": 1345325467,
+   "cortado": false,
+   "reloj": 69.3,
+   "identifican": 2580,
+   "nunca_identifican": 1,
+   "coste_minimo": 2,
+   "coste_mediana": 56,
+   "coste_p90": 202,
+   "coste_maximo": 3239,
+   "caros": 179,
+   "fraccion_cara": 0.06935296396745448,
+   "n_min_distribucion": {
+    "4": 707,
+    "5": 1023,
+    "6": 851
+   }
+  },
+  "8": {
+   "n": 8,
+   "muestra": 4000,
+   "medidos": 2807,
+   "con_nmin": 2050,
+   "paso_coprimo": 173961102589771,
+   "cortado": true,
+   "reloj": 3600.2,
+   "identifican": 1832,
+   "nunca_identifican": 218,
+   "coste_minimo": 2,
+   "coste_mediana": 97,
+   "coste_p90": 1753,
+   "coste_maximo": 18287,
+   "caros": 811,
+   "fraccion_cara": 0.395609756097561,
+   "n_min_distribucion": {
+    "4": 193,
+    "5": 379,
+    "6": 493,
+    "7": 594,
+    "8": 391
+   }
+  }
+ },
+ "puerta": {
+  "n=6: hay mundos madre CAROS (no identifican o coste > 256)": true,
+  "n=6: la mediana del coste supera el primer hito de la curva (64)": false,
+  "n=6: la muestra pasó la verificación de retículo": true,
+  "n=8: hay mundos madre CAROS (no identifican o coste > 256)": true,
+  "n=8: la mediana del coste supera el primer hito de la curva (64)": true,
+  "n=8: la muestra pasó la verificación de retículo": true
+ },
+ "sha256_codigo": "e8027fa6159eb0816a17b8deb51d9bba9c5158247300393afc4419fcaf527ae3",
+ "arranque": "2026-10-28T22:32:30",
+ "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+ "texto": "n=6: espacio 2176782336 sistemas; muestra 4000 con paso coprimo 1345325467 (verificado: las 12 posiciones libres); vida 3586 pasos; futuro fijo 1280; tope de estados 8; exigencia n_min >= 4; caro = no identifica o coste > 256\n  medidos 4000 de 4000 (completo), 69 s; con n_min >= 4: 2581\n  coste de identificar W1 (paso del último error + 1), sobre los 2580 que identifican: mínimo 2, mediana 56, p90 202, máximo 3239\n  NO identifican en toda su vida: 1 · CAROS (no identifican o coste > 256): 179 (6.9 % de los que cumplen n_min)\n  n_min en la muestra: {4: 707, 5: 1023, 6: 851}\nn=8: espacio 281474976710656 sistemas; muestra 4000 con paso coprimo 173961102589771 (verificado: las 16 posiciones libres); vida 18434 pasos; futuro fijo 6656; tope de estados 10; exigencia n_min >= 4; caro = no identifica o coste > 256\n  medidos 2807 de 4000 (CORTADO por reloj), 3600 s; con n_min >= 4: 2050\n  coste de identificar W1 (paso del último error + 1), sobre los 1832 que identifican: mínimo 2, mediana 97, p90 1753, máximo 18287\n  NO identifican en toda su vida: 218 · CAROS (no identifican o coste > 256): 811 (39.6 % de los que cumplen n_min)\n  n_min en la muestra: {4: 193, 5: 379, 6: 493, 7: 594, 8: 391}\n--- puerta del mundo caro\n  [PASS] n=6: hay mundos madre CAROS (no identifican o coste > 256)\n  [FAIL] n=6: la mediana del coste supera el primer hito de la curva (64)\n  [PASS] n=6: la muestra pasó la verificación de retículo\n  [PASS] n=8: hay mundos madre CAROS (no identifican o coste > 256)\n  [PASS] n=8: la mediana del coste supera el primer hito de la curva (64)\n  [PASS] n=8: la muestra pasó la verificación de retículo\n\n⇒ La Fase 3 TIENE banco madre caro.\n   Los mundos seleccionados quedan en los `.jsonl` con el campo `caro`; la ficha\n   de la Fase 3 los toma de ahí por índice y no los vuelve a elegir.\n"
+}

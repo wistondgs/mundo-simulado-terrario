@@ -1,0 +1,303 @@
+{
+ "resumen": {
+  "madre": {
+   "v128_n64_p200000": {
+    "mundos": 35,
+    "olvidos": 26.285714285714285,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.7142857142857143,
+    "exactitud": 0.921353021978022,
+    "paralizadas": 8
+   },
+   "v128_n64_p2000000": {
+    "mundos": 35,
+    "olvidos": 4.571428571428571,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.6,
+    "exactitud": 0.9534915865384614,
+    "paralizadas": 13
+   },
+   "v128_n256_p200000": {
+    "mundos": 35,
+    "olvidos": 19.82857142857143,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.7142857142857143,
+    "exactitud": 0.8811272321428572,
+    "paralizadas": 7
+   },
+   "v128_n256_p2000000": {
+    "mundos": 35,
+    "olvidos": 3.4571428571428573,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.6857142857142857,
+    "exactitud": 0.8735705700549451,
+    "paralizadas": 11
+   },
+   "v128_nmaquina_p200000": {
+    "mundos": 35,
+    "olvidos": 1133.1142857142856,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.2571428571428571,
+    "exactitud": 0.9275369162087912,
+    "paralizadas": 0
+   },
+   "v128_nmaquina_p2000000": {
+    "mundos": 35,
+    "olvidos": 720.3714285714286,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.4,
+    "exactitud": 0.9572630494505495,
+    "paralizadas": 0
+   },
+   "v128_nmaquina+reparacion_p200000": {
+    "mundos": 35,
+    "olvidos": 35.2,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.3142857142857143,
+    "exactitud": 0.8828133585164835,
+    "paralizadas": 14
+   },
+   "v128_nmaquina+reparacion_p2000000": {
+    "mundos": 35,
+    "olvidos": 4.171428571428572,
+    "a64": 0.0,
+    "a256": 0.02857142857142857,
+    "afin": 0.37142857142857144,
+    "exactitud": 0.9036177884615385,
+    "paralizadas": 20
+   },
+   "v512_n64_p200000": {
+    "mundos": 35,
+    "olvidos": 16.4,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8285714285714286,
+    "exactitud": 0.93515625,
+    "paralizadas": 6
+   },
+   "v512_n64_p2000000": {
+    "mundos": 35,
+    "olvidos": 2.1142857142857143,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8,
+    "exactitud": 0.9478966346153845,
+    "paralizadas": 7
+   },
+   "v512_n256_p200000": {
+    "mundos": 35,
+    "olvidos": 10.685714285714285,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.9439302884615385,
+    "paralizadas": 4
+   },
+   "v512_n256_p2000000": {
+    "mundos": 35,
+    "olvidos": 1.3428571428571427,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.9389466002747253,
+    "paralizadas": 4
+   },
+   "v512_nmaquina_p200000": {
+    "mundos": 35,
+    "olvidos": 1629.6285714285714,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5428571428571428,
+    "exactitud": 0.9290805288461538,
+    "paralizadas": 0
+   },
+   "v512_nmaquina_p2000000": {
+    "mundos": 35,
+    "olvidos": 778.8571428571429,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.7142857142857143,
+    "exactitud": 0.9606370192307692,
+    "paralizadas": 0
+   },
+   "v512_nmaquina+reparacion_p200000": {
+    "mundos": 35,
+    "olvidos": 28.34285714285714,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5714285714285714,
+    "exactitud": 0.9069823145604395,
+    "paralizadas": 12
+   },
+   "v512_nmaquina+reparacion_p2000000": {
+    "mundos": 35,
+    "olvidos": 2.5428571428571427,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.6857142857142857,
+    "exactitud": 0.9532022664835166,
+    "paralizadas": 11
+   },
+   "v2048_n64_p200000": {
+    "mundos": 35,
+    "olvidos": 16.228571428571428,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8285714285714286,
+    "exactitud": 0.9539105425824175,
+    "paralizadas": 6
+   },
+   "v2048_n64_p2000000": {
+    "mundos": 35,
+    "olvidos": 1.6857142857142857,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8571428571428571,
+    "exactitud": 0.9826450892857143,
+    "paralizadas": 5
+   },
+   "v2048_n256_p200000": {
+    "mundos": 35,
+    "olvidos": 10.428571428571429,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.8991972870879121,
+    "paralizadas": 4
+   },
+   "v2048_n256_p2000000": {
+    "mundos": 35,
+    "olvidos": 1.2571428571428571,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.9172819368131868,
+    "paralizadas": 4
+   },
+   "v2048_nmaquina_p200000": {
+    "mundos": 35,
+    "olvidos": 1596.0857142857142,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5714285714285714,
+    "exactitud": 0.9304069368131869,
+    "paralizadas": 0
+   },
+   "v2048_nmaquina_p2000000": {
+    "mundos": 35,
+    "olvidos": 635.6285714285714,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8,
+    "exactitud": 0.9680631868131868,
+    "paralizadas": 0
+   },
+   "v2048_nmaquina+reparacion_p200000": {
+    "mundos": 35,
+    "olvidos": 29.02857142857143,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5714285714285714,
+    "exactitud": 0.910965831043956,
+    "paralizadas": 11
+   },
+   "v2048_nmaquina+reparacion_p2000000": {
+    "mundos": 35,
+    "olvidos": 2.0,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.7714285714285715,
+    "exactitud": 0.9579412774725274,
+    "paralizadas": 8
+   },
+   "vinf_n64_p200000": {
+    "mundos": 35,
+    "olvidos": 16.17142857142857,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8285714285714286,
+    "exactitud": 0.936933379120879,
+    "paralizadas": 6
+   },
+   "vinf_n64_p2000000": {
+    "mundos": 35,
+    "olvidos": 1.6571428571428573,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8571428571428571,
+    "exactitud": 0.9859074519230769,
+    "paralizadas": 5
+   },
+   "vinf_n256_p200000": {
+    "mundos": 35,
+    "olvidos": 10.457142857142857,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.8991972870879121,
+    "paralizadas": 4
+   },
+   "vinf_n256_p2000000": {
+    "mundos": 35,
+    "olvidos": 1.2571428571428571,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8857142857142857,
+    "exactitud": 0.938693337912088,
+    "paralizadas": 4
+   },
+   "vinf_nmaquina_p200000": {
+    "mundos": 35,
+    "olvidos": 1596.0857142857142,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5714285714285714,
+    "exactitud": 0.9304069368131869,
+    "paralizadas": 0
+   },
+   "vinf_nmaquina_p2000000": {
+    "mundos": 35,
+    "olvidos": 635.6285714285714,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.8,
+    "exactitud": 0.9680631868131868,
+    "paralizadas": 0
+   },
+   "vinf_nmaquina+reparacion_p200000": {
+    "mundos": 35,
+    "olvidos": 30.65714285714286,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.5714285714285714,
+    "exactitud": 0.9038229739010989,
+    "paralizadas": 11
+   },
+   "vinf_nmaquina+reparacion_p2000000": {
+    "mundos": 35,
+    "olvidos": 2.0285714285714285,
+    "a64": 0.0,
+    "a256": 0.0,
+    "afin": 0.7714285714285715,
+    "exactitud": 0.9583962912087912,
+    "paralizadas": 8
+   }
+  }
+ },
+ "puerta": {
+  "madre: el núcleo «maquina» baja los olvidos por debajo de 2 por vida": false,
+  "madre: y lo hace SIN perder exactitud respecto de la disposición de 08": true,
+  "madre: y es la ÚNICA familia de celdas donde los olvidos bajan de 2": false,
+  "madre: M-c (ventana ∞, presupuesto grande) reproduce el ahogo": true
+ },
+ "sha256_codigo": "82c5ee440133882546bb8e87f316849012aa504ae44f9242c4dae3e15564461d",
+ "arranque": "2026-10-29T00:28:51",
+ "texto": "# T2 · la disposición del olvido · 29-oct-2026\n\n**Exploratorio-medido:** celdas con mutante (M-c) y predicción escrita antes; no cierra fase.\n\n**Bancos:** 0 mundos W₂ componibles de n=3 (control) y **35** del banco madre, **muestra estratificada por n_min** (hasta 6 por estrato, cada estrato verificado no vacío): {'n6_nmin4': 1, 'n6_nmin5': 6, 'n6_nmin6': 6, 'n8_nmin5': 4, 'n8_nmin6': 6, 'n8_nmin7': 6, 'n8_nmin8': 6}. Total del banco 195; sha256 `a6a3f69a0f83dd1d…`.\n**Celdas:** 4×4×2 = 32 disposiciones × 35 mundos = **1120** corridas de vida. Tope de reloj por celda 45 s; al alcanzarlo la unidad queda paralizada y la vida sigue (E-39).\n**Reloj:** 1182 s con 11 trabajadores.\n\n### Banco «madre» · 1120 celdas medidas sobre 35 mundos\n\n| ventana | núcleo | presupuesto | mundos | **olvidos/vida** | alcance 64 | alcance 256 | alcance final | exactitud | paralizadas |\n|---|---|---|---|---|---|---|---|---|---|\n| 128 | 64 | 200000 | 35 | **26.3** | 0.000 | 0.000 | 0.714 | 0.9214 | 8 |\n| 128 | 64 | 2000000 | 35 | **4.6** | 0.000 | 0.000 | 0.600 | 0.9535 | 13 |\n| 128 | 256 | 200000 | 35 | **19.8** | 0.000 | 0.000 | 0.714 | 0.8811 | 7 |\n| 128 | 256 | 2000000 | 35 | **3.5** | 0.000 | 0.000 | 0.686 | 0.8736 | 11 |\n| 128 | maquina | 200000 | 35 | **1133.1** | 0.000 | 0.000 | 0.257 | 0.9275 | 0 |\n| 128 | maquina | 2000000 | 35 | **720.4** | 0.000 | 0.000 | 0.400 | 0.9573 | 0 |\n| 128 | maquina+reparacion | 200000 | 35 | **35.2** | 0.000 | 0.000 | 0.314 | 0.8828 | 14 |\n| 128 | maquina+reparacion | 2000000 | 35 | **4.2** | 0.000 | 0.029 | 0.371 | 0.9036 | 20 |\n| 512 | 64 | 200000 | 35 | **16.4** | 0.000 | 0.000 | 0.829 | 0.9352 | 6 |\n| 512 | 64 | 2000000 | 35 | **2.1** | 0.000 | 0.000 | 0.800 | 0.9479 | 7 |\n| 512 | 256 | 200000 | 35 | **10.7** | 0.000 | 0.000 | 0.886 | 0.9439 | 4 |\n| 512 | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9389 | 4 |\n| 512 | maquina | 200000 | 35 | **1629.6** | 0.000 | 0.000 | 0.543 | 0.9291 | 0 |\n| 512 | maquina | 2000000 | 35 | **778.9** | 0.000 | 0.000 | 0.714 | 0.9606 | 0 |\n| 512 | maquina+reparacion | 200000 | 35 | **28.3** | 0.000 | 0.000 | 0.571 | 0.9070 | 12 |\n| 512 | maquina+reparacion | 2000000 | 35 | **2.5** | 0.000 | 0.000 | 0.686 | 0.9532 | 11 |\n| 2048 | 64 | 200000 | 35 | **16.2** | 0.000 | 0.000 | 0.829 | 0.9539 | 6 |\n| 2048 | 64 | 2000000 | 35 | **1.7** | 0.000 | 0.000 | 0.857 | 0.9826 | 5 |\n| 2048 | 256 | 200000 | 35 | **10.4** | 0.000 | 0.000 | 0.886 | 0.8992 | 4 |\n| 2048 | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9173 | 4 |\n| 2048 | maquina | 200000 | 35 | **1596.1** | 0.000 | 0.000 | 0.571 | 0.9304 | 0 |\n| 2048 | maquina | 2000000 | 35 | **635.6** | 0.000 | 0.000 | 0.800 | 0.9681 | 0 |\n| 2048 | maquina+reparacion | 200000 | 35 | **29.0** | 0.000 | 0.000 | 0.571 | 0.9110 | 11 |\n| 2048 | maquina+reparacion | 2000000 | 35 | **2.0** | 0.000 | 0.000 | 0.771 | 0.9579 | 8 |\n| inf | 64 | 200000 | 35 | **16.2** | 0.000 | 0.000 | 0.829 | 0.9369 | 6 |\n| inf | 64 | 2000000 | 35 | **1.7** | 0.000 | 0.000 | 0.857 | 0.9859 | 5 |\n| inf | 256 | 200000 | 35 | **10.5** | 0.000 | 0.000 | 0.886 | 0.8992 | 4 |\n| inf | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9387 | 4 |\n| inf | maquina | 200000 | 35 | **1596.1** | 0.000 | 0.000 | 0.571 | 0.9304 | 0 |\n| inf | maquina | 2000000 | 35 | **635.6** | 0.000 | 0.000 | 0.800 | 0.9681 | 0 |\n| inf | maquina+reparacion | 200000 | 35 | **30.7** | 0.000 | 0.000 | 0.571 | 0.9038 | 11 |\n| inf | maquina+reparacion | 2000000 | 35 | **2.0** | 0.000 | 0.000 | 0.771 | 0.9584 | 8 |\n\n### Puerta de T2\n\n- [PASS] madre: M-c (ventana ∞, presupuesto grande) reproduce el ahogo\n- [FAIL] madre: el núcleo «maquina» baja los olvidos por debajo de 2 por vida\n- [FAIL] madre: y es la ÚNICA familia de celdas donde los olvidos bajan de 2\n- [PASS] madre: y lo hace SIN perder exactitud respecto de la disposición de 08\n"
+}

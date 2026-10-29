@@ -1,0 +1,199 @@
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+muestra de mutantes: 12 mundos W1 de 174
+
+M-d · bit conmutado: 216 (W1, patrón, clase) miradas; pasan el filtro 0 componibles y 93 no componibles
+  `no_vacio` abortó, como debe: «familias componibles con el bit conmutado» tiene 0 elementos y hacen falta al menos 1. Cualquier conclusión sobre esto sería un falso verde (E-30).
+  [PASS] M-d: el filtro descarta el 100 % de la clase componible y la guarda aborta
+
+M-e (fresca con la vida de la heredera) y M-f (C5 que ignora lo heredado): deben coincidir EXACTAMENTE con F1
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, C5, M-e, M-f; clase de unidad UnidadFase2; presupuesto 200000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       3      0          45482
+C5         1.000     1.0000     2.29    1.98     4.53       3      0          45293
+M-e        1.000     1.0000     2.18    1.98     4.62       3      0          45482
+M-f        1.000     1.0000     2.18    1.98     4.62       3      0          45482
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+C5        0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+M-e       0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+M-f       0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+  hito 64: C5 0.467 vs F1 0.467 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 45)
+  hito 128: C5 0.756 vs F1 0.756 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 45)
+  hito 256: C5 0.911 vs F1 0.911 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 45)
+  garantía C5: consistente 1.000; mínima 0.978 sobre 45/45 celdas determinadas; estados de más 0.02; heredadas 5.56, revisadas 248, supervivientes 1.07; herencia borrada por distinción nueva en 0 celdas
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.37      67      0         321341
+C5         1.000     1.0000     0.41    1.70     5.35      67      0         318812
+M-e        1.000     1.0000     0.41    1.70     5.37      67      0         321341
+M-f        1.000     1.0000     0.41    1.70     5.37      67      0         321341
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+C5        0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+M-e       0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+M-f       0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+  hito 64: C5 0.495 vs F1 0.495 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 93)
+  hito 128: C5 0.763 vs F1 0.763 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 93)
+  hito 256: C5 0.925 vs F1 0.925 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 93)
+  garantía C5: consistente 1.000; mínima 0.956 sobre 91/93 celdas determinadas; estados de más 0.07; heredadas 5.59, revisadas 517, supervivientes 1.32; herencia borrada por distinción nueva en 0 celdas
+
+  M-e vs F1: medidas que difieren ninguna; registros que difieren ninguno
+  M-f vs F1: medidas que difieren ninguna; registros que difieren {'c5_estados_sobre_minimo': 136, 'c5_consistente': 138, 'refutaciones': 138, 'refutaciones_en_w2': 138, 'c5_minima_agotada': 138, 'c5_minima': 136, 'transiciones_heredadas': 138, 'transiciones_heredadas_revisadas': 138, 'transiciones_heredadas_supervivientes': 138, 'herencia_borrada_por_distincion': 138}
+  umbral de z ajustado (alfa 0.05 sobre 6 comparaciones): 2.64
+--- puerta (ficha §11)
+  [PASS] (a) C5 consistente con su traza en componible (debe ser 1,000)
+  [PASS] (actividad) la reparación local actuó en componible
+  [PASS] (a) C5 consistente con su traza en no_componible (debe ser 1,000)
+  [PASS] (actividad) la reparación local actuó en no_componible
+  [PASS] (b) M-e reproduce F1 en TODAS las medidas (138 familias)
+  [PASS] (b) M-f reproduce F1 en TODAS las medidas (138 familias)
+  [FAIL] (c) acumulación: C5 > F1 en el hito 64 de la clase componible, z sobre el umbral
+  [PASS] (c) control: C5 <= F1 en el hito 64 de la clase no componible
+  [PASS] (e) repertorio: C5 >= F1 al final de W2 (componible)
+  [PASS] M-e == F1 en las medidas (138 familias); medidas distintas: ninguna; registros distintos: ninguno
+  [PASS] M-f == F1 en las medidas (138 familias); medidas distintas: ninguna; registros distintos: {'c5_estados_sobre_minimo': 136, 'c5_consistente': 138, 'refutaciones': 138, 'refutaciones_en_w2': 138, 'c5_minima_agotada': 138, 'c5_minima': 136, 'transiciones_heredadas': 138, 'transiciones_heredadas_revisadas': 138, 'transiciones_heredadas_supervivientes': 138, 'herencia_borrada_por_distincion': 138}
+
+M-a (olvido total, núcleo 0) contra C1 (núcleo 64) y F1
+  núcleo 0:
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, C1; clase de unidad UnidadMa; presupuesto 200000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       5      0          62377
+C1         1.000     1.0000     2.31    1.98     4.51      52      0         263820
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.911   0.956   1.000   1.000   1.000   0.870
+C1        0.444   0.667   0.867   0.933   0.978   1.000   1.000   0.841
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.37      38      0         197366
+C1         1.000     1.0000     0.41    1.70     5.32     123      0         362022
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.495   0.763   0.914   0.946   0.978   1.000   1.000   0.871
+C1        0.419   0.710   0.935   0.968   0.968   1.000   1.000   0.857
+
+--- puerta (ficha §11)
+  núcleo 64 (referencia):
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, C1; clase de unidad UnidadFase2; presupuesto 200000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       3      0          45482
+C1         0.978     0.9999     1.93    1.98     4.87     127      0         917487
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+C1        0.356   0.622   0.889   0.933   0.956   0.978   0.978   0.816
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.37      67      0         321341
+C1         1.000     1.0000     0.37    1.71     5.40     233      0         937643
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+C1        0.409   0.699   0.903   0.946   0.989   0.989   1.000   0.848
+
+--- puerta (ficha §11)
+  [PASS] M-a: el olvido total NO da la misma curva que el núcleo de 64 (si la da, esos 64 pasos no aportan nada)
+
+M-b (elegir la transición no vista MÁS LEJANA) contra elegir la más cercana
+  más lejana:
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, F3; clase de unidad UnidadMb; presupuesto 200000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       3      0          45482
+F3         1.000     1.0000     2.27    1.98     4.60       3      0          63516
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+F3        0.511   0.778   0.889   0.956   0.978   1.000   1.000   0.873
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.37      67      0         321341
+F3         0.989     0.9984     0.39    1.71     5.39      53      0         273602
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+F3        0.452   0.753   0.925   0.957   0.968   0.989   0.989   0.862
+
+--- puerta (ficha §11)
+  más cercana (referencia):
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, F3; clase de unidad UnidadFase2; presupuesto 200000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       3      0          45482
+F3         1.000     1.0000     2.27    1.98     4.60       3      0          63516
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.911   0.978   1.000   1.000   1.000   0.873
+F3        0.511   0.778   0.889   0.956   0.978   1.000   1.000   0.873
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.37      67      0         321341
+F3         1.000     1.0000     0.39    1.72     5.39      53      0         273602
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.495   0.763   0.925   0.946   0.978   1.000   1.000   0.873
+F3        0.462   0.763   0.935   0.968   0.978   1.000   1.000   0.873
+
+--- puerta (ficha §11)
+  [PASS] M-b: la más lejana no supera a la más cercana
+
+M-c (sin olvido; presupuesto 3000000 por intento, tope 8 estados): debe reproducir el ahogo —curva plana y 100 % en el tope—
+vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, C1; clase de unidad UnidadMc; presupuesto 3000000 pasos por intento
+W1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles
+mundos W1 corridos: 12; familias (W1, W2): 138; descartadas por no abrir distinción nueva: 78
+
+=== clase componible: 45 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     2.18    1.98     4.62       0      0          58985
+C1         0.044     0.8805     0.71    1.78     7.60       0    302       20599077
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.467   0.756   0.933   0.978   1.000   1.000   1.000   0.876
+C1        0.022   0.022   0.022   0.022   0.022   0.044   0.044   0.029
+
+=== clase no_componible: 93 familias
+brazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)
+F1         1.000     1.0000     0.41    1.70     5.40       0      5         432010
+C1         0.022     0.6898     0.55    0.77     7.41       0    620       20853745
+curva de alcance (fracción que identifica W2) por pasos vividos en W2:
+brazo        64     128     256     512    1024    2048    3586   media
+F1        0.505   0.817   0.968   0.978   0.989   1.000   1.000   0.894
+C1        0.022   0.022   0.022   0.022   0.022   0.022   0.022   0.022
+
+--- puerta (ficha §11)
+  [PASS] M-c: la heredera sin olvido no identifica (<0,10) mientras la fresca sí (>0,50) — el ahogo reproducido con ojos frescos
+azar usado: []; sha256 de 09: 5108a3b072843278…; sha256 de 08: 621c0534a939c9d1…
+guarda                   consultada  saltó  último salto
+estrato_de                        8      4  2026-10-27T13:30:48
+matar_por_pid                    10      4  2026-10-27T13:30:48
+muestreo_verificado               8      4  2026-10-27T13:30:48
+no_vacio                         75      6  2026-10-28T20:09:02
+salida_a_fichero                  9      2  2026-10-27T13:30:48
+salida_a_fichero[constructiva]          7      0  —
+sin_azar_usado                   11      3  2026-10-27T13:30:48
+CONSTRUCTIVAS (no saltan por diseño; su silencio no es síntoma): salida_a_fichero[constructiva]

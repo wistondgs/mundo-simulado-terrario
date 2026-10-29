@@ -1,0 +1,8 @@
+{"idx": 0, "n": 8, "n_min": 1, "descartado": "n_min"}
+{"idx": 173961102589771, "n": 8, "n_min": 6, "estados_alcanzables": 7, "coste_mundo": null, "mundo_resuelto": false, "mundo_motivo": "maquina_distinta", "mundo_estados": 4, "caro_por_el_mundo": true, "coste_barato": 44, "identifica_al_final": true, "exactitud_final": 1.0, "olvidos": 0, "pasos": 18434, "caro": false, "caro_solo_por_el_olvido": false, "banco_madre": false}
+{"idx": 66447228468886, "n": 8, "n_min": 8, "estados_alcanzables": 8, "coste_mundo": null, "mundo_resuelto": false, "mundo_motivo": "tope_de_reloj", "mundo_estados": 8, "caro_por_el_mundo": true, "coste_barato": 818, "identifica_al_final": true, "exactitud_final": 1.0, "olvidos": 8, "pasos": 18434, "caro": true, "caro_solo_por_el_olvido": false, "banco_madre": false}
+{"idx": 240408331058657, "n": 8, "n_min": 1, "descartado": "n_min"}
+{"idx": 132894456937772, "n": 8, "n_min": 1, "descartado": "n_min"}
+{"idx": 25380582816887, "n": 8, "n_min": 4, "estados_alcanzables": 4, "coste_mundo": null, "mundo_resuelto": false, "mundo_motivo": "maquina_distinta", "mundo_estados": 4, "caro_por_el_mundo": true, "coste_barato": 50, "identifica_al_final": true, "exactitud_final": 1.0, "olvidos": 0, "pasos": 18434, "caro": false, "caro_solo_por_el_olvido": false, "banco_madre": false}
+{"idx": 199341685406658, "n": 8, "n_min": 8, "estados_alcanzables": 8, "coste_mundo": null, "mundo_resuelto": false, "mundo_motivo": "tope_de_reloj", "mundo_estados": 8, "caro_por_el_mundo": true, "coste_barato": 18404, "identifica_al_final": false, "exactitud_final": 0.7767427884615384, "olvidos": 306, "pasos": 18434, "caro": true, "caro_solo_por_el_olvido": false, "banco_madre": false}
+{"idx": 91827811285773, "n": 8, "n_min": 2, "descartado": "n_min"}

@@ -1,0 +1,695 @@
+{
+ "resumen": {
+  "componible": {
+   "F1": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "instruibilidad": 2.0,
+    "intervenciones": 0.0,
+    "letras": 0.0,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 0.0,
+    "hipotesis_visitadas": 8.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.6666666666666666,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9523809523809524
+   },
+   "T1": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "instruibilidad": 2.0,
+    "intervenciones": 9.0,
+    "letras": 9.0,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 8.0,
+    "hipotesis_visitadas": 9.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.6666666666666666,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9523809523809524
+   },
+   "T2": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "instruibilidad": 2.0,
+    "intervenciones": 8.666666666666666,
+    "letras": 15.333333333333334,
+    "imposibles": 3570.6666666666665,
+    "palabra_igual_a_la_letra": 4.0,
+    "hipotesis_visitadas": 8.666666666666666,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "U1": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.6666666666666665,
+    "instruibilidad": 2.0,
+    "intervenciones": 9.333333333333334,
+    "letras": 16.666666666666668,
+    "imposibles": 3569.3333333333335,
+    "palabra_igual_a_la_letra": 4.0,
+    "hipotesis_visitadas": 8.333333333333334,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "U2": {
+    "familias": 1,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 3.0,
+    "instruibilidad": 2.0,
+    "intervenciones": 605.0,
+    "letras": 3589.0,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 4.0,
+    "hipotesis_visitadas": 10.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "U-sham": {
+    "familias": 3,
+    "alcance": 0.0,
+    "exactitud": 0.759375,
+    "repertorio": 1.0,
+    "instruibilidad": 1.0,
+    "intervenciones": 3584.0,
+    "letras": 3584.0,
+    "imposibles": 2.0,
+    "palabra_igual_a_la_letra": 1846.0,
+    "hipotesis_visitadas": 2.0,
+    "retencion_congelada": 0.759375,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.0,
+     "128": 0.0,
+     "256": 0.0,
+     "512": 0.0,
+     "1024": 0.0,
+     "2048": 0.0,
+     "3586": 0.0
+    },
+    "alcance_medio_curva": 0.0
+   },
+   "M-canal": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.0,
+    "instruibilidad": 2.0,
+    "intervenciones": 35.666666666666664,
+    "letras": 94.66666666666667,
+    "imposibles": 3550.3333333333335,
+    "palabra_igual_a_la_letra": 6.666666666666667,
+    "hipotesis_visitadas": 8.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.6666666666666666,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9523809523809524
+   },
+   "M-literal": {
+    "familias": 3,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.6666666666666665,
+    "instruibilidad": 2.0,
+    "intervenciones": 9.0,
+    "letras": 9.0,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 7.0,
+    "hipotesis_visitadas": 8.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.6666666666666666,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9523809523809524
+   },
+   "T1_vs_F1_64": {
+    "celda": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "T1_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "T1_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "T2_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 0.6666666666666666,
+    "z": 1.2247448713915892,
+    "solo_celda": 1,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "T2_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "T2_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U1_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 0.6666666666666666,
+    "z": 1.2247448713915892,
+    "solo_celda": 1,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U1_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U1_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U2_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 0.6666666666666666,
+    "z": 1.2247448713915892,
+    "solo_celda": 1,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U2_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U2_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "U-sham_vs_F1_64": {
+    "celda": 0.0,
+    "f1": 0.6666666666666666,
+    "z": 2.449489742783178,
+    "solo_celda": 0,
+    "solo_f1": 2,
+    "familias": 3
+   },
+   "U-sham_vs_F1_128": {
+    "celda": 0.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 3,
+    "familias": 3
+   },
+   "U-sham_vs_F1_256": {
+    "celda": 0.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 3,
+    "familias": 3
+   },
+   "M-canal_vs_F1_64": {
+    "celda": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "M-canal_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "M-canal_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "M-literal_vs_F1_64": {
+    "celda": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "M-literal_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   },
+   "M-literal_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 3
+   }
+  },
+  "no_componible": {
+   "F1": {
+    "familias": 5,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.2,
+    "instruibilidad": 0.6,
+    "intervenciones": 0.0,
+    "letras": 0.0,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 0.0,
+    "hipotesis_visitadas": 6.2,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "T1": {
+    "familias": 5,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.2,
+    "instruibilidad": 0.6,
+    "intervenciones": 6.4,
+    "letras": 6.4,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 6.2,
+    "hipotesis_visitadas": 6.4,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "T2": {
+    "familias": 5,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.2,
+    "instruibilidad": 0.6,
+    "intervenciones": 8.0,
+    "letras": 14.6,
+    "imposibles": 3571.4,
+    "palabra_igual_a_la_letra": 3.6,
+    "hipotesis_visitadas": 8.0,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "U1": {
+    "familias": 5,
+    "alcance": 0.2,
+    "exactitud": 0.6484375,
+    "repertorio": 1.4,
+    "instruibilidad": 0.4,
+    "intervenciones": 2869.6,
+    "letras": 2870.2,
+    "imposibles": 715.8,
+    "palabra_igual_a_la_letra": 1435.2,
+    "hipotesis_visitadas": 2.4,
+    "retencion_congelada": 0.6484375,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.2,
+     "128": 0.2,
+     "256": 0.2,
+     "512": 0.2,
+     "1024": 0.2,
+     "2048": 0.2,
+     "3586": 0.2
+    },
+    "alcance_medio_curva": 0.2
+   },
+   "U-sham": {
+    "familias": 5,
+    "alcance": 0.0,
+    "exactitud": 0.7234375,
+    "repertorio": 1.0,
+    "instruibilidad": 0.6,
+    "intervenciones": 3584.4,
+    "letras": 3584.4,
+    "imposibles": 1.6,
+    "palabra_igual_a_la_letra": 1792.2,
+    "hipotesis_visitadas": 1.8,
+    "retencion_congelada": 0.7234375,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.0,
+     "128": 0.0,
+     "256": 0.0,
+     "512": 0.0,
+     "1024": 0.0,
+     "2048": 0.0,
+     "3586": 0.0
+    },
+    "alcance_medio_curva": 0.0
+   },
+   "M-canal": {
+    "familias": 5,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 2.2,
+    "instruibilidad": 0.6,
+    "intervenciones": 747.8,
+    "letras": 764.6,
+    "imposibles": 2838.2,
+    "palabra_igual_a_la_letra": 380.6,
+    "hipotesis_visitadas": 6.2,
+    "retencion_congelada": 1.0,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 1.0,
+     "128": 1.0,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 1.0
+   },
+   "M-literal": {
+    "familias": 5,
+    "alcance": 0.6,
+    "exactitud": 0.7579687500000001,
+    "repertorio": 1.6,
+    "instruibilidad": 0.4,
+    "intervenciones": 1440.4,
+    "letras": 1440.4,
+    "imposibles": 0.0,
+    "palabra_igual_a_la_letra": 723.4,
+    "hipotesis_visitadas": 3.4,
+    "retencion_congelada": 0.7579687500000001,
+    "identifica_tras_retirarse": 1.0,
+    "curva_alcance": {
+     "64": 0.6,
+     "128": 0.6,
+     "256": 0.6,
+     "512": 0.6,
+     "1024": 0.6,
+     "2048": 0.6,
+     "3586": 0.6
+    },
+    "alcance_medio_curva": 0.6
+   },
+   "T1_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "T1_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "T1_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "T2_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "T2_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "T2_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "U1_vs_F1_64": {
+    "celda": 0.2,
+    "f1": 1.0,
+    "z": 4.472135954999579,
+    "solo_celda": 0,
+    "solo_f1": 4,
+    "familias": 5
+   },
+   "U1_vs_F1_128": {
+    "celda": 0.2,
+    "f1": 1.0,
+    "z": 4.472135954999579,
+    "solo_celda": 0,
+    "solo_f1": 4,
+    "familias": 5
+   },
+   "U1_vs_F1_256": {
+    "celda": 0.2,
+    "f1": 1.0,
+    "z": 4.472135954999579,
+    "solo_celda": 0,
+    "solo_f1": 4,
+    "familias": 5
+   },
+   "U-sham_vs_F1_64": {
+    "celda": 0.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 5,
+    "familias": 5
+   },
+   "U-sham_vs_F1_128": {
+    "celda": 0.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 5,
+    "familias": 5
+   },
+   "U-sham_vs_F1_256": {
+    "celda": 0.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 5,
+    "familias": 5
+   },
+   "M-canal_vs_F1_64": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "M-canal_vs_F1_128": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "M-canal_vs_F1_256": {
+    "celda": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_celda": 0,
+    "solo_f1": 0,
+    "familias": 5
+   },
+   "M-literal_vs_F1_64": {
+    "celda": 0.6,
+    "f1": 1.0,
+    "z": 1.8257418583505538,
+    "solo_celda": 0,
+    "solo_f1": 2,
+    "familias": 5
+   },
+   "M-literal_vs_F1_128": {
+    "celda": 0.6,
+    "f1": 1.0,
+    "z": 1.8257418583505538,
+    "solo_celda": 0,
+    "solo_f1": 2,
+    "familias": 5
+   },
+   "M-literal_vs_F1_256": {
+    "celda": 0.6,
+    "f1": 1.0,
+    "z": 1.8257418583505538,
+    "solo_celda": 0,
+    "solo_f1": 2,
+    "familias": 5
+   }
+  }
+ },
+ "puerta": {
+  "P1 componible: U1 ≈ T1 (|Δ| <= 0,02) en el hito 64": false,
+  "P1 componible: U1 > F1 en el hito 64": true,
+  "P2 componible: U2 <= F1 en el hito 64": false,
+  "P2 componible: U2 canaliza (visita menos hipótesis que F1)": false,
+  "P3 componible: U-sham ≈ F1 (|Δ| <= 0,02)": false,
+  "M-canal componible: ≈ F1 (el único canal es vivir la palabra)": true,
+  "M-literal: la palabra del encargo ES la letra que el alumno iba a tomar": false,
+  "P1 no_componible: U1 ≈ T1 (|Δ| <= 0,02) en el hito 64": false,
+  "P1 no_componible: U1 > F1 en el hito 64": false,
+  "P3 no_componible: U-sham ≈ F1 (|Δ| <= 0,02)": false,
+  "M-canal no_componible: ≈ F1 (el único canal es vivir la palabra)": true
+ },
+ "sha256_codigo": "9d69db166c0df5addee9e4da70f01d684af65d869ae732d0eb9e091890978161",
+ "texto": "vida en W1: 258; vida en W2: 3586; futuro W2: 1280; tope de estados 8; tope de palabra 16; canal «ve_la_hipotesis»; celdas F1, T1, T2, U1, U2, U3, U-sham, M-canal, M-literal\nW1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles\nmundos W1 corridos: 1; filas: 57\n\n=== clase componible\ncelda       fam.  alcance  exact.  repert.  instr.  interv.  letras imposib.  =letra  hipót.  retenc. tras irse\nF1             3    1.000  1.0000     2.00    2.00      0.0     0.0      0.0     0.0     8.0   1.0000     1.000\nT1             3    1.000  1.0000     2.00    2.00      9.0     9.0      0.0     8.0     9.0   1.0000     1.000\nT2             3    1.000  1.0000     2.00    2.00      8.7    15.3   3570.7     4.0     8.7   1.0000     1.000\nU1             3    1.000  1.0000     2.67    2.00      9.3    16.7   3569.3     4.0     8.3   1.0000     1.000\nU2             1    1.000  1.0000     3.00    2.00    605.0  3589.0      0.0     4.0    10.0   1.0000     1.000\nU-sham         3    0.000  0.7594     1.00    1.00   3584.0  3584.0      2.0  1846.0     2.0   0.7594     1.000\nM-canal        3    1.000  1.0000     2.00    2.00     35.7    94.7   3550.3     6.7     8.0   1.0000     1.000\nM-literal      3    1.000  1.0000     2.67    2.00      9.0     9.0      0.0     7.0     8.0   1.0000     1.000\ncurva de alcance por pasos vividos en W2:\ncelda           64     128     256     512    1024    2048    3586   media\nF1           0.667   1.000   1.000   1.000   1.000   1.000   1.000   0.952\nT1           0.667   1.000   1.000   1.000   1.000   1.000   1.000   0.952\nT2           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nU1           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nU2           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nU-sham       0.000   0.000   0.000   0.000   0.000   0.000   0.000   0.000\nM-canal      0.667   1.000   1.000   1.000   1.000   1.000   1.000   0.952\nM-literal    0.667   1.000   1.000   1.000   1.000   1.000   1.000   0.952\n  hito 64: T1 0.667 vs F1 0.667 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 3)\n  hito 128: T1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 3)\n  hito 256: T1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 3)\n  hito 64: T2 1.000 vs F1 0.667 · z 1.22 · pareado: sólo T2 en 1, sólo F1 en 0 (de 3)\n  hito 128: T2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T2 en 0, sólo F1 en 0 (de 3)\n  hito 256: T2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T2 en 0, sólo F1 en 0 (de 3)\n  hito 64: U1 1.000 vs F1 0.667 · z 1.22 · pareado: sólo U1 en 1, sólo F1 en 0 (de 3)\n  hito 128: U1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo U1 en 0, sólo F1 en 0 (de 3)\n  hito 256: U1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo U1 en 0, sólo F1 en 0 (de 3)\n  hito 64: U2 1.000 vs F1 0.667 · z 1.22 · pareado: sólo U2 en 1, sólo F1 en 0 (de 3)\n  hito 128: U2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo U2 en 0, sólo F1 en 0 (de 3)\n  hito 256: U2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo U2 en 0, sólo F1 en 0 (de 3)\n  hito 64: U-sham 0.000 vs F1 0.667 · z 2.45 · pareado: sólo U-sham en 0, sólo F1 en 2 (de 3)\n  hito 128: U-sham 0.000 vs F1 1.000 · z 0.00 · pareado: sólo U-sham en 0, sólo F1 en 3 (de 3)\n  hito 256: U-sham 0.000 vs F1 1.000 · z 0.00 · pareado: sólo U-sham en 0, sólo F1 en 3 (de 3)\n  hito 64: M-canal 0.667 vs F1 0.667 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 3)\n  hito 128: M-canal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 3)\n  hito 256: M-canal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 3)\n  hito 64: M-literal 0.667 vs F1 0.667 · z 0.00 · pareado: sólo M-literal en 0, sólo F1 en 0 (de 3)\n  hito 128: M-literal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-literal en 0, sólo F1 en 0 (de 3)\n  hito 256: M-literal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-literal en 0, sólo F1 en 0 (de 3)\n\n=== clase no_componible\ncelda       fam.  alcance  exact.  repert.  instr.  interv.  letras imposib.  =letra  hipót.  retenc. tras irse\nF1             5    1.000  1.0000     2.20    0.60      0.0     0.0      0.0     0.0     6.2   1.0000     1.000\nT1             5    1.000  1.0000     2.20    0.60      6.4     6.4      0.0     6.2     6.4   1.0000     1.000\nT2             5    1.000  1.0000     2.20    0.60      8.0    14.6   3571.4     3.6     8.0   1.0000     1.000\nU1             5    0.200  0.6484     1.40    0.40   2869.6  2870.2    715.8  1435.2     2.4   0.6484     1.000\nU-sham         5    0.000  0.7234     1.00    0.60   3584.4  3584.4      1.6  1792.2     1.8   0.7234     1.000\nM-canal        5    1.000  1.0000     2.20    0.60    747.8   764.6   2838.2   380.6     6.2   1.0000     1.000\nM-literal      5    0.600  0.7580     1.60    0.40   1440.4  1440.4      0.0   723.4     3.4   0.7580     1.000\ncurva de alcance por pasos vividos en W2:\ncelda           64     128     256     512    1024    2048    3586   media\nF1           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nT1           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nT2           1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nU1           0.200   0.200   0.200   0.200   0.200   0.200   0.200   0.200\nU-sham       0.000   0.000   0.000   0.000   0.000   0.000   0.000   0.000\nM-canal      1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000\nM-literal    0.600   0.600   0.600   0.600   0.600   0.600   0.600   0.600\n  hito 64: T1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 5)\n  hito 128: T1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 5)\n  hito 256: T1 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T1 en 0, sólo F1 en 0 (de 5)\n  hito 64: T2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T2 en 0, sólo F1 en 0 (de 5)\n  hito 128: T2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T2 en 0, sólo F1 en 0 (de 5)\n  hito 256: T2 1.000 vs F1 1.000 · z 0.00 · pareado: sólo T2 en 0, sólo F1 en 0 (de 5)\n  hito 64: U1 0.200 vs F1 1.000 · z 4.47 · pareado: sólo U1 en 0, sólo F1 en 4 (de 5)\n  hito 128: U1 0.200 vs F1 1.000 · z 4.47 · pareado: sólo U1 en 0, sólo F1 en 4 (de 5)\n  hito 256: U1 0.200 vs F1 1.000 · z 4.47 · pareado: sólo U1 en 0, sólo F1 en 4 (de 5)\n  hito 64: U-sham 0.000 vs F1 1.000 · z 0.00 · pareado: sólo U-sham en 0, sólo F1 en 5 (de 5)\n  hito 128: U-sham 0.000 vs F1 1.000 · z 0.00 · pareado: sólo U-sham en 0, sólo F1 en 5 (de 5)\n  hito 256: U-sham 0.000 vs F1 1.000 · z 0.00 · pareado: sólo U-sham en 0, sólo F1 en 5 (de 5)\n  hito 64: M-canal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 5)\n  hito 128: M-canal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 5)\n  hito 256: M-canal 1.000 vs F1 1.000 · z 0.00 · pareado: sólo M-canal en 0, sólo F1 en 0 (de 5)\n  hito 64: M-literal 0.600 vs F1 1.000 · z 1.83 · pareado: sólo M-literal en 0, sólo F1 en 2 (de 5)\n  hito 128: M-literal 0.600 vs F1 1.000 · z 1.83 · pareado: sólo M-literal en 0, sólo F1 en 2 (de 5)\n  hito 256: M-literal 0.600 vs F1 1.000 · z 1.83 · pareado: sólo M-literal en 0, sólo F1 en 2 (de 5)\n\n--- puerta (predicciones de §4, umbral de z 2.87)\n  [FAIL] P1 componible: U1 ≈ T1 (|Δ| <= 0,02) en el hito 64\n  [PASS] P1 componible: U1 > F1 en el hito 64\n  [FAIL] P2 componible: U2 <= F1 en el hito 64\n  [FAIL] P2 componible: U2 canaliza (visita menos hipótesis que F1)\n  [FAIL] P3 componible: U-sham ≈ F1 (|Δ| <= 0,02)\n  [PASS] M-canal componible: ≈ F1 (el único canal es vivir la palabra)\n  [FAIL] M-literal: la palabra del encargo ES la letra que el alumno iba a tomar\n  [FAIL] P1 no_componible: U1 ≈ T1 (|Δ| <= 0,02) en el hito 64\n  [FAIL] P1 no_componible: U1 > F1 en el hito 64\n  [FAIL] P3 no_componible: U-sham ≈ F1 (|Δ| <= 0,02)\n  [PASS] M-canal no_componible: ≈ F1 (el único canal es vivir la palabra)\n"
+}

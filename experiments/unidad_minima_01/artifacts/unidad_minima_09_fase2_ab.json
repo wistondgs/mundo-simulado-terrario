@@ -1,0 +1,277 @@
+{
+ "resumen": {
+  "componible": {
+   "F1": {
+    "familias": 766,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 1.9869451697127938,
+    "instruibilidad": 1.2454308093994777,
+    "estados": 2.7767624020887727,
+    "olvidos": 0,
+    "topes": 0,
+    "trabajo": 6246.588772845953,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.860313315926893,
+     "128": 0.9647519582245431,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9750093248787766
+   },
+   "C5": {
+    "familias": 766,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 1.9973890339425588,
+    "instruibilidad": 1.2754569190600522,
+    "estados": 3.0926892950391647,
+    "olvidos": 0,
+    "topes": 0,
+    "trabajo": 6011.009138381201,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.8733681462140992,
+     "128": 0.9647519582245431,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9768743006340918
+   },
+   "M-e": {
+    "familias": 766,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 1.9869451697127938,
+    "instruibilidad": 1.2454308093994777,
+    "estados": 2.7767624020887727,
+    "olvidos": 0,
+    "topes": 0,
+    "trabajo": 6246.588772845953,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.860313315926893,
+     "128": 0.9647519582245431,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9750093248787766
+   },
+   "M-f": {
+    "familias": 766,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 1.9869451697127938,
+    "instruibilidad": 1.2454308093994777,
+    "estados": 2.7767624020887727,
+    "olvidos": 0,
+    "topes": 0,
+    "trabajo": 6246.588772845953,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.860313315926893,
+     "128": 0.9647519582245431,
+     "256": 1.0,
+     "512": 1.0,
+     "1024": 1.0,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9750093248787766
+   },
+   "C5_vs_F1_64": {
+    "c5": 0.8733681462140992,
+    "f1": 0.860313315926893,
+    "z": 0.7521343621293807,
+    "solo_c5": 10,
+    "solo_f1": 0,
+    "familias": 766
+   },
+   "C5_vs_F1_128": {
+    "c5": 0.9647519582245431,
+    "f1": 0.9647519582245431,
+    "z": 0.0,
+    "solo_c5": 0,
+    "solo_f1": 0,
+    "familias": 766
+   },
+   "C5_vs_F1_256": {
+    "c5": 1.0,
+    "f1": 1.0,
+    "z": 0.0,
+    "solo_c5": 0,
+    "solo_f1": 0,
+    "familias": 766
+   },
+   "garantia_c5": {
+    "celdas": 766,
+    "c5_consistente": 1.0,
+    "determinadas": 766,
+    "c5_minima": 0.6997389033942559,
+    "c5_estados_sobre_minimo": 0.42297650130548303,
+    "heredadas": 5.347258485639687,
+    "revisadas": 1687,
+    "supervivientes": 4.097911227154047,
+    "herencia_borrada": 25
+   }
+  },
+  "no_componible": {
+   "F1": {
+    "familias": 1368,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.9122807017543859,
+    "instruibilidad": 1.3523391812865497,
+    "estados": 4.161549707602339,
+    "olvidos": 383,
+    "topes": 0,
+    "trabajo": 151615.81578947368,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.7083333333333334,
+     "128": 0.8940058479532164,
+     "256": 0.9649122807017544,
+     "512": 0.9802631578947368,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.934732664995823
+   },
+   "C5": {
+    "familias": 1368,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.9641812865497076,
+    "instruibilidad": 1.3545321637426901,
+    "estados": 4.399122807017544,
+    "olvidos": 387,
+    "topes": 0,
+    "trabajo": 151011.83187134503,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.7039473684210527,
+     "128": 0.8932748538011696,
+     "256": 0.9649122807017544,
+     "512": 0.9802631578947368,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.9340016708437762
+   },
+   "M-e": {
+    "familias": 1368,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.9122807017543859,
+    "instruibilidad": 1.3523391812865497,
+    "estados": 4.161549707602339,
+    "olvidos": 383,
+    "topes": 0,
+    "trabajo": 151615.81578947368,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.7083333333333334,
+     "128": 0.8940058479532164,
+     "256": 0.9649122807017544,
+     "512": 0.9802631578947368,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.934732664995823
+   },
+   "M-f": {
+    "familias": 1368,
+    "alcance": 1.0,
+    "exactitud": 1.0,
+    "repertorio": 0.9122807017543859,
+    "instruibilidad": 1.3523391812865497,
+    "estados": 4.161549707602339,
+    "olvidos": 383,
+    "topes": 0,
+    "trabajo": 151615.81578947368,
+    "sin_aprender": 0,
+    "curva_alcance": {
+     "64": 0.7083333333333334,
+     "128": 0.8940058479532164,
+     "256": 0.9649122807017544,
+     "512": 0.9802631578947368,
+     "1024": 0.9956140350877193,
+     "2048": 1.0,
+     "3586": 1.0
+    },
+    "alcance_medio_curva": 0.934732664995823
+   },
+   "C5_vs_F1_64": {
+    "c5": 0.7039473684210527,
+    "f1": 0.7083333333333334,
+    "z": 0.2518156655072512,
+    "solo_c5": 1,
+    "solo_f1": 7,
+    "familias": 1368
+   },
+   "C5_vs_F1_128": {
+    "c5": 0.8932748538011696,
+    "f1": 0.8940058479532164,
+    "z": 0.062011526965286286,
+    "solo_c5": 0,
+    "solo_f1": 1,
+    "familias": 1368
+   },
+   "C5_vs_F1_256": {
+    "c5": 0.9649122807017544,
+    "f1": 0.9649122807017544,
+    "z": 0.0,
+    "solo_c5": 0,
+    "solo_f1": 0,
+    "familias": 1368
+   },
+   "garantia_c5": {
+    "celdas": 1368,
+    "c5_consistente": 1.0,
+    "determinadas": 1356,
+    "c5_minima": 0.7470501474926253,
+    "c5_estados_sobre_minimo": 0.3606194690265487,
+    "heredadas": 5.4524853801169595,
+    "revisadas": 6060,
+    "supervivientes": 2.595029239766082,
+    "herencia_borrada": 33
+   }
+  }
+ },
+ "puerta": {
+  "(a) C5 consistente con su traza en componible (debe ser 1,000)": true,
+  "(actividad) la reparación local actuó en componible": true,
+  "(a) C5 consistente con su traza en no_componible (debe ser 1,000)": true,
+  "(actividad) la reparación local actuó en no_componible": true,
+  "(b) M-e reproduce F1 en TODAS las medidas (2134 familias)": true,
+  "(b) M-f reproduce F1 en TODAS las medidas (2134 familias)": true,
+  "(c) acumulación: C5 > F1 en el hito 64 de la clase componible, z sobre el umbral": false,
+  "(c) control: C5 <= F1 en el hito 64 de la clase no componible": true,
+  "(e) repertorio: C5 >= F1 al final de W2 (componible)": true,
+  "(g) no saturación en componible: los brazos se separan en el hito 64 (rango 0.860–0.873, z 0.75 contra umbral 2.64)": false,
+  "(g) ⇒ VEREDICTO componible: NULO POR TECHO DEL DISEÑO, no negativo": true,
+  "(g) no saturación en no_componible: los brazos se separan en el hito 64 (rango 0.704–0.708, z 0.25 contra umbral 2.64)": false,
+  "(g) ⇒ VEREDICTO no_componible: NULO POR TECHO DEL DISEÑO, no negativo": true,
+  "criterios_no_evaluados": [
+   "d"
+  ]
+ },
+ "sha256_codigo": "b7977cc9ce5f3a94189645a7cf9792fe09195da564b5b3449320473240b66f50",
+ "sha256_08": "621c0534a939c9d1c599aed6cfb05380791b56f6effa1613eadcc6d5beec9b9f",
+ "arranque": "2026-10-28T20:53:51",
+ "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+ "texto": "vida en W1: 258 pasos; vida en W2: 3586; futuro W2: 1280; tope de estados 8; brazos F1, C5, M-e, M-f; clase de unidad UnidadFase2; presupuesto 200000 pasos por intento; CONTROL A↔B: las dos letras intercambiadas en el mundo\nW1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles\nmundos W1 corridos: 174; familias (W1, W2): 2134; descartadas por no abrir distinción nueva: 998\nPRECONDICIÓN DEL BANCO (E-50) · lo que C5 hereda es la máquina de W1, y a la fresca identificar W1 le cuesta: mediana 19, p90 29, máximo 68 pasos (173 mundos); 170/173 lo consiguen antes del primer hito (64).\n  ⇒ la herencia NO TIENE dónde mostrarse: cualquier resultado de esta celda es NULO POR TECHO DEL DISEÑO\n\n=== clase componible: 766 familias\nbrazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)\nF1         1.000     1.0000     1.99    1.25     2.78       0      0           6247\nC5         1.000     1.0000     2.00    1.28     3.09       0      0           6011\nM-e        1.000     1.0000     1.99    1.25     2.78       0      0           6247\nM-f        1.000     1.0000     1.99    1.25     2.78       0      0           6247\ncurva de alcance (fracción que identifica W2) por pasos vividos en W2:\nbrazo        64     128     256     512    1024    2048    3586   media\nF1        0.860   0.965   1.000   1.000   1.000   1.000   1.000   0.975\nC5        0.873   0.965   1.000   1.000   1.000   1.000   1.000   0.977\nM-e       0.860   0.965   1.000   1.000   1.000   1.000   1.000   0.975\nM-f       0.860   0.965   1.000   1.000   1.000   1.000   1.000   0.975\n  hito 64: C5 0.873 vs F1 0.860 · z 0.75 · pareado: sólo C5 en 10 familias, sólo F1 en 0 (de 766)\n  hito 128: C5 0.965 vs F1 0.965 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 766)\n  hito 256: C5 1.000 vs F1 1.000 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 766)\n  garantía C5: consistente 1.000; mínima 0.700 sobre 766/766 celdas determinadas; estados de más 0.42; heredadas 5.35, revisadas 1687, supervivientes 4.10; herencia borrada por distinción nueva en 25 celdas\n\n=== clase no_componible: 1368 familias\nbrazo    alcance  exactitud  repert.  instr.  estados olvidos  topes  trabajo medio  (al FINAL de W2)\nF1         1.000     1.0000     0.91    1.35     4.16     383      0         151616\nC5         1.000     1.0000     0.96    1.35     4.40     387      0         151012\nM-e        1.000     1.0000     0.91    1.35     4.16     383      0         151616\nM-f        1.000     1.0000     0.91    1.35     4.16     383      0         151616\ncurva de alcance (fracción que identifica W2) por pasos vividos en W2:\nbrazo        64     128     256     512    1024    2048    3586   media\nF1        0.708   0.894   0.965   0.980   0.996   1.000   1.000   0.935\nC5        0.704   0.893   0.965   0.980   0.996   1.000   1.000   0.934\nM-e       0.708   0.894   0.965   0.980   0.996   1.000   1.000   0.935\nM-f       0.708   0.894   0.965   0.980   0.996   1.000   1.000   0.935\n  hito 64: C5 0.704 vs F1 0.708 · z 0.25 · pareado: sólo C5 en 1 familias, sólo F1 en 7 (de 1368)\n  hito 128: C5 0.893 vs F1 0.894 · z 0.06 · pareado: sólo C5 en 0 familias, sólo F1 en 1 (de 1368)\n  hito 256: C5 0.965 vs F1 0.965 · z 0.00 · pareado: sólo C5 en 0 familias, sólo F1 en 0 (de 1368)\n  garantía C5: consistente 1.000; mínima 0.747 sobre 1356/1368 celdas determinadas; estados de más 0.36; heredadas 5.45, revisadas 6060, supervivientes 2.60; herencia borrada por distinción nueva en 33 celdas\n\n  M-e vs F1: medidas que difieren ninguno; registros que difieren ninguno\n  M-f vs F1: medidas que difieren ninguno; registros que difieren c5_consistente=2134, c5_estados_sobre_minimo=2122, c5_minima=2122, c5_minima_agotada=2134, herencia_borrada_por_distincion=2134, refutaciones=2114, refutaciones_en_w2=2134, transiciones_heredadas=2134, transiciones_heredadas_revisadas=2134, transiciones_heredadas_supervivientes=2134\n  umbral de z ajustado (alfa 0.05 sobre 6 comparaciones): 2.64\n--- puerta (ficha §11)\n  [PASS] (a) C5 consistente con su traza en componible (debe ser 1,000)\n  [PASS] (a) C5 consistente con su traza en no_componible (debe ser 1,000)\n  [PASS] (actividad) la reparación local actuó en componible\n  [PASS] (actividad) la reparación local actuó en no_componible\n  [PASS] (b) M-e reproduce F1 en TODAS las medidas (2134 familias)\n  [PASS] (b) M-f reproduce F1 en TODAS las medidas (2134 familias)\n  [FAIL] (c) acumulación: C5 > F1 en el hito 64 de la clase componible, z sobre el umbral\n  [PASS] (c) control: C5 <= F1 en el hito 64 de la clase no componible\n  [PASS] (e) repertorio: C5 >= F1 al final de W2 (componible)\n  [FAIL] (g) no saturación en componible: los brazos se separan en el hito 64 (rango 0.860–0.873, z 0.75 contra umbral 2.64)\n  [FAIL] (g) no saturación en no_componible: los brazos se separan en el hito 64 (rango 0.704–0.708, z 0.25 contra umbral 2.64)\n  [PASS] (g) ⇒ VEREDICTO componible: NULO POR TECHO DEL DISEÑO, no negativo\n  [PASS] (g) ⇒ VEREDICTO no_componible: NULO POR TECHO DEL DISEÑO, no negativo\n  criterios que la ficha §11 enumera y esta corrida NO evalúa (el veredicto es parcial mientras falten):\n    (d) no sobreatribución: C1 <= F1 en los tres hitos (componible) y C2 ~ C1\n"
+}

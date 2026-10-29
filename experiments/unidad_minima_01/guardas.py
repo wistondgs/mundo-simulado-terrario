@@ -120,6 +120,24 @@ def salida_a_fichero(ruta, etiqueta="", permitir_efimero=False):
             f"«{absoluta}» está en un directorio temporal que no sobrevive a la sesión. "
             f"Una salida que no dura no es custodia: escribe al lado del artefacto, en el "
             f"árbol. Si de verdad es desechable, pasa permitir_efimero=True y dilo.")
+    # 29-oct · AMPLIADA otra vez, por E-54: relancé una campaña sobre la ruta de una corrida
+    # ANTERIOR YA COMPLETA y su primer `write` en modo "w" borró 2 807 filas medidas. «A
+    # fichero durable» tampoco basta: hay que no pisar lo que ya está. Si la ruta existe y
+    # tiene contenido, se ARCHIVA con la hora de su última modificación y se avisa.
+    absoluta = os.path.abspath(ruta)
+    if os.path.exists(absoluta) and os.path.getsize(absoluta) > 0:
+        marca = time.strftime("%Y%m%d-%H%M", time.localtime(os.path.getmtime(absoluta)))
+        raiz, ext = os.path.splitext(absoluta)
+        destino = f"{raiz}_{marca}{ext}"
+        n = 1
+        while os.path.exists(destino):
+            destino = f"{raiz}_{marca}-{n}{ext}"
+            n += 1
+        os.rename(absoluta, destino)
+        _contar("salida_a_fichero[archivado]", True)
+        sys.stderr.write(f"[guarda E-54] «{os.path.basename(absoluta)}» ya tenía "
+                         f"{os.path.getsize(destino)} bytes: archivado como "
+                         f"«{os.path.basename(destino)}» en vez de pisarlo\n")
     _contar("salida_a_fichero[constructiva]", False)
     os.makedirs(os.path.dirname(os.path.abspath(ruta)) or ".", exist_ok=True)
     f = open(ruta, "a", encoding="utf-8", buffering=1)

@@ -1,0 +1,62 @@
+# T2 · la disposición del olvido · 29-oct-2026
+
+**Exploratorio-medido:** celdas con mutante (M-c) y predicción escrita antes; no cierra fase.
+
+**Bancos:** 0 mundos W₂ componibles de n=3 (control) y **35** del banco madre, **muestra estratificada por n_min** (hasta 6 por estrato, cada estrato verificado no vacío): {'n6_nmin4': 1, 'n6_nmin5': 6, 'n6_nmin6': 6, 'n8_nmin5': 4, 'n8_nmin6': 6, 'n8_nmin7': 6, 'n8_nmin8': 6}. Total del banco 195; sha256 `a6a3f69a0f83dd1d…`.
+**Celdas:** 4×4×2 = 32 disposiciones × 35 mundos = **1120** corridas de vida. Tope de reloj por celda 45 s; al alcanzarlo la unidad queda paralizada y la vida sigue (E-39).
+**Reloj:** 1182 s con 11 trabajadores.
+
+### Banco «madre» · 1120 celdas medidas sobre 35 mundos
+
+| ventana | núcleo | presupuesto | mundos | **olvidos/vida** | alcance 64 | alcance 256 | alcance final | exactitud | paralizadas |
+|---|---|---|---|---|---|---|---|---|---|
+| 128 | 64 | 200000 | 35 | **26.3** | 0.000 | 0.000 | 0.714 | 0.9214 | 8 |
+| 128 | 64 | 2000000 | 35 | **4.6** | 0.000 | 0.000 | 0.600 | 0.9535 | 13 |
+| 128 | 256 | 200000 | 35 | **19.8** | 0.000 | 0.000 | 0.714 | 0.8811 | 7 |
+| 128 | 256 | 2000000 | 35 | **3.5** | 0.000 | 0.000 | 0.686 | 0.8736 | 11 |
+| 128 | maquina | 200000 | 35 | **1133.1** | 0.000 | 0.000 | 0.257 | 0.9275 | 0 |
+| 128 | maquina | 2000000 | 35 | **720.4** | 0.000 | 0.000 | 0.400 | 0.9573 | 0 |
+| 128 | maquina+reparacion | 200000 | 35 | **35.2** | 0.000 | 0.000 | 0.314 | 0.8828 | 14 |
+| 128 | maquina+reparacion | 2000000 | 35 | **4.2** | 0.000 | 0.029 | 0.371 | 0.9036 | 20 |
+| 512 | 64 | 200000 | 35 | **16.4** | 0.000 | 0.000 | 0.829 | 0.9352 | 6 |
+| 512 | 64 | 2000000 | 35 | **2.1** | 0.000 | 0.000 | 0.800 | 0.9479 | 7 |
+| 512 | 256 | 200000 | 35 | **10.7** | 0.000 | 0.000 | 0.886 | 0.9439 | 4 |
+| 512 | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9389 | 4 |
+| 512 | maquina | 200000 | 35 | **1629.6** | 0.000 | 0.000 | 0.543 | 0.9291 | 0 |
+| 512 | maquina | 2000000 | 35 | **778.9** | 0.000 | 0.000 | 0.714 | 0.9606 | 0 |
+| 512 | maquina+reparacion | 200000 | 35 | **28.3** | 0.000 | 0.000 | 0.571 | 0.9070 | 12 |
+| 512 | maquina+reparacion | 2000000 | 35 | **2.5** | 0.000 | 0.000 | 0.686 | 0.9532 | 11 |
+| 2048 | 64 | 200000 | 35 | **16.2** | 0.000 | 0.000 | 0.829 | 0.9539 | 6 |
+| 2048 | 64 | 2000000 | 35 | **1.7** | 0.000 | 0.000 | 0.857 | 0.9826 | 5 |
+| 2048 | 256 | 200000 | 35 | **10.4** | 0.000 | 0.000 | 0.886 | 0.8992 | 4 |
+| 2048 | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9173 | 4 |
+| 2048 | maquina | 200000 | 35 | **1596.1** | 0.000 | 0.000 | 0.571 | 0.9304 | 0 |
+| 2048 | maquina | 2000000 | 35 | **635.6** | 0.000 | 0.000 | 0.800 | 0.9681 | 0 |
+| 2048 | maquina+reparacion | 200000 | 35 | **29.0** | 0.000 | 0.000 | 0.571 | 0.9110 | 11 |
+| 2048 | maquina+reparacion | 2000000 | 35 | **2.0** | 0.000 | 0.000 | 0.771 | 0.9579 | 8 |
+| inf | 64 | 200000 | 35 | **16.2** | 0.000 | 0.000 | 0.829 | 0.9369 | 6 |
+| inf | 64 | 2000000 | 35 | **1.7** | 0.000 | 0.000 | 0.857 | 0.9859 | 5 |
+| inf | 256 | 200000 | 35 | **10.5** | 0.000 | 0.000 | 0.886 | 0.8992 | 4 |
+| inf | 256 | 2000000 | 35 | **1.3** | 0.000 | 0.000 | 0.886 | 0.9387 | 4 |
+| inf | maquina | 200000 | 35 | **1596.1** | 0.000 | 0.000 | 0.571 | 0.9304 | 0 |
+| inf | maquina | 2000000 | 35 | **635.6** | 0.000 | 0.000 | 0.800 | 0.9681 | 0 |
+| inf | maquina+reparacion | 200000 | 35 | **30.7** | 0.000 | 0.000 | 0.571 | 0.9038 | 11 |
+| inf | maquina+reparacion | 2000000 | 35 | **2.0** | 0.000 | 0.000 | 0.771 | 0.9584 | 8 |
+
+### Puerta de T2
+
+- [PASS] madre: M-c (ventana ∞, presupuesto grande) reproduce el ahogo
+- [FAIL] madre: el núcleo «maquina» baja los olvidos por debajo de 2 por vida
+- [FAIL] madre: y es la ÚNICA familia de celdas donde los olvidos bajan de 2
+- [PASS] madre: y lo hace SIN perder exactitud respecto de la disposición de 08
+azar usado: []; arranque 2026-10-29T00:28:51; sha256 de 14 al arrancar: 82c5ee4401338825…
+guarda                   consultada  saltó  último salto
+estrato_de                        8      4  2026-10-27T13:30:48
+matar_por_pid                    57      8  2026-10-29T00:28:51
+muestreo_verificado              22      5  2026-10-28T20:59:46
+no_vacio                        207      6  2026-10-28T20:09:02
+salida_a_fichero                 44      2  2026-10-27T13:30:48
+salida_a_fichero[archivado]          3      3  2026-10-29T00:28:52
+salida_a_fichero[constructiva]         42      0  —
+sin_azar_usado                   35      3  2026-10-27T13:30:48
+CONSTRUCTIVAS (no saltan por diseño; su silencio no es síntoma): salida_a_fichero[constructiva]

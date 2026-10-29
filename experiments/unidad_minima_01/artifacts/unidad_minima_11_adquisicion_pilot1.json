@@ -1,0 +1,164 @@
+{
+ "resumen": {
+  "precondicion": {
+   "medidos": 4,
+   "nunca_identifica": 0,
+   "primer_hito": 64,
+   "minimo": 128,
+   "mediana": 128,
+   "maximo": 128,
+   "antes_del_primer_hito": 0,
+   "suficiente": true
+  },
+  "A-fresca": {
+   "familias": 1,
+   "alcance": 1.0,
+   "exactitud": 1.0,
+   "estados": 5.0,
+   "repertorio": 1.0,
+   "olvidos": 0.0,
+   "heredadas": 0.0,
+   "revisadas": 0.0,
+   "supervivientes": 0.0,
+   "curva_alcance": {
+    "64": 0.0,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   },
+   "curva_exactitud": {
+    "64": 0.966796875,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   }
+  },
+  "A-directa": {
+   "familias": 1,
+   "alcance": 1.0,
+   "exactitud": 1.0,
+   "estados": 5.0,
+   "repertorio": 1.0,
+   "olvidos": 0.0,
+   "heredadas": 6.0,
+   "revisadas": 6.0,
+   "supervivientes": 5.0,
+   "curva_alcance": {
+    "64": 0.0,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   },
+   "curva_exactitud": {
+    "64": 0.966796875,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   }
+  },
+  "A-K5": {
+   "familias": 1,
+   "alcance": 1.0,
+   "exactitud": 1.0,
+   "estados": 5.0,
+   "repertorio": 1.0,
+   "olvidos": 0.0,
+   "heredadas": 6.0,
+   "revisadas": 6.0,
+   "supervivientes": 5.0,
+   "curva_alcance": {
+    "64": 0.0,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   },
+   "curva_exactitud": {
+    "64": 0.966796875,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   }
+  },
+  "A-K5-lesion": {
+   "familias": 1,
+   "alcance": 1.0,
+   "exactitud": 1.0,
+   "estados": 5.0,
+   "repertorio": 1.0,
+   "olvidos": 0.0,
+   "heredadas": 6.0,
+   "revisadas": 0.0,
+   "supervivientes": 0.0,
+   "curva_alcance": {
+    "64": 0.0,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   },
+   "curva_exactitud": {
+    "64": 0.966796875,
+    "256": 1.0,
+    "1024": 1.0,
+    "4096": 1.0,
+    "16384": 1.0,
+    "18434": 1.0
+   }
+  },
+  "cadena_w2": {
+   "2": {
+    "familias": 1,
+    "identifica": 1.0,
+    "isomorfa_primera": 0.0,
+    "estados": 3.0
+   },
+   "3": {
+    "familias": 1,
+    "identifica": 1.0,
+    "isomorfa_primera": 0.0,
+    "estados": 3.0
+   },
+   "4": {
+    "familias": 1,
+    "identifica": 1.0,
+    "isomorfa_primera": 0.0,
+    "estados": 3.0
+   },
+   "5": {
+    "familias": 1,
+    "identifica": 1.0,
+    "isomorfa_primera": 0.0,
+    "estados": 3.0
+   }
+  }
+ },
+ "puerta": {
+  "(0) PRECONDICIÓN: W3 es caro para la fresca (si no, todo es nulo por techo)": true,
+  "(1) ADQUISICIÓN en el hito 64: A-K5 > A-fresca (pareado, z sobre 2.87)": false,
+  "(1) ADQUISICIÓN en el hito 256: A-K5 > A-fresca (pareado, z sobre 2.87)": false,
+  "(1) ADQUISICIÓN en el hito 1024: A-K5 > A-fresca (pareado, z sobre 2.87)": false,
+  "(1) ADQUISICIÓN en el hito 4096: A-K5 > A-fresca (pareado, z sobre 2.87)": false,
+  "(1) ADQUISICIÓN en el hito 16384: A-K5 > A-fresca (pareado, z sobre 2.87)": false,
+  "(2) el linaje NO degrada la base: A-K5 ≈ A-directa al final": true,
+  "(3) lo que importa ES la organización: A-K5 > A-K5-lesion": false,
+  "(4) CONSERVACIÓN: la última generación identifica W2 igual que la primera": true,
+  "(5) TRANSFORMACIÓN: la última generación NO es isomorfa a la primera en la mayoría": true
+ },
+ "sha256_codigo": "4050611e2f4396386e96a06cb95679768975c96d0443cacc2754e69a2f4d0552",
+ "arranque": "2026-10-28T20:51:57",
+ "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+ "texto": "W1 3 estados, vida 258 · W2 6, vida 3586 · W3 12, vida 18434, futuro fijo 2048 pasos (palabras de longitud 12, truncado) · tope de estados en W3 14 · brazos A-fresca, A-directa, A-K5, A-K5-lesion · hitos (64, 256, 1024, 4096, 16384)\nW1: 729 sistemas de 3 estados; 530 con n_min >= 2; 174 identificados por la unidad y distintos salvo isomorfismo → elegibles\nmundos W1 corridos: 1 · familias (W1,W2,W3): 1 · reloj 3.0 s\n\nPRECONDICIÓN DEL BANCO (E-50) · coste de W3 para la fresca: 128 pasos de mediana sobre 4 celdas que lo logran, y 0 que NO lo logran en toda su vida; primer hito 64\n  ⇒ W3 es CARO para la fresca: la organización heredada tiene dónde mostrarse\n\nbrazo           fam.  alcance   exact.  estados  repert.  olvidos  hered.  revis.  superv.\nA-fresca           1    1.000   1.0000     5.00     1.00      0.0    0.00     0.0     0.00\nA-directa          1    1.000   1.0000     5.00     1.00      0.0    6.00     6.0     5.00\nA-K5               1    1.000   1.0000     5.00     1.00      0.0    6.00     6.0     5.00\nA-K5-lesion        1    1.000   1.0000     5.00     1.00      0.0    6.00     0.0     0.00\ncurva de alcance en W3 por pasos vividos:\nbrazo                64      256     1024     4096    16384    18434\nA-fresca         0.0000   1.0000   1.0000   1.0000   1.0000   1.0000\nA-directa        0.0000   1.0000   1.0000   1.0000   1.0000   1.0000\nA-K5             0.0000   1.0000   1.0000   1.0000   1.0000   1.0000\nA-K5-lesion      0.0000   1.0000   1.0000   1.0000   1.0000   1.0000\ncurva de exactitud sobre el futuro fijo en W3 por pasos vividos:\nbrazo                64      256     1024     4096    16384    18434\nA-fresca         0.9668   1.0000   1.0000   1.0000   1.0000   1.0000\nA-directa        0.9668   1.0000   1.0000   1.0000   1.0000   1.0000\nA-K5             0.9668   1.0000   1.0000   1.0000   1.0000   1.0000\nA-K5-lesion      0.9668   1.0000   1.0000   1.0000   1.0000   1.0000\n\nconservación funcional con organización transformada (la cadena en W2):\ngen     identifica W2  isomorfa a la 1ª  estados\n2               1.000             0.000     3.00\n3               1.000             0.000     3.00\n4               1.000             0.000     3.00\n5               1.000             0.000     3.00\n  hito 64: A-K5 vs A-fresca · sólo K5 en 0, sólo fresca en 0 (de 1) · z 0.00\n  hito 256: A-K5 vs A-fresca · sólo K5 en 0, sólo fresca en 0 (de 1) · z 0.00\n  hito 1024: A-K5 vs A-fresca · sólo K5 en 0, sólo fresca en 0 (de 1) · z 0.00\n  hito 4096: A-K5 vs A-fresca · sólo K5 en 0, sólo fresca en 0 (de 1) · z 0.00\n  hito 16384: A-K5 vs A-fresca · sólo K5 en 0, sólo fresca en 0 (de 1) · z 0.00\n  final: A-K5 vs A-directa · sólo K5 en 0, sólo directa en 0 (de 1) · z 0.00\n  final: A-K5 vs A-K5-lesion · sólo K5 en 0, sólo lesionada en 0 (de 1) · z 0.00\n--- puerta\n  [PASS] (0) PRECONDICIÓN: W3 es caro para la fresca (si no, todo es nulo por techo)\n  [FAIL] (1) ADQUISICIÓN en el hito 1024: A-K5 > A-fresca (pareado, z sobre 2.87)\n  [FAIL] (1) ADQUISICIÓN en el hito 16384: A-K5 > A-fresca (pareado, z sobre 2.87)\n  [FAIL] (1) ADQUISICIÓN en el hito 256: A-K5 > A-fresca (pareado, z sobre 2.87)\n  [FAIL] (1) ADQUISICIÓN en el hito 4096: A-K5 > A-fresca (pareado, z sobre 2.87)\n  [FAIL] (1) ADQUISICIÓN en el hito 64: A-K5 > A-fresca (pareado, z sobre 2.87)\n  [PASS] (2) el linaje NO degrada la base: A-K5 ≈ A-directa al final\n  [FAIL] (3) lo que importa ES la organización: A-K5 > A-K5-lesion\n  [PASS] (4) CONSERVACIÓN: la última generación identifica W2 igual que la primera\n  [PASS] (5) TRANSFORMACIÓN: la última generación NO es isomorfa a la primera en la mayoría\n\nLas dos propiedades que Wis pide juntas: (4) y (5) son la conservación con\norganización transformada; (1) es la adquisición posterior. Las dos a la vez,\ncon (3) activo, serían desarrollo cognitivo acumulativo elemental. Una sola, no.\n"
+}
