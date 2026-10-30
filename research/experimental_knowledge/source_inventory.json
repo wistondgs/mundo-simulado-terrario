@@ -1,0 +1,36 @@
+{
+  "schema": "terrario.experimental-knowledge/source-inventory/v1",
+  "inventory_basis": {
+    "publication_base": "d2824ba18f3c83003635fdb10304f08d002a76ec",
+    "cartography": "docs/CARTOGRAFIA_TERRARIO_01.md",
+    "cartography_manifest": "docs/CARTOGRAFIA_MANIFIESTO.json",
+    "project_manifest": "project_manifest.json",
+    "method": "read-only filesystem and Git-reference inspection; no campaign executed"
+  },
+  "local_volume_snapshot_bytes": {
+    "docs": 2775815,
+    "knowledge": 47627,
+    "experiments": 12218496,
+    "research": 586237,
+    "runs": 995703387,
+    "artifacts": 543554,
+    "theory_snapshots": 2592113,
+    "terrario_store": 2632355702
+  },
+  "sources": [
+    {"id":"cartography","kind":"documentation","availability":"PUBLISHED_GIT","ref":"research/primitivo-entidad-transitoria","path":"docs/CARTOGRAFIA_TERRARIO_01.md","role":"cached implementation map; historical hashes must be checked before reuse"},
+    {"id":"atlas","kind":"documentation","availability":"PUBLISHED_GIT","ref":"research/primitivo-entidad-transitoria","path":"docs/ATLAS_00_INDICE.md","role":"index to organism, experimental-system, capabilities, authority and repository-state readings"},
+    {"id":"knowledge","kind":"operational-knowledge","availability":"PUBLISHED_GIT","ref":"research/primitivo-entidad-transitoria","path":"knowledge/","role":"decision records, architecture map, protocols and roadmap"},
+    {"id":"level-lineage","kind":"campaign-lineage","availability":"PUBLISHED_GIT","refs":["experiment/level1-reversal-plasticity-01","experiment/level13-one-step-reference-persistence-01","experiment/level14-conjunctive-binding-01","experiment/level16-developmental-sensory-change-01","experiment/level17-action-contingency-01","experiment/level18-predictive-state-01"],"role":"sealed level experiments and their reports/artifacts"},
+    {"id":"fusion-lineage","kind":"campaign-lineage","availability":"PUBLISHED_GIT","refs":["experiment/organism-fusion-hm-01","experiment/organism-fusion-remembered-binding-01"],"role":"joint-capability experiments"},
+    {"id":"unidad-minima-committed","kind":"campaign-lineage","availability":"PUBLISHED_GIT","ref":"experiment/unidad-minima-01","commit":"d643be18b2d23b86f934747ad27868770d98e94e","path":"experiments/unidad_minima_01/","role":"identification, regeneration, goal selection, forgetting, inheritance, teaching and accumulation"},
+    {"id":"unidad-minima-local","kind":"local-worktree","availability":"LOCAL_ONLY","ref":"experiment/unidad-minima-01","commit":"d643be18b2d23b86f934747ad27868770d98e94e","role":"modified 09 and untracked 13/14/T2c reports and JSONL; not attributable to a published Git commit"},
+    {"id":"primitivo-n10","kind":"confirmatory-campaign","availability":"PUBLISHED_GIT","ref":"research/primitivo-entidad-transitoria","commit":"d2824ba18f3c83003635fdb10304f08d002a76ec","path":"docs/N10_SCIENTIFIC_CLOSURE_V1.md","role":"N1.0 memory/action confirmatory closure with explicit evidence limitations"},
+    {"id":"primitivo-etp","kind":"preexperimental-research","availability":"PUBLISHED_GIT","ref":"research/primitivo-entidad-transitoria","path":"research/primitivo/entidad_transitoria/","role":"causal atlas and closed preexperimental work; not an agent integration"},
+    {"id":"runs","kind":"local-runs","availability":"LOCAL_ONLY","path_class":"runs/","role":"954 MB at inventory time; not copied because no single provenance/safety review has classified every run"},
+    {"id":"terrario-store","kind":"local-database-and-artifacts","availability":"LOCAL_ONLY","path_class":".terrario/","role":"2.5 GB at inventory time; preserved in place, not indexed by executing index_lab_history.py because that tool opens/writes its configured repository"},
+    {"id":"unreachable-git","kind":"recovery-candidates","availability":"LOCAL_ONLY","role":"git fsck found unreachable commits and objects; they require per-object provenance review before any public claim or publication"}
+  ],
+  "excluded_from_public_copy": ["binary checkpoints","local databases","large run directories","raw local JSONL traces without publication review","PDF/text attachments","credentials or secrets if discovered"],
+  "counts_are_inventory_scoped": true
+}
