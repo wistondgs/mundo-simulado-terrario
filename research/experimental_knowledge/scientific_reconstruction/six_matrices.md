@@ -31,7 +31,7 @@
 |X-RB|B+Q+H+M+ψ|sí|externa|política|
 |X-C5-08|máquina+explorar|interfaz|08|campaña conjunta|
 |X-L19-UM|ninguna|no|separada|adaptador|
-|X-F3|A/B/O|local|diseñada|custodia|
+|X-F3|A/B/O|P1 exploratoria d643|cola/itinerario|métrica no discrimina ventaja|
 
 ## 5. Limitaciones y negativos
 |ID|Clase|Hallazgo|Consecuencia|

@@ -49,7 +49,7 @@ Formato: **M** mecanismo; **E** evidencia/resultado/control; **P** procedencia;
 ## Q22
 **Respuesta:** hay retención/transmisión, no mejora de aprender establecida. **M:** `vivir_3:195`. **E:** 11. **P:** P1 d643. **L:** falta baseline individual igualado.
 ## Q23
-**Respuesta:** Fase3 local existe, no certifica V/genoma/descendencia. **M:** `elige` toggle 13. **E:** TRES/genoma inactivo. **P:** LC. **L:** faltan hashes completos/controles.
+**Respuesta:** 13/14 y banco madre existen en Git; variantes posteriores pueden ser LC. 13 no certifica ventaja de observador y 14 no certifica política futura. **M:** 13 selecciona cola/itinerario (`:395-411`); 14 paraliza a 45 s. **E:** 13=65 filas; 14=1.120 vidas. **P:** P1 d643, `correction_um13_um14.md`. **L:** faltan medida temprana, contrafactual y control del tiempo.
 ## Q24
 **Respuesta:** HM/RB prueban coexistencia bajo gates. **M:** fusión. **E:** gates/mutantes. **P:** P1 a1f180b/02d5c43. **L:** falta interferencia de políticas.
 ## Q25
