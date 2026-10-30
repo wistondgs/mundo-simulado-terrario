@@ -25,6 +25,12 @@ worktree preexistente.
    disponibles, incluidas limitaciones de preservación.
 5. [`coverage_and_limits.md`](coverage_and_limits.md) delimita exactamente qué
    puede auditar un investigador remoto y qué permanece local.
+6. [`physical_coverage.md`](physical_coverage.md) reconcilia la medición física
+   del laboratorio y separa datos científicos de entornos y caches.
+
+El recuperador [`scripts/inventory_experimental_sources.py`](../../scripts/inventory_experimental_sources.py)
+produce un inventario de metadatos sin modificar los originales. Por defecto
+escribe JSON a stdout; sólo calcula hashes completos con `--hash`.
 
 ## Reglas de lectura
 
