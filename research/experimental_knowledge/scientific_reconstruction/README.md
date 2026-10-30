@@ -6,7 +6,9 @@ No ejecuta campañas ni certifica mecanismos nuevos. Las etiquetas `PV`, `M`,
 convierten en una certificación nueva.
 
 * [Respuestas 01–38](answers.md)
+* [Fichas individuales Q01–Q38](q01_q38_individual.md)
 * [Matriz de evidencia y decisiones](matrices.md)
+* [Seis matrices requeridas](six_matrices.md)
 * [Opciones científicas sin adjudicar](experiment_options.md)
 
 Fuentes de Unidad Mínima: commit
