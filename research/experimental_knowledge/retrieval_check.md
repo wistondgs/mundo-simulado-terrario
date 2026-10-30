@@ -11,6 +11,7 @@ directorio y las refs/rutas que enumera. No sustituye la ejecución científica.
 | ¿Qué evidencia hay sobre memoria y acción? | Registro `N10` | Hay cierre confirmatorio, pero faltan filas primitivas y la lesión B no es independiente. |
 | ¿Qué cambió entre 1.8 y L19? | Registros `L18-RC` y `L19-V1` | Son mecanismos y contratos distintos; L19 no rescata 1.8. |
 | ¿Qué sigue sólo local? | `source_inventory.json`, `trace_evidence.md` | T2/T2c/13/14 de Unidad Mínima, `runs/`, `.terrario/`, objetos inalcanzables y trazas no revisadas. |
+| ¿Qué ocurrió en una corrida H-ADAPT concreta? | `executions/h_adapt_001_pilot_execution_catalog.json` → `executions/h_adapt_001_behavioral_windows_all.json` | Se puede seleccionar cualquier `run_id`, comprobar clasificación, hash de fuente, ventana ordinal y eventos registrados; las incógnitas quedan explícitas. |
 
 ## Resultado
 

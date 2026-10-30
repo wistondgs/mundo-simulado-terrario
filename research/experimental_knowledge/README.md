@@ -27,6 +27,13 @@ worktree preexistente.
    puede auditar un investigador remoto y qué permanece local.
 6. [`physical_coverage.md`](physical_coverage.md) reconcilia la medición física
    del laboratorio y separa datos científicos de entornos y caches.
+7. [`executions/h_adapt_001_pilot_execution_catalog.json`](executions/h_adapt_001_pilot_execution_catalog.json)
+   enumera las 32 ejecuciones recuperadas del piloto H-ADAPT-001.
+8. [`executions/h_adapt_001_behavioral_extracts.json`](executions/h_adapt_001_behavioral_extracts.json)
+   contiene tres ventanas conductuales: recuperada, negativa e inconclusa.
+9. [`executions/h_adapt_001_behavioral_windows_all.json`](executions/h_adapt_001_behavioral_windows_all.json)
+   permite abrir la ventana original alrededor del cambio causal de cualquier
+   `run_id` del catálogo.
 
 El recuperador [`scripts/inventory_experimental_sources.py`](../../scripts/inventory_experimental_sources.py)
 produce un inventario de metadatos sin modificar los originales. Por defecto

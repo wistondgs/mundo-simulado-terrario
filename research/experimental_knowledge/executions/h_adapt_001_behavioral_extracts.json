@@ -1,0 +1,623 @@
+{
+  "schema": "terrario.behavioral-evidence/v1",
+  "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+  "selection_policy": "one recovered, one failed-to-recover, and one not-learned-pre-change run; no raw checkpoints or full event streams exported",
+  "extracts": [
+    {
+      "extract_id": "H-ADAPT-001-recovered",
+      "selection": "recovered",
+      "run_id": "A3_WORLD_MODEL:seed-23",
+      "source": {
+        "path": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "json_pointer": "/records/11",
+        "positions": {
+          "primary_steps": [
+            429,
+            430,
+            431
+          ],
+          "transfer_steps": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "result": {
+        "classification": "RECOVERED",
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": 200.0,
+          "recovered_competence": 1.0,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 1.9973547323465348,
+          "prediction_error_decay": -0.010995924620743882,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "updates": 1000,
+        "gradient_steps": 1000
+      },
+      "interpretation_limit": "The trace records selected action, observer event, consequence, prediction error and state hash. It does not record a raw observation vector or per-step parameter delta.",
+      "primary_change_window": [
+        {
+          "step": 429,
+          "action": 10,
+          "energy": 186.19999999999902,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_1"
+          ],
+          "prediction_error": 4.029035568242634e-05,
+          "state_hash": "e15d46233b874d99ec0bd92f1c6208129bf75ba08c21fb76f35b8dcbefc2a092",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 10,
+            "actual_consequence": 0.94,
+            "causally_appropriate": true,
+            "rule_version": 1,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 430,
+          "action": 10,
+          "energy": 185.13999999999902,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_1"
+          ],
+          "prediction_error": 2.0001944875717164,
+          "state_hash": "858abb3ecdc98f93ab7016a064e9af44fd83c73ec0f06bc5f3cca314f819ce7a",
+          "rule_changes": [
+            {
+              "step": 430,
+              "old_version": 1,
+              "new_version": 2
+            }
+          ],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 10,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 431,
+          "action": 10,
+          "energy": 184.07999999999902,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_1"
+          ],
+          "prediction_error": 1.9654001569747925,
+          "state_hash": "ee79cc680b33f5edbade69dfa67edef54c6da2cc4135c8eb1527354afe03de7b",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 10,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        }
+      ],
+      "transfer_window": [
+        {
+          "step": 0,
+          "action": 11,
+          "energy": 58.94,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_6"
+          ],
+          "prediction_error": 2.0203590393119697e-05,
+          "state_hash": "26986bb5fe9ebf86f35b8ed1e66ecae02cca26bc65136fc7e6040d0538a59be8",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 11,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 1,
+          "action": 11,
+          "energy": 57.879999999999995,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_6"
+          ],
+          "prediction_error": 2.0203590393119697e-05,
+          "state_hash": "d5a991d47d310b13fa9c1183fa9154ffa8e1a0fc95f92514154acf7cdf2572a7",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 11,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 2,
+          "action": 11,
+          "energy": 56.81999999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_6"
+          ],
+          "prediction_error": 2.0203590393119697e-05,
+          "state_hash": "50a7319c3e16128993737f45d8174fb868964951e4cb875e742a065e3e0d62e2",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 11,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        }
+      ]
+    },
+    {
+      "extract_id": "H-ADAPT-001-failed_to_recover",
+      "selection": "failed_to_recover",
+      "run_id": "A4_ADVANCED:seed-53",
+      "source": {
+        "path": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "json_pointer": "/records/28",
+        "positions": {
+          "primary_steps": [
+            449,
+            450,
+            451
+          ],
+          "transfer_steps": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 3.077824734449387,
+          "prediction_error_decay": 0.0031594294145466245,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "updates": 897,
+        "gradient_steps": 897
+      },
+      "interpretation_limit": "The trace records selected action, observer event, consequence, prediction error and state hash. It does not record a raw observation vector or per-step parameter delta.",
+      "primary_change_window": [
+        {
+          "step": 449,
+          "action": 12,
+          "energy": 472.999999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_2"
+          ],
+          "prediction_error": 3.334601936340332,
+          "state_hash": "dbe1298e70c5806dc306f3c1ead4e4ae1ccf4a0fb03bbf917eceb8381e7e6318",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": 0.94,
+            "causally_appropriate": true,
+            "rule_version": 1,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 450,
+          "action": 12,
+          "energy": 471.939999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_2"
+          ],
+          "prediction_error": 4.945944843292237,
+          "state_hash": "ecc2d67969d9172fe2c7dbc4b52565d82d28abc9dcafeae0ccb05aa640b1773f",
+          "rule_changes": [
+            {
+              "step": 450,
+              "old_version": 1,
+              "new_version": 2
+            }
+          ],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 451,
+          "action": 12,
+          "energy": 470.879999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_2"
+          ],
+          "prediction_error": 2.274852933883667,
+          "state_hash": "0522840cab54444d8f7b278c888807307d06ccd0dcece4037456ee0e6deb004b",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        }
+      ],
+      "transfer_window": [
+        {
+          "step": 0,
+          "action": 12,
+          "energy": 58.94,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_20"
+          ],
+          "prediction_error": 4.395173015594482,
+          "state_hash": "d018a886df5a83f7277ba862e5e28265728835f1c03710aea2d9cfe1f8aef863",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 1,
+          "action": 12,
+          "energy": 57.879999999999995,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_20"
+          ],
+          "prediction_error": 4.395173015594482,
+          "state_hash": "91c047a46ebed7fa64c73f0e56dc0028d2bef16b5696edbe40807399342ac1ed",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        },
+        {
+          "step": 2,
+          "action": 12,
+          "energy": 56.81999999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_20"
+          ],
+          "prediction_error": 4.395173015594482,
+          "state_hash": "a1b4df456f384da34b1466bdd948d149af479b49a6b09b73fcd26c4142954b2a",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 12,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": true,
+          "numerical_events": []
+        }
+      ]
+    },
+    {
+      "extract_id": "H-ADAPT-001-not_learned_pre_change",
+      "selection": "not_learned_pre_change",
+      "run_id": "A0_RANDOM:seed-11",
+      "source": {
+        "path": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "json_pointer": "/records/0",
+        "positions": {
+          "primary_steps": [
+            426,
+            427,
+            428
+          ],
+          "transfer_steps": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 1,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 3,
+          "perseveration_count": 3,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 10,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "updates": 834,
+        "gradient_steps": 0
+      },
+      "interpretation_limit": "The trace records selected action, observer event, consequence, prediction error and state hash. It does not record a raw observation vector or per-step parameter delta.",
+      "primary_change_window": [
+        {
+          "step": 426,
+          "action": 23,
+          "energy": 31.379999999999068,
+          "events": [
+            "noop"
+          ],
+          "observer_events": [
+            "noop"
+          ],
+          "prediction_error": null,
+          "state_hash": "86569519ea1d30c592b37acc5bf4ed2c3f09b050644000b3169d47a72bf22692",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": false,
+            "perceptual_class": null,
+            "hidden_causal_class": null,
+            "action": 23,
+            "actual_consequence": -0.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        },
+        {
+          "step": 427,
+          "action": 15,
+          "energy": 31.31999999999907,
+          "events": [
+            "inspect"
+          ],
+          "observer_events": [
+            "inspect"
+          ],
+          "prediction_error": null,
+          "state_hash": "507f2e791a8b2393efc3436ffb4d45ab1a92dfc914f818eff851ad7daa78e353",
+          "rule_changes": [
+            {
+              "step": 427,
+              "old_version": 1,
+              "new_version": 2
+            }
+          ],
+          "causal_interaction": {
+            "informative": false,
+            "perceptual_class": null,
+            "hidden_causal_class": null,
+            "action": 15,
+            "actual_consequence": -0.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        },
+        {
+          "step": 428,
+          "action": 23,
+          "energy": 31.25999999999907,
+          "events": [
+            "noop"
+          ],
+          "observer_events": [
+            "noop"
+          ],
+          "prediction_error": null,
+          "state_hash": "420a1b99166f31c04ca5a683450f671d3d9bf35a34fa1bc02112c8121db9c077",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": false,
+            "perceptual_class": null,
+            "hidden_causal_class": null,
+            "action": 23,
+            "actual_consequence": -0.06,
+            "causally_appropriate": false,
+            "rule_version": 2,
+            "phase": "training",
+            "forensic_window": "change"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        }
+      ],
+      "transfer_window": [
+        {
+          "step": 0,
+          "action": 24,
+          "energy": 59.94,
+          "events": [
+            "noop"
+          ],
+          "observer_events": [
+            "noop"
+          ],
+          "prediction_error": null,
+          "state_hash": "827ff21e5cd367090c3bf43c2836259eef46a818fd1280af44e0f939e5d0112c",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": false,
+            "perceptual_class": null,
+            "hidden_causal_class": null,
+            "action": 24,
+            "actual_consequence": -0.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        },
+        {
+          "step": 1,
+          "action": 6,
+          "energy": 59.879999999999995,
+          "events": [
+            "push_immovable"
+          ],
+          "observer_events": [
+            "push_immovable"
+          ],
+          "prediction_error": null,
+          "state_hash": "700e0e38898aae6dff94fed91577891df443f556b3556e9d953239d4efb39308",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": false,
+            "perceptual_class": null,
+            "hidden_causal_class": null,
+            "action": 6,
+            "actual_consequence": -0.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        },
+        {
+          "step": 2,
+          "action": 11,
+          "energy": 58.81999999999999,
+          "events": [],
+          "observer_events": [
+            "consume_pending_obj_20"
+          ],
+          "prediction_error": null,
+          "state_hash": "0b87e016febb47c02defad06d7c4a8cfb31dec095f06bac596405ae7658df2e7",
+          "rule_changes": [],
+          "causal_interaction": {
+            "informative": true,
+            "perceptual_class": "A",
+            "hidden_causal_class": "A",
+            "action": 11,
+            "actual_consequence": -1.06,
+            "causally_appropriate": false,
+            "rule_version": 1,
+            "phase": "transfer_no_learning"
+          },
+          "predictor_available": false,
+          "numerical_events": []
+        }
+      ]
+    }
+  ]
+}

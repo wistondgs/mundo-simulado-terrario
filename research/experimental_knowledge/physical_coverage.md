@@ -14,7 +14,7 @@ omitidos por sí sola: incluye entornos, cachés y registros de herramientas.
 | `.terrario/` | 2,5 GB | base/artefactos locales | sólo índice, pendiente de revisión por procedencia |
 | `.sandbox/` | 2,4 GB | sandboxes de herramienta | local; no evidencia científica por nombre |
 | `.sandbox-addressing`, `.sandbox-capability`, `.sandbox-closed-loop`, `.sandbox-screening` | 1,78 GB | JSON de engineering sandbox versionados | no extraer automáticamente: pueden contener contexto conversacional |
-| `runs/` | 954 MB | corridas locales no rastreadas | sólo índice hasta clasificación individual |
+| `runs/` | 954 MB | mixto: piloto H-ADAPT, screening y fixtures | H-ADAPT individualizado; resto delimitado por tipo |
 | `.git/` | 193 MB | historia, refs y objetos recuperables | no publicar objetos inalcanzables sin procedencia |
 | `experiments/`, `docs/`, `research/`, `artifacts/` | ~16 MB | fuentes científicas y documentos versionados | indexados por ref/ruta |
 | `node_modules/` | 19 MB | dependencia regenerable | excluido |
@@ -40,6 +40,6 @@ localizado en la ruta histórica indicada por el Atlas.
 ## Límite de cobertura
 
 El recuperador publicado puede producir inventarios de metadatos por raíz sin
-leer bases ni reescribir artefactos. Clasificar semánticamente cada ejecución de
-`runs/` y `.terrario/` sigue pendiente: no se declara cobertura integral de
-esas fuentes.
+reescribir artefactos. La revisión de contenido individualizó las 32 corridas
+H-ADAPT; los JSONL D4T son medidas agregadas y el ledger `.terrario` no
+contiene resultados científicos. No se declara cobertura integral del resto.

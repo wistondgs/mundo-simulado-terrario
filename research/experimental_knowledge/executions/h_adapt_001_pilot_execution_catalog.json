@@ -1,0 +1,3032 @@
+{
+  "schema": "terrario.execution-catalog/v1",
+  "campaign": "H-ADAPT-001 pilot",
+  "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+  "status": "INCONCLUSIVE: pilot_diagnostic=FAIL; not a confirmatory result",
+  "pilot_diagnostic": {
+    "status": "FAIL",
+    "expected_runs": 32,
+    "completed_runs": 32,
+    "technical_valid_runs": 32,
+    "experimental_valid_runs": 13,
+    "gates": {
+      "P1_numerical_integrity": true,
+      "P2_paired_worlds": true,
+      "P3_sufficient_signal": false,
+      "P4_random_baseline_calibrated": true,
+      "P5_prechange_learning": true,
+      "P7_prediction_error_real": true,
+      "P8_transfer_frozen": true
+    }
+  },
+  "records": [
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-01",
+      "run_id": "A0_RANDOM:seed-11",
+      "agent": {
+        "requested_agent_id": "A0_RANDOM",
+        "instantiated_agent_class": "A0Random",
+        "architecture_id": "A0_RANDOM",
+        "parameter_count": 0,
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 1,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 3,
+          "perseveration_count": 3,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 10,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A0_RANDOM",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 834,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A0_RANDOM/seed_00000011/primary/checkpoints/step_00000834",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 1,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 3,
+        "perseveration_count": 3,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 10,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-02",
+      "run_id": "A1_REACTIVE:seed-11",
+      "agent": {
+        "requested_agent_id": "A1_REACTIVE",
+        "instantiated_agent_class": "A1Reactive",
+        "architecture_id": "A1_REACTIVE",
+        "parameter_count": 170169,
+        "device": "cpu",
+        "initial_parameters_hash": "ec2d0b5152d90509ec1a652e4408ded118b4225bb0f583354d805bf2de7e12ec"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A1_REACTIVE",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 987,
+        "gradient_steps": 987,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A1_REACTIVE/seed_00000011/primary/checkpoints/step_00000987",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-03",
+      "run_id": "A2_GRU:seed-11",
+      "agent": {
+        "requested_agent_id": "A2_GRU",
+        "instantiated_agent_class": "A2GRUBaseline",
+        "architecture_id": "A2_GRU",
+        "parameter_count": 499385,
+        "device": "cpu",
+        "initial_parameters_hash": "cbea06f043ac01b330d3c9e06abd460c600ae631ce552c31037e29304f42cff0"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A2_GRU",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A2_GRU/seed_00000011/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-04",
+      "run_id": "A3_WORLD_MODEL:seed-11",
+      "agent": {
+        "requested_agent_id": "A3_WORLD_MODEL",
+        "instantiated_agent_class": "A3WorldModel",
+        "architecture_id": "A3_WORLD_MODEL",
+        "parameter_count": 703675,
+        "device": "cpu",
+        "initial_parameters_hash": "7843c6219a92d17945ade4f849a88305811270da39d4c676561b6b9c0a5bbf3f"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "RECOVERED",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": 400.0,
+          "recovered_competence": 1.0,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 1.999777321434021,
+          "prediction_error_decay": -0.007425369740001906,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A3_WORLD_MODEL",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A3_WORLD_MODEL/seed_00000011/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": 400.0,
+        "recovered_competence": 1.0,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 1.999777321434021,
+        "prediction_error_decay": -0.007425369740001906,
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-05",
+      "run_id": "A4_ADVANCED:seed-11",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "7c733fe7305e5735fef0933d6114641ec71ca9238cfad7faa516ff61519f5496"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 7.407790428400039,
+          "prediction_error_decay": 0.05001228230613651,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_ADVANCED",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_ADVANCED/seed_00000011/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 7.407790428400039,
+        "prediction_error_decay": 0.05001228230613651,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-06",
+      "run_id": "A4_NO_MEMORY:seed-11",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1227968,
+        "device": "cpu",
+        "initial_parameters_hash": "7c733fe7305e5735fef0933d6114641ec71ca9238cfad7faa516ff61519f5496"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 1.677736665010452,
+          "prediction_error_decay": 0.0018667131910944973,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_MEMORY",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_MEMORY/seed_00000011/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 1.677736665010452,
+        "prediction_error_decay": 0.0018667131910944973,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-07",
+      "run_id": "A4_NO_PREDICTION:seed-11",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 950335,
+        "device": "cpu",
+        "initial_parameters_hash": "7c733fe7305e5735fef0933d6114641ec71ca9238cfad7faa516ff61519f5496"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_PREDICTION",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 818,
+        "gradient_steps": 818,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_PREDICTION/seed_00000011/primary/checkpoints/step_00000818",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-08",
+      "run_id": "A4_NO_ONLINE_LEARNING:seed-11",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "7c733fe7305e5735fef0933d6114641ec71ca9238cfad7faa516ff61519f5496"
+      },
+      "world": {
+        "world_seed": 11,
+        "world_spec_hash": "d88c8766a2ac194c9c51651b8373b37e093e2d4029a62195f6244cb8d4942662",
+        "change_step": 427
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 2.9364835453033464,
+          "prediction_error_decay": 0.019668725909608744,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_ONLINE_LEARNING",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 0,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_ONLINE_LEARNING/seed_00000011/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 2.9364835453033464,
+        "prediction_error_decay": 0.019668725909608744,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-09",
+      "run_id": "A0_RANDOM:seed-23",
+      "agent": {
+        "requested_agent_id": "A0_RANDOM",
+        "instantiated_agent_class": "A0Random",
+        "architecture_id": "A0_RANDOM",
+        "parameter_count": 0,
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 2,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 3,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 8,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A0_RANDOM",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A0_RANDOM/seed_00000023/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 2,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 3,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 8,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-10",
+      "run_id": "A1_REACTIVE:seed-23",
+      "agent": {
+        "requested_agent_id": "A1_REACTIVE",
+        "instantiated_agent_class": "A1Reactive",
+        "architecture_id": "A1_REACTIVE",
+        "parameter_count": 170169,
+        "device": "cpu",
+        "initial_parameters_hash": "777b16279945b7b7afa3b3cef517cfb414e995b8640abfe50fe86cc30ef52218"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 3,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A1_REACTIVE",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A1_REACTIVE/seed_00000023/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 3,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-11",
+      "run_id": "A2_GRU:seed-23",
+      "agent": {
+        "requested_agent_id": "A2_GRU",
+        "instantiated_agent_class": "A2GRUBaseline",
+        "architecture_id": "A2_GRU",
+        "parameter_count": 499385,
+        "device": "cpu",
+        "initial_parameters_hash": "a427350904338b34411685e17c6276a65bc9f88f1c3ab9a41acdb0f92167af5f"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 1,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A2_GRU",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 917,
+        "gradient_steps": 917,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A2_GRU/seed_00000023/primary/checkpoints/step_00000917",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 1,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-12",
+      "run_id": "A3_WORLD_MODEL:seed-23",
+      "agent": {
+        "requested_agent_id": "A3_WORLD_MODEL",
+        "instantiated_agent_class": "A3WorldModel",
+        "architecture_id": "A3_WORLD_MODEL",
+        "parameter_count": 703675,
+        "device": "cpu",
+        "initial_parameters_hash": "226bc56261ef8692f072d1bd08b9bfac7eb0939ba05065b9a5a9339906183ce5"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "RECOVERED",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": 200.0,
+          "recovered_competence": 1.0,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 1.9973547323465348,
+          "prediction_error_decay": -0.010995924620743882,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A3_WORLD_MODEL",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A3_WORLD_MODEL/seed_00000023/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": 200.0,
+        "recovered_competence": 1.0,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 1.9973547323465348,
+        "prediction_error_decay": -0.010995924620743882,
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-13",
+      "run_id": "A4_ADVANCED:seed-23",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "c0fbff49169eec9c588ad39cd4c2e992ea1483ef09935984af1946bb9dc4b3e2"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 1.3215606784820562,
+          "prediction_error_decay": 0.0006108428900427063,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_ADVANCED",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 984,
+        "gradient_steps": 984,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_ADVANCED/seed_00000023/primary/checkpoints/step_00000984",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 1.3215606784820562,
+        "prediction_error_decay": 0.0006108428900427063,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-14",
+      "run_id": "A4_NO_MEMORY:seed-23",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1227968,
+        "device": "cpu",
+        "initial_parameters_hash": "c0fbff49169eec9c588ad39cd4c2e992ea1483ef09935984af1946bb9dc4b3e2"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 2.315367071357369,
+          "prediction_error_decay": 0.0021547370296035465,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_MEMORY",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 984,
+        "gradient_steps": 984,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_MEMORY/seed_00000023/primary/checkpoints/step_00000984",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 2.315367071357369,
+        "prediction_error_decay": 0.0021547370296035465,
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-15",
+      "run_id": "A4_NO_PREDICTION:seed-23",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 950335,
+        "device": "cpu",
+        "initial_parameters_hash": "c0fbff49169eec9c588ad39cd4c2e992ea1483ef09935984af1946bb9dc4b3e2"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_PREDICTION",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 984,
+        "gradient_steps": 984,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_PREDICTION/seed_00000023/primary/checkpoints/step_00000984",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-16",
+      "run_id": "A4_NO_ONLINE_LEARNING:seed-23",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "c0fbff49169eec9c588ad39cd4c2e992ea1483ef09935984af1946bb9dc4b3e2"
+      },
+      "world": {
+        "world_seed": 23,
+        "world_spec_hash": "fe97686105413600376f21b5b2a51bccd7cec070f76d6252a33f94fd1bfca844",
+        "change_step": 430
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 4.777121334075925,
+          "prediction_error_decay": 0.03164470788204302,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_ONLINE_LEARNING",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 0,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_ONLINE_LEARNING/seed_00000023/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 4.777121334075925,
+        "prediction_error_decay": 0.03164470788204302,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-17",
+      "run_id": "A0_RANDOM:seed-37",
+      "agent": {
+        "requested_agent_id": "A0_RANDOM",
+        "instantiated_agent_class": "A0Random",
+        "architecture_id": "A0_RANDOM",
+        "parameter_count": 0,
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 8,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 11,
+          "perseveration_count": 6,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.03959620855199142,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 1,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A0_RANDOM",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A0_RANDOM/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 8,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 11,
+        "perseveration_count": 6,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.03959620855199142,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 1,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-18",
+      "run_id": "A1_REACTIVE:seed-37",
+      "agent": {
+        "requested_agent_id": "A1_REACTIVE",
+        "instantiated_agent_class": "A1Reactive",
+        "architecture_id": "A1_REACTIVE",
+        "parameter_count": 170169,
+        "device": "cpu",
+        "initial_parameters_hash": "3f1575dd8f9dfb9f1d0fe1dd11fe3b7515192b3c6edc0708444bf1baf1be617e"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A1_REACTIVE",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A1_REACTIVE/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-19",
+      "run_id": "A2_GRU:seed-37",
+      "agent": {
+        "requested_agent_id": "A2_GRU",
+        "instantiated_agent_class": "A2GRUBaseline",
+        "architecture_id": "A2_GRU",
+        "parameter_count": 499385,
+        "device": "cpu",
+        "initial_parameters_hash": "e82eb0057bb6dd6c2b493b401e0f18aa47ffa292dd6fc7b2865b9dfe6690f577"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A2_GRU",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A2_GRU/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-20",
+      "run_id": "A3_WORLD_MODEL:seed-37",
+      "agent": {
+        "requested_agent_id": "A3_WORLD_MODEL",
+        "instantiated_agent_class": "A3WorldModel",
+        "architecture_id": "A3_WORLD_MODEL",
+        "parameter_count": 703675,
+        "device": "cpu",
+        "initial_parameters_hash": "2d1bc58993f13bcbcb73719a73fcc2791665eee1e34fe6734332fabfa2cf3e9b"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 1.9999965465068816,
+          "prediction_error_decay": -0.008647230448742157,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A3_WORLD_MODEL",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A3_WORLD_MODEL/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 1.9999965465068816,
+        "prediction_error_decay": -0.008647230448742157,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-21",
+      "run_id": "A4_ADVANCED:seed-37",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "29e67f8d7109f037ea1c0e2e3a2a50454afef4d9e9f9887ff90c4ba658099196"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 3.7631623957574374,
+          "prediction_error_decay": 0.02108710392847848,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_ADVANCED",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_ADVANCED/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 3.7631623957574374,
+        "prediction_error_decay": 0.02108710392847848,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-22",
+      "run_id": "A4_NO_MEMORY:seed-37",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1227968,
+        "device": "cpu",
+        "initial_parameters_hash": "29e67f8d7109f037ea1c0e2e3a2a50454afef4d9e9f9887ff90c4ba658099196"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 4.030647008419037,
+          "prediction_error_decay": -0.007250525817789181,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_MEMORY",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_MEMORY/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 4.030647008419037,
+        "prediction_error_decay": -0.007250525817789181,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-23",
+      "run_id": "A4_NO_PREDICTION:seed-37",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 950335,
+        "device": "cpu",
+        "initial_parameters_hash": "29e67f8d7109f037ea1c0e2e3a2a50454afef4d9e9f9887ff90c4ba658099196"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_PREDICTION",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_PREDICTION/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-24",
+      "run_id": "A4_NO_ONLINE_LEARNING:seed-37",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "29e67f8d7109f037ea1c0e2e3a2a50454afef4d9e9f9887ff90c4ba658099196"
+      },
+      "world": {
+        "world_seed": 37,
+        "world_spec_hash": "4f640e2cfa301a4cc9aea50b956974870174720ec7ca3f563776199d202e302f",
+        "change_step": 439
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 0,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 0,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": null,
+          "prediction_error_spike": 3.8254741954803464,
+          "prediction_error_decay": 0.024774387118124613,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_ONLINE_LEARNING",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 0,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_ONLINE_LEARNING/seed_00000037/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 0,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 0,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": null,
+        "prediction_error_spike": 3.8254741954803464,
+        "prediction_error_decay": 0.024774387118124613,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-25",
+      "run_id": "A0_RANDOM:seed-53",
+      "agent": {
+        "requested_agent_id": "A0_RANDOM",
+        "instantiated_agent_class": "A0Random",
+        "architecture_id": "A0_RANDOM",
+        "parameter_count": 0,
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 4,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 2,
+          "perseveration_count": 0,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 5,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A0_RANDOM",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 967,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A0_RANDOM/seed_00000053/primary/checkpoints/step_00000967",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 4,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 2,
+        "perseveration_count": 0,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 5,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-26",
+      "run_id": "A1_REACTIVE:seed-53",
+      "agent": {
+        "requested_agent_id": "A1_REACTIVE",
+        "instantiated_agent_class": "A1Reactive",
+        "architecture_id": "A1_REACTIVE",
+        "parameter_count": 170169,
+        "device": "cpu",
+        "initial_parameters_hash": "6fca7a92c3512fd66da77ef5ffa0ea38a5b0595812225f964542334f336d396b"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": "episode_ended_before_recovery_window",
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A1_REACTIVE",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 634,
+        "gradient_steps": 634,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A1_REACTIVE/seed_00000053/primary/checkpoints/step_00000634",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-27",
+      "run_id": "A2_GRU:seed-53",
+      "agent": {
+        "requested_agent_id": "A2_GRU",
+        "instantiated_agent_class": "A2GRUBaseline",
+        "architecture_id": "A2_GRU",
+        "parameter_count": 499385,
+        "device": "cpu",
+        "initial_parameters_hash": "2fdb1e90bf819979142404c9af81ecda9d8ddedd3550b3d4a106b1cd0d2275fe"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A2_GRU",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 1000,
+        "gradient_steps": 1000,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A2_GRU/seed_00000053/primary/checkpoints/step_00001000",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-28",
+      "run_id": "A3_WORLD_MODEL:seed-53",
+      "agent": {
+        "requested_agent_id": "A3_WORLD_MODEL",
+        "instantiated_agent_class": "A3WorldModel",
+        "architecture_id": "A3_WORLD_MODEL",
+        "parameter_count": 703675,
+        "device": "cpu",
+        "initial_parameters_hash": "555a0ad681a3d17205089dbe92e901279e6644e98d0b6059943e4b397a00ea61"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "NOT_LEARNED_PRE_CHANGE",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": null,
+          "pre_change_status": "INSUFFICIENT_EVIDENCE",
+          "pre_change_opportunities": 1,
+          "post_change_drop": null,
+          "post_change_status": "INSUFFICIENT_EVIDENCE",
+          "post_change_opportunities": 5,
+          "perseveration_count": 5,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 0.9908992859080434,
+          "prediction_error_decay": 0.00044011215141879655,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A3_WORLD_MODEL",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 750,
+        "gradient_steps": 750,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A3_WORLD_MODEL/seed_00000053/primary/checkpoints/step_00000750",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": null,
+        "pre_change_status": "INSUFFICIENT_EVIDENCE",
+        "pre_change_opportunities": 1,
+        "post_change_drop": null,
+        "post_change_status": "INSUFFICIENT_EVIDENCE",
+        "post_change_opportunities": 5,
+        "perseveration_count": 5,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 0.9908992859080434,
+        "prediction_error_decay": 0.00044011215141879655,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-29",
+      "run_id": "A4_ADVANCED:seed-53",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "e8e57627a509b28dd97b0ddbc29c39829562ae0b41d8763ebe6efbd31694bf46"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 3.077824734449387,
+          "prediction_error_decay": 0.0031594294145466245,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_ADVANCED",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 897,
+        "gradient_steps": 897,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_ADVANCED/seed_00000053/primary/checkpoints/step_00000897",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 3.077824734449387,
+        "prediction_error_decay": 0.0031594294145466245,
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-30",
+      "run_id": "A4_NO_MEMORY:seed-53",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1227968,
+        "device": "cpu",
+        "initial_parameters_hash": "e8e57627a509b28dd97b0ddbc29c39829562ae0b41d8763ebe6efbd31694bf46"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 3.104470510482788,
+          "prediction_error_decay": 0.01813107799801103,
+          "transfer_score": 0.0,
+          "transfer_opportunities": 57,
+          "transfer_status": "VALID"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_MEMORY",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 897,
+        "gradient_steps": 897,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_MEMORY/seed_00000053/primary/checkpoints/step_00000897",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 3.104470510482788,
+        "prediction_error_decay": 0.01813107799801103,
+        "transfer_score": 0.0,
+        "transfer_opportunities": 57,
+        "transfer_status": "VALID"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-31",
+      "run_id": "A4_NO_PREDICTION:seed-53",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 950335,
+        "device": "cpu",
+        "initial_parameters_hash": "e8e57627a509b28dd97b0ddbc29c39829562ae0b41d8763ebe6efbd31694bf46"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": "NOT_APPLICABLE",
+          "prediction_error_decay": "NOT_APPLICABLE",
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_PREDICTION",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 900,
+        "gradient_steps": 900,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_PREDICTION/seed_00000053/primary/checkpoints/step_00000900",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": "NOT_APPLICABLE",
+        "prediction_error_decay": "NOT_APPLICABLE",
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    },
+    {
+      "catalog_id": "H-ADAPT-001-PILOT-32",
+      "run_id": "A4_NO_ONLINE_LEARNING:seed-53",
+      "agent": {
+        "requested_agent_id": "A4_ADVANCED",
+        "instantiated_agent_class": "A4Advanced",
+        "architecture_id": "A4_ADVANCED",
+        "parameter_count": 1351617,
+        "device": "cpu",
+        "initial_parameters_hash": "e8e57627a509b28dd97b0ddbc29c39829562ae0b41d8763ebe6efbd31694bf46"
+      },
+      "world": {
+        "world_seed": 53,
+        "world_spec_hash": "3d610621bb96183156bcd594f023e7f516435f7e8bd2e7aa59a1369cdd0edcd5",
+        "change_step": 450
+      },
+      "configuration": {
+        "protocol_hash": "f15f29b85ddb70636b219060d399e83be3201c3856d129caa154014638923027",
+        "code_hash": "79d5c6b25a3d12ecc1b704ef3891b222bb7c3246",
+        "phase": "pilot",
+        "device": "cpu"
+      },
+      "result": {
+        "classification": "FAILED_TO_RECOVER",
+        "invalid_reason": null,
+        "metrics": {
+          "pre_change_competence": 1.0,
+          "pre_change_status": "VALID",
+          "pre_change_opportunities": 100,
+          "post_change_drop": 1.0,
+          "post_change_status": "VALID",
+          "post_change_opportunities": 100,
+          "perseveration_count": 100,
+          "recovery_latency": "INSUFFICIENT_EVIDENCE",
+          "recovered_competence": null,
+          "exploration_shift": 0.0,
+          "prediction_error_spike": 3.0709716892242422,
+          "prediction_error_decay": 0.033056722315374196,
+          "transfer_score": null,
+          "transfer_opportunities": 0,
+          "transfer_status": "INSUFFICIENT_EVIDENCE"
+        },
+        "numerical_health": {
+          "finite_parameters": true,
+          "finite_memory": true,
+          "nonfinite_learning_events": 0,
+          "aborted": false
+        }
+      },
+      "controls": {
+        "variant_id": "A4_NO_ONLINE_LEARNING",
+        "transfer_parameters_unchanged": true,
+        "transfer_adaptive_state_unchanged": true
+      },
+      "learning_accounting": {
+        "updates": 0,
+        "gradient_steps": 0,
+        "internal_state_sequence_recorded": false
+      },
+      "available_references": {
+        "source_file": "runs/h_adapt_001_pilot_clean/h_adapt_001_pilot_results.json",
+        "source_sha256": "bf765f220f153b03b485b5adf700570472a64a4f80ba06ba63afcd39625baf73",
+        "checkpoint_ref": "runs/h_adapt_001_pilot_clean/h_adapt_001/A4_NO_ONLINE_LEARNING/seed_00000053/primary/checkpoints/step_00000887",
+        "event_streams_local_only": [
+          "sensation.parquet",
+          "transition.parquet",
+          "consequence.parquet",
+          "world.parquet",
+          "provenance.parquet"
+        ]
+      },
+      "declared_evidence": {
+        "pre_change_competence": 1.0,
+        "pre_change_status": "VALID",
+        "pre_change_opportunities": 100,
+        "post_change_drop": 1.0,
+        "post_change_status": "VALID",
+        "post_change_opportunities": 100,
+        "perseveration_count": 100,
+        "recovery_latency": "INSUFFICIENT_EVIDENCE",
+        "recovered_competence": null,
+        "exploration_shift": 0.0,
+        "prediction_error_spike": 3.0709716892242422,
+        "prediction_error_decay": 0.033056722315374196,
+        "transfer_score": null,
+        "transfer_opportunities": 0,
+        "transfer_status": "INSUFFICIENT_EVIDENCE"
+      },
+      "unknown": {
+        "raw_observation_vector": "not recorded in public result",
+        "per_step_parameter_delta": "not recorded",
+        "execution_id": "not recorded"
+      }
+    }
+  ]
+}
