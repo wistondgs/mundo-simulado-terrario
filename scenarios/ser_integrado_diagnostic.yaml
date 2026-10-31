@@ -1,0 +1,37 @@
+scenario:
+  name: "ser_integrado_diagnostic"
+  description: "Dos consecuencias perceptiblemente distinguibles para el organismo A6."
+  grid_size: [5, 5]
+  duration: 32
+  seed: 26010301
+  view_radius: 2
+  num_channels: 4
+  objects:
+    - pos: [2, 1]
+      channels: [0.9, 0.1, 0.0, 0.0]
+      movable: false
+      energy_value: 3.0
+    - pos: [2, 3]
+      channels: [0.1, 0.9, 0.0, 0.0]
+      movable: false
+      energy_value: -2.0
+  agent_start:
+    pos: [2, 2]
+    energy: 20.0
+  rules:
+    rules:
+      - id: "consume_left_positive"
+        condition:
+          object_channel: {index: 0, min: 0.7}
+          action: "CONSUME"
+        effect:
+          energy_delta: 3.0
+          destroy_object: false
+      - id: "consume_right_negative"
+        condition:
+          object_channel: {index: 1, min: 0.7}
+          action: "CONSUME"
+        effect:
+          energy_delta: -2.0
+          destroy_object: false
+  changes: []

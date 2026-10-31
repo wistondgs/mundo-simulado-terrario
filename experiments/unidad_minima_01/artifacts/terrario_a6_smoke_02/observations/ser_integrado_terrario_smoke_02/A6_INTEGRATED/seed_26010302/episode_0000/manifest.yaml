@@ -1,0 +1,20 @@
+config:
+  agent_identity:
+    architecture_id: A6_INTEGRATED
+    device: cpu
+    initial_parameters_hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    instantiated_agent_class: A6Integrated
+    parameter_count: 0
+    requested_agent_id: A6_INTEGRATED
+  code_hash: d643be18b2d23b86f934747ad27868770d98e94e
+  config_hash: 5e23d226f1df033b33b9d6f7c4eaa74d1504dec6114941db6f1a23e2bbfbc1bb
+  device: cpu
+  experiment_id: ser_integrado_terrario_smoke_02
+  hypothesis_id: A6-INTEGRATION-SMOKE-02
+  seed: 26010302
+created_at: 1793419889.7791321
+mode: scientific_standard
+storage_backend:
+  checkpoints: npz
+  events: jsonl
+  tensors: npz

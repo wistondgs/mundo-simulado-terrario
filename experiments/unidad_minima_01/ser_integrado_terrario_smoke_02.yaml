@@ -1,0 +1,25 @@
+experiment:
+  experiment_id: "ser_integrado_terrario_smoke_02"
+  hypothesis:
+    hypothesis_id: "A6-INTEGRATION-SMOKE-02"
+    claim: "Un único núcleo de Ser Integrado recibe las transiciones observables de Terrario y actualiza los contratos 1.6, 1.7 y L19 sin acceso a verdad mundial."
+    participants: ["A6_INTEGRATED"]
+    predicted_effect: "La traza final muestra 8 actualizaciones temporales congeladas, 24 contingentes y 32 predictivas."
+    world_pressure: "Dos consecuencias de consumo opuestas; la regla no se entrega al agente."
+    controls: ["integridad hash", "codec sólo perceptual", "frontera temporal-congelamiento-contingencia"]
+    ablations: []
+    evidence_required: ["transition.jsonl", "estado interno final", "identidad de agente"]
+  scenario_path: "scenarios/ser_integrado_diagnostic.yaml"
+  agent_types: ["A6_INTEGRATED"]
+  agent_config:
+    organism_id: "a6-smoke-02-organism"
+    lineage_id: "a6-smoke-02-lineage"
+    n_max: 8
+    temporal_freeze_after: 8
+  seeds: [26010302]
+  num_episodes: 1
+  max_steps_per_episode: 32
+  observer_mode: "scientific_standard"
+  checkpoint_every: 8
+  output_dir: "experiments/unidad_minima_01/artifacts/terrario_a6_smoke_02"
+  device: "cpu"

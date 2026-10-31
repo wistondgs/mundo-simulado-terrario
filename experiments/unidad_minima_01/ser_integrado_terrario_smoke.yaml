@@ -1,0 +1,24 @@
+experiment:
+  experiment_id: "ser_integrado_terrario_smoke_01"
+  hypothesis:
+    hypothesis_id: "A6-INTEGRATION-SMOKE"
+    claim: "El mismo núcleo de Ser Integrado completa ciclos percibir-decidír-actuar-aprender trazados por Terrario."
+    participants: ["A6_INTEGRATED"]
+    predicted_effect: "Cada paso registra acción, consecuencia y actualización del núcleo compartido."
+    world_pressure: "Dos consecuencias de consumo opuestas; no se entrega la regla al agente."
+    controls: ["integridad de traza", "separación observación/verdad"]
+    ablations: []
+    evidence_required: ["traza de observer", "traza interna A6"]
+  scenario_path: "scenarios/ser_integrado_diagnostic.yaml"
+  agent_types: ["A6_INTEGRATED"]
+  agent_config:
+    organism_id: "a6-smoke-organism"
+    lineage_id: "a6-smoke-lineage"
+    n_max: 8
+  seeds: [26010301]
+  num_episodes: 1
+  max_steps_per_episode: 32
+  observer_mode: "scientific_standard"
+  checkpoint_every: 8
+  output_dir: "experiments/unidad_minima_01/artifacts/terrario_a6_smoke"
+  device: "cpu"

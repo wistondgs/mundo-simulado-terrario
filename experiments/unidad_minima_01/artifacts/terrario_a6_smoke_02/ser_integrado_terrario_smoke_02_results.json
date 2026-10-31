@@ -1,0 +1,64 @@
+{
+  "experiment_id": "ser_integrado_terrario_smoke_02",
+  "config_hash": "5e23d226f1df033b33b9d6f7c4eaa74d1504dec6114941db6f1a23e2bbfbc1bb",
+  "code_hash": "d643be18b2d23b86f934747ad27868770d98e94e",
+  "episodes": [
+    {
+      "agent_type": "A6_INTEGRATED",
+      "seed": 26010302,
+      "episode_idx": 0,
+      "metrics": {
+        "final_energy": 31.0,
+        "mean_energy": 25.4375,
+        "acquisition_rate": 0.3497067448680352,
+        "prediction_errors": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "num_steps": 32,
+        "efficiency": 0.96875
+      },
+      "num_steps": 32,
+      "final_energy": 31.0,
+      "agent_identity": {
+        "requested_agent_id": "A6_INTEGRATED",
+        "instantiated_agent_class": "A6Integrated",
+        "architecture_id": "A6_INTEGRATED",
+        "parameter_count": 0,
+        "device": "cpu",
+        "initial_parameters_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "observer_run_dir": "experiments/unidad_minima_01/artifacts/terrario_a6_smoke_02/observations/ser_integrado_terrario_smoke_02/A6_INTEGRATED/seed_26010302/episode_0000"
+    }
+  ]
+}
