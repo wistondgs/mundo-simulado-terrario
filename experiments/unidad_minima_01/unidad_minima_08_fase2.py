@@ -83,8 +83,18 @@ class UnidadFase2(Unidad):
     sólo la ventana. Misma ventana en las seis celdas.
     """
 
+    def __init__(self, n_max=4, *, presupuesto=None, ventana=None, nucleo=None):
+        super().__init__(n_max=n_max)
+        # Defaults preserve the frozen historical 08/09 contract. C04 passes
+        # its values explicitly per organism; no module global is changed.
+        self.presupuesto_efectivo = PRESUPUESTO_PASOS if presupuesto is None else int(presupuesto)
+        self.ventana_efectiva = VENTANA if ventana is None else int(ventana)
+        self.nucleo_efectivo = NUCLEO if nucleo is None else int(nucleo)
+        if min(self.presupuesto_efectivo, self.ventana_efectiva, self.nucleo_efectivo) <= 0:
+            raise ValueError("parámetros de olvido deben ser positivos")
+
     def leer(self, a, o):
-        while len(self.trace) >= VENTANA:
+        while len(self.trace) >= self.ventana_efectiva:
             self.trace.pop(0)
             for cp in self.choices:
                 cp[0] -= 1
@@ -107,7 +117,7 @@ class UnidadFase2(Unidad):
         sobre ellos. Es el disparador de 03 («no explico mi memoria») llevado a su
         consecuencia: lo que no se puede explicar junto, se suelta."""
         self.c["olvidos"] += 1
-        nucleo = self.trace[-NUCLEO:]
+        nucleo = self.trace[-self.nucleo_efectivo:]
         self.trace, self.trans, self.choices, self.q, self.n, self.used = [], {}, [], 0, 1, 1
         self._intento = 0
         try:
@@ -123,7 +133,7 @@ class UnidadFase2(Unidad):
     def _avanzar(self, i, a, o):
         self.c["pasos_avanzados"] += 1
         self._intento = getattr(self, "_intento", 0) + 1
-        if self._intento > PRESUPUESTO_PASOS:
+        if self._intento > self.presupuesto_efectivo:
             raise PresupuestoAgotado()
         return Unidad._avanzar(self, i, a, o)
 
