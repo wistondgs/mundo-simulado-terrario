@@ -25,3 +25,18 @@ L16/L17/L18/L19 pasaron; `test_l17_0_pasa_sobre_el_arbol_real` falló porque su
 guarda exige que no exista un directorio `level18`. Es una incompatibilidad de
 linaje declarada; no se corrigió el artefacto histórico ni se usó como evidencia
 de transferencia a A6.
+
+Recuperación de fuentes sin alterar sus worktrees originales:
+
+* C01 / PRIMITIVO, `d2824ba18f3c83003635fdb10304f08d002a76ec`: 93 contratos
+  N10 verdes. `N10_SCIENTIFIC_CLOSURE_V1.md` conserva el resultado confirmatorio
+  `NEW_DF_DETECTED`, pero también `EVIDENCE_BUNDLE_COMPLETE = NO`: faltan las
+  filas primitivas por decisión, los gates de paridad no distinguen secuencias y
+  la lesión B equivale estructuralmente al naive. Por tanto es evidencia
+  confirmatoria estrecha de la correspondencia historia--acción de U1; no es un
+  órgano transferible demostrado para A6.
+* C02 / fusión remembered-binding, `02d5c4365c54597072689f331f7dc5696d85e97f`:
+  70 contratos de binding/fusión verdes. El factorial histórico de M×ψ es
+  verificable dentro de su tarea, con ψ sin M nulo. Su núcleo y alfabeto no son
+  los de Unidad Mínima; se conserva como capacidad separada, no se injerta ni se
+  cuenta como una capacidad integrada de C04.
