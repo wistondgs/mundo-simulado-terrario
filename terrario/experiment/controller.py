@@ -123,10 +123,17 @@ class ExperimentController:
             action_t = agent.decide()
             change_events = scheduler.check(world_state_mgr, step=step)  # PRE_STEP convention
             consequences = physics.step(world_state_mgr, {0: action_t}, RNGManager(seed + step))
+            consequence = consequences.get(0, Consequence(energy_delta=0.0, events=[]))
             target = self._find_target(world_state_mgr, 0, action_t)
-            effects = rule_engine.evaluate(world_state_mgr, 0, action_t, target)
-            energy_delta = rule_engine.apply_effects(world_state_mgr, 0, target.object_id, effects) if target else 0.0
-            consequence = consequences.get(0, Consequence(energy_delta=energy_delta, events=[]))
+            # The rule engine may only see the target that Physics accepted.
+            # In particular, an explicit remote target must not receive hidden
+            # rule effects after Physics rejected the consume request.
+            accepted_target = (
+                target is not None
+                and f"consume_pending_obj_{target.object_id}" in consequence.observer_events
+            )
+            effects = rule_engine.evaluate(world_state_mgr, 0, action_t, target if accepted_target else None)
+            energy_delta = rule_engine.apply_effects(world_state_mgr, 0, target.object_id, effects) if accepted_target else 0.0
             consequence.energy_delta = energy_delta
             observation_t1 = world_state_mgr.get_observation(0, view_radius, num_channels)
             terminated = not world_state_mgr._mutable_state().agents[0].alive
@@ -153,7 +160,8 @@ class ExperimentController:
             trace = {
                 "step": step, "action": action_t.to_int(), "energy": truth.agents[0].energy,
                 "events": consequence.events, "observer_events": consequence.observer_events,
-                "prediction_error": getattr(agent, "last_prediction_error", 0.0),
+                "prediction_error": getattr(agent, "last_prediction_error", None),
+                "prediction_measurement_status": getattr(agent, "prediction_measurement_status", "NOT_MEASURED"),
                 "state_hash": truth.state_hash(),
                 "rule_changes": [{"step": e.step, "old_version": e.old_version, "new_version": e.new_version} for e in change_events],
             }

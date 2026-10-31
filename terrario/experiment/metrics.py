@@ -80,11 +80,12 @@ class MetricsCalculator:
 
     @staticmethod
     def prediction_error_history(traces: list[dict]) -> list[float]:
-        """Extract prediction error over time from observer traces."""
+        """Extract only actually measured pre-outcome prediction errors."""
         errors = []
         for trace in traces:
-            pe = trace.get("prediction_error", 0.0)
-            errors.append(float(pe))
+            pe = trace.get("prediction_error")
+            if pe is not None:
+                errors.append(float(pe))
         return errors
 
     @staticmethod
@@ -142,11 +143,21 @@ class MetricsCalculator:
         compute_cost = episode_data.get("compute_cost", 1.0)
         num_steps = episode_data.get("num_steps", len(energy_history))
 
+        energy_slope = MetricsCalculator.acquisition_rate(energy_history)
+        prediction_errors = MetricsCalculator.prediction_error_history(traces)
         metrics = {
             "final_energy": final_energy,
             "mean_energy": float(np.mean(energy_history)) if energy_history else 0.0,
-            "acquisition_rate": MetricsCalculator.acquisition_rate(energy_history),
-            "prediction_errors": MetricsCalculator.prediction_error_history(traces),
+            # Energy trend is an outcome of this episode, not evidence that a
+            # learned mechanism acquired a capability. It remains for legacy
+            # consumers under the old name, explicitly marked below.
+            "acquisition_rate": energy_slope,
+            "energy_slope": energy_slope,
+            "learning_acquisition_rate": {"status": "NOT_MEASURED", "reason": "requires a preregistered learning contrast"},
+            "prediction_errors": prediction_errors if prediction_errors else None,
+            "prediction_measurement": (
+                "MEASURED_PRE_OUTCOME" if prediction_errors else "NOT_MEASURED"
+            ),
             "num_steps": num_steps,
         }
 
