@@ -205,8 +205,12 @@ class ExperimentController:
     def _save_results(self) -> None:
         os.makedirs(self.config.output_dir, exist_ok=True)
         path = os.path.join(self.config.output_dir, f"{self.config.experiment_id}_results.json")
-        with open(path, "w") as f:
+        temporary = f"{path}.tmp"
+        with open(temporary, "w") as f:
             json.dump(self.results, f, indent=2, default=lambda x: float(x) if isinstance(x, (np.floating, np.integer)) else str(x))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, path)
 
     @staticmethod
     def _code_hash() -> str:

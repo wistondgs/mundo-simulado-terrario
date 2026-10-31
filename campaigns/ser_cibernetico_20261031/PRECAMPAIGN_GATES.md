@@ -40,3 +40,21 @@ Recuperación de fuentes sin alterar sus worktrees originales:
   verificable dentro de su tarea, con ψ sin M nulo. Su núcleo y alfabeto no son
   los de Unidad Mínima; se conserva como capacidad separada, no se injerta ni se
   cuenta como una capacidad integrada de C04.
+
+## Recuperación ante corte eléctrico
+
+La envoltura `run_resumable_canonical.py` usa el `ExperimentController` vigente;
+no abre un segundo runtime. Antes de una corrida autorizada se inicia en un
+proceso separado con un `status-dir` vacío. Cada par agente×semilla×episodio
+queda en una unidad con directorio de intento propio y registro JSON atómico.
+Una unidad `COMPLETED` sólo se acepta si conserva SHA de su resultado, SHA de
+código y hash de la configuración madre; al relanzar se salta. Una unidad en
+`RUNNING`/`INTERRUPTED` se conserva y se reintenta en otro directorio, por lo
+que jamás se anexan trazas nuevas al fragmento de un intento cortado.
+
+El resultado JSON global del controlador también se publica mediante reemplazo
+atómico. Los checkpoints de observer siguen disponibles dentro de cada intento.
+Esto recupera la campaña por unidad y preserva el fragmento de la unidad
+interrumpida. **No afirma reanudar dentro de una vida:** restaurar exactamente
+una transición requerirá congelar primero el protocolo de restauración conjunta
+de mundo, RNG y agente; no se introduce esa semántica sin ficha.
